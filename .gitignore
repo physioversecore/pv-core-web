@@ -38,6 +38,8 @@ Thumbs.db
 
 #Agents
 AGENTS.md
+.agents/
+skills-lock.json
 
 #Landing Page Design
 landing_redesigned.html

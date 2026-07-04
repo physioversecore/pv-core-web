@@ -69,15 +69,31 @@ src/
       admin/               # Admin dashboard (6 pages)
       patient/             # Patient dashboard (8 pages)
       therapist/           # Therapist dashboard (7 pages)
+    about/                 # About page
+    app/                   # App download page
+    blog/                  # Blog page
+    contact/               # Contact page
+    faq/                   # FAQ page
+    find/                  # Find a therapist page
+    how-it-works/          # How it works page
+    services/              # Services page
+    testimonials/          # Testimonials page
+    therapists/            # Therapists page
     layout.tsx             # Root layout (fonts, providers)
-    page.tsx               # Landing page
+    page.tsx               # Landing page (hero, features, CTA)
     globals.css            # Tailwind v4 + theme
   components/
+    SiteHeader.tsx         # Public site header
+    SiteFooter.tsx         # Public site footer
+    PageShell.tsx          # Public page wrapper
     DashboardShell.tsx     # Sidebar + header layout
     AuthModal.tsx          # Login/signup
     CartDrawer.tsx         # Shopping cart
     BookingModal.tsx       # Session booking
     Avatar.tsx             # Initials avatar
+    TherapistCard.tsx      # Therapist listing card
+    NotificationBell.tsx   # Notification indicator
+    Reveal.tsx             # Scroll animation + CountUp
     ui/                    # shadcn/ui primitives
   lib/
     auth.tsx               # Auth (localStorage)
