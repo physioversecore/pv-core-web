@@ -2,7 +2,7 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { Avatar } from "./Avatar";
 import { npr } from "@/lib/cart";
-import { type Therapist, formatDate } from "@/lib/mock";
+import { type Therapist, formatDate } from "@/lib/types";
 import { toast } from "sonner";
 
 const TIMES = ["08:00", "10:00", "12:00", "14:00", "16:00", "18:00"];

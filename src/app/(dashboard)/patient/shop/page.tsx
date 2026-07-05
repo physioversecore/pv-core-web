@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { PRODUCTS, type Product } from "@/lib/mock";
+import { useQuery } from "@tanstack/react-query";
 import { useCart, npr } from "@/lib/cart";
+import { getProducts } from "@/lib/actions/products";
+import type { Product } from "@/lib/types";
 
 const TABS = [
   { id: "equipment", label: "Equipment" },
@@ -12,7 +14,22 @@ const TABS = [
 
 export default function Shop() {
   const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("equipment");
-  const items = PRODUCTS.filter((p) => p.category === tab);
+
+  const { data } = useQuery({
+    queryKey: ["products", tab],
+    queryFn: () => getProducts(tab),
+  });
+
+  const items: Product[] = (data?.products ?? []).map((p) => ({
+    id: p.id,
+    name: p.name,
+    category: p.category.toLowerCase() as Product["category"],
+    description: p.description ?? "",
+    price: p.price,
+    rentPerDay: p.rentPerDay || undefined,
+    inStock: p.inStock === 1,
+    emoji: p.emoji,
+  }));
 
   return (
     <div>
@@ -56,7 +73,7 @@ function ProductCard({ p }: { p: Product }) {
 
       <button
         disabled={!p.inStock}
-        onClick={() => add({ id: p.id, name: p.name, type: mode === "rent" ? "rent" : p.category === "equipment" ? "buy" : p.category, price, image: p.emoji })}
+        onClick={() => add({ productId: p.id, name: p.name, type: mode === "rent" ? "rent" : p.category === "equipment" ? "buy" : p.category === "medicine" ? "medicine" : "nutrition", price, image: p.emoji })}
         className="btn-primary !py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
       >
         Add to cart

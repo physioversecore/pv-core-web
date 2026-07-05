@@ -7,6 +7,7 @@ import {
   Activity, Brain, HeartPulse, Baby, MessageCircle, Bell,
   FileText, Smartphone,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { AuthModal } from "@/components/AuthModal";
 import { BookingModal } from "@/components/BookingModal";
 import { TherapistCard } from "@/components/TherapistCard";
@@ -16,7 +17,9 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { useAuth } from "@/lib/auth";
 import { npr } from "@/lib/cart";
-import { THERAPISTS, CITIES, SPECIALTIES, type Therapist } from "@/lib/mock";
+import { CITIES, SPECIALTIES } from "@/lib/constants";
+import type { Therapist } from "@/lib/types";
+import { getTherapists } from "@/lib/actions/therapists";
 
 export default function Landing() {
   const [auth, setAuth] = useState<null | "login" | "signup">(null);
@@ -28,16 +31,26 @@ export default function Landing() {
   const { user } = useAuth();
   const router = useRouter();
 
+  const { data: therapistsData } = useQuery({
+    queryKey: ["therapists"],
+    queryFn: () => getTherapists(),
+  });
+
+  const therapists: Therapist[] = (therapistsData?.therapists ?? []).map((t) => ({
+    ...t,
+    gender: t.gender as "Male" | "Female",
+  }));
+
   const filtered = useMemo(
     () =>
-      THERAPISTS.filter(
+      therapists.filter(
         (t) =>
           (!q || t.name.toLowerCase().includes(q.toLowerCase()) || t.specialty.toLowerCase().includes(q.toLowerCase())) &&
           (!city || t.city === city) &&
           (!spec || t.specialty === spec) &&
           (!gender || t.gender === gender),
       ),
-    [q, city, spec, gender],
+    [q, city, spec, gender, therapists],
   );
 
   const handleBook = (t: Therapist) => {
@@ -45,7 +58,7 @@ export default function Landing() {
     setBooking(t);
   };
 
-  const featured = THERAPISTS.slice(0, 3);
+  const featured = therapists.slice(0, 3);
   const gradients = [
     "linear-gradient(135deg, #2F5D50 0%, #3F7965 100%)",
     "linear-gradient(135deg, #E2962F 0%, #F4C778 100%)",
@@ -117,7 +130,7 @@ export default function Landing() {
                 <div className="text-xs text-white/60">Kathmandu Valley</div>
               </div>
               <div className="space-y-3">
-                {THERAPISTS.slice(0, 3).map((t) => (
+                {therapists.slice(0, 3).map((t) => (
                   <div key={t.id} className="flex items-center gap-3 p-3 rounded-xl border border-white/10" style={{ background: "rgba(255,255,255,0.06)" }}>
                     <Avatar name={t.name} size={42} />
                     <div className="flex-1 min-w-0">

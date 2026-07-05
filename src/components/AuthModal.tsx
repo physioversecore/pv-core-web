@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { X, Eye, EyeOff, Stethoscope, HeartPulse } from "lucide-react";
 import { useAuth, type Role } from "@/lib/auth";
-import { CITIES, SPECIALTIES } from "@/lib/mock";
+import { CITIES, SPECIALTIES } from "@/lib/constants";
 import { toast } from "sonner";
 
 type Mode = "login" | "signup";
@@ -32,35 +32,48 @@ export function AuthModal({
 
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.email || !form.password) return toast.error("Email and password required");
-    const u = login(form.email, form.password, loginRole);
-    toast.success(`Welcome, ${u.name}`);
-    onClose();
-    router.push(loginRole === "patient" ? "/patient" : loginRole === "therapist" ? "/therapist" : "/admin");
+    try {
+      const u = await login(form.email, form.password, loginRole);
+      toast.success(`Welcome, ${u.name}`);
+      onClose();
+      router.push(loginRole === "patient" ? "/patient" : loginRole === "therapist" ? "/therapist" : "/admin");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Login failed");
+    }
   };
 
-  const handlePatientSignup = (e: React.FormEvent) => {
+  const handlePatientSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.first || !form.email || !form.phone || !form.city || !form.password) return toast.error("Please fill all fields");
     if (form.password !== form.confirm) return toast.error("Passwords don't match");
     if (!form.terms) return toast.error("Please accept terms");
-    signupPatient({ name: `${form.first} ${form.last ?? ""}`.trim(), email: form.email, phone: form.phone, city: form.city });
-    setSubmitted("patient-ok");
+    try {
+      await signupPatient({ name: `${form.first} ${form.last ?? ""}`.trim(), email: form.email, password: form.password, phone: form.phone, city: form.city });
+      setSubmitted("patient-ok");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Signup failed");
+    }
   };
 
-  const handleTherapistSignup = (e: React.FormEvent) => {
+  const handleTherapistSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.first || !form.email || !form.specialty || !form.license) return toast.error("Please fill required fields");
-    signupTherapist({
-      name: `${form.first} ${form.last ?? ""}`.trim(),
-      email: form.email,
-      phone: form.phone,
-      city: form.city ?? "Kathmandu",
-      specialty: form.specialty,
-    });
-    setSubmitted("therapist-ok");
+    try {
+      await signupTherapist({
+        name: `${form.first} ${form.last ?? ""}`.trim(),
+        email: form.email,
+        password: form.password ?? "password123",
+        phone: form.phone,
+        city: form.city ?? "Kathmandu",
+        specialty: form.specialty,
+      });
+      setSubmitted("therapist-ok");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Signup failed");
+    }
   };
 
   const onSuccessGo = (role: Role) => {

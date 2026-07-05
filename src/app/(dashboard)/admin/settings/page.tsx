@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CITIES, SPECIALTIES } from "@/lib/mock";
+import { CITIES, SPECIALTIES } from "@/lib/constants";
 import { toast } from "sonner";
 import { X } from "lucide-react";
 

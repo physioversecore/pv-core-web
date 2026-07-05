@@ -1,11 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { MOCK_SESSIONS } from "@/lib/mock";
+import { useQuery } from "@tanstack/react-query";
+import { getSessions } from "@/lib/actions/sessions";
 import { toast } from "sonner";
 
 export default function ReportsUpload() {
   const [form, setForm] = useState({ patient: "", date: "", notes: "", exercises: "", file: "" });
+
+  const { data: sessionsData } = useQuery({
+    queryKey: ["sessions"],
+    queryFn: () => getSessions(),
+  });
+
+  const patientNames = [...new Set((sessionsData?.sessions ?? []).map((s) => s.patientId))];
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +29,7 @@ export default function ReportsUpload() {
           <label className="text-xs font-medium text-slate">Patient</label>
           <select value={form.patient} onChange={(e) => setForm({ ...form, patient: e.target.value })} className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white">
             <option value="">Select patient…</option>
-            {[...new Set(MOCK_SESSIONS.map((s) => s.patient!))].map((p) => <option key={p}>{p}</option>)}
+            {patientNames.map((p) => <option key={p}>{p}</option>)}
           </select>
         </div>
         <div>
