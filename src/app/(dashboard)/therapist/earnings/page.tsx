@@ -23,8 +23,8 @@ export default function Earnings() {
 
   return (
     <>
-      <div className="flex gap-1 p-1 bg-sage rounded-full mb-5 w-fit">
-        {TABS.map((t) => <button key={t} onClick={() => setTab(t)} className={`px-4 py-1.5 rounded-full text-sm font-medium ${tab === t ? "bg-white text-pine shadow-sm" : "text-slate"}`}>{t}</button>)}
+      <div className="flex gap-1 p-1 bg-surface rounded-full mb-5 w-fit">
+        {TABS.map((t) => <button key={t} onClick={() => setTab(t)} className={`px-4 py-1.5 rounded-full text-sm font-medium ${tab === t ? "bg-white text-secondary shadow-sm" : "text-text-light"}`}>{t}</button>)}
       </div>
 
       <div className="grid sm:grid-cols-4 gap-4 mb-5">
@@ -44,19 +44,19 @@ export default function Earnings() {
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="text-xs uppercase tracking-wider font-mono text-slate text-left border-b border-border">
+            <thead className="text-xs uppercase tracking-wider font-mono text-text-light text-left border-b border-border">
               <tr><th className="py-2 pr-3">Date</th><th className="py-2 pr-3">Reference</th><th className="py-2 pr-3">Method</th><th className="py-2 pr-3">Account</th><th className="py-2 pr-3 text-right">Amount</th><th className="py-2 pr-3">Status</th></tr>
             </thead>
             <tbody className="divide-y divide-border">
               {PAYOUTS.map((p) => (
                 <tr key={p.ref}>
-                  <td className="py-3 pr-3 text-slate">{p.date}</td>
-                  <td className="py-3 pr-3 font-mono text-xs text-pine">{p.ref}</td>
+                  <td className="py-3 pr-3 text-text-light">{p.date}</td>
+                  <td className="py-3 pr-3 font-mono text-xs text-secondary">{p.ref}</td>
                   <td className="py-3 pr-3">{p.method}</td>
-                  <td className="py-3 pr-3 font-mono text-xs text-slate">{p.account}</td>
+                  <td className="py-3 pr-3 font-mono text-xs text-text-light">{p.account}</td>
                   <td className="py-3 pr-3 text-right font-medium">{npr(p.amount)}</td>
                   <td className="py-3 pr-3">
-                    <span className={`chip ${p.status === "Paid" ? "!bg-pine !text-white" : p.status === "Processing" ? "!bg-amber/15 !text-amber" : "!bg-red-100 !text-red-700"}`}>{p.status}</span>
+                    <span className={`chip ${p.status === "Paid" ? "!bg-secondary !text-white" : p.status === "Processing" ? "!bg-primary/15 !text-primary" : "!bg-red-100 !text-red-700"}`}>{p.status}</span>
                   </td>
                 </tr>
               ))}
@@ -72,8 +72,8 @@ export default function Earnings() {
 
 function Stat({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
-    <div className={`card-soft p-4 ${highlight ? "!bg-pine !text-white !border-pine" : ""}`}>
-      <div className={`text-xs uppercase tracking-wider font-mono ${highlight ? "text-white/70" : "text-slate"}`}>{label}</div>
+    <div className={`card-soft p-4 ${highlight ? "!bg-secondary !text-white !border-secondary" : ""}`}>
+      <div className={`text-xs uppercase tracking-wider font-mono ${highlight ? "text-white/70" : "text-text-light"}`}>{label}</div>
       <div className="font-display text-2xl mt-1">{value}</div>
     </div>
   );

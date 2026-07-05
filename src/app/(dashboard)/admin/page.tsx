@@ -28,19 +28,19 @@ export default function AdminOverview() {
       <div className="card-soft p-5 mb-5">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-display text-lg">Pending verifications</h3>
-          <Link href="/admin/therapists" className="text-xs text-pine hover:underline">All therapists</Link>
+          <Link href="/admin/therapists" className="text-xs text-secondary hover:underline">All therapists</Link>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-sage/60 text-xs uppercase font-mono text-slate text-left">
+            <thead className="bg-surface/60 text-xs uppercase font-mono text-text-light text-left">
               <tr><th className="p-2">Name</th><th className="p-2">Applied</th><th className="p-2">City</th><th className="p-2">License</th><th className="p-2">Certificate</th><th className="p-2"></th></tr>
             </thead>
             <tbody className="divide-y divide-border">
               {pending.map((p) => (
                 <tr key={p.id}>
                   <td className="p-2 font-medium">{p.name}</td>
-                  <td className="p-2 text-slate">{p.date}</td>
-                  <td className="p-2 text-slate">{p.city}</td>
+                  <td className="p-2 text-text-light">{p.date}</td>
+                  <td className="p-2 text-text-light">{p.city}</td>
                   <td className="p-2">{p.license ? "✓" : "✗"}</td>
                   <td className="p-2">{p.cert ? "✓" : "✗"}</td>
                   <td className="p-2 flex gap-1 justify-end">
@@ -49,7 +49,7 @@ export default function AdminOverview() {
                   </td>
                 </tr>
               ))}
-              {pending.length === 0 && <tr><td colSpan={6} className="p-4 text-center text-slate text-sm">No pending applications.</td></tr>}
+              {pending.length === 0 && <tr><td colSpan={6} className="p-4 text-center text-text-light text-sm">No pending applications.</td></tr>}
             </tbody>
           </table>
         </div>
@@ -58,12 +58,12 @@ export default function AdminOverview() {
       <div className="grid lg:grid-cols-2 gap-5">
         <div className="card-soft p-5">
           <h3 className="font-display text-lg mb-3">Platform earnings</h3>
-          <div className="text-3xl font-display text-pine">Rs 5,42,300</div>
-          <p className="text-xs text-slate mt-1">This month (15% platform fee)</p>
+          <div className="text-3xl font-display text-secondary">Rs 5,42,300</div>
+          <p className="text-xs text-text-light mt-1">This month (15% platform fee)</p>
         </div>
         <div className="card-soft p-5">
           <h3 className="font-display text-lg mb-3">Recent bookings</h3>
-          <ul className="text-sm space-y-2 text-slate">
+          <ul className="text-sm space-y-2 text-text-light">
             <li>· Ramesh A. booked Dr. Aarati S. — 2 min ago</li>
             <li>· Sita L. rebooked Dr. Bibek T. — 14 min ago</li>
             <li>· Hari P. cancelled session — 1 hr ago</li>
@@ -76,9 +76,9 @@ export default function AdminOverview() {
 
 function Stat({ label, value, amber }: { label: string; value: string; amber?: boolean }) {
   return (
-    <div className={`card-soft p-4 ${amber ? "!border-amber !bg-amber/5" : ""}`}>
-      <div className="text-xs uppercase tracking-wider font-mono text-slate">{label}</div>
-      <div className={`font-display text-2xl mt-1 ${amber ? "text-amber" : ""}`}>{value}</div>
+    <div className={`card-soft p-4 ${amber ? "!border-primary !bg-primary/5" : ""}`}>
+      <div className="text-xs uppercase tracking-wider font-mono text-text-light">{label}</div>
+      <div className={`font-display text-2xl mt-1 ${amber ? "text-primary" : ""}`}>{value}</div>
     </div>
   );
 }

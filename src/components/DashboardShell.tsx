@@ -35,15 +35,15 @@ export function DashboardShell({
   };
 
   return (
-    <div className="min-h-screen flex bg-cream">
+    <div className="min-h-screen flex bg-background">
       <aside
-        className={`fixed lg:static z-40 inset-y-0 left-0 w-64 bg-pine text-white flex flex-col transition-transform ${
+        className={`fixed lg:static z-40 inset-y-0 left-0 w-64 bg-secondary text-white flex flex-col transition-transform ${
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
         <div className="p-5 flex items-center justify-between border-b border-white/10">
           <Link href="/" className="flex items-center gap-2">
-            <span className="w-7 h-7 rounded-full bg-amber" />
+            <span className="w-7 h-7 rounded-full bg-primary" />
             <span className="font-display text-lg">Sahayatri</span>
           </Link>
           <button onClick={() => setMobileOpen(false)} className="lg:hidden p-1"><X size={18} /></button>
@@ -81,19 +81,19 @@ export function DashboardShell({
       </aside>
 
       <div className="flex-1 min-w-0 flex flex-col">
-        <header className="h-16 bg-cream border-b border-border flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30 backdrop-blur">
+        <header className="h-16 bg-background border-b border-border flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30 backdrop-blur">
           <div className="flex items-center gap-3 min-w-0">
-            <button onClick={() => setMobileOpen(true)} className="lg:hidden p-2 rounded-lg hover:bg-sage"><Menu size={18} /></button>
+            <button onClick={() => setMobileOpen(true)} className="lg:hidden p-2 rounded-lg hover:bg-surface"><Menu size={18} /></button>
             <h1 className="font-display text-xl truncate">{title}</h1>
           </div>
           <div className="flex items-center gap-2">
             <LangSwitcher />
             {user && <NotificationBell role={user.role} />}
             {showCart && (
-              <button onClick={() => setOpen(true)} className="relative p-2.5 rounded-full hover:bg-sage" aria-label="Cart">
+              <button onClick={() => setOpen(true)} className="relative p-2.5 rounded-full hover:bg-surface" aria-label="Cart">
                 <ShoppingCart size={18} />
                 {count > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 bg-amber text-white text-[10px] font-bold w-5 h-5 rounded-full grid place-items-center">{count}</span>
+                  <span className="absolute -top-0.5 -right-0.5 bg-primary text-white text-[10px] font-bold w-5 h-5 rounded-full grid place-items-center">{count}</span>
                 )}
               </button>
             )}

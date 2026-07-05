@@ -70,9 +70,9 @@ export function AuthModal({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <button className="absolute inset-0 bg-forest/60 backdrop-blur-sm" onClick={onClose} aria-label="Close" />
-      <div className="relative w-full max-w-lg max-h-[92vh] overflow-y-auto bg-cream rounded-3xl border border-border shadow-2xl p-7 sm:p-9">
-        <button onClick={onClose} className="absolute right-4 top-4 p-2 rounded-full hover:bg-sage" aria-label="Close">
+      <button className="absolute inset-0 bg-text/60 backdrop-blur-sm" onClick={onClose} aria-label="Close" />
+      <div className="relative w-full max-w-lg max-h-[92vh] overflow-y-auto bg-background rounded-3xl border border-border shadow-2xl p-7 sm:p-9">
+        <button onClick={onClose} className="absolute right-4 top-4 p-2 rounded-full hover:bg-surface" aria-label="Close">
           <X size={18} />
         </button>
 
@@ -97,15 +97,15 @@ export function AuthModal({
           <>
             <p className="eyebrow mb-2">Account</p>
             <h2 className="text-3xl font-display mb-1">Welcome back</h2>
-            <p className="text-slate text-sm mb-5">Log in to continue your recovery journey.</p>
+            <p className="text-text-light text-sm mb-5">Log in to continue your recovery journey.</p>
 
-            <div className="flex gap-1 p-1 bg-sage rounded-full mb-5">
+            <div className="flex gap-1 p-1 bg-surface rounded-full mb-5">
               {(["patient", "therapist", "admin"] as Role[]).map((r) => (
                 <button
                   key={r}
                   onClick={() => setLoginRole(r)}
                   className={`flex-1 py-2 rounded-full text-sm font-medium capitalize transition ${
-                    loginRole === r ? "bg-white text-pine shadow-sm" : "text-slate"
+                    loginRole === r ? "bg-white text-secondary shadow-sm" : "text-text-light"
                   }`}
                 >
                   {r}
@@ -116,28 +116,28 @@ export function AuthModal({
             <form onSubmit={handleLogin} className="space-y-3">
               <Field label="Email" type="email" value={form.email ?? ""} onChange={(v) => set("email", v)} placeholder="you@example.com" />
               <div>
-                <label className="text-xs font-medium text-slate">Password</label>
+                <label className="text-xs font-medium text-text-light">Password</label>
                 <div className="relative mt-1">
                   <input
                     type={showPw ? "text" : "password"}
                     value={form.password ?? ""}
                     onChange={(e) => set("password", e.target.value)}
-                    className="w-full px-3 py-2.5 pr-10 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-pine"
+                    className="w-full px-3 py-2.5 pr-10 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary"
                   />
-                  <button type="button" onClick={() => setShowPw((v) => !v)} className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate">
+                  <button type="button" onClick={() => setShowPw((v) => !v)} className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-text-light">
                     {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
                 <div className="text-right mt-1">
-                  <button type="button" className="text-xs text-pine hover:underline">Forgot password?</button>
+                  <button type="button" className="text-xs text-secondary hover:underline">Forgot password?</button>
                 </div>
               </div>
               <button type="submit" className="btn-pine w-full">Log in</button>
             </form>
 
-            <p className="text-sm text-slate text-center mt-5">
+            <p className="text-sm text-text-light text-center mt-5">
               Don&apos;t have an account?{" "}
-              <button onClick={() => setMode("signup")} className="text-pine font-semibold hover:underline">Sign up</button>
+              <button onClick={() => setMode("signup")} className="text-secondary font-semibold hover:underline">Sign up</button>
             </p>
           </>
         )}
@@ -146,33 +146,33 @@ export function AuthModal({
           <>
             <p className="eyebrow mb-2">Get started</p>
             <h2 className="text-3xl font-display mb-1">Create your account</h2>
-            <p className="text-slate text-sm mb-6">Pick how you&apos;d like to use Sahayatri Physio.</p>
+            <p className="text-text-light text-sm mb-6">Pick how you&apos;d like to use Sahayatri Physio.</p>
 
             <div className="grid gap-3">
               <RoleCard
-                icon={<HeartPulse className="text-pine" size={28} />}
+                icon={<HeartPulse className="text-secondary" size={28} />}
                 title="I'm a Patient"
                 sub="Book physiotherapists for home visits"
                 onClick={() => setSignupRole("patient")}
               />
               <RoleCard
-                icon={<Stethoscope className="text-pine" size={28} />}
+                icon={<Stethoscope className="text-secondary" size={28} />}
                 title="I'm a Physiotherapist"
                 sub="Offer sessions and grow your practice"
                 onClick={() => setSignupRole("therapist")}
               />
             </div>
 
-            <p className="text-sm text-slate text-center mt-6">
+            <p className="text-sm text-text-light text-center mt-6">
               Already have an account?{" "}
-              <button onClick={() => setMode("login")} className="text-pine font-semibold hover:underline">Log in</button>
+              <button onClick={() => setMode("login")} className="text-secondary font-semibold hover:underline">Log in</button>
             </p>
           </>
         )}
 
         {!submitted && mode === "signup" && signupRole === "patient" && (
           <form onSubmit={handlePatientSignup} className="space-y-3">
-            <button type="button" onClick={() => setSignupRole(null)} className="text-xs text-pine">← Back</button>
+            <button type="button" onClick={() => setSignupRole(null)} className="text-xs text-secondary">← Back</button>
             <h2 className="text-2xl font-display">Patient sign up</h2>
             <div className="grid grid-cols-2 gap-3">
               <Field label="First name" value={form.first ?? ""} onChange={(v) => set("first", v)} />
@@ -185,7 +185,7 @@ export function AuthModal({
               <Field label="Password" type="password" value={form.password ?? ""} onChange={(v) => set("password", v)} />
               <Field label="Confirm" type="password" value={form.confirm ?? ""} onChange={(v) => set("confirm", v)} />
             </div>
-            <label className="flex gap-2 items-start text-xs text-slate">
+            <label className="flex gap-2 items-start text-xs text-text-light">
               <input type="checkbox" onChange={(e) => set("terms", e.target.checked ? "1" : "")} className="mt-0.5" />
               I agree to the Terms and Privacy Policy.
             </label>
@@ -195,7 +195,7 @@ export function AuthModal({
 
         {!submitted && mode === "signup" && signupRole === "therapist" && (
           <form onSubmit={handleTherapistSignup} className="space-y-3">
-            <button type="button" onClick={() => setSignupRole(null)} className="text-xs text-pine">← Back</button>
+            <button type="button" onClick={() => setSignupRole(null)} className="text-xs text-secondary">← Back</button>
             <h2 className="text-2xl font-display">Therapist application</h2>
             <div className="grid grid-cols-2 gap-3">
               <Field label="First name" value={form.first ?? ""} onChange={(v) => set("first", v)} />
@@ -216,7 +216,7 @@ export function AuthModal({
             <UploadBox label="Upload NMC license (PDF/JPG)" onFile={() => set("licenseFile", "uploaded")} uploaded={form.licenseFile === "uploaded"} />
             <UploadBox label="Upload certification document" onFile={() => set("certFile", "uploaded")} uploaded={form.certFile === "uploaded"} />
 
-            <label className="flex gap-2 items-start text-xs text-slate">
+            <label className="flex gap-2 items-start text-xs text-text-light">
               <input type="checkbox" onChange={(e) => set("terms", e.target.checked ? "1" : "")} className="mt-0.5" />
               I confirm my credentials are accurate and accept the Terms.
             </label>
@@ -231,13 +231,13 @@ export function AuthModal({
 function Field({ label, type = "text", value, onChange, placeholder }: { label: string; type?: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
   return (
     <div>
-      <label className="text-xs font-medium text-slate">{label}</label>
+      <label className="text-xs font-medium text-text-light">{label}</label>
       <input
         type={type}
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-pine"
+        className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary"
       />
     </div>
   );
@@ -245,11 +245,11 @@ function Field({ label, type = "text", value, onChange, placeholder }: { label: 
 function SelectField({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options: string[] }) {
   return (
     <div>
-      <label className="text-xs font-medium text-slate">{label}</label>
+      <label className="text-xs font-medium text-text-light">{label}</label>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-pine"
+        className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary"
       >
         <option value="">Select…</option>
         {options.map((o) => <option key={o} value={o}>{o}</option>)}
@@ -259,18 +259,18 @@ function SelectField({ label, value, onChange, options }: { label: string; value
 }
 function RoleCard({ icon, title, sub, onClick }: { icon: React.ReactNode; title: string; sub: string; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="w-full text-left p-4 rounded-2xl border border-border bg-white hover:border-pine hover:shadow-md transition flex items-center gap-4">
-      <div className="w-12 h-12 rounded-xl bg-sage grid place-items-center shrink-0">{icon}</div>
+    <button onClick={onClick} className="w-full text-left p-4 rounded-2xl border border-border bg-white hover:border-secondary hover:shadow-md transition flex items-center gap-4">
+      <div className="w-12 h-12 rounded-xl bg-surface grid place-items-center shrink-0">{icon}</div>
       <div className="min-w-0">
-        <div className="font-semibold text-forest">{title}</div>
-        <div className="text-sm text-slate">{sub}</div>
+        <div className="font-semibold text-text">{title}</div>
+        <div className="text-sm text-text-light">{sub}</div>
       </div>
     </button>
   );
 }
 function UploadBox({ label, onFile, uploaded }: { label: string; onFile: () => void; uploaded: boolean }) {
   return (
-    <button type="button" onClick={onFile} className={`w-full p-3 rounded-xl border-2 border-dashed text-sm ${uploaded ? "border-pine bg-sage text-pine" : "border-border text-slate hover:border-pine"}`}>
+    <button type="button" onClick={onFile} className={`w-full p-3 rounded-xl border-2 border-dashed text-sm ${uploaded ? "border-secondary bg-surface text-secondary" : "border-border text-text-light hover:border-secondary"}`}>
       {uploaded ? "✓ Document uploaded" : `📎 ${label}`}
     </button>
   );
@@ -278,9 +278,9 @@ function UploadBox({ label, onFile, uploaded }: { label: string; onFile: () => v
 function SuccessScreen({ title, sub, cta, onCta }: { title: string; sub: string; cta: string; onCta: () => void }) {
   return (
     <div className="text-center py-6">
-      <div className="w-16 h-16 rounded-full bg-sage grid place-items-center mx-auto mb-4 text-3xl">✓</div>
+      <div className="w-16 h-16 rounded-full bg-surface grid place-items-center mx-auto mb-4 text-3xl">✓</div>
       <h2 className="text-2xl font-display mb-2">{title}</h2>
-      <p className="text-slate text-sm mb-6">{sub}</p>
+      <p className="text-text-light text-sm mb-6">{sub}</p>
       <button onClick={onCta} className="btn-pine">{cta}</button>
     </div>
   );

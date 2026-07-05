@@ -26,9 +26,9 @@ export default function Sessions() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <div className="flex gap-1 p-1 bg-sage rounded-full">
+        <div className="flex gap-1 p-1 bg-surface rounded-full">
           {TABS.map((t) => (
-            <button key={t} onClick={() => setTab(t)} className={`px-4 py-1.5 rounded-full text-sm font-medium ${tab === t ? "bg-white text-pine shadow-sm" : "text-slate"}`}>
+            <button key={t} onClick={() => setTab(t)} className={`px-4 py-1.5 rounded-full text-sm font-medium ${tab === t ? "bg-white text-secondary shadow-sm" : "text-text-light"}`}>
               {t}
             </button>
           ))}
@@ -42,9 +42,9 @@ export default function Sessions() {
             <Avatar name={s.therapist} size={44} />
             <div className="flex-1 min-w-[180px]">
               <div className="font-medium">{s.therapist}</div>
-              <div className="text-xs text-slate">{formatDate(s.date)} · {s.time} · {s.type}</div>
+              <div className="text-xs text-text-light">{formatDate(s.date)} · {s.time} · {s.type}</div>
             </div>
-            <span className={`chip ${s.status === "Confirmed" ? "!bg-pine !text-white" : s.status === "Completed" ? "!bg-amber !text-white" : "!bg-border !text-slate"}`}>{s.status}</span>
+            <span className={`chip ${s.status === "Confirmed" ? "!bg-secondary !text-white" : s.status === "Completed" ? "!bg-primary !text-white" : "!bg-border !text-text-light"}`}>{s.status}</span>
             <div className="flex gap-2">
               {tab === "Upcoming" && (
                 <>
@@ -56,16 +56,16 @@ export default function Sessions() {
             </div>
           </div>
         ))}
-        {sessions.filter(filter).length === 0 && <p className="text-slate text-sm">No sessions here yet.</p>}
+        {sessions.filter(filter).length === 0 && <p className="text-text-light text-sm">No sessions here yet.</p>}
       </div>
 
       {picker && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <button className="absolute inset-0 bg-forest/60 backdrop-blur-sm" onClick={() => setPicker(false)} />
-          <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-cream rounded-3xl border border-border shadow-2xl p-6">
+          <button className="absolute inset-0 bg-text/60 backdrop-blur-sm" onClick={() => setPicker(false)} />
+          <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-background rounded-3xl border border-border shadow-2xl p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-display text-xl">Pick a therapist</h3>
-              <button onClick={() => setPicker(false)} className="p-2 rounded-full hover:bg-sage">✕</button>
+              <button onClick={() => setPicker(false)} className="p-2 rounded-full hover:bg-surface">✕</button>
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {THERAPISTS.map((t) => <TherapistCard key={t.id} t={t} onBook={(th) => { setPicker(false); setBook(th); }} />)}

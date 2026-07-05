@@ -52,7 +52,7 @@ export default function Overview() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-xs uppercase font-mono text-slate text-left border-b border-border">
+              <tr className="text-xs uppercase font-mono text-text-light text-left border-b border-border">
                 <th className="py-2 pr-3">Therapist</th>
                 <th className="py-2 pr-3">Date & time</th>
                 <th className="py-2 pr-3">Type</th>
@@ -63,11 +63,11 @@ export default function Overview() {
             <tbody className="divide-y divide-border">
               {UPCOMING.map((u) => (
                 <tr key={u.id}>
-                  <td className="py-3 pr-3 font-medium text-pine">{u.therapist}</td>
-                  <td className="py-3 pr-3 text-slate">{u.when}</td>
-                  <td className="py-3 pr-3 text-slate">{u.type}</td>
+                  <td className="py-3 pr-3 font-medium text-secondary">{u.therapist}</td>
+                  <td className="py-3 pr-3 text-text-light">{u.when}</td>
+                  <td className="py-3 pr-3 text-text-light">{u.type}</td>
                   <td className="py-3 pr-3">
-                    <span className={`chip ${u.status === "Confirmed" ? "!bg-pine/10 !text-pine" : "!bg-amber/15 !text-amber"}`}>{u.status}</span>
+                    <span className={`chip ${u.status === "Confirmed" ? "!bg-secondary/10 !text-secondary" : "!bg-primary/15 !text-primary"}`}>{u.status}</span>
                   </td>
                   <td className="py-3 text-right">
                     <button onClick={() => toast(u.status === "Pending" ? "Booking cancelled" : "Reschedule request sent")} className="btn-outline !py-1 !px-3 text-xs">
@@ -85,8 +85,8 @@ export default function Overview() {
 
       <ReferFriend />
 
-      <p className="text-xs text-slate mt-4">
-        Need to book a new session? <Link href="/patient/sessions" className="text-pine underline">Go to My Sessions</Link>.
+      <p className="text-xs text-text-light mt-4">
+        Need to book a new session? <Link href="/patient/sessions" className="text-secondary underline">Go to My Sessions</Link>.
       </p>
     </div>
   );
@@ -102,16 +102,16 @@ function ReferFriend() {
     else { navigator.clipboard?.writeText(text); toast.success("Invite copied to clipboard"); }
   };
   return (
-    <section className="mt-6 card-soft p-5 bg-sage/40 border-pine/20">
+    <section className="mt-6 card-soft p-5 bg-surface/40 border-secondary/20">
       <div className="grid md:grid-cols-[1.4fr_1fr] gap-4 items-center">
         <div>
           <p className="eyebrow mb-1">Refer a friend</p>
           <h3 className="font-display text-xl">Give Rs 200, get Rs 200</h3>
-          <p className="text-sm text-slate mt-1">Share your code. When your friend books their first session, you both earn Rs 200 credit.</p>
+          <p className="text-sm text-text-light mt-1">Share your code. When your friend books their first session, you both earn Rs 200 credit.</p>
         </div>
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-pine font-medium px-3 py-2 rounded-xl bg-white border border-border flex-1 text-sm truncate">{code}</span>
+            <span className="font-mono text-secondary font-medium px-3 py-2 rounded-xl bg-white border border-border flex-1 text-sm truncate">{code}</span>
             <button onClick={copy} className="btn-outline !py-2 !px-3 text-xs">Copy link</button>
           </div>
           <button onClick={share} className="btn-pine w-full !py-2 text-sm">Share invite</button>
@@ -125,8 +125,8 @@ function TopCard({ label, value, sub }: { label: string; value: string; sub: str
   return (
     <div className="card-soft p-5">
       <div className="eyebrow !text-[0.65rem] mb-2">{label}</div>
-      <div className="font-display text-2xl text-forest leading-tight">{value}</div>
-      <div className="text-xs text-slate mt-1.5">{sub}</div>
+      <div className="font-display text-2xl text-text leading-tight">{value}</div>
+      <div className="text-xs text-text-light mt-1.5">{sub}</div>
     </div>
   );
 }
@@ -135,7 +135,7 @@ function RateTherapist() {
   return (
     <div>
       <h3 className="font-display text-xl mb-1">Rate your therapist</h3>
-      <p className="text-sm text-slate mb-4">Your rating appears directly on the therapist&apos;s public profile. Only patients with completed sessions can rate.</p>
+      <p className="text-sm text-text-light mb-4">Your rating appears directly on the therapist&apos;s public profile. Only patients with completed sessions can rate.</p>
       <div className="grid md:grid-cols-2 gap-4">
         {RATE_LIST.map((r) => <RateCard key={r.id} name={r.name} session={r.session} />)}
       </div>
@@ -160,13 +160,13 @@ function RateCard({ name, session }: { name: string; session: string }) {
         <Avatar name={name} size={40} />
         <div>
           <div className="font-medium text-sm">{name}</div>
-          <div className="text-xs text-slate">{session}</div>
+          <div className="text-xs text-text-light">{session}</div>
         </div>
       </div>
       <div className="flex gap-1 mb-3">
         {[1, 2, 3, 4, 5].map((n) => (
           <button key={n} onClick={() => !done && setStars(n)} aria-label={`${n} star`}>
-            <Star size={20} className={n <= stars ? "fill-amber text-amber" : "text-border"} />
+            <Star size={20} className={n <= stars ? "fill-primary text-primary" : "text-border"} />
           </button>
         ))}
       </div>

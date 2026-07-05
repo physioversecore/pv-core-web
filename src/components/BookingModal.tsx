@@ -23,17 +23,17 @@ export function BookingModal({ therapist, onClose }: { therapist: Therapist; onC
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <button className="absolute inset-0 bg-forest/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-cream rounded-3xl border border-border shadow-2xl p-7 max-h-[92vh] overflow-y-auto">
-        <button onClick={onClose} className="absolute right-4 top-4 p-2 rounded-full hover:bg-sage"><X size={18} /></button>
+      <button className="absolute inset-0 bg-text/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-md bg-background rounded-3xl border border-border shadow-2xl p-7 max-h-[92vh] overflow-y-auto">
+        <button onClick={onClose} className="absolute right-4 top-4 p-2 rounded-full hover:bg-surface"><X size={18} /></button>
 
         {step === 3 && ref ? (
           <div className="text-center py-4">
-            <div className="w-16 h-16 rounded-full bg-sage grid place-items-center mx-auto mb-3 text-3xl">✓</div>
+            <div className="w-16 h-16 rounded-full bg-surface grid place-items-center mx-auto mb-3 text-3xl">✓</div>
             <p className="font-display text-2xl mb-1">Booking confirmed</p>
-            <p className="text-slate text-sm mb-1">Reference</p>
-            <p className="font-mono text-pine font-semibold mb-4">{ref}</p>
-            <div className="text-sm text-slate mb-5">
+            <p className="text-text-light text-sm mb-1">Reference</p>
+            <p className="font-mono text-secondary font-semibold mb-4">{ref}</p>
+            <div className="text-sm text-text-light mb-5">
               {therapist.name} · {formatDate(date)} at {time}
             </div>
             <button onClick={onClose} className="btn-pine w-full">Done</button>
@@ -44,7 +44,7 @@ export function BookingModal({ therapist, onClose }: { therapist: Therapist; onC
               <Avatar name={therapist.name} size={48} />
               <div>
                 <div className="font-medium">{therapist.name}</div>
-                <div className="text-xs text-slate">{therapist.specialty} · {npr(therapist.price)}/session</div>
+                <div className="text-xs text-text-light">{therapist.specialty} · {npr(therapist.price)}/session</div>
               </div>
             </div>
 
@@ -52,19 +52,19 @@ export function BookingModal({ therapist, onClose }: { therapist: Therapist; onC
               <div className="space-y-3">
                 <p className="eyebrow">Step 1 · Pick a slot</p>
                 <div>
-                  <label className="text-xs font-medium text-slate">Date</label>
+                  <label className="text-xs font-medium text-text-light">Date</label>
                   <input type="date" value={date} onChange={(e) => setDate(e.target.value)} min={new Date().toISOString().slice(0, 10)} className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white" />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-slate">Time slot</label>
+                  <label className="text-xs font-medium text-text-light">Time slot</label>
                   <div className="grid grid-cols-3 gap-2 mt-1">
                     {TIMES.map((t) => (
-                      <button key={t} onClick={() => setTime(t)} className={`py-2 rounded-xl text-sm border ${time === t ? "border-pine bg-pine text-white" : "border-border bg-white text-forest hover:border-pine"}`}>{t}</button>
+                      <button key={t} onClick={() => setTime(t)} className={`py-2 rounded-xl text-sm border ${time === t ? "border-secondary bg-secondary text-white" : "border-border bg-white text-text hover:border-secondary"}`}>{t}</button>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-slate">Home address</label>
+                  <label className="text-xs font-medium text-text-light">Home address</label>
                   <textarea value={address} onChange={(e) => setAddress(e.target.value)} rows={2} className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white" placeholder="House, street, city" />
                 </div>
                 <button onClick={() => date && time && address ? setStep(2) : toast.error("Complete all fields")} className="btn-pine w-full">Review</button>
@@ -82,10 +82,10 @@ export function BookingModal({ therapist, onClose }: { therapist: Therapist; onC
                   <Row label="Fee" value={npr(therapist.price)} bold />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-slate">Payment</label>
+                  <label className="text-xs font-medium text-text-light">Payment</label>
                   <div className="grid gap-2 mt-1">
                     {[{ id: "esewa", l: "eSewa" }, { id: "khalti", l: "Khalti" }, { id: "cash", l: "Cash on visit" }].map((m) => (
-                      <label key={m.id} className={`p-2.5 rounded-xl border cursor-pointer text-sm ${pay === m.id ? "border-pine bg-sage" : "border-border bg-white"}`}>
+                      <label key={m.id} className={`p-2.5 rounded-xl border cursor-pointer text-sm ${pay === m.id ? "border-secondary bg-surface" : "border-border bg-white"}`}>
                         <input type="radio" name="pay" checked={pay === m.id} onChange={() => setPay(m.id)} className="mr-2" />
                         {m.l}
                       </label>
@@ -107,7 +107,7 @@ export function BookingModal({ therapist, onClose }: { therapist: Therapist; onC
 
 function Row({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
   return (
-    <div className={`flex justify-between gap-3 ${bold ? "font-semibold text-forest pt-1 border-t border-border" : "text-slate"}`}>
+    <div className={`flex justify-between gap-3 ${bold ? "font-semibold text-text pt-1 border-t border-border" : "text-text-light"}`}>
       <span className="text-xs uppercase tracking-wider">{label}</span>
       <span className="text-right">{value}</span>
     </div>

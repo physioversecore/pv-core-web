@@ -31,24 +31,24 @@ export default function Schedule() {
       </div>
       <div className="card-soft overflow-x-auto">
         <div className="grid grid-cols-[80px_repeat(7,minmax(120px,1fr))] min-w-[800px]">
-          <div className="border-b border-r border-border p-3 text-xs font-mono text-slate">TIME</div>
+          <div className="border-b border-r border-border p-3 text-xs font-mono text-text-light">TIME</div>
           {DAYS.map((d) => <div key={d} className="border-b border-border p-3 text-sm font-medium">{d}</div>)}
           {HOURS.map((h) => (
             <Fragment key={h}>
-              <div className="border-r border-b border-border p-3 text-xs font-mono text-slate">{h}</div>
+              <div className="border-r border-b border-border p-3 text-xs font-mono text-text-light">{h}</div>
               {DAYS.map((_, di) => {
                 const idx = slots.findIndex((s) => s.day === di && s.time === h);
                 const s = idx >= 0 ? slots[idx] : null;
                 return (
                   <div key={di + h} className="border-b border-border p-2 min-h-[64px]">
                     {s && (
-                      <div className={`rounded-lg p-2 text-xs ${s.status === "confirmed" ? "bg-pine text-white" : s.status === "pending" ? "bg-amber/15 text-amber border border-amber" : "bg-sage text-slate"}`}>
+                      <div className={`rounded-lg p-2 text-xs ${s.status === "confirmed" ? "bg-secondary text-white" : s.status === "pending" ? "bg-primary/15 text-primary border border-primary" : "bg-surface text-text-light"}`}>
                         <div className="font-medium truncate">{s.patient}</div>
                         <div className="opacity-75">{s.status === "confirmed" ? "Address ●●●" : s.status}</div>
                         {s.status === "pending" && (
                           <div className="flex gap-1 mt-1">
-                            <button onClick={() => decide(idx, true)} className="text-[10px] bg-pine text-white px-2 py-0.5 rounded-full">✓</button>
-                            <button onClick={() => decide(idx, false)} className="text-[10px] border border-pine text-pine px-2 py-0.5 rounded-full">✕</button>
+                            <button onClick={() => decide(idx, true)} className="text-[10px] bg-secondary text-white px-2 py-0.5 rounded-full">✓</button>
+                            <button onClick={() => decide(idx, false)} className="text-[10px] border border-secondary text-secondary px-2 py-0.5 rounded-full">✕</button>
                           </div>
                         )}
                       </div>

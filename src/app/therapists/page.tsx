@@ -13,8 +13,8 @@ import { npr } from "@/lib/cart";
 import { THERAPISTS, type Therapist } from "@/lib/mock";
 
 const gradients = [
-  "linear-gradient(135deg, #2F5D50 0%, #3F7965 100%)",
-  "linear-gradient(135deg, #E2962F 0%, #F4C778 100%)",
+  "linear-gradient(135deg, var(--color-secondary) 0%, #3F7965 100%)",
+  "linear-gradient(135deg, var(--color-primary) 0%, #F4C778 100%)",
   "linear-gradient(135deg, #7A3535 0%, #C97070 100%)",
 ];
 
@@ -36,14 +36,14 @@ export default function Therapists() {
       title="Meet the physiotherapists coming to your home."
       subtitle="Every therapist is NMC-verified, rated by real patients, and specialized in the areas they treat."
     >
-      <section className="relative py-16 overflow-hidden text-cream" style={{ background: "#0F211B" }}>
+      <section className="relative py-16 overflow-hidden text-background bg-background-dark">
         <div aria-hidden className="pointer-events-none absolute inset-0">
-          <div className="absolute top-8 left-8 w-[380px] h-[380px] rounded-full bg-amber/25 blur-3xl blob-drift" />
-          <div className="absolute bottom-0 right-8 w-[420px] h-[420px] rounded-full bg-pine/45 blur-3xl blob-float-b" />
+          <div className="absolute top-8 left-8 w-[380px] h-[380px] rounded-full bg-primary/25 blur-3xl blob-drift" />
+          <div className="absolute bottom-0 right-8 w-[420px] h-[420px] rounded-full bg-secondary/45 blur-3xl blob-float-b" />
         </div>
         <div className="relative max-w-7xl mx-auto px-5 lg:px-8">
           <Reveal>
-            <p className="eyebrow !text-amber mb-3">Featured</p>
+            <p className="eyebrow !text-primary mb-3">Featured</p>
             <h2 className="text-3xl font-display mb-10 max-w-2xl">Top-rated pros this month.</h2>
           </Reveal>
           <div className="grid md:grid-cols-3 gap-6">
@@ -52,13 +52,13 @@ export default function Therapists() {
               return (
                 <Reveal key={t.id} delay={i * 120}>
                   <div
-                    className="group relative rounded-3xl overflow-hidden p-6 h-72 flex flex-col justify-between border border-white/10 transition duration-300 hover:-translate-y-1 hover:border-amber hover:shadow-[0_20px_50px_-15px_rgba(226,150,47,0.55)]"
+                    className="group relative rounded-3xl overflow-hidden p-6 h-72 flex flex-col justify-between border border-white/10 transition duration-300 hover:-translate-y-1 hover:border-primary hover:shadow-[0_20px_50px_-15px_rgba(226,150,47,0.55)]"
                     style={{ background: gradients[i % gradients.length] }}
                   >
-                    <span className="absolute right-4 top-4 chip !bg-white/95 !text-pine">NMC verified</span>
+                    <span className="absolute right-4 top-4 chip !bg-white/95 !text-secondary">NMC verified</span>
                     <span className="absolute -right-4 -bottom-6 font-display text-[10rem] leading-none text-white/10 select-none">{initials}</span>
                     <div className="flex items-center gap-1 text-xs relative z-10">
-                      <Star size={14} className="fill-amber text-amber" />
+                      <Star size={14} className="fill-primary text-primary" />
                       <span className="font-semibold">{t.rating}</span>
                       <span className="text-white/70">({t.reviews} reviews)</span>
                     </div>

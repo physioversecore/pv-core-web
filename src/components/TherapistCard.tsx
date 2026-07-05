@@ -10,14 +10,14 @@ export function TherapistCard({ t, onBook }: { t: Therapist; onBook: (t: Therapi
         <Avatar name={t.name} size={48} />
         <div className="flex-1 min-w-0">
           <div className="font-medium truncate">{t.name}</div>
-          <div className="text-xs text-slate truncate">{t.specialty} · {t.city}</div>
-          <div className="flex items-center gap-1 mt-1 text-xs text-slate">
-            <Star size={12} className="fill-amber text-amber" /> <span className="font-medium text-forest">{t.rating}</span> ({t.reviews})
+          <div className="text-xs text-text-light truncate">{t.specialty} · {t.city}</div>
+          <div className="flex items-center gap-1 mt-1 text-xs text-text-light">
+            <Star size={12} className="fill-primary text-primary" /> <span className="font-medium text-text">{t.rating}</span> ({t.reviews})
           </div>
         </div>
       </div>
       <div className="flex items-center justify-between pt-2 border-t border-border">
-        <div className="text-sm"><span className="font-semibold">{npr(t.price)}</span><span className="text-xs text-slate"> /session</span></div>
+        <div className="text-sm"><span className="font-semibold">{npr(t.price)}</span><span className="text-xs text-text-light"> /session</span></div>
         <button onClick={() => onBook(t)} className="btn-primary !py-1.5 !px-4 text-sm">Book</button>
       </div>
     </div>

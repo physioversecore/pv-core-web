@@ -21,7 +21,7 @@ export default function AdminSettings() {
           <p className="eyebrow mb-2">Platform fee</p>
           <div className="flex items-center gap-2">
             <input type="number" value={fee} onChange={(e) => setFee(+e.target.value)} className="w-24 px-3 py-2 rounded-xl border border-border bg-white" />
-            <span className="text-slate">%</span>
+            <span className="text-text-light">%</span>
             <button onClick={() => toast.success("Fee updated")} className="btn-pine !py-1.5 !px-3 text-xs ml-auto">Save</button>
           </div>
         </div>
@@ -30,7 +30,7 @@ export default function AdminSettings() {
           <p className="eyebrow mb-2">Maintenance mode</p>
           <label className="flex items-center justify-between">
             <span className="text-sm">{maintenance ? "Site is in maintenance" : "Site is live"}</span>
-            <button onClick={() => { setMaintenance((m) => !m); toast(maintenance ? "Site live" : "Maintenance enabled"); }} className={`w-12 h-6 rounded-full p-0.5 transition ${maintenance ? "bg-amber" : "bg-sage"}`}>
+            <button onClick={() => { setMaintenance((m) => !m); toast(maintenance ? "Site live" : "Maintenance enabled"); }} className={`w-12 h-6 rounded-full p-0.5 transition ${maintenance ? "bg-primary" : "bg-surface"}`}>
               <span className={`block w-5 h-5 rounded-full bg-white shadow transition ${maintenance ? "translate-x-6" : ""}`} />
             </button>
           </label>

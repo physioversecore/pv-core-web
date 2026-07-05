@@ -24,7 +24,7 @@ export default function AdminPayments() {
   return (
     <div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Kpi label="Revenue this month" value="Rs 2.4L" sub={<span className="text-pine inline-flex items-center gap-1"><TrendingUp size={12} /> 18% vs last month</span>} />
+        <Kpi label="Revenue this month" value="Rs 2.4L" sub={<span className="text-secondary inline-flex items-center gap-1"><TrendingUp size={12} /> 18% vs last month</span>} />
         <Kpi label="Platform commission" value="Rs 24K" sub="10% of total" />
         <Kpi label="Pending payouts" value="Rs 78K" sub="To 12 therapists · Friday" amber />
         <Kpi label="Disputes" value="2" sub="Open refund requests" />
@@ -35,7 +35,7 @@ export default function AdminPayments() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-[0.65rem] uppercase font-mono text-slate text-left border-b border-border">
+              <tr className="text-[0.65rem] uppercase font-mono text-text-light text-left border-b border-border">
                 <th className="py-2 pr-3">Booking</th><th className="py-2 pr-3">Patient</th><th className="py-2 pr-3">Therapist</th>
                 <th className="py-2 pr-3">Amount</th><th className="py-2 pr-3">Method</th><th className="py-2 pr-3">Status</th><th className="py-2">Actions</th>
               </tr>
@@ -43,19 +43,19 @@ export default function AdminPayments() {
             <tbody className="divide-y divide-border">
               {rows.map((t) => (
                 <tr key={t.id}>
-                  <td className="py-3 pr-3 font-mono text-xs text-pine">#{t.id}</td>
+                  <td className="py-3 pr-3 font-mono text-xs text-secondary">#{t.id}</td>
                   <td className="py-3 pr-3 font-medium">{t.patient}</td>
-                  <td className="py-3 pr-3 text-slate">{t.therapist}</td>
+                  <td className="py-3 pr-3 text-text-light">{t.therapist}</td>
                   <td className="py-3 pr-3">{npr(t.amount)}</td>
-                  <td className="py-3 pr-3 text-slate">{t.method}</td>
+                  <td className="py-3 pr-3 text-text-light">{t.method}</td>
                   <td className="py-3 pr-3"><StatusChip status={t.status} /></td>
                   <td className="py-3">
                     {t.status === "Pending" ? (
                       <div className="flex gap-1.5">
-                        <button onClick={() => decide(t.id, true)} className="chip !bg-pine !text-white cursor-pointer">Approve</button>
+                        <button onClick={() => decide(t.id, true)} className="chip !bg-secondary !text-white cursor-pointer">Approve</button>
                         <button onClick={() => decide(t.id, false)} className="chip !bg-destructive/10 !text-destructive cursor-pointer">Reject</button>
                       </div>
-                    ) : <span className="text-slate text-xs">—</span>}
+                    ) : <span className="text-text-light text-xs">—</span>}
                   </td>
                 </tr>
               ))}
@@ -71,16 +71,16 @@ function Kpi({ label, value, sub, amber }: { label: string; value: string; sub: 
   return (
     <div className="card-soft p-5">
       <div className="eyebrow !text-[0.65rem] mb-2">{label}</div>
-      <div className={`font-display text-2xl ${amber ? "text-amber" : "text-forest"}`}>{value}</div>
-      <div className="text-xs text-slate mt-1.5">{sub}</div>
+      <div className={`font-display text-2xl ${amber ? "text-primary" : "text-text"}`}>{value}</div>
+      <div className="text-xs text-text-light mt-1.5">{sub}</div>
     </div>
   );
 }
 
 function StatusChip({ status }: { status: Txn["status"] }) {
   const map = {
-    Paid: "!bg-pine/10 !text-pine",
-    Pending: "!bg-amber/15 !text-amber",
+    Paid: "!bg-secondary/10 !text-secondary",
+    Pending: "!bg-primary/15 !text-primary",
     Refunded: "!bg-destructive/10 !text-destructive",
   } as const;
   return <span className={`chip ${map[status]}`}>{status}</span>;
