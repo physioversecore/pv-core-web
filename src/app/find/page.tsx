@@ -60,8 +60,8 @@ export default function FindPage() {
           <Reveal>
             <div className="card-soft p-3 grid sm:grid-cols-[1.4fr_1fr_1fr_1fr_auto] gap-2 mb-8">
               <div className="relative">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate" />
-                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Location · name · specialty" className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-pine" />
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" />
+                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Location · name · specialty" className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
               </div>
               <select value={city} onChange={(e) => setCity(e.target.value)} className="px-3 py-2.5 rounded-xl border border-border bg-white text-sm">
                 <option value="">All cities</option>
@@ -78,14 +78,14 @@ export default function FindPage() {
               <button className="btn-pine !px-5">Search</button>
             </div>
           </Reveal>
-          <div className="text-sm text-slate mb-4">{filtered.length} therapist{filtered.length === 1 ? "" : "s"} found</div>
+          <div className="text-sm text-text-light mb-4">{filtered.length} therapist{filtered.length === 1 ? "" : "s"} found</div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((t, i) => (
               <Reveal key={t.id} delay={(i % 6) * 60}>
                 <TherapistCard t={t} onBook={handleBook} />
               </Reveal>
             ))}
-            {filtered.length === 0 && <p className="text-slate text-sm col-span-full">No therapists match your filters.</p>}
+            {filtered.length === 0 && <p className="text-text-light text-sm col-span-full">No therapists match your filters.</p>}
           </div>
         </div>
       </section>

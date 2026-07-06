@@ -27,17 +27,17 @@ export default function Testimonials() {
             {REVIEWS.map((r, i) => (
               <Reveal key={r.name} delay={(i % 3) * 100}>
                 <figure className="card-soft p-6 h-full flex flex-col">
-                  <Quote size={22} className="text-amber mb-3" />
-                  <blockquote className="text-forest text-sm leading-relaxed flex-1">&ldquo;{r.q}&rdquo;</blockquote>
+                  <Quote size={22} className="text-primary mb-3" />
+                  <blockquote className="text-text text-sm leading-relaxed flex-1">&ldquo;{r.q}&rdquo;</blockquote>
                   <div className="flex items-center gap-3 mt-5 pt-4 border-t border-border">
                     <Avatar name={r.name} size={40} />
                     <div className="flex-1">
                       <div className="font-medium text-sm">{r.name}</div>
-                      <div className="text-xs text-slate">{r.city}</div>
+                      <div className="text-xs text-text-light">{r.city}</div>
                     </div>
                     <div className="flex items-center gap-0.5">
                       {Array.from({ length: r.rating }).map((_, k) => (
-                        <Star key={k} size={12} className="fill-amber text-amber" />
+                        <Star key={k} size={12} className="fill-primary text-primary" />
                       ))}
                     </div>
                   </div>

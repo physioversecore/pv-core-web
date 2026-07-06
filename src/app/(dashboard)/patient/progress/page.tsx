@@ -17,10 +17,10 @@ export default function Progress() {
         <div className="card-soft p-5">
           <p className="eyebrow mb-2">Overall recovery</p>
           <div className="text-3xl font-display mb-2">72%</div>
-          <div className="h-2 bg-sage rounded-full overflow-hidden">
-            <div className="h-full bg-pine rounded-full" style={{ width: "72%" }} />
+          <div className="h-2 bg-surface rounded-full overflow-hidden">
+            <div className="h-full bg-secondary rounded-full" style={{ width: "72%" }} />
           </div>
-          <p className="text-xs text-slate mt-3">Based on therapist-set milestones for ACL post-op rehab.</p>
+          <p className="text-xs text-text-light mt-3">Based on therapist-set milestones for ACL post-op rehab.</p>
         </div>
         <div className="card-soft p-5">
           <p className="eyebrow mb-3">Milestones</p>
@@ -39,14 +39,14 @@ export default function Progress() {
         <div className="flex items-end gap-3 h-44">
           {WEEKS.map((w) => (
             <div key={w.w} className="flex-1 flex flex-col items-center gap-2">
-              <div className="w-full bg-sage rounded-t-lg relative flex items-end" style={{ height: "100%" }}>
-                <div className="w-full bg-pine rounded-t-lg transition-all" style={{ height: `${(w.pain / max) * 100}%` }} />
+              <div className="w-full bg-surface rounded-t-lg relative flex items-end" style={{ height: "100%" }}>
+                <div className="w-full bg-secondary rounded-t-lg transition-all" style={{ height: `${(w.pain / max) * 100}%` }} />
               </div>
-              <div className="text-xs font-mono text-slate">{w.w}</div>
+              <div className="text-xs font-mono text-text-light">{w.w}</div>
             </div>
           ))}
         </div>
-        <div className="flex justify-between text-xs text-slate mt-3">
+        <div className="flex justify-between text-xs text-text-light mt-3">
           <span>Sessions completed: {WEEKS.reduce((s, w) => s + w.sessions, 0)}</span>
           <span>Current pain: 2 / 10</span>
         </div>
@@ -58,8 +58,8 @@ export default function Progress() {
 function Mile({ text, done }: { text: string; done?: boolean }) {
   return (
     <li className="flex items-center gap-2">
-      <span className={`w-5 h-5 rounded-full grid place-items-center text-xs ${done ? "bg-pine text-white" : "bg-sage text-slate"}`}>{done ? "✓" : "○"}</span>
-      <span className={done ? "text-forest" : "text-slate"}>{text}</span>
+      <span className={`w-5 h-5 rounded-full grid place-items-center text-xs ${done ? "bg-secondary text-white" : "bg-surface text-text-light"}`}>{done ? "✓" : "○"}</span>
+      <span className={done ? "text-text" : "text-text-light"}>{text}</span>
     </li>
   );
 }

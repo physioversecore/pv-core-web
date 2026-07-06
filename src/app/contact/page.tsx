@@ -66,35 +66,35 @@ export default function Contact() {
           <Reveal delay={120}>
             <div className="space-y-4">
               <div className="card-soft p-5 flex gap-3">
-                <span className="w-10 h-10 rounded-xl grid place-items-center text-pine" style={{ background: "#D1E8DF" }}><Mail size={18} /></span>
+                <span className="w-10 h-10 rounded-xl grid place-items-center text-secondary" style={{ background: "#D1E8DF" }}><Mail size={18} /></span>
                 <div>
                   <div className="eyebrow mb-0.5">Email</div>
                   <div className="font-medium">care@sahayatriphysio.com</div>
-                  <div className="text-xs text-slate">We reply within 1 business day</div>
+                  <div className="text-xs text-text-light">We reply within 1 business day</div>
                 </div>
               </div>
               <div className="card-soft p-5 flex gap-3">
-                <span className="w-10 h-10 rounded-xl grid place-items-center text-pine" style={{ background: "#D1E8DF" }}><Phone size={18} /></span>
+                <span className="w-10 h-10 rounded-xl grid place-items-center text-secondary" style={{ background: "#D1E8DF" }}><Phone size={18} /></span>
                 <div>
                   <div className="eyebrow mb-0.5">Phone</div>
                   <div className="font-medium">+977 1 555 0199</div>
-                  <div className="text-xs text-slate">Emergency physio hotline: +977-1-555-0100</div>
+                  <div className="text-xs text-text-light">Emergency physio hotline: +977-1-555-0100</div>
                 </div>
               </div>
               <div className="card-soft p-5 flex gap-3">
-                <span className="w-10 h-10 rounded-xl grid place-items-center text-pine" style={{ background: "#D1E8DF" }}><MapPin size={18} /></span>
+                <span className="w-10 h-10 rounded-xl grid place-items-center text-secondary" style={{ background: "#D1E8DF" }}><MapPin size={18} /></span>
                 <div>
                   <div className="eyebrow mb-0.5">Office</div>
                   <div className="font-medium">Jhamsikhel, Lalitpur</div>
-                  <div className="text-xs text-slate">Kathmandu Valley, Nepal</div>
+                  <div className="text-xs text-text-light">Kathmandu Valley, Nepal</div>
                 </div>
               </div>
               <div className="card-soft p-5 flex gap-3">
-                <span className="w-10 h-10 rounded-xl grid place-items-center text-pine" style={{ background: "#D1E8DF" }}><Clock size={18} /></span>
+                <span className="w-10 h-10 rounded-xl grid place-items-center text-secondary" style={{ background: "#D1E8DF" }}><Clock size={18} /></span>
                 <div>
                   <div className="eyebrow mb-0.5">Support hours</div>
                   <div className="font-medium">Sun \u2013 Fri \u00b7 8am \u2013 8pm</div>
-                  <div className="text-xs text-slate">Hotline available 24/7</div>
+                  <div className="text-xs text-text-light">Hotline available 24/7</div>
                 </div>
               </div>
             </div>

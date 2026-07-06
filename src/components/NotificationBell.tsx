@@ -38,28 +38,28 @@ export function NotificationBell({ role }: { role: Role }) {
 
   return (
     <div ref={ref} className="relative">
-      <button onClick={() => setOpen((o) => !o)} className="relative p-2.5 rounded-full hover:bg-sage" aria-label="Notifications">
+      <button onClick={() => setOpen((o) => !o)} className="relative p-2.5 rounded-full hover:bg-surface" aria-label="Notifications">
         <Bell size={18} />
         {unread > 0 && (
-          <span className="absolute top-1 right-1 bg-amber text-white text-[10px] font-bold w-4 h-4 rounded-full grid place-items-center">{unread}</span>
+          <span className="absolute top-1 right-1 bg-primary text-white text-[10px] font-bold w-4 h-4 rounded-full grid place-items-center">{unread}</span>
         )}
       </button>
       {open && (
         <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white border border-border rounded-2xl shadow-xl z-50">
           <div className="flex items-center justify-between p-3 border-b border-border">
             <h4 className="font-display text-base">Notifications</h4>
-            <button onClick={() => setItems((p) => p.map((i) => ({ ...i, unread: false })))} className="text-xs text-pine hover:underline">Mark all read</button>
+            <button onClick={() => setItems((p) => p.map((i) => ({ ...i, unread: false })))} className="text-xs text-secondary hover:underline">Mark all read</button>
           </div>
           <div className="max-h-80 overflow-y-auto divide-y divide-border">
-            {items.length === 0 && <p className="p-6 text-center text-sm text-slate">No notifications.</p>}
+            {items.length === 0 && <p className="p-6 text-center text-sm text-text-light">No notifications.</p>}
             {items.map((n) => (
-              <div key={n.id} className={`p-3 flex gap-2 items-start ${n.unread ? "bg-sage/40" : ""}`}>
-                <span className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${n.unread ? "bg-amber" : "bg-border"}`} />
+              <div key={n.id} className={`p-3 flex gap-2 items-start ${n.unread ? "bg-surface" : ""}`}>
+                <span className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${n.unread ? "bg-primary" : "bg-border"}`} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm leading-snug">{n.title}</p>
-                  <p className="text-xs text-slate mt-0.5 font-mono">{n.time}</p>
+                  <p className="text-xs text-text-light mt-0.5 font-mono">{n.time}</p>
                 </div>
-                <button onClick={() => setItems((p) => p.filter((x) => x.id !== n.id))} className="text-slate hover:text-pine"><X size={14} /></button>
+                <button onClick={() => setItems((p) => p.filter((x) => x.id !== n.id))} className="text-text-light hover:text-secondary"><X size={14} /></button>
               </div>
             ))}
           </div>

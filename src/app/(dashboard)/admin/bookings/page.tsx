@@ -34,12 +34,12 @@ export default function AdminBookings() {
         <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
           <h3 className="font-display text-xl">All bookings</h3>
           <div className="flex items-center gap-2">
-            <select value={filter} onChange={(e) => setFilter(e.target.value as typeof filter)} className="px-3 py-2 rounded-full border border-border bg-cream text-sm">
+            <select value={filter} onChange={(e) => setFilter(e.target.value as typeof filter)} className="px-3 py-2 rounded-full border border-border bg-background text-sm">
               {STATUSES.map((s) => <option key={s}>{s}</option>)}
             </select>
             <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate" />
-              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="pl-9 pr-3 py-2 rounded-full border border-border bg-cream text-sm w-44" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" />
+              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="pl-9 pr-3 py-2 rounded-full border border-border bg-background text-sm w-44" />
             </div>
           </div>
         </div>
@@ -47,7 +47,7 @@ export default function AdminBookings() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-[0.65rem] uppercase font-mono text-slate text-left border-b border-border">
+              <tr className="text-[0.65rem] uppercase font-mono text-text-light text-left border-b border-border">
                 <th className="py-2 pr-3">Booking ID</th><th className="py-2 pr-3">Patient</th><th className="py-2 pr-3">Therapist</th>
                 <th className="py-2 pr-3">Date & time</th><th className="py-2 pr-3">Location</th><th className="py-2 pr-3">Status</th><th className="py-2">Actions</th>
               </tr>
@@ -55,27 +55,27 @@ export default function AdminBookings() {
             <tbody className="divide-y divide-border">
               {view.map((b) => (
                 <tr key={b.id}>
-                  <td className="py-3 pr-3 font-mono text-xs text-pine">#{b.id}</td>
+                  <td className="py-3 pr-3 font-mono text-xs text-secondary">#{b.id}</td>
                   <td className="py-3 pr-3 font-medium">{b.patient}</td>
-                  <td className="py-3 pr-3 text-slate">{b.therapist}</td>
-                  <td className="py-3 pr-3 text-slate">{b.when}</td>
-                  <td className="py-3 pr-3 text-slate">{b.location}</td>
+                  <td className="py-3 pr-3 text-text-light">{b.therapist}</td>
+                  <td className="py-3 pr-3 text-text-light">{b.when}</td>
+                  <td className="py-3 pr-3 text-text-light">{b.location}</td>
                   <td className="py-3 pr-3"><StatusChip status={b.status} /></td>
                   <td className="py-3">
                     <div className="flex gap-1.5">
                       {b.status === "Pending" && (
                         <>
-                          <button onClick={() => update(b.id, "Confirmed", "Booking confirmed")} className="chip !bg-pine/10 !text-pine cursor-pointer">Confirm</button>
+                          <button onClick={() => update(b.id, "Confirmed", "Booking confirmed")} className="chip !bg-secondary/10 !text-secondary cursor-pointer">Confirm</button>
                           <button onClick={() => update(b.id, "Cancelled", "Booking cancelled")} className="chip !bg-destructive/10 !text-destructive cursor-pointer">Cancel</button>
                         </>
                       )}
                       {b.status === "Confirmed" && (
                         <>
-                          <button onClick={() => toast("Reschedule request sent")} className="chip !bg-amber/15 !text-amber cursor-pointer">Reschedule</button>
+                          <button onClick={() => toast("Reschedule request sent")} className="chip !bg-primary/15 !text-primary cursor-pointer">Reschedule</button>
                           <button onClick={() => update(b.id, "Cancelled", "Booking cancelled")} className="chip !bg-destructive/10 !text-destructive cursor-pointer">Cancel</button>
                         </>
                       )}
-                      {(b.status === "Completed" || b.status === "Cancelled") && <span className="text-slate text-xs">—</span>}
+                      {(b.status === "Completed" || b.status === "Cancelled") && <span className="text-text-light text-xs">—</span>}
                     </div>
                   </td>
                 </tr>
@@ -90,9 +90,9 @@ export default function AdminBookings() {
 
 function StatusChip({ status }: { status: Booking["status"] }) {
   const map = {
-    Confirmed: "!bg-pine/10 !text-pine",
-    Pending: "!bg-amber/15 !text-amber",
-    Completed: "!bg-sage !text-pine",
+    Confirmed: "!bg-secondary/10 !text-secondary",
+    Pending: "!bg-primary/15 !text-primary",
+    Completed: "!bg-surface !text-secondary",
     Cancelled: "!bg-destructive/10 !text-destructive",
   } as const;
   return <span className={`chip ${map[status]}`}>{status}</span>;

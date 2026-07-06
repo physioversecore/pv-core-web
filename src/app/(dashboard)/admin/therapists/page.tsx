@@ -40,8 +40,8 @@ export default function AdminTherapists() {
           <h3 className="font-display text-xl">All physiotherapists</h3>
           <div className="flex items-center gap-2">
             <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate" />
-              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search therapist…" className="pl-9 pr-3 py-2 rounded-full border border-border bg-cream text-sm w-56" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" />
+              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search therapist…" className="pl-9 pr-3 py-2 rounded-full border border-border bg-background text-sm w-56" />
             </div>
             <button onClick={exportCsv} className="btn-outline !py-2 !px-3 text-xs"><Download size={14} /> Export CSV</button>
           </div>
@@ -50,7 +50,7 @@ export default function AdminTherapists() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-[0.65rem] uppercase font-mono text-slate text-left border-b border-border">
+              <tr className="text-[0.65rem] uppercase font-mono text-text-light text-left border-b border-border">
                 <th className="py-2 pr-3">Name</th><th className="py-2 pr-3">City</th><th className="py-2 pr-3">Specialty</th>
                 <th className="py-2 pr-3">Rating</th><th className="py-2 pr-3">Sessions</th><th className="py-2 pr-3">Status</th><th className="py-2">Actions</th>
               </tr>
@@ -64,12 +64,12 @@ export default function AdminTherapists() {
                       <span className="font-medium">{r.name}</span>
                     </div>
                   </td>
-                  <td className="py-3 pr-3 text-slate">{r.city}</td>
-                  <td className="py-3 pr-3 text-slate">{r.specialty}</td>
+                  <td className="py-3 pr-3 text-text-light">{r.city}</td>
+                  <td className="py-3 pr-3 text-text-light">{r.specialty}</td>
                   <td className="py-3 pr-3">
-                    <span className="inline-flex items-center gap-1 text-amber">
-                      {[1, 2, 3, 4, 5].map((n) => <Star key={n} size={11} className={n <= Math.round(r.rating) ? "fill-amber text-amber" : "text-border"} />)}
-                      <span className="ml-1 text-forest font-mono text-xs">{r.rating}</span>
+                    <span className="inline-flex items-center gap-1 text-primary">
+                      {[1, 2, 3, 4, 5].map((n) => <Star key={n} size={11} className={n <= Math.round(r.rating) ? "fill-primary text-primary" : "text-border"} />)}
+                      <span className="ml-1 text-text font-mono text-xs">{r.rating}</span>
                     </span>
                   </td>
                   <td className="py-3 pr-3 font-mono text-xs">{r.sessions}</td>
@@ -78,7 +78,7 @@ export default function AdminTherapists() {
                   </td>
                   <td className="py-3">
                     {r.status === "Under review"
-                      ? <button onClick={() => toggle(r.id)} className="chip !bg-pine !text-white cursor-pointer">Verify</button>
+                      ? <button onClick={() => toggle(r.id)} className="chip !bg-secondary !text-white cursor-pointer">Verify</button>
                       : <button onClick={() => toggle(r.id)} className="chip !bg-destructive/15 !text-destructive cursor-pointer">{r.status === "Suspended" ? "Reinstate" : "Suspend"}</button>}
                   </td>
                 </tr>
@@ -93,8 +93,8 @@ export default function AdminTherapists() {
 
 function StatusChip({ status }: { status: Row["status"] }) {
   const map = {
-    "Verified": "!bg-pine/10 !text-pine",
-    "Under review": "!bg-amber/15 !text-amber",
+    "Verified": "!bg-secondary/10 !text-secondary",
+    "Under review": "!bg-primary/15 !text-primary",
     "Suspended": "!bg-destructive/10 !text-destructive",
   } as const;
   return <span className={`chip ${map[status]}`}>{status}</span>;

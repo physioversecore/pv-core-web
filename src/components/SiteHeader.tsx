@@ -39,18 +39,18 @@ export function SiteHeader({ variant = "solid" }: { variant?: "hero" | "solid" }
 
   return (
     <>
-      <header className={`fixed top-0 inset-x-0 z-40 transition-all duration-300 ${scrolled ? "bg-cream/92 backdrop-blur-md border-b border-border" : "bg-transparent"}`}>
+      <header className={`fixed top-0 inset-x-0 z-40 transition-all duration-300 ${scrolled ? "bg-background/92 backdrop-blur-md border-b border-border" : "bg-transparent"}`}>
         <div className="max-w-7xl mx-auto px-5 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-pine inline-block" />
-            <span className={`font-display text-lg transition-colors ${scrolled ? "text-forest" : "text-white"}`}>Sahayatri Physio</span>
+            <span className="w-6 h-6 rounded-full bg-secondary inline-block" />
+            <span className={`font-display text-lg transition-colors ${scrolled ? "text-text" : "text-white"}`}>Sahayatri Physio</span>
           </Link>
-          <nav className={`hidden md:flex items-center gap-6 text-sm transition-colors ${scrolled ? "text-slate" : "text-white/80"}`}>
+          <nav className={`hidden md:flex items-center gap-6 text-sm transition-colors ${scrolled ? "text-text-light" : "text-white/80"}`}>
             {NAV_LINKS.map((l) => (
               <Link
                 key={l.to}
                 href={l.to}
-                className="hover:text-amber transition-colors"
+                className="hover:text-primary transition-colors"
               >
                 {l.label}
               </Link>
@@ -64,7 +64,7 @@ export function SiteHeader({ variant = "solid" }: { variant?: "hero" | "solid" }
               <>
                 <button
                   onClick={() => setAuth("login")}
-                  className={`hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition ${scrolled ? "border-pine text-pine hover:bg-pine hover:text-white" : "border-white/60 text-white hover:bg-white/10"}`}
+                  className={`hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition ${scrolled ? "border-secondary text-secondary hover:bg-secondary hover:text-white" : "border-white/60 text-white hover:bg-white/10"}`}
                 >
                   Log in
                 </button>

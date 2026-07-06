@@ -23,9 +23,9 @@ export default function Help() {
             {FAQ.map((f, i) => (
               <div key={i} className="py-3">
                 <button onClick={() => setOpen(open === i ? null : i)} className="w-full text-left flex justify-between items-center font-medium">
-                  {f.q}<span className="text-slate">{open === i ? "−" : "+"}</span>
+                  {f.q}<span className="text-text-light">{open === i ? "−" : "+"}</span>
                 </button>
-                {open === i && <p className="text-sm text-slate mt-2">{f.a}</p>}
+                {open === i && <p className="text-sm text-text-light mt-2">{f.a}</p>}
               </div>
             ))}
           </div>
@@ -33,8 +33,8 @@ export default function Help() {
         <div className="space-y-5">
           <div className="card-soft p-5">
             <p className="eyebrow mb-2">Emergency physio hotline</p>
-            <div className="font-display text-2xl text-pine">+977-1-555-0100</div>
-            <p className="text-xs text-slate mt-1">24/7 urgent support</p>
+            <div className="font-display text-2xl text-secondary">+977-1-555-0100</div>
+            <p className="text-xs text-text-light mt-1">24/7 urgent support</p>
           </div>
           <form onSubmit={(e) => { e.preventDefault(); toast.success("Message sent"); setMsg(""); }} className="card-soft p-5">
             <p className="eyebrow mb-3">Contact support</p>

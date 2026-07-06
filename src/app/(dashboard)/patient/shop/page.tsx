@@ -33,9 +33,9 @@ export default function Shop() {
 
   return (
     <div>
-      <div className="flex gap-1 p-1 bg-sage rounded-full mb-6 w-fit">
+      <div className="flex gap-1 p-1 bg-surface rounded-full mb-6 w-fit">
         {TABS.map((t) => (
-          <button key={t.id} onClick={() => setTab(t.id)} className={`px-4 py-1.5 rounded-full text-sm font-medium ${tab === t.id ? "bg-white text-pine shadow-sm" : "text-slate"}`}>{t.label}</button>
+          <button key={t.id} onClick={() => setTab(t.id)} className={`px-4 py-1.5 rounded-full text-sm font-medium ${tab === t.id ? "bg-white text-secondary shadow-sm" : "text-text-light"}`}>{t.label}</button>
         ))}
       </div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -52,23 +52,23 @@ function ProductCard({ p }: { p: Product }) {
 
   return (
     <div className="card-soft p-4 flex flex-col">
-      <div className="aspect-square rounded-xl bg-sage grid place-items-center text-6xl mb-3">{p.emoji}</div>
+      <div className="aspect-square rounded-xl bg-surface grid place-items-center text-6xl mb-3">{p.emoji}</div>
       <div className="font-medium text-sm">{p.name}</div>
-      <p className="text-xs text-slate mt-0.5 mb-3 flex-1">{p.description}</p>
+      <p className="text-xs text-text-light mt-0.5 mb-3 flex-1">{p.description}</p>
 
       {p.category === "equipment" && p.rentPerDay && (
-        <div className="flex gap-1 p-0.5 bg-sage rounded-full mb-3 text-xs">
-          <button onClick={() => setMode("buy")} className={`flex-1 py-1 rounded-full ${mode === "buy" ? "bg-white text-pine" : "text-slate"}`}>Buy</button>
-          <button onClick={() => setMode("rent")} className={`flex-1 py-1 rounded-full ${mode === "rent" ? "bg-white text-pine" : "text-slate"}`}>Rent</button>
+        <div className="flex gap-1 p-0.5 bg-surface rounded-full mb-3 text-xs">
+          <button onClick={() => setMode("buy")} className={`flex-1 py-1 rounded-full ${mode === "buy" ? "bg-white text-secondary" : "text-text-light"}`}>Buy</button>
+          <button onClick={() => setMode("rent")} className={`flex-1 py-1 rounded-full ${mode === "rent" ? "bg-white text-secondary" : "text-text-light"}`}>Rent</button>
         </div>
       )}
 
       <div className="flex items-center justify-between mb-3">
         <div className="text-sm">
           <span className="font-semibold">{npr(price)}</span>
-          {mode === "rent" && <span className="text-xs text-slate"> /day</span>}
+          {mode === "rent" && <span className="text-xs text-text-light"> /day</span>}
         </div>
-        <span className={`chip ${p.inStock ? "" : "!bg-border !text-slate"}`}>{p.inStock ? "In stock" : "Out"}</span>
+        <span className={`chip ${p.inStock ? "" : "!bg-border !text-text-light"}`}>{p.inStock ? "In stock" : "Out"}</span>
       </div>
 
       <button

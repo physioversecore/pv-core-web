@@ -36,23 +36,23 @@ export default function Settings() {
             <h3 className="font-display text-lg mb-3">Report an issue with a physiotherapist</h3>
             <div className="grid sm:grid-cols-2 gap-3 mb-3">
               <div>
-                <label className="text-xs font-medium text-slate">Physiotherapist</label>
+                <label className="text-xs font-medium text-text-light">Physiotherapist</label>
                 <select value={c.therapist} onChange={(e) => setC({ ...c, therapist: e.target.value })} className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white text-sm">
                   <option value="">Select…</option>
                   {THERAPISTS.map((t) => <option key={t}>{t}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-xs font-medium text-slate">Reason</label>
+                <label className="text-xs font-medium text-text-light">Reason</label>
                 <select value={c.reason} onChange={(e) => setC({ ...c, reason: e.target.value })} className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white text-sm">
                   {REASONS.map((r) => <option key={r}>{r}</option>)}
                 </select>
               </div>
             </div>
-            <label className="text-xs font-medium text-slate">Describe what happened</label>
+            <label className="text-xs font-medium text-text-light">Describe what happened</label>
             <textarea value={c.details} onChange={(e) => setC({ ...c, details: e.target.value })} rows={4} maxLength={1000} placeholder="Please share dates, sessions, and any specific concerns…" className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white text-sm" />
             <div className="flex items-center justify-between mt-3">
-              <span className="text-xs text-slate">Your identity is shared with admin only.</span>
+              <span className="text-xs text-text-light">Your identity is shared with admin only.</span>
               <button type="submit" className="btn-pine !px-5">Send complaint</button>
             </div>
           </form>
@@ -71,9 +71,9 @@ export default function Settings() {
               {FAQ.map((f, i) => (
                 <div key={i} className="py-3">
                   <button onClick={() => setOpen(open === i ? null : i)} className="w-full text-left flex justify-between items-center font-medium">
-                    {f.q}<span className="text-slate">{open === i ? "−" : "+"}</span>
+                    {f.q}<span className="text-text-light">{open === i ? "−" : "+"}</span>
                   </button>
-                  {open === i && <p className="text-sm text-slate mt-2">{f.a}</p>}
+                  {open === i && <p className="text-sm text-text-light mt-2">{f.a}</p>}
                 </div>
               ))}
             </div>
@@ -83,8 +83,8 @@ export default function Settings() {
         <div className="space-y-5">
           <div className="card-soft p-5">
             <p className="eyebrow mb-2">Emergency physio hotline</p>
-            <div className="font-display text-2xl text-pine">+977-1-555-0100</div>
-            <p className="text-xs text-slate mt-1">24/7 urgent support</p>
+            <div className="font-display text-2xl text-secondary">+977-1-555-0100</div>
+            <p className="text-xs text-text-light mt-1">24/7 urgent support</p>
           </div>
           <form onSubmit={(e) => { e.preventDefault(); toast.success("Message sent"); setMsg(""); }} className="card-soft p-5">
             <p className="eyebrow mb-3">Contact support</p>
@@ -106,7 +106,7 @@ function Toggle({ label, v, on }: { label: string; v: boolean; on: (v: boolean) 
   return (
     <label className="flex items-center justify-between py-2 cursor-pointer">
       <span className="text-sm">{label}</span>
-      <button type="button" onClick={() => on(!v)} className={`w-10 h-6 rounded-full transition relative ${v ? "bg-pine" : "bg-border"}`}>
+      <button type="button" onClick={() => on(!v)} className={`w-10 h-6 rounded-full transition relative ${v ? "bg-secondary" : "bg-border"}`}>
         <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition ${v ? "translate-x-4" : ""}`} />
       </button>
     </label>

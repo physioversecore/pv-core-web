@@ -31,15 +31,15 @@ export default function HowItWorks() {
         <div className="max-w-7xl mx-auto px-5 lg:px-8">
           <div className="relative">
             <svg aria-hidden className="hidden md:block absolute left-0 right-0 top-14 pointer-events-none" height="2" width="100%" preserveAspectRatio="none">
-              <line x1="12%" x2="88%" y1="1" y2="1" stroke="#2F5D50" strokeOpacity="0.35" strokeWidth="2" strokeDasharray="6 8" />
+              <line x1="12%" x2="88%" y1="1" y2="1" stroke="var(--color-secondary)" strokeOpacity="0.35" strokeWidth="2" strokeDasharray="6 8" />
             </svg>
             <div className="relative grid md:grid-cols-3 gap-5">
               {STEPS.map((s, i) => (
                 <Reveal key={s.n} delay={i * 120}>
                   <div className="card-soft p-6 hover:-translate-y-1 hover:shadow-[0_18px_38px_-18px_rgba(47,93,80,.45)] transition duration-300">
-                    <div className="w-10 h-10 rounded-full bg-pine text-white grid place-items-center font-mono text-sm mb-4">{s.n}</div>
+                    <div className="w-10 h-10 rounded-full bg-secondary text-white grid place-items-center font-mono text-sm mb-4">{s.n}</div>
                     <div className="font-display text-xl mb-2">{s.t}</div>
-                    <p className="text-slate text-sm">{s.d}</p>
+                    <p className="text-text-light text-sm">{s.d}</p>
                   </div>
                 </Reveal>
               ))}
@@ -48,7 +48,7 @@ export default function HowItWorks() {
         </div>
       </section>
 
-      <section className="py-16 bg-sage/60">
+      <section className="py-16 bg-surface/60">
         <div className="max-w-7xl mx-auto px-5 lg:px-8">
           <Reveal>
             <p className="eyebrow mb-3">Our promise</p>
@@ -58,9 +58,9 @@ export default function HowItWorks() {
             {GUARANTEES.map((g, i) => (
               <Reveal key={g.t} delay={i * 80}>
                 <div className="card-soft p-6">
-                  <div className="w-11 h-11 rounded-xl grid place-items-center mb-3 text-pine" style={{ background: "#D1E8DF" }}>{g.icon}</div>
+                  <div className="w-11 h-11 rounded-xl grid place-items-center mb-3 text-secondary" style={{ background: "#D1E8DF" }}>{g.icon}</div>
                   <div className="font-display text-lg mb-1">{g.t}</div>
-                  <p className="text-slate text-sm">{g.d}</p>
+                  <p className="text-text-light text-sm">{g.d}</p>
                 </div>
               </Reveal>
             ))}
@@ -71,10 +71,10 @@ export default function HowItWorks() {
       <section className="py-16">
         <div className="max-w-4xl mx-auto px-5 lg:px-8 text-center">
           <h2 className="font-display text-3xl mb-4">Ready to book your first session?</h2>
-          <p className="text-slate mb-6">Browse verified physiotherapists near you and get started in minutes.</p>
+          <p className="text-text-light mb-6">Browse verified physiotherapists near you and get started in minutes.</p>
           <div className="flex flex-wrap gap-3 justify-center">
             <Link href="/find" className="btn-primary">Find a therapist</Link>
-            <Link href="/services" className="inline-flex items-center gap-2 px-5 py-3 rounded-full font-semibold border border-pine text-pine hover:bg-pine hover:text-white transition">Explore services</Link>
+            <Link href="/services" className="inline-flex items-center gap-2 px-5 py-3 rounded-full font-semibold border border-secondary text-secondary hover:bg-secondary hover:text-white transition">Explore services</Link>
           </div>
         </div>
       </section>

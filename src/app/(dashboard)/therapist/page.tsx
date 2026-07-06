@@ -62,7 +62,7 @@ function TodaySessions() {
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-xs uppercase font-mono text-slate text-left border-b border-border">
+            <tr className="text-xs uppercase font-mono text-text-light text-left border-b border-border">
               <th className="py-2 pr-3">Time</th>
               <th className="py-2 pr-3">Patient</th>
               <th className="py-2 pr-3">Area</th>
@@ -74,12 +74,12 @@ function TodaySessions() {
           <tbody className="divide-y divide-border">
             {TODAY.map((t) => (
               <tr key={t.time}>
-                <td className="py-3 pr-3 font-mono text-pine">{t.time}</td>
+                <td className="py-3 pr-3 font-mono text-secondary">{t.time}</td>
                 <td className="py-3 pr-3 font-medium">{t.patient}</td>
-                <td className="py-3 pr-3 text-slate">{t.area}</td>
-                <td className="py-3 pr-3 text-slate">{t.type}</td>
+                <td className="py-3 pr-3 text-text-light">{t.area}</td>
+                <td className="py-3 pr-3 text-text-light">{t.type}</td>
                 <td className="py-3 pr-3">
-                  <span className={`chip ${t.status === "Confirmed" ? "!bg-pine/10 !text-pine" : "!bg-amber/15 !text-amber"}`}>{t.status}</span>
+                  <span className={`chip ${t.status === "Confirmed" ? "!bg-secondary/10 !text-secondary" : "!bg-primary/15 !text-primary"}`}>{t.status}</span>
                 </td>
                 <td className="py-3 text-right">
                   <button onClick={() => toast.success(`Started session with ${t.patient}`)} className="btn-outline !py-1 !px-3 text-xs">Start</button>
@@ -103,16 +103,16 @@ function ReferColleague() {
     else { navigator.clipboard?.writeText(text); toast.success("Invite copied to clipboard"); }
   };
   return (
-    <section className="mt-6 card-soft p-5 bg-sage/40 border-pine/20">
+    <section className="mt-6 card-soft p-5 bg-surface/40 border-secondary/20">
       <div className="grid md:grid-cols-[1.4fr_1fr] gap-4 items-center">
         <div>
           <p className="eyebrow mb-1">Refer a colleague</p>
           <h3 className="font-display text-xl">Earn Rs 1,000 per verified physiotherapist</h3>
-          <p className="text-sm text-slate mt-1">When a colleague signs up with your code and completes 5 sessions, you both earn Rs 1,000.</p>
+          <p className="text-sm text-text-light mt-1">When a colleague signs up with your code and completes 5 sessions, you both earn Rs 1,000.</p>
         </div>
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-pine font-medium px-3 py-2 rounded-xl bg-white border border-border flex-1 text-sm truncate">{code}</span>
+            <span className="font-mono text-secondary font-medium px-3 py-2 rounded-xl bg-white border border-border flex-1 text-sm truncate">{code}</span>
             <button onClick={copy} className="btn-outline !py-2 !px-3 text-xs">Copy</button>
           </div>
           <button onClick={share} className="btn-pine w-full !py-2 text-sm">Share invite</button>
@@ -125,7 +125,7 @@ function ReferColleague() {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="card-soft p-4">
-      <div className="text-xs text-slate uppercase tracking-wider font-mono">{label}</div>
+      <div className="text-xs text-text-light uppercase tracking-wider font-mono">{label}</div>
       <div className="font-display text-2xl mt-1">{value}</div>
     </div>
   );
@@ -149,7 +149,7 @@ function UploadReport() {
         <h3 className="font-display text-xl">Upload session report</h3>
         <span className="chip">After every visit</span>
       </div>
-      <p className="text-sm text-slate mb-4">Once uploaded, the patient and their family members are notified and can view the report immediately.</p>
+      <p className="text-sm text-text-light mb-4">Once uploaded, the patient and their family members are notified and can view the report immediately.</p>
       <div className="grid md:grid-cols-2 gap-4 mb-4">
         <div>
           <label className="eyebrow !text-[0.65rem]">Patient</label>
@@ -167,10 +167,10 @@ function UploadReport() {
       </div>
       <label className="eyebrow !text-[0.65rem]">Progress note</label>
       <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} placeholder="Describe the patient's progress, exercises given, and any concerns…" className="w-full mt-1 mb-4 px-3 py-2.5 rounded-xl border border-border bg-white text-sm" />
-      <button type="button" onClick={() => setFile("report.pdf")} className={`w-full p-6 rounded-xl border-2 border-dashed text-center text-sm transition ${file ? "border-pine bg-sage/40 text-pine" : "border-border text-slate hover:border-pine"}`}>
+      <button type="button" onClick={() => setFile("report.pdf")} className={`w-full p-6 rounded-xl border-2 border-dashed text-center text-sm transition ${file ? "border-secondary bg-surface/40 text-secondary" : "border-border text-text-light hover:border-secondary"}`}>
         <Paperclip size={20} className="mx-auto mb-1" />
         <div className="font-medium">{file ? `Attached: ${file}` : "Attach file"}</div>
-        <div className="text-xs mt-0.5 text-slate">PDF report, X-ray image, video, or document</div>
+        <div className="text-xs mt-0.5 text-text-light">PDF report, X-ray image, video, or document</div>
       </button>
       <div className="text-center mt-4">
         <button onClick={submit} className="btn-pine !px-6">Upload & notify patient</button>
@@ -181,7 +181,7 @@ function UploadReport() {
 
 function RecentlyUploaded({ items }: { items: Upload[] }) {
   const iconFor = (k: Upload["kind"]) => k === "x-ray" ? <ImageIcon size={14} /> : k === "video" ? <Video size={14} /> : <FileText size={14} />;
-  const tintFor = (k: Upload["kind"]) => k === "x-ray" ? "bg-sage text-pine" : k === "video" ? "bg-amber/20 text-amber" : "bg-pine/10 text-pine";
+  const tintFor = (k: Upload["kind"]) => k === "x-ray" ? "bg-surface text-secondary" : k === "video" ? "bg-primary/20 text-primary" : "bg-secondary/10 text-secondary";
   return (
     <section className="card-soft p-5 mb-6">
       <div className="eyebrow mb-3">Recently uploaded</div>
@@ -191,9 +191,9 @@ function RecentlyUploaded({ items }: { items: Upload[] }) {
             <span className={`w-8 h-8 rounded-lg grid place-items-center font-mono text-[10px] uppercase ${tintFor(u.kind)}`}>{iconFor(u.kind)}</span>
             <div className="flex-1 min-w-0">
               <div className="text-sm font-medium">{u.patient}</div>
-              <div className="text-xs text-slate truncate">{u.title} · <span className="font-mono">{u.file}</span></div>
+              <div className="text-xs text-text-light truncate">{u.title} · <span className="font-mono">{u.file}</span></div>
             </div>
-            <div className="text-xs text-slate font-mono">{u.date}</div>
+            <div className="text-xs text-text-light font-mono">{u.date}</div>
           </div>
         ))}
       </div>
@@ -206,22 +206,22 @@ function PublicProfile() {
     <section className="grid lg:grid-cols-2 gap-5">
       <div className="card-soft p-5">
         <h3 className="font-display text-lg mb-3">My public profile</h3>
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-sage/40">
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-surface/40">
           <Avatar name="Rajesh Shrestha" size={44} />
           <div className="flex-1 min-w-0">
             <div className="font-medium">Rajesh Shrestha</div>
-            <div className="text-xs text-slate">Sports injury & post-surgery · 6 yrs experience</div>
-            <div className="flex items-center gap-1 mt-1 text-amber text-sm">
-              {"★★★★★"} <span className="font-mono text-xs text-pine ml-1">4.9</span>
-              <span className="text-xs text-slate ml-1">(38 patient reviews)</span>
+            <div className="text-xs text-text-light">Sports injury & post-surgery · 6 yrs experience</div>
+            <div className="flex items-center gap-1 mt-1 text-primary text-sm">
+              {"★★★★★"} <span className="font-mono text-xs text-secondary ml-1">4.9</span>
+              <span className="text-xs text-text-light ml-1">(38 patient reviews)</span>
             </div>
           </div>
         </div>
-        <p className="text-xs text-slate mt-3 leading-relaxed">
+        <p className="text-xs text-text-light mt-3 leading-relaxed">
           Your star rating is calculated live from patient feedback submitted after sessions.
           Maintaining above 4.5 ensures continued visibility on the platform.
         </p>
-        <Link href="/therapist/profile" className="inline-block mt-3 text-xs text-pine hover:underline">Edit profile →</Link>
+        <Link href="/therapist/profile" className="inline-block mt-3 text-xs text-secondary hover:underline">Edit profile →</Link>
       </div>
 
       <div className="card-soft p-5">
@@ -231,11 +231,11 @@ function PublicProfile() {
             <div key={r.id} className="p-3 rounded-xl border border-border">
               <div className="flex items-center justify-between mb-1">
                 <span className="font-medium text-sm">{r.name}</span>
-                <span className="text-amber text-sm flex items-center gap-0.5">
-                  {Array.from({ length: r.stars }).map((_, i) => <Star key={i} size={12} className="fill-amber text-amber" />)}
+                <span className="text-primary text-sm flex items-center gap-0.5">
+                  {Array.from({ length: r.stars }).map((_, i) => <Star key={i} size={12} className="fill-primary text-primary" />)}
                 </span>
               </div>
-              <p className="text-xs text-slate italic">"{r.text}"</p>
+              <p className="text-xs text-text-light italic">"{r.text}"</p>
             </div>
           ))}
         </div>

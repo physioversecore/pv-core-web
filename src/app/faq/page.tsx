@@ -50,9 +50,9 @@ export default function FAQ() {
                   return (
                     <div key={key} className="px-5">
                       <button onClick={() => setOpen(isOpen ? null : key)} className="w-full text-left py-4 flex justify-between items-center font-medium">
-                        {it.q}<span className="text-slate">{isOpen ? "\u2212" : "+"}</span>
+                        {it.q}<span className="text-text-light">{isOpen ? "\u2212" : "+"}</span>
                       </button>
-                      {isOpen && <p className="text-sm text-slate pb-4 -mt-1">{it.a}</p>}
+                      {isOpen && <p className="text-sm text-text-light pb-4 -mt-1">{it.a}</p>}
                     </div>
                   );
                 })}
@@ -60,7 +60,7 @@ export default function FAQ() {
             </div>
           ))}
           <div className="text-center pt-4">
-            <p className="text-slate mb-3">Still have questions?</p>
+            <p className="text-text-light mb-3">Still have questions?</p>
             <Link href="/contact" className="btn-primary">Contact support</Link>
           </div>
         </div>
