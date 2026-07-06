@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
-import { CITIES } from "@/lib/mock";
+import { CITIES } from "@/lib/constants";
 import { toast } from "sonner";
 
 export default function Profile() {

@@ -2,13 +2,16 @@
 
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { PageShell } from "@/components/PageShell";
 import { Reveal } from "@/components/Reveal";
 import { TherapistCard } from "@/components/TherapistCard";
 import { AuthModal } from "@/components/AuthModal";
 import { BookingModal } from "@/components/BookingModal";
 import { useAuth } from "@/lib/auth";
-import { THERAPISTS, CITIES, SPECIALTIES, type Therapist } from "@/lib/mock";
+import { CITIES, SPECIALTIES } from "@/lib/constants";
+import type { Therapist } from "@/lib/types";
+import { getTherapists } from "@/lib/actions/therapists";
 
 export default function FindPage() {
   const [q, setQ] = useState("");
@@ -19,16 +22,26 @@ export default function FindPage() {
   const [booking, setBooking] = useState<Therapist | null>(null);
   const { user } = useAuth();
 
+  const { data } = useQuery({
+    queryKey: ["therapists"],
+    queryFn: () => getTherapists(),
+  });
+
+  const allTherapists: Therapist[] = (data?.therapists ?? []).map((t) => ({
+    ...t,
+    gender: t.gender as "Male" | "Female",
+  }));
+
   const filtered = useMemo(
     () =>
-      THERAPISTS.filter(
+      allTherapists.filter(
         (t) =>
           (!q || t.name.toLowerCase().includes(q.toLowerCase()) || t.specialty.toLowerCase().includes(q.toLowerCase())) &&
           (!city || t.city === city) &&
           (!spec || t.specialty === spec) &&
           (!gender || t.gender === gender),
       ),
-    [q, city, spec, gender],
+    [q, city, spec, gender, allTherapists],
   );
 
   const handleBook = (t: Therapist) => {

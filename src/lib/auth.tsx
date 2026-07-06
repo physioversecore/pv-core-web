@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import * as AuthActions from "@/lib/actions/auth";
 
 export type Role = "patient" | "therapist" | "admin";
 
@@ -10,66 +11,74 @@ export interface User {
   city?: string;
   phone?: string;
   specialty?: string;
-  status?: "active" | "pending";
+  status?: string;
 }
 
 interface AuthCtx {
   user: User | null;
-  login: (email: string, _password: string, role: Role) => User;
-  signupPatient: (data: Omit<User, "id" | "role">) => User;
-  signupTherapist: (data: Omit<User, "id" | "role"> & { specialty: string }) => User;
-  logout: () => void;
+  loading: boolean;
+  login: (email: string, password: string, role: Role) => Promise<User>;
+  signupPatient: (data: Omit<User, "id" | "role" | "status"> & { password: string }) => Promise<User>;
+  signupTherapist: (data: Omit<User, "id" | "role" | "status"> & { password: string; specialty: string }) => Promise<User>;
+  logout: () => Promise<void>;
 }
 
 const Ctx = createContext<AuthCtx | null>(null);
-const KEY = "sahayatri.user";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const raw = typeof window !== "undefined" ? localStorage.getItem(KEY) : null;
-      if (raw) setUser(JSON.parse(raw));
-    } catch {}
+    AuthActions.getSession()
+      .then((session) => setUser(session as User | null))
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
   }, []);
 
-  const persist = (u: User | null) => {
-    setUser(u);
-    if (typeof window !== "undefined") {
-      if (u) localStorage.setItem(KEY, JSON.stringify(u));
-      else localStorage.removeItem(KEY);
-    }
+  const login: AuthCtx["login"] = async (email, password, role) => {
+    const u = await AuthActions.login(email, password, role);
+    setUser(u as User);
+    return u as User;
   };
 
-  const login: AuthCtx["login"] = (email, _password, role) => {
-    const u: User = {
-      id: crypto.randomUUID(),
-      name: email.split("@")[0].replace(/\./g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-      email,
-      role,
-      city: "Kathmandu",
-      status: "active",
-    };
-    persist(u);
-    return u;
+  const signupPatient: AuthCtx["signupPatient"] = async (data) => {
+    const u = await AuthActions.signup({
+      name: data.name,
+      email: data.email,
+      password: data.password,
+      role: "PATIENT",
+      city: data.city,
+      phone: data.phone,
+    });
+    setUser(u as User);
+    return u as User;
   };
 
-  const signupPatient: AuthCtx["signupPatient"] = (data) => {
-    const u: User = { ...data, id: crypto.randomUUID(), role: "patient", status: "active" };
-    persist(u);
-    return u;
+  const signupTherapist: AuthCtx["signupTherapist"] = async (data) => {
+    const u = await AuthActions.signup({
+      name: data.name,
+      email: data.email,
+      password: data.password,
+      role: "THERAPIST",
+      city: data.city,
+      phone: data.phone,
+      specialty: data.specialty,
+    });
+    setUser(u as User);
+    return u as User;
   };
 
-  const signupTherapist: AuthCtx["signupTherapist"] = (data) => {
-    const u: User = { ...data, id: crypto.randomUUID(), role: "therapist", status: "pending" };
-    persist(u);
-    return u;
+  const logout = async () => {
+    await AuthActions.logout();
+    setUser(null);
   };
 
-  const logout = () => persist(null);
-
-  return <Ctx.Provider value={{ user, login, signupPatient, signupTherapist, logout }}>{children}</Ctx.Provider>;
+  return (
+    <Ctx.Provider value={{ user, loading, login, signupPatient, signupTherapist, logout }}>
+      {children}
+    </Ctx.Provider>
+  );
 }
 
 export function useAuth() {

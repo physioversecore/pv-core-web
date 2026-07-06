@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Star } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { PageShell } from "@/components/PageShell";
 import { Reveal } from "@/components/Reveal";
 import { BookingModal } from "@/components/BookingModal";
@@ -10,7 +11,8 @@ import { AuthModal } from "@/components/AuthModal";
 import { TherapistCard } from "@/components/TherapistCard";
 import { useAuth } from "@/lib/auth";
 import { npr } from "@/lib/cart";
-import { THERAPISTS, type Therapist } from "@/lib/mock";
+import type { Therapist } from "@/lib/types";
+import { getTherapists } from "@/lib/actions/therapists";
 
 const gradients = [
   "linear-gradient(135deg, var(--color-secondary) 0%, #3F7965 100%)",
@@ -22,8 +24,19 @@ export default function Therapists() {
   const { user } = useAuth();
   const [auth, setAuth] = useState<null | "login" | "signup">(null);
   const [booking, setBooking] = useState<Therapist | null>(null);
-  const featured = THERAPISTS.slice(0, 3);
-  const rest = THERAPISTS.slice(3);
+
+  const { data } = useQuery({
+    queryKey: ["therapists"],
+    queryFn: () => getTherapists(),
+  });
+
+  const allTherapists: Therapist[] = (data?.therapists ?? []).map((t) => ({
+    ...t,
+    gender: t.gender as "Male" | "Female",
+  }));
+
+  const featured = allTherapists.slice(0, 3);
+  const rest = allTherapists.slice(3);
 
   const handleBook = (t: Therapist) => {
     if (!user) return setAuth("signup");

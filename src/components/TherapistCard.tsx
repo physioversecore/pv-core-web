@@ -1,7 +1,7 @@
 import { Star } from "lucide-react";
 import { Avatar } from "./Avatar";
 import { npr } from "@/lib/cart";
-import type { Therapist } from "@/lib/mock";
+import type { Therapist } from "@/lib/types";
 
 export function TherapistCard({ t, onBook }: { t: Therapist; onBook: (t: Therapist) => void }) {
   return (

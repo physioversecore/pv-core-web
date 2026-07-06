@@ -1,27 +1,64 @@
 "use client";
 
 import { useState } from "react";
-import { MOCK_SESSIONS, THERAPISTS, formatDate, type Session, type Therapist } from "@/lib/mock";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Avatar } from "@/components/Avatar";
 import { BookingModal } from "@/components/BookingModal";
 import { TherapistCard } from "@/components/TherapistCard";
 import { toast } from "sonner";
+import { formatDate, type Therapist, type Session } from "@/lib/types";
+import { getTherapists } from "@/lib/actions/therapists";
+import { getSessions, updateSession } from "@/lib/actions/sessions";
 
 const TABS = ["Upcoming", "Past", "Cancelled"] as const;
 
 export default function Sessions() {
   const [tab, setTab] = useState<(typeof TABS)[number]>("Upcoming");
-  const [sessions, setSessions] = useState<Session[]>(MOCK_SESSIONS);
   const [picker, setPicker] = useState(false);
   const [book, setBook] = useState<Therapist | null>(null);
+  const queryClient = useQueryClient();
+
+  const { data: sessionsData } = useQuery({
+    queryKey: ["sessions"],
+    queryFn: () => getSessions(),
+  });
+
+  const { data: therapistsData } = useQuery({
+    queryKey: ["therapists"],
+    queryFn: () => getTherapists(),
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: (id: string) => updateSession(id, { status: "CANCELLED" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      toast.success("Session cancelled");
+    },
+    onError: () => toast.error("Failed to cancel session"),
+  });
+
+  const allTherapists: Therapist[] = (therapistsData?.therapists ?? []).map((t) => ({
+    ...t,
+    gender: t.gender as "Male" | "Female",
+  }));
+
+  const sessions: Session[] = (sessionsData?.sessions ?? []).map((s) => {
+    const therapist = allTherapists.find((t) => t.id === s.therapistId);
+    return {
+      id: s.id,
+      therapist: therapist?.name ?? "Unknown",
+      therapistId: s.therapistId,
+      date: s.date,
+      time: s.time,
+      type: s.type === "HOME_VISIT" ? "Home visit" : s.type,
+      status: mapStatus(s.status),
+    };
+  });
 
   const filter = (s: Session) =>
-    tab === "Upcoming" ? s.status === "Confirmed" : tab === "Past" ? s.status === "Completed" : s.status === "Cancelled";
+    tab === "Upcoming" ? s.status === "Confirmed" || s.status === "Pending" : tab === "Past" ? s.status === "Completed" : s.status === "Cancelled";
 
-  const cancel = (id: string) => {
-    setSessions((p) => p.map((s) => (s.id === id ? { ...s, status: "Cancelled" } : s)));
-    toast.success("Session cancelled");
-  };
+  const cancel = (id: string) => cancelMutation.mutate(id);
 
   return (
     <div>
@@ -44,7 +81,9 @@ export default function Sessions() {
               <div className="font-medium">{s.therapist}</div>
               <div className="text-xs text-text-light">{formatDate(s.date)} · {s.time} · {s.type}</div>
             </div>
-            <span className={`chip ${s.status === "Confirmed" ? "!bg-secondary !text-white" : s.status === "Completed" ? "!bg-primary !text-white" : "!bg-border !text-text-light"}`}>{s.status}</span>
+            <span className={`chip ${s.status === "Confirmed" || s.status === "SCHEDULED" ? "!bg-pine !text-white" : s.status === "Completed" ? "!bg-amber !text-white" : "!bg-border !text-slate"}`}>
+              {s.status === "SCHEDULED" ? "Confirmed" : s.status}
+            </span>
             <div className="flex gap-2">
               {tab === "Upcoming" && (
                 <>
@@ -68,7 +107,7 @@ export default function Sessions() {
               <button onClick={() => setPicker(false)} className="p-2 rounded-full hover:bg-surface">✕</button>
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {THERAPISTS.map((t) => <TherapistCard key={t.id} t={t} onBook={(th) => { setPicker(false); setBook(th); }} />)}
+              {allTherapists.map((t) => <TherapistCard key={t.id} t={t} onBook={(th) => { setPicker(false); setBook(th); }} />)}
             </div>
           </div>
         </div>
@@ -77,4 +116,13 @@ export default function Sessions() {
       {book && <BookingModal therapist={book} onClose={() => setBook(null)} />}
     </div>
   );
+}
+
+function mapStatus(status: string): Session["status"] {
+  switch (status) {
+    case "SCHEDULED": return "Confirmed";
+    case "COMPLETED": return "Completed";
+    case "CANCELLED": return "Cancelled";
+    default: return status as Session["status"];
+  }
 }
