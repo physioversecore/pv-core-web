@@ -3,32 +3,38 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Search, Star, Stethoscope, Pill, Apple, ShoppingBag, ArrowRight,
+  Star, Stethoscope, Pill, Apple, ShoppingBag, ArrowRight,
   Activity, Brain, HeartPulse, Baby, MessageCircle, Bell,
-  FileText, Smartphone,
+  FileText,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { AuthModal } from "@/components/AuthModal";
 import { BookingModal } from "@/components/BookingModal";
 import { TherapistCard } from "@/components/TherapistCard";
 import { Avatar } from "@/components/Avatar";
 import { Reveal, CountUp } from "@/components/Reveal";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { PlusField } from "@/components/PlusField";
+import { HeroStat } from "@/components/HeroStat";
+import { ServiceCard } from "@/components/ServiceCard";
+import { BookButton } from "@/components/BookButton";
+import { AppStoreBadge } from "@/components/AppStoreBadge";
+import { TherapistFilters } from "@/components/TherapistFilters";
 import { useAuth } from "@/lib/auth";
+import { useAuthModal } from "@/lib/auth-modal";
+import { useBooking } from "@/hooks/useBooking";
 import { npr } from "@/lib/cart";
-import { CITIES, SPECIALTIES } from "@/lib/constants";
 import type { Therapist } from "@/lib/types";
 import { getTherapists } from "@/lib/actions/therapists";
 
 export default function Landing() {
-  const [auth, setAuth] = useState<null | "login" | "signup">(null);
-  const [booking, setBooking] = useState<Therapist | null>(null);
   const [q, setQ] = useState("");
   const [city, setCity] = useState("");
   const [spec, setSpec] = useState("");
   const [gender, setGender] = useState("");
   const { user } = useAuth();
+  const { openAuth } = useAuthModal();
+  const { booking, book: handleBook, closeBooking } = useBooking();
   const router = useRouter();
 
   const { data: therapistsData } = useQuery({
@@ -52,11 +58,6 @@ export default function Landing() {
       ),
     [q, city, spec, gender, therapists],
   );
-
-  const handleBook = (t: Therapist) => {
-    if (!user) return setAuth("signup");
-    setBooking(t);
-  };
 
   const featured = therapists.slice(0, 3);
   const gradients = [
@@ -100,25 +101,19 @@ export default function Landing() {
               Verified, licensed physiotherapists who come to your home. Book in minutes, recover with care, and track your progress — all in one place.
             </p>
             <div className="flex flex-wrap gap-3 mb-6">
-              <button onClick={() => (user ? router.push("/patient") : setAuth("signup"))} className="btn-primary">Book a session →</button>
-              <button onClick={() => setAuth("signup")} className="inline-flex items-center gap-2 px-5 py-3 rounded-full font-semibold border border-white/40 text-white hover:bg-white/10 transition">
+              <button onClick={() => (user ? router.push("/patient") : openAuth("signup"))} className="btn-primary">Book a session →</button>
+              <button onClick={() => openAuth("signup")} className="inline-flex items-center gap-2 px-5 py-3 rounded-full font-semibold border border-white/40 text-white hover:bg-white/10 transition">
                 Become a therapist
               </button>
             </div>
             <div className="flex flex-wrap gap-3 mb-10">
-              <a href="#app" className="inline-flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-black/60 border border-white/10 backdrop-blur-sm">
-                <Smartphone size={18} />
-                <span className="text-left leading-tight"><span className="block text-[10px] opacity-70">GET IT ON</span><span className="block text-sm font-semibold">Google Play</span></span>
-              </a>
-              <a href="#app" className="inline-flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-black/60 border border-white/10 backdrop-blur-sm">
-                <Smartphone size={18} />
-                <span className="text-left leading-tight"><span className="block text-[10px] opacity-70">Download on the</span><span className="block text-sm font-semibold">App Store</span></span>
-              </a>
+              <AppStoreBadge platform="google" variant="hero" />
+              <AppStoreBadge platform="apple" variant="hero" />
             </div>
             <div className="grid grid-cols-3 gap-4 max-w-lg">
-              <HeroStat n="180+" l="Verified therapists" />
-              <HeroStat n="4.8★" l="Average rating" />
-              <HeroStat n="6" l="Cities in Nepal" />
+              <HeroStat value="180+" label="Verified therapists" />
+              <HeroStat value="4.8★" label="Average rating" />
+              <HeroStat value="6" label="Cities in Nepal" />
             </div>
           </Reveal>
 
@@ -142,7 +137,7 @@ export default function Landing() {
                     </div>
                     <div className="text-right shrink-0">
                       <div className="text-sm font-semibold text-white">{npr(t.price)}</div>
-                      <button onClick={() => handleBook(t)} className="btn-primary !py-1 !px-3 text-xs mt-1">Book</button>
+                      <BookButton onClick={() => handleBook(t)} size="sm" className="mt-1" />
                     </div>
                   </div>
                 ))}
@@ -197,7 +192,7 @@ export default function Landing() {
             { to: 6, suffix: "", l: "Cities served" },
           ].map((s, i) => (
             <Reveal key={i} delay={i * 80}>
-                <div className={`text-center py-4 ${i > 0 ? "md:border-l border-border" : ""}`}>
+              <div className={`text-center py-4 ${i > 0 ? "md:border-l border-border" : ""}`}>
                 <div className="font-display text-4xl lg:text-5xl text-secondary">
                   {i === 2
                     ? <>4.8<span className="text-primary">★</span></>
@@ -220,11 +215,7 @@ export default function Landing() {
             <h2 className="text-4xl font-display mb-12 max-w-2xl">Care in three simple steps.</h2>
           </Reveal>
           <div className="relative">
-            <svg
-              aria-hidden
-              className="hidden md:block absolute left-0 right-0 top-14 pointer-events-none"
-              height="2" width="100%" preserveAspectRatio="none"
-            >
+            <svg aria-hidden className="hidden md:block absolute left-0 right-0 top-14 pointer-events-none" height="2" width="100%" preserveAspectRatio="none">
               <line x1="12%" x2="88%" y1="1" y2="1" stroke="var(--color-secondary)" strokeOpacity="0.35" strokeWidth="2" strokeDasharray="6 8" />
             </svg>
             <div className="relative grid md:grid-cols-3 gap-5">
@@ -262,21 +253,15 @@ export default function Landing() {
               { icon: <Baby />, title: "Pediatric & Elderly", desc: "Developmental delays, geriatric care." },
             ].map((s, i) => (
               <Reveal key={s.title} delay={i * 100}>
-                <div className="card-soft p-6 group hover:-translate-y-1 hover:shadow-[0_18px_38px_-18px_rgba(47,93,80,.45)] transition duration-300">
-                  <div className="w-11 h-11 rounded-xl grid place-items-center mb-3 text-secondary group-hover:scale-110 group-hover:rotate-6 transition duration-300" style={{ background: "#D1E8DF" }}>
-                    {s.icon}
-                  </div>
-                  <div className="font-display text-lg mb-1">{s.title}</div>
-                  <p className="text-text-light text-sm">{s.desc}</p>
-                </div>
+                <ServiceCard icon={s.icon} title={s.title} desc={s.desc} />
               </Reveal>
             ))}
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 mt-5">
-            <Service icon={<Stethoscope />} title="Home-visit Booking" desc="Therapists who come to you." live />
-            <Service icon={<ShoppingBag />} title="Equipment Rental" desc="Wheelchairs, crutches, TENS." />
-            <Service icon={<Pill />} title="Medicines" desc="Recovery medications delivered." />
-            <Service icon={<Apple />} title="Recovery Nutrition" desc="Supplements & meal plans." />
+            <ServiceCard icon={<Stethoscope />} title="Home-visit Booking" desc="Therapists who come to you." live />
+            <ServiceCard icon={<ShoppingBag />} title="Equipment Rental" desc="Wheelchairs, crutches, TENS." />
+            <ServiceCard icon={<Pill />} title="Medicines" desc="Recovery medications delivered." />
+            <ServiceCard icon={<Apple />} title="Recovery Nutrition" desc="Supplements & meal plans." />
           </div>
         </div>
       </section>
@@ -313,7 +298,7 @@ export default function Landing() {
                     <div className="relative z-10">
                       <div className="font-display text-2xl">{t.name}</div>
                       <div className="text-sm text-white/80 mb-4">{t.specialty} · {t.city}</div>
-                      <button onClick={() => handleBook(t)} className="btn-primary !py-1.5 !px-4 text-sm">Book · {npr(t.price)}</button>
+                      <BookButton onClick={() => handleBook(t)} size="sm" />
                     </div>
                   </div>
                 </Reveal>
@@ -332,25 +317,16 @@ export default function Landing() {
           </Reveal>
 
           <Reveal>
-            <div className="card-soft p-3 grid sm:grid-cols-[1.4fr_1fr_1fr_1fr_auto] gap-2 mb-8">
-              <div className="relative">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" />
-                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Location · name · specialty" className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-              </div>
-              <select value={city} onChange={(e) => setCity(e.target.value)} className="px-3 py-2.5 rounded-xl border border-border bg-white text-sm">
-                <option value="">All cities</option>
-                {CITIES.map((c) => <option key={c}>{c}</option>)}
-              </select>
-              <select value={spec} onChange={(e) => setSpec(e.target.value)} className="px-3 py-2.5 rounded-xl border border-border bg-white text-sm">
-                <option value="">All specialties</option>
-                {SPECIALTIES.map((s) => <option key={s}>{s}</option>)}
-              </select>
-              <select value={gender} onChange={(e) => setGender(e.target.value)} className="px-3 py-2.5 rounded-xl border border-border bg-white text-sm">
-                <option value="">Any gender</option>
-                <option>Male</option><option>Female</option>
-              </select>
-              <button className="btn-pine !px-5">Search</button>
-            </div>
+            <TherapistFilters
+              q={q}
+              city={city}
+              spec={spec}
+              gender={gender}
+              onQChange={setQ}
+              onCityChange={setCity}
+              onSpecChange={setSpec}
+              onGenderChange={setGender}
+            />
           </Reveal>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -384,14 +360,8 @@ export default function Landing() {
               ))}
             </ul>
             <div className="flex flex-wrap gap-3">
-              <a href="#" className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-black text-white hover:bg-black/80 transition">
-                <Smartphone size={20} />
-                <span className="text-left leading-tight"><span className="block text-[10px] opacity-70">GET IT ON</span><span className="block text-sm font-semibold">Google Play</span></span>
-              </a>
-              <a href="#" className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-black text-white hover:bg-black/80 transition">
-                <Smartphone size={20} />
-                <span className="text-left leading-tight"><span className="block text-[10px] opacity-70">Download on the</span><span className="block text-sm font-semibold">App Store</span></span>
-              </a>
+              <AppStoreBadge platform="google" variant="section" />
+              <AppStoreBadge platform="apple" variant="section" />
             </div>
           </Reveal>
 
@@ -445,7 +415,7 @@ export default function Landing() {
                 <p className="text-[#D1E8DF]/85 max-w-xl">Set your own schedule, earn per session, and build your patient base with verified bookings across Nepal.</p>
               </div>
               <div className="relative md:justify-self-end">
-                <button onClick={() => setAuth("signup")} className="btn-primary text-base">Apply to join <ArrowRight size={16} /></button>
+                <button onClick={() => openAuth("signup")} className="btn-primary text-base">Apply to join <ArrowRight size={16} /></button>
               </div>
             </div>
           </Reveal>
@@ -454,50 +424,7 @@ export default function Landing() {
 
       <SiteFooter />
 
-      <AuthModal open={auth !== null} mode={auth ?? "login"} onClose={() => setAuth(null)} />
-      {booking && <BookingModal therapist={booking} onClose={() => setBooking(null)} />}
-    </div>
-  );
-}
-
-function PlusField({ count = 10, seed = 1 }: { count?: number; seed?: number }) {
-  const items = useMemo(() => {
-    let s = seed * 9301 + 49297;
-    const rnd = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
-    return Array.from({ length: count }, () => ({
-      top: rnd() * 100,
-      left: rnd() * 100,
-      size: 14 + rnd() * 30,
-      rot: rnd() * 90 - 45,
-    }));
-  }, [count, seed]);
-  return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-      {items.map((it, i) => (
-        <svg key={i} className="absolute text-secondary" style={{ top: `${it.top}%`, left: `${it.left}%`, width: it.size, height: it.size, transform: `rotate(${it.rot}deg)`, opacity: 0.07 }} viewBox="0 0 20 20" fill="currentColor">
-          <path d="M8 2h4v6h6v4h-6v6H8v-6H2V8h6z" />
-        </svg>
-      ))}
-    </div>
-  );
-}
-
-function HeroStat({ n, l }: { n: string; l: string }) {
-  return (
-    <div>
-      <div className="font-display text-3xl text-white">{n}</div>
-      <div className="text-[11px] text-white/60 mt-1 font-mono uppercase tracking-widest">{l}</div>
-    </div>
-  );
-}
-
-function Service({ icon, title, desc, live }: { icon: React.ReactNode; title: string; desc: string; live?: boolean }) {
-  return (
-    <div className="card-soft p-6 relative group hover:-translate-y-1 hover:shadow-[0_18px_38px_-18px_rgba(47,93,80,.45)] transition duration-300">
-      {live ? <span className="chip !bg-secondary !text-white absolute top-4 right-4">Live</span> : <span className="chip absolute top-4 right-4">Soon</span>}
-      <div className="w-11 h-11 rounded-xl grid place-items-center mb-3 text-secondary group-hover:scale-110 group-hover:rotate-6 transition duration-300" style={{ background: "#D1E8DF" }}>{icon}</div>
-      <div className="font-display text-lg mb-1">{title}</div>
-      <p className="text-text-light text-sm">{desc}</p>
+      {booking && <BookingModal therapist={booking} onClose={closeBooking} />}
     </div>
   );
 }

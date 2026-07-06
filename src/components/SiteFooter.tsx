@@ -1,20 +1,6 @@
 import Link from "next/link";
-
-const QUICK = [
-  { to: "/how-it-works", label: "How it works" },
-  { to: "/services", label: "Services" },
-  { to: "/therapists", label: "Therapists" },
-  { to: "/find", label: "Find a Therapist" },
-  { to: "/app", label: "App" },
-] as const;
-
-const RESOURCES = [
-  { to: "/blog", label: "Blog" },
-  { to: "/faq", label: "FAQ" },
-  { to: "/testimonials", label: "Testimonials" },
-  { to: "/about", label: "About us" },
-  { to: "/contact", label: "Contact us" },
-] as const;
+import { NAV_LINKS, RESOURCE_LINKS } from "@/lib/nav-data";
+import { AppStoreBadge } from "@/components/AppStoreBadge";
 
 export function SiteFooter() {
   return (
@@ -35,7 +21,7 @@ export function SiteFooter() {
         <div>
           <p className="eyebrow !text-primary mb-3">Explore</p>
           <ul className="space-y-2">
-            {QUICK.map((l) => (
+            {NAV_LINKS.map((l) => (
               <li key={l.to}>
                 <Link href={l.to} className="hover:text-primary transition">{l.label}</Link>
               </li>
@@ -46,7 +32,7 @@ export function SiteFooter() {
         <div>
           <p className="eyebrow !text-primary mb-3">Resources</p>
           <ul className="space-y-2">
-            {RESOURCES.map((l) => (
+            {RESOURCE_LINKS.map((l) => (
               <li key={l.to}>
                 <Link href={l.to} className="hover:text-primary transition">{l.label}</Link>
               </li>
@@ -58,12 +44,8 @@ export function SiteFooter() {
           <p className="eyebrow !text-primary mb-3">Get the app</p>
           <p className="text-background/60 mb-3">Track sessions, chat with your therapist, and get reminders.</p>
           <div className="flex flex-col gap-2">
-            <a href="#" className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition text-xs">
-              <span className="opacity-70">GET IT ON</span> <span className="font-semibold">Google Play</span>
-            </a>
-            <a href="#" className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition text-xs">
-              <span className="opacity-70">Download on the</span> <span className="font-semibold">App Store</span>
-            </a>
+            <AppStoreBadge platform="google" variant="footer" />
+            <AppStoreBadge platform="apple" variant="footer" />
           </div>
         </div>
       </div>

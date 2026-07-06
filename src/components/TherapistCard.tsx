@@ -1,5 +1,6 @@
 import { Star } from "lucide-react";
 import { Avatar } from "./Avatar";
+import { BookButton } from "./BookButton";
 import { npr } from "@/lib/cart";
 import type { Therapist } from "@/lib/types";
 
@@ -18,7 +19,7 @@ export function TherapistCard({ t, onBook }: { t: Therapist; onBook: (t: Therapi
       </div>
       <div className="flex items-center justify-between pt-2 border-t border-border">
         <div className="text-sm"><span className="font-semibold">{npr(t.price)}</span><span className="text-xs text-text-light"> /session</span></div>
-        <button onClick={() => onBook(t)} className="btn-primary !py-1.5 !px-4 text-sm">Book</button>
+        <BookButton onClick={() => onBook(t)} size="sm" />
       </div>
     </div>
   );
