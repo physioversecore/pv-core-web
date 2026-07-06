@@ -1,5 +1,6 @@
 "use client";
 
+import { useLang } from "@/context/i18n";
 import { Reveal } from "@/components/Reveal";
 import { TherapistCard } from "@/components/TherapistCard";
 import { TherapistFilters } from "@/components/TherapistFilters";
@@ -23,12 +24,13 @@ export function FindTherapistSection({
   onQChange, onCityChange, onSpecChange, onGenderChange,
   onBook,
 }: FindTherapistSectionProps) {
+  const { t } = useLang();
   return (
     <section id="find" className="bg-background py-20">
       <div className="max-w-7xl mx-auto px-5 lg:px-8">
         <Reveal>
-          <p className="eyebrow mb-3">Find a therapist</p>
-          <h2 className="text-4xl font-display mb-8 max-w-2xl">Browse verified physiotherapists.</h2>
+          <p className="eyebrow mb-3">{t("find.eyebrow")}</p>
+          <h2 className="text-4xl font-display mb-8 max-w-2xl">{t("find.title")}</h2>
         </Reveal>
 
         <Reveal>
@@ -51,7 +53,7 @@ export function FindTherapistSection({
             </Reveal>
           ))}
           {filtered.length === 0 && (
-            <p className="text-text-light text-sm col-span-full">No therapists match your filters.</p>
+            <p className="text-text-light text-sm col-span-full">{t("find.noMatch")}</p>
           )}
         </div>
       </div>

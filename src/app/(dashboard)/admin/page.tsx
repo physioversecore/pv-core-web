@@ -3,8 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useLang } from "@/context/i18n";
 
 export default function AdminOverview() {
+  const { t } = useLang();
   const [pending, setPending] = useState([
     { id: "a1", name: "Dr. Pratap Joshi", date: "2026-06-26", city: "Pokhara", license: true, cert: true },
     { id: "a2", name: "Dr. Mina Karki", date: "2026-06-25", city: "Kathmandu", license: true, cert: false },
@@ -13,27 +15,27 @@ export default function AdminOverview() {
 
   const act = (id: string, ok: boolean) => {
     setPending((p) => p.filter((x) => x.id !== id));
-    toast.success(ok ? "Therapist verified" : "Application rejected");
+    toast.success(ok ? t("admin_dashboard.therapistVerified") : t("admin_dashboard.applicationRejected"));
   };
 
   return (
     <div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Stat label="Total therapists" value="184" />
-        <Stat label="Total patients" value="1,247" />
-        <Stat label="Sessions this week" value="312" />
-        <Stat label="Pending verifications" value={String(pending.length)} amber />
+        <Stat label={t("admin_dashboard.totalTherapists")} value="184" />
+        <Stat label={t("admin_dashboard.totalPatients")} value="1,247" />
+        <Stat label={t("admin_dashboard.sessionsThisWeek")} value="312" />
+        <Stat label={t("admin_dashboard.pendingVerifications")} value={String(pending.length)} amber />
       </div>
 
       <div className="card-soft p-5 mb-5">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-display text-lg">Pending verifications</h3>
-          <Link href="/admin/therapists" className="text-xs text-secondary hover:underline">All therapists</Link>
+          <h3 className="font-display text-lg">{t("admin_dashboard.pendingApplications")}</h3>
+          <Link href="/admin/therapists" className="text-xs text-secondary hover:underline">{t("admin_dashboard.allTherapists")}</Link>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-surface/60 text-xs uppercase font-mono text-text-light text-left">
-              <tr><th className="p-2">Name</th><th className="p-2">Applied</th><th className="p-2">City</th><th className="p-2">License</th><th className="p-2">Certificate</th><th className="p-2"></th></tr>
+              <tr><th className="p-2">{t("admin_dashboard.name")}</th><th className="p-2">{t("admin_dashboard.applied")}</th><th className="p-2">{t("admin_dashboard.city")}</th><th className="p-2">{t("admin_dashboard.license")}</th><th className="p-2">{t("admin_dashboard.certificate")}</th><th className="p-2"></th></tr>
             </thead>
             <tbody className="divide-y divide-border">
               {pending.map((p) => (
@@ -44,12 +46,12 @@ export default function AdminOverview() {
                   <td className="p-2">{p.license ? "✓" : "✗"}</td>
                   <td className="p-2">{p.cert ? "✓" : "✗"}</td>
                   <td className="p-2 flex gap-1 justify-end">
-                    <button onClick={() => act(p.id, true)} className="btn-pine !py-1 !px-3 text-xs">Verify</button>
-                    <button onClick={() => act(p.id, false)} className="btn-outline !py-1 !px-3 text-xs">Reject</button>
+                    <button onClick={() => act(p.id, true)} className="btn-pine !py-1 !px-3 text-xs">{t("admin_dashboard.verify")}</button>
+                    <button onClick={() => act(p.id, false)} className="btn-outline !py-1 !px-3 text-xs">{t("admin_dashboard.reject")}</button>
                   </td>
                 </tr>
               ))}
-              {pending.length === 0 && <tr><td colSpan={6} className="p-4 text-center text-text-light text-sm">No pending applications.</td></tr>}
+              {pending.length === 0 && <tr><td colSpan={6} className="p-4 text-center text-text-light text-sm">{t("admin_dashboard.noPending")}</td></tr>}
             </tbody>
           </table>
         </div>
@@ -57,12 +59,12 @@ export default function AdminOverview() {
 
       <div className="grid lg:grid-cols-2 gap-5">
         <div className="card-soft p-5">
-          <h3 className="font-display text-lg mb-3">Platform earnings</h3>
+          <h3 className="font-display text-lg mb-3">{t("admin_dashboard.platformEarnings")}</h3>
           <div className="text-3xl font-display text-secondary">Rs 5,42,300</div>
-          <p className="text-xs text-text-light mt-1">This month (15% platform fee)</p>
+          <p className="text-xs text-text-light mt-1">{t("admin_dashboard.platformFeeDesc")}</p>
         </div>
         <div className="card-soft p-5">
-          <h3 className="font-display text-lg mb-3">Recent bookings</h3>
+          <h3 className="font-display text-lg mb-3">{t("admin_dashboard.recentBookings")}</h3>
           <ul className="text-sm space-y-2 text-text-light">
             <li>· Ramesh A. booked Dr. Aarati S. — 2 min ago</li>
             <li>· Sita L. rebooked Dr. Bibek T. — 14 min ago</li>

@@ -1,10 +1,12 @@
 "use client";
 
+import { useLang } from "@/context/i18n";
 import { Reveal, CountUp } from "@/components/Reveal";
 import { PlusField } from "@/components/PlusField";
 import { impactStats } from "@/lib/landing-data";
 
 export function ImpactStats() {
+  const { t } = useLang();
   return (
     <section className="relative py-16 bg-background">
       <PlusField count={10} seed={3} />
@@ -18,7 +20,7 @@ export function ImpactStats() {
                   : <><CountUp to={s.value} /><span className="text-primary">{s.suffix}</span></>}
               </div>
               <div className="text-xs text-text-light mt-2 font-mono uppercase tracking-widest">
-                {s.isRating ? "Average rating" : s.label}
+                {s.isRating ? t("landing.impactStatsRating") : s.label}
               </div>
             </div>
           </Reveal>

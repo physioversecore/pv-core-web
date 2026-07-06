@@ -1,5 +1,6 @@
 "use client";
 
+import { useLang } from "@/context/i18n";
 import { useRouter } from "next/navigation";
 import { Star } from "lucide-react";
 import { Avatar } from "@/components/Avatar";
@@ -18,6 +19,7 @@ interface HeroSectionProps {
 }
 
 export function HeroSection({ therapists, onBook }: HeroSectionProps) {
+  const { t } = useLang();
   const { user } = useAuth();
   const { openAuth } = useAuthModal();
   const router = useRouter();
@@ -40,22 +42,18 @@ export function HeroSection({ therapists, onBook }: HeroSectionProps) {
         <Reveal>
           <p className="eyebrow !text-white/70 mb-4 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-primary dot-pulse inline-block" />
-            Home-visit physiotherapy · Nepal
+            {t("landing.heroBadge")}
           </p>
           <h1 className="font-display leading-[1.02] mb-5" style={{ fontSize: "clamp(2.5rem, 5.4vw, 3.65rem)" }}>
-            Recovery,{" "}
-            <span className="font-display italic" style={{ background: "linear-gradient(135deg,var(--color-primary) 0%,#F4C778 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
-              at your doorstep
-            </span>
-            .
+            {t("landing.heroTitle")}
           </h1>
           <p className="text-white/75 text-lg max-w-xl mb-7">
-            Verified, licensed physiotherapists who come to your home. Book in minutes, recover with care, and track your progress — all in one place.
+            {t("landing.heroDesc")}
           </p>
           <div className="flex flex-wrap gap-3 mb-6">
-            <button onClick={() => (user ? router.push("/patient") : openAuth("signup"))} className="btn-primary">Book a session →</button>
+            <button onClick={() => (user ? router.push("/patient") : openAuth("signup"))} className="btn-primary">{t("landing.heroCta")}</button>
             <button onClick={() => openAuth("signup")} className="inline-flex items-center gap-2 px-5 py-3 rounded-full font-semibold border border-white/40 text-white hover:bg-white/10 transition">
-              Become a therapist
+              {t("common.becomeTherapist")}
             </button>
           </div>
           <div className="flex flex-wrap gap-3 mb-10">
@@ -63,18 +61,18 @@ export function HeroSection({ therapists, onBook }: HeroSectionProps) {
             <AppStoreBadge platform="apple" variant="hero" />
           </div>
           <div className="grid grid-cols-3 gap-4 max-w-lg">
-            <HeroStat value="180+" label="Verified therapists" />
-            <HeroStat value="4.8★" label="Average rating" />
-            <HeroStat value="6" label="Cities in Nepal" />
+            <HeroStat value="180+" label={t("landing.heroStatTherapists")} />
+            <HeroStat value="4.8★" label={t("landing.heroStatRating")} />
+            <HeroStat value="6" label={t("landing.heroStatCities")} />
           </div>
         </Reveal>
 
         <Reveal delay={120}>
           <div className="relative rounded-[22px] p-6 lg:p-7 border border-white/15" style={{ background: "rgba(251,251,248,0.07)", backdropFilter: "blur(18px)" }}>
-            <div className="absolute -top-3 left-6 chip !bg-primary !text-white">Live now</div>
+            <div className="absolute -top-3 left-6 chip !bg-primary !text-white">{t("landing.heroLiveNow")}</div>
             <div className="flex items-center justify-between mb-4">
-              <div className="font-display text-lg text-white">Available today</div>
-              <div className="text-xs text-white/60">Kathmandu Valley</div>
+              <div className="font-display text-lg text-white">{t("landing.heroAvailableToday")}</div>
+              <div className="text-xs text-white/60">{t("landing.heroRegion")}</div>
             </div>
             <div className="space-y-3">
               {therapists.slice(0, 3).map((t) => (

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Avatar } from "@/components/Avatar";
 import { Search, Star, Download } from "lucide-react";
 import { toast } from "sonner";
+import { useLang } from "@/context/i18n";
 
 interface Row { id: string; name: string; city: string; specialty: string; rating: number; sessions: number; status: "Verified" | "Under review" | "Suspended"; }
 const ROWS: Row[] = [
@@ -15,13 +16,14 @@ const ROWS: Row[] = [
 ];
 
 export default function AdminTherapists() {
+  const { t } = useLang();
   const [q, setQ] = useState("");
   const [data, setData] = useState(ROWS);
   const rows = useMemo(() => data.filter((r) => [r.name, r.city, r.specialty].join(" ").toLowerCase().includes(q.toLowerCase())), [data, q]);
 
   const toggle = (id: string) => {
     setData((d) => d.map((r) => r.id !== id ? r : { ...r, status: r.status === "Under review" ? "Verified" : r.status === "Verified" ? "Suspended" : "Verified" }));
-    toast.success("Status updated");
+    toast.success(t("admin_dashboard.statusUpdated"));
   };
 
   const exportCsv = () => {
@@ -30,20 +32,20 @@ export default function AdminTherapists() {
     const blob = new Blob([header + body], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a"); a.href = url; a.download = "therapists.csv"; a.click(); URL.revokeObjectURL(url);
-    toast.success("Exported CSV");
+    toast.success(t("admin_dashboard.exportedCsv"));
   };
 
   return (
     <div>
       <div className="card-soft p-5">
         <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-          <h3 className="font-display text-xl">All physiotherapists</h3>
+          <h3 className="font-display text-xl">{t("admin_dashboard.allTherapists")}</h3>
           <div className="flex items-center gap-2">
             <div className="relative">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" />
-              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search therapist…" className="pl-9 pr-3 py-2 rounded-full border border-border bg-background text-sm w-56" />
+              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("admin_dashboard.searchTherapist")} className="pl-9 pr-3 py-2 rounded-full border border-border bg-background text-sm w-56" />
             </div>
-            <button onClick={exportCsv} className="btn-outline !py-2 !px-3 text-xs"><Download size={14} /> Export CSV</button>
+            <button onClick={exportCsv} className="btn-outline !py-2 !px-3 text-xs"><Download size={14} /> {t("admin_dashboard.exportCsv")}</button>
           </div>
         </div>
 
@@ -51,8 +53,8 @@ export default function AdminTherapists() {
           <table className="w-full text-sm">
             <thead>
               <tr className="text-[0.65rem] uppercase font-mono text-text-light text-left border-b border-border">
-                <th className="py-2 pr-3">Name</th><th className="py-2 pr-3">City</th><th className="py-2 pr-3">Specialty</th>
-                <th className="py-2 pr-3">Rating</th><th className="py-2 pr-3">Sessions</th><th className="py-2 pr-3">Status</th><th className="py-2">Actions</th>
+                <th className="py-2 pr-3">{t("admin_dashboard.name")}</th><th className="py-2 pr-3">{t("admin_dashboard.city")}</th><th className="py-2 pr-3">{t("admin_dashboard.specialty")}</th>
+                <th className="py-2 pr-3">{t("admin_dashboard.rating")}</th><th className="py-2 pr-3">{t("admin_dashboard.sessions")}</th><th className="py-2 pr-3">{t("admin_dashboard.status")}</th><th className="py-2">{t("admin_dashboard.actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -78,8 +80,8 @@ export default function AdminTherapists() {
                   </td>
                   <td className="py-3">
                     {r.status === "Under review"
-                      ? <button onClick={() => toggle(r.id)} className="chip !bg-secondary !text-white cursor-pointer">Verify</button>
-                      : <button onClick={() => toggle(r.id)} className="chip !bg-destructive/15 !text-destructive cursor-pointer">{r.status === "Suspended" ? "Reinstate" : "Suspend"}</button>}
+                      ? <button onClick={() => toggle(r.id)} className="chip !bg-secondary !text-white cursor-pointer">{t("admin_dashboard.verify")}</button>
+                      : <button onClick={() => toggle(r.id)} className="chip !bg-destructive/15 !text-destructive cursor-pointer">{r.status === "Suspended" ? t("common.reinstate") : t("common.suspend")}</button>}
                   </td>
                 </tr>
               ))}
@@ -92,10 +94,16 @@ export default function AdminTherapists() {
 }
 
 function StatusChip({ status }: { status: Row["status"] }) {
+  const { t } = useLang();
   const map = {
     "Verified": "!bg-secondary/10 !text-secondary",
     "Under review": "!bg-primary/15 !text-primary",
     "Suspended": "!bg-destructive/10 !text-destructive",
   } as const;
-  return <span className={`chip ${map[status]}`}>{status}</span>;
+  const label: Record<string, string> = {
+    "Verified": t("admin_dashboard.verified"),
+    "Under review": t("admin_dashboard.underReview"),
+    "Suspended": t("admin_dashboard.suspended"),
+  };
+  return <span className={`chip ${map[status]}`}>{label[status]}</span>;
 }

@@ -1,32 +1,35 @@
 "use client";
 
 import Link from "next/link";
+import { useLang } from "@/context/i18n";
 import { PageShell } from "@/components/PageShell";
 import { HowItWorksSteps } from "@/components/HowItWorksSteps";
 import { Reveal } from "@/components/Reveal";
 import { CalendarClock, CreditCard, Home, ShieldCheck, Star, ClipboardList } from "lucide-react";
 
-const STEPS = [
-  { n: "01", t: "Sign up & search", d: "Create your account, filter by location, condition, and gender. Read verified reviews before you book." },
-  { n: "02", t: "Book & pay", d: "Pick a date and time that fits. Pay via eSewa, Khalti, or cash on visit — with a full refund window." },
-  { n: "03", t: "Recover at home", d: "Your therapist arrives on time, treats you at home, uploads a session report and next-visit plan." },
-];
-
-const GUARANTEES = [
-  { icon: <ShieldCheck />, t: "NMC-verified therapists", d: "Every therapist's Nepal Medical Council license is manually reviewed." },
-  { icon: <CalendarClock />, t: "Flexible scheduling", d: "Book same-day or up to 30 days in advance, 7 days a week." },
-  { icon: <CreditCard />, t: "Secure payments", d: "eSewa, Khalti, or cash. Full refund up to 6 hours before your visit." },
-  { icon: <ClipboardList />, t: "Session reports", d: "Every visit ends with an uploaded report and progress notes." },
-  { icon: <Home />, t: "Care at home", d: "Skip the traffic. Recover in the comfort of your own home." },
-  { icon: <Star />, t: "Rated by real patients", d: "Only verified patients can leave a review after their session." },
-];
-
 export default function HowItWorks() {
+  const { t } = useLang();
+
+  const STEPS = [
+    { n: t("howItWorks.step1Number"), t: t("howItWorks.step1Title"), d: t("howItWorks.step1Desc") },
+    { n: t("howItWorks.step2Number"), t: t("howItWorks.step2Title"), d: t("howItWorks.step2Desc") },
+    { n: t("howItWorks.step3Number"), t: t("howItWorks.step3Title"), d: t("howItWorks.step3Desc") },
+  ];
+
+  const GUARANTEES = [
+    { icon: <ShieldCheck />, title: t("howItWorks.guarantee1Title"), desc: t("howItWorks.guarantee1Desc") },
+    { icon: <CalendarClock />, title: t("howItWorks.guarantee2Title"), desc: t("howItWorks.guarantee2Desc") },
+    { icon: <CreditCard />, title: t("howItWorks.guarantee3Title"), desc: t("howItWorks.guarantee3Desc") },
+    { icon: <ClipboardList />, title: t("howItWorks.guarantee4Title"), desc: t("howItWorks.guarantee4Desc") },
+    { icon: <Home />, title: t("howItWorks.guarantee5Title"), desc: t("howItWorks.guarantee5Desc") },
+    { icon: <Star />, title: t("howItWorks.guarantee6Title"), desc: t("howItWorks.guarantee6Desc") },
+  ];
+
   return (
     <PageShell
-      eyebrow="How it works"
-      title="Care in three simple steps."
-      subtitle="From your first search to a fully uploaded session report — everything runs through one calm, verified flow."
+      eyebrow={t("howItWorks.eyebrow")}
+      title={t("howItWorks.title")}
+      subtitle={t("howItWorks.subtitle")}
     >
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-5 lg:px-8">
@@ -37,16 +40,16 @@ export default function HowItWorks() {
       <section className="py-16 bg-surface/60">
         <div className="max-w-7xl mx-auto px-5 lg:px-8">
           <Reveal>
-            <p className="eyebrow mb-3">Our promise</p>
-            <h2 className="text-3xl font-display mb-10 max-w-2xl">Everything you&apos;d want from home physio.</h2>
+            <p className="eyebrow mb-3">{t("howItWorks.promiseEyebrow")}</p>
+            <h2 className="text-3xl font-display mb-10 max-w-2xl">{t("howItWorks.promiseTitle")}</h2>
           </Reveal>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {GUARANTEES.map((g, i) => (
-              <Reveal key={g.t} delay={i * 80}>
+              <Reveal key={g.title} delay={i * 80}>
                 <div className="card-soft p-6">
                   <div className="w-11 h-11 rounded-xl grid place-items-center mb-3 text-secondary" style={{ background: "#D1E8DF" }}>{g.icon}</div>
-                  <div className="font-display text-lg mb-1">{g.t}</div>
-                  <p className="text-text-light text-sm">{g.d}</p>
+                  <div className="font-display text-lg mb-1">{g.title}</div>
+                  <p className="text-text-light text-sm">{g.desc}</p>
                 </div>
               </Reveal>
             ))}
@@ -56,11 +59,11 @@ export default function HowItWorks() {
 
       <section className="py-16">
         <div className="max-w-4xl mx-auto px-5 lg:px-8 text-center">
-          <h2 className="font-display text-3xl mb-4">Ready to book your first session?</h2>
-          <p className="text-text-light mb-6">Browse verified physiotherapists near you and get started in minutes.</p>
+          <h2 className="font-display text-3xl mb-4">{t("howItWorks.ctaTitle")}</h2>
+          <p className="text-text-light mb-6">{t("howItWorks.ctaDesc")}</p>
           <div className="flex flex-wrap gap-3 justify-center">
-            <Link href="/find" className="btn-primary">Find a therapist</Link>
-            <Link href="/services" className="inline-flex items-center gap-2 px-5 py-3 rounded-full font-semibold border border-secondary text-secondary hover:bg-secondary hover:text-white transition">Explore services</Link>
+            <Link href="/find" className="btn-primary">{t("howItWorks.ctaFind")}</Link>
+            <Link href="/services" className="inline-flex items-center gap-2 px-5 py-3 rounded-full font-semibold border border-secondary text-secondary hover:bg-secondary hover:text-white transition">{t("howItWorks.ctaServices")}</Link>
           </div>
         </div>
       </section>

@@ -1,5 +1,7 @@
 "use client";
 
+import { useLang } from "@/context/i18n";
+
 const WEEKS = [
   { w: "W1", pain: 8, sessions: 1 },
   { w: "W2", pain: 7, sessions: 2 },
@@ -10,32 +12,33 @@ const WEEKS = [
 ];
 
 export default function Progress() {
+  const { t } = useLang();
   const max = 10;
   return (
     <div>
       <div className="grid lg:grid-cols-2 gap-5 mb-5">
         <div className="card-soft p-5">
-          <p className="eyebrow mb-2">Overall recovery</p>
+          <p className="eyebrow mb-2">{t("patient_dashboard.overallRecovery")}</p>
           <div className="text-3xl font-display mb-2">72%</div>
           <div className="h-2 bg-surface rounded-full overflow-hidden">
             <div className="h-full bg-secondary rounded-full" style={{ width: "72%" }} />
           </div>
-          <p className="text-xs text-text-light mt-3">Based on therapist-set milestones for ACL post-op rehab.</p>
+          <p className="text-xs text-text-light mt-3">{t("patient_dashboard.milestones")}</p>
         </div>
         <div className="card-soft p-5">
-          <p className="eyebrow mb-3">Milestones</p>
+          <p className="eyebrow mb-3">{t("patient_dashboard.milestones")}</p>
           <ul className="space-y-2 text-sm">
-            <Mile done text="Pain below 5/10" />
-            <Mile done text="Walk 500m without aid" />
-            <Mile done text="Full passive ROM" />
-            <Mile text="Climb stairs unassisted" />
-            <Mile text="Return to light sports" />
+            <Mile done text={t("patient_dashboard.milestonePainBelow")} />
+            <Mile done text={t("patient_dashboard.milestoneWalk500m")} />
+            <Mile done text={t("patient_dashboard.milestoneFullROM")} />
+            <Mile text={t("patient_dashboard.milestoneClimbStairs")} />
+            <Mile text={t("patient_dashboard.milestoneReturnSports")} />
           </ul>
         </div>
       </div>
 
       <div className="card-soft p-5">
-        <p className="eyebrow mb-3">Pain level over time</p>
+        <p className="eyebrow mb-3">{t("patient_dashboard.painLevelOverTime")}</p>
         <div className="flex items-end gap-3 h-44">
           {WEEKS.map((w) => (
             <div key={w.w} className="flex-1 flex flex-col items-center gap-2">
@@ -47,8 +50,8 @@ export default function Progress() {
           ))}
         </div>
         <div className="flex justify-between text-xs text-text-light mt-3">
-          <span>Sessions completed: {WEEKS.reduce((s, w) => s + w.sessions, 0)}</span>
-          <span>Current pain: 2 / 10</span>
+          <span>{t("patient_dashboard.sessionsCompleted")} {WEEKS.reduce((s, w) => s + w.sessions, 0)}</span>
+          <span>{t("patient_dashboard.currentPain")} 2 / 10</span>
         </div>
       </div>
     </div>

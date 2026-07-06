@@ -1,5 +1,6 @@
 "use client";
 
+import { useLang } from "@/context/i18n";
 import { Activity, Brain, HeartPulse, Baby, Stethoscope, ShoppingBag, Pill, Apple, type LucideIcon } from "lucide-react";
 import { Reveal } from "@/components/Reveal";
 import { PlusField } from "@/components/PlusField";
@@ -12,13 +13,14 @@ const iconMap: Record<string, LucideIcon> = {
 };
 
 export function ServicesSection() {
+  const { t } = useLang();
   return (
     <section id="services" className="py-20 relative bg-surface">
       <PlusField count={8} seed={7} />
       <div className="relative max-w-7xl mx-auto px-5 lg:px-8">
         <Reveal>
-          <p className="eyebrow mb-3">Our services</p>
-          <h2 className="text-4xl font-display mb-12 max-w-2xl">Everything for your recovery.</h2>
+          <p className="eyebrow mb-3">{t("landing.servicesEyebrow")}</p>
+          <h2 className="text-4xl font-display mb-12 max-w-2xl">{t("landing.servicesTitle")}</h2>
         </Reveal>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
           {rehabServices.map((s, i) => {

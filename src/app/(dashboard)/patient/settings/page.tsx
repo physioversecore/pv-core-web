@@ -2,29 +2,37 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { useLang } from "@/context/i18n";
 
-const FAQ = [
-  { q: "How are therapists verified?", a: "All physiotherapists must upload their NMC license and certification. Our team reviews and approves within 24 hours." },
-  { q: "What are the cancellation policies?", a: "You can cancel up to 6 hours before your session for a full refund." },
-  { q: "Which areas do you cover?", a: "Kathmandu, Lalitpur, Bhaktapur, Pokhara, Chitwan, and Biratnagar." },
-  { q: "How are payments handled?", a: "We accept eSewa, Khalti, and cash on visit." },
-];
+const FAQ_KEYS = [
+  { q: "patient_dashboard.helpQ1", a: "patient_dashboard.helpA1" },
+  { q: "patient_dashboard.helpQ2", a: "patient_dashboard.helpA2" },
+  { q: "patient_dashboard.helpQ3", a: "patient_dashboard.helpA3" },
+  { q: "patient_dashboard.helpQ4", a: "patient_dashboard.helpA4" },
+] as const;
 
 const THERAPISTS = ["Rajesh Shrestha", "Anita Tamang", "Sunita Karki"];
-const REASONS = ["Unprofessional behaviour", "Late or no-show", "Incorrect treatment", "Billing dispute", "Other"];
+const REASON_KEYS = [
+  "patient_dashboard.settingsReasonUnprofessional",
+  "patient_dashboard.settingsReasonLate",
+  "patient_dashboard.settingsReasonIncorrect",
+  "patient_dashboard.settingsReasonBilling",
+  "patient_dashboard.settingsReasonOther",
+] as const;
 
 export default function Settings() {
+  const { t } = useLang();
   const [open, setOpen] = useState<number | null>(0);
   const [msg, setMsg] = useState("");
-  const [c, setC] = useState({ therapist: "", reason: REASONS[0], details: "" });
+  const [c, setC] = useState<{ therapist: string; reason: string; details: string }>({ therapist: "", reason: REASON_KEYS[0], details: "" });
   const [prefs, setPrefs] = useState({ emailNotif: true, smsNotif: true, marketing: false });
 
   const submitComplaint = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!c.therapist) return toast.error("Select the physiotherapist");
-    if (c.details.trim().length < 10) return toast.error("Please describe the issue (10+ chars)");
-    toast.success("Complaint sent to admin. We'll follow up within 24h.");
-    setC({ therapist: "", reason: REASONS[0], details: "" });
+    if (!c.therapist) return toast.error(t("patient_dashboard.settingsErrorSelectTherapist"));
+    if (c.details.trim().length < 10) return toast.error(t("patient_dashboard.settingsErrorDescribe"));
+    toast.success(t("patient_dashboard.settingsComplaintSent"));
+    setC({ therapist: "", reason: REASON_KEYS[0], details: "" });
   };
 
   return (
@@ -32,48 +40,48 @@ export default function Settings() {
       <div className="grid lg:grid-cols-[1.4fr_1fr] gap-5">
         <div className="space-y-5">
           <form onSubmit={submitComplaint} className="card-soft p-5">
-            <p className="eyebrow mb-1">File a complaint</p>
-            <h3 className="font-display text-lg mb-3">Report an issue with a physiotherapist</h3>
+            <p className="eyebrow mb-1">{t("patient_dashboard.settingsFileComplaint")}</p>
+            <h3 className="font-display text-lg mb-3">{t("patient_dashboard.settingsReportIssue")}</h3>
             <div className="grid sm:grid-cols-2 gap-3 mb-3">
               <div>
-                <label className="text-xs font-medium text-text-light">Physiotherapist</label>
+                <label className="text-xs font-medium text-text-light">{t("patient_dashboard.therapist")}</label>
                 <select value={c.therapist} onChange={(e) => setC({ ...c, therapist: e.target.value })} className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white text-sm">
-                  <option value="">Select…</option>
-                  {THERAPISTS.map((t) => <option key={t}>{t}</option>)}
+                  <option value="">{t("patient_dashboard.settingsSelectTherapist")}</option>
+                  {THERAPISTS.map((th) => <option key={th}>{th}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-xs font-medium text-text-light">Reason</label>
+                <label className="text-xs font-medium text-text-light">{t("patient_dashboard.settingsReason")}</label>
                 <select value={c.reason} onChange={(e) => setC({ ...c, reason: e.target.value })} className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white text-sm">
-                  {REASONS.map((r) => <option key={r}>{r}</option>)}
+                  {REASON_KEYS.map((rk) => <option key={rk} value={rk}>{t(rk)}</option>)}
                 </select>
               </div>
             </div>
-            <label className="text-xs font-medium text-text-light">Describe what happened</label>
-            <textarea value={c.details} onChange={(e) => setC({ ...c, details: e.target.value })} rows={4} maxLength={1000} placeholder="Please share dates, sessions, and any specific concerns…" className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white text-sm" />
+            <label className="text-xs font-medium text-text-light">{t("patient_dashboard.settingsDescribe")}</label>
+            <textarea value={c.details} onChange={(e) => setC({ ...c, details: e.target.value })} rows={4} maxLength={1000} placeholder={t("patient_dashboard.settingsDescribePlaceholder")} className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white text-sm" />
             <div className="flex items-center justify-between mt-3">
-              <span className="text-xs text-text-light">Your identity is shared with admin only.</span>
-              <button type="submit" className="btn-pine !px-5">Send complaint</button>
+              <span className="text-xs text-text-light">{t("patient_dashboard.settingsIdentityNote")}</span>
+              <button type="submit" className="btn-pine !px-5">{t("common.send")}</button>
             </div>
           </form>
 
           <div className="card-soft p-5">
-            <p className="eyebrow mb-3">Notification preferences</p>
-            <Toggle label="Email notifications" v={prefs.emailNotif} on={(v) => setPrefs({ ...prefs, emailNotif: v })} />
-            <Toggle label="SMS reminders" v={prefs.smsNotif} on={(v) => setPrefs({ ...prefs, smsNotif: v })} />
-            <Toggle label="Marketing & offers" v={prefs.marketing} on={(v) => setPrefs({ ...prefs, marketing: v })} />
-            <button onClick={() => toast.success("Preferences saved")} className="btn-outline !py-1.5 !px-4 text-xs mt-2">Save preferences</button>
+            <p className="eyebrow mb-3">{t("patient_dashboard.settingsNotificationPrefs")}</p>
+            <Toggle label={t("patient_dashboard.settingsEmailNotif")} v={prefs.emailNotif} on={(v) => setPrefs({ ...prefs, emailNotif: v })} />
+            <Toggle label={t("patient_dashboard.settingsSmsReminders")} v={prefs.smsNotif} on={(v) => setPrefs({ ...prefs, smsNotif: v })} />
+            <Toggle label={t("patient_dashboard.settingsMarketing")} v={prefs.marketing} on={(v) => setPrefs({ ...prefs, marketing: v })} />
+            <button onClick={() => toast.success(t("common.savePreferences"))} className="btn-outline !py-1.5 !px-4 text-xs mt-2">{t("common.savePreferences")}</button>
           </div>
 
           <div className="card-soft p-5">
-            <p className="eyebrow mb-3">FAQ</p>
+            <p className="eyebrow mb-3">{t("patient_dashboard.settingsFaq")}</p>
             <div className="divide-y divide-border">
-              {FAQ.map((f, i) => (
+              {FAQ_KEYS.map((f, i) => (
                 <div key={i} className="py-3">
                   <button onClick={() => setOpen(open === i ? null : i)} className="w-full text-left flex justify-between items-center font-medium">
-                    {f.q}<span className="text-text-light">{open === i ? "−" : "+"}</span>
+                    {t(f.q)}<span className="text-text-light">{open === i ? "−" : "+"}</span>
                   </button>
-                  {open === i && <p className="text-sm text-text-light mt-2">{f.a}</p>}
+                  {open === i && <p className="text-sm text-text-light mt-2">{t(f.a)}</p>}
                 </div>
               ))}
             </div>
@@ -82,19 +90,19 @@ export default function Settings() {
 
         <div className="space-y-5">
           <div className="card-soft p-5">
-            <p className="eyebrow mb-2">Emergency physio hotline</p>
+            <p className="eyebrow mb-2">{t("patient_dashboard.emergencyHotline")}</p>
             <div className="font-display text-2xl text-secondary">+977-1-555-0100</div>
-            <p className="text-xs text-text-light mt-1">24/7 urgent support</p>
+            <p className="text-xs text-text-light mt-1">{t("patient_dashboard.urgentSupport")}</p>
           </div>
-          <form onSubmit={(e) => { e.preventDefault(); toast.success("Message sent"); setMsg(""); }} className="card-soft p-5">
-            <p className="eyebrow mb-3">Contact support</p>
-            <textarea value={msg} onChange={(e) => setMsg(e.target.value)} rows={4} placeholder="How can we help?" className="w-full px-3 py-2.5 rounded-xl border border-border bg-white" />
-            <button type="submit" className="btn-pine w-full mt-3">Send</button>
+          <form onSubmit={(e) => { e.preventDefault(); toast.success(t("patient_dashboard.messageSent")); setMsg(""); }} className="card-soft p-5">
+            <p className="eyebrow mb-3">{t("patient_dashboard.contactSupport")}</p>
+            <textarea value={msg} onChange={(e) => setMsg(e.target.value)} rows={4} placeholder={t("patient_dashboard.supportPlaceholder")} className="w-full px-3 py-2.5 rounded-xl border border-border bg-white" />
+            <button type="submit" className="btn-pine w-full mt-3">{t("common.send")}</button>
           </form>
           <div className="card-soft p-5">
-            <p className="eyebrow mb-2">Account</p>
-            <button onClick={() => toast("Password reset link sent")} className="btn-outline w-full !py-2 text-sm mb-2">Change password</button>
-            <button onClick={() => toast.error("Contact support to delete account")} className="w-full text-xs text-red-600 underline">Delete my account</button>
+            <p className="eyebrow mb-2">{t("patient_dashboard.settingsAccount")}</p>
+            <button onClick={() => toast(t("therapist_dashboard.passwordResetSent"))} className="btn-outline w-full !py-2 text-sm mb-2">{t("patient_dashboard.settingsChangePassword")}</button>
+            <button onClick={() => toast.error(t("patient_dashboard.settingsDeleteAccountConfirm"))} className="w-full text-xs text-red-600 underline">{t("patient_dashboard.settingsDeleteAccount")}</button>
           </div>
         </div>
       </div>

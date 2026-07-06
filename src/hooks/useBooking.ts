@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useAuth } from "@/lib/auth";
-import { useAuthModal } from "@/lib/auth-modal";
-import type { Therapist } from "@/lib/types";
+import { useAuth } from "@/context/auth";
+import { useAuthModal } from "@/context/auth-modal";
+import type { Therapist } from "@/types";
 
 export function useBooking() {
   const { user } = useAuth();

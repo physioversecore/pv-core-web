@@ -17,8 +17,8 @@ import {
   TherapistCTA,
 } from "@/components/sections";
 import { useBooking } from "@/hooks/useBooking";
-import type { Therapist } from "@/lib/types";
-import { getTherapists } from "@/lib/actions/therapists";
+import type { Therapist } from "@/types";
+import { getTherapists } from "@/services/api/therapists";
 
 export default function Landing() {
   const [q, setQ] = useState("");

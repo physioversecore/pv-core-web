@@ -1,0 +1,56 @@
+import "server-only";
+import { getToken } from "./session";
+
+const BASE = process.env.BACKEND_URL || "http://localhost:8000";
+
+export class AuthError extends Error {
+  constructor() {
+    super("Not authenticated");
+    this.name = "AuthError";
+  }
+}
+
+async function request<T = unknown>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
+  const token = await getToken();
+  const headers: Record<string, string> = {
+    ...(options.headers as Record<string, string>),
+  };
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  if (!(options.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  const res = await fetch(`${BASE}/api/v1${path}`, {
+    ...options,
+    headers,
+    cache: "no-store",
+  });
+
+  if (res.status === 401) throw new AuthError();
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.detail ?? `API error ${res.status}: ${res.statusText}`);
+  }
+
+  if (res.status === 204) return undefined as T;
+
+  return res.json();
+}
+
+export const api = {
+  get: <T>(path: string) => request<T>(path),
+  post: <T>(path: string, body?: unknown) =>
+    request<T>(path, { method: "POST", body: body ? JSON.stringify(body) : undefined }),
+  put: <T>(path: string, body?: unknown) =>
+    request<T>(path, { method: "PUT", body: body ? JSON.stringify(body) : undefined }),
+  delete: <T>(path: string) =>
+    request<T>(path, { method: "DELETE" }),
+};

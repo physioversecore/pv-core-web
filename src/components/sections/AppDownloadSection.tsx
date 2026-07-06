@@ -1,28 +1,32 @@
 "use client";
 
+import { useLang } from "@/context/i18n";
 import { FileText, MessageCircle, Bell } from "lucide-react";
 import { Reveal } from "@/components/Reveal";
 import { AppStoreBadge } from "@/components/AppStoreBadge";
 
 export function AppDownloadSection() {
+  const { t } = useLang();
   return (
     <section id="app" className="py-20 text-white relative overflow-hidden bg-background-dark">
       <div aria-hidden className="pointer-events-none absolute -top-20 -right-20 w-[500px] h-[500px] rounded-full bg-primary/20 blur-3xl blob-drift" />
       <div className="relative max-w-7xl mx-auto px-5 lg:px-8 grid lg:grid-cols-[1.1fr_1fr] gap-10 items-center">
         <Reveal>
-          <p className="eyebrow !text-primary mb-3">Sahayatri app</p>
-          <h2 className="text-4xl font-display mb-5">Your recovery, in your pocket.</h2>
+          <p className="eyebrow !text-primary mb-3">{t("app.eyebrow")}</p>
+          <h2 className="text-4xl font-display mb-5">{t("app.title")}</h2>
           <ul className="space-y-3 mb-7 text-white/85">
-            {[
-              { icon: <FileText size={18} />, t: "Session reports uploaded after every visit" },
-              { icon: <MessageCircle size={18} />, t: "In-app chat with your therapist" },
-              { icon: <Bell size={18} />, t: "Reminders for exercises and next visits" },
-            ].map((b) => (
-              <li key={b.t} className="flex items-center gap-3">
-                <span className="w-8 h-8 grid place-items-center rounded-lg bg-white/10">{b.icon}</span>
-                <span>{b.t}</span>
-              </li>
-            ))}
+            <li className="flex items-center gap-3">
+              <span className="w-8 h-8 grid place-items-center rounded-lg bg-white/10"><FileText size={18} /></span>
+              {t("app.feature1")}
+            </li>
+            <li className="flex items-center gap-3">
+              <span className="w-8 h-8 grid place-items-center rounded-lg bg-white/10"><MessageCircle size={18} /></span>
+              {t("app.feature2")}
+            </li>
+            <li className="flex items-center gap-3">
+              <span className="w-8 h-8 grid place-items-center rounded-lg bg-white/10"><Bell size={18} /></span>
+              {t("app.feature3")}
+            </li>
           </ul>
           <div className="flex flex-wrap gap-3">
             <AppStoreBadge platform="google" variant="section" />

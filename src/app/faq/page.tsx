@@ -2,41 +2,44 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useLang } from "@/context/i18n";
 import { PageShell } from "@/components/PageShell";
 
-const GROUPS = [
-  {
-    group: "Bookings",
-    items: [
-      { q: "How do I book a session?", a: "Sign up, choose a therapist from Find a Therapist, pick a slot, and pay. You'll get a confirmation email and SMS." },
-      { q: "Can I cancel or reschedule?", a: "Yes — up to 6 hours before your visit for a full refund. Rescheduling is free from your patient dashboard." },
-      { q: "How soon can a therapist arrive?", a: "Same-day bookings are available in Kathmandu Valley subject to availability. Otherwise up to 30 days in advance." },
-    ],
-  },
-  {
-    group: "Therapists & Verification",
-    items: [
-      { q: "How are therapists verified?", a: "Every physiotherapist must upload their Nepal Medical Council (NMC) license and certifications. Our team reviews within 24 hours." },
-      { q: "Can I request a specific gender?", a: "Yes. Use the gender filter on the Find a Therapist page to book comfortably." },
-    ],
-  },
-  {
-    group: "Coverage & Payments",
-    items: [
-      { q: "Which cities do you cover?", a: "Kathmandu, Lalitpur, Bhaktapur, Pokhara, Chitwan, and Biratnagar. More cities coming soon." },
-      { q: "How are payments handled?", a: "We accept eSewa, Khalti, and cash on visit. All transactions are secured and receipted." },
-      { q: "Do you support insurance?", a: "Not yet — we're piloting insurance partnerships with select providers in 2026." },
-    ],
-  },
-];
-
 export default function FAQ() {
-  const [open, setOpen] = useState<string | null>("Bookings-0");
+  const { t } = useLang();
+
+  const GROUPS = [
+    {
+      group: t("faq.groupBookings"),
+      items: [
+        { q: t("faq.qHowBook"), a: t("faq.aHowBook") },
+        { q: t("faq.qCancelReschedule"), a: t("faq.aCancelReschedule") },
+        { q: t("faq.qHowSoon"), a: t("faq.aHowSoon") },
+      ],
+    },
+    {
+      group: t("faq.groupTherapists"),
+      items: [
+        { q: t("faq.qHowVerified"), a: t("faq.aHowVerified") },
+        { q: t("faq.qRequestGender"), a: t("faq.aRequestGender") },
+      ],
+    },
+    {
+      group: t("faq.groupCoverage"),
+      items: [
+        { q: t("faq.qWhichCities"), a: t("faq.aWhichCities") },
+        { q: t("faq.qPayments"), a: t("faq.aPayments") },
+        { q: t("faq.qInsurance"), a: t("faq.aInsurance") },
+      ],
+    },
+  ];
+
+  const [open, setOpen] = useState<string | null>(`${t("faq.groupBookings")}-0`);
   return (
     <PageShell
-      eyebrow="Frequently asked"
-      title="Answers to what you're wondering."
-      subtitle="If your question isn't here, our care team is a message away."
+      eyebrow={t("faq.eyebrow")}
+      title={t("faq.title")}
+      subtitle={t("faq.subtitle")}
     >
       <section className="py-16">
         <div className="max-w-4xl mx-auto px-5 lg:px-8 space-y-8">
@@ -60,8 +63,8 @@ export default function FAQ() {
             </div>
           ))}
           <div className="text-center pt-4">
-            <p className="text-text-light mb-3">Still have questions?</p>
-            <Link href="/contact" className="btn-primary">Contact support</Link>
+            <p className="text-text-light mb-3">{t("faq.ctaTitle")}</p>
+            <Link href="/contact" className="btn-primary">{t("faq.ctaSupport")}</Link>
           </div>
         </div>
       </section>
