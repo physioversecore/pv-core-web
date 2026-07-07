@@ -49,7 +49,7 @@ export default function ReportsUpload() {
         <button type="button" onClick={() => setForm({ ...form, file: "report.pdf" })} className={`w-full p-4 rounded-xl border-2 border-dashed text-sm ${form.file ? "border-secondary bg-surface text-secondary" : "border-border text-text-light hover:border-secondary"}`}>
           {form.file ? `✓ ${form.file} ${t("therapist_dashboard.reportsReady")}` : t("therapist_dashboard.reportsDragDrop")}
         </button>
-        <button type="submit" className="btn-pine w-full">{t("therapist_dashboard.uploadNotify")}</button>
+        <button type="submit" className="btn-secondary w-full">{t("therapist_dashboard.uploadNotify")}</button>
       </form>
 
       <RecentReports />

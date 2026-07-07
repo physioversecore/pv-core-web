@@ -98,7 +98,7 @@ export default function Therapists() {
                 <p className="eyebrow mb-3">{t("therapists.moreEyebrow")}</p>
                 <h2 className="text-3xl font-display max-w-2xl">{t("therapists.moreTitle")}</h2>
               </div>
-              <Link href="/find" className="btn-pine">{t("therapists.advancedSearch")}</Link>
+              <Link href="/find" className="btn-secondary">{t("therapists.advancedSearch")}</Link>
             </div>
           </Reveal>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

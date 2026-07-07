@@ -44,7 +44,7 @@ export function TherapistFilters({
         <option>{t("find.male")}</option>
         <option>{t("find.female")}</option>
       </select>
-      <button className="btn-pine !px-5">{t("find.search")}</button>
+      <button className="btn-secondary !px-5">{t("find.search")}</button>
     </div>
   );
 }

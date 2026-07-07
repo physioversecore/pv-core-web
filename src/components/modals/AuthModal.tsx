@@ -147,7 +147,7 @@ export function AuthModal({
                   <button type="button" className="text-xs text-secondary hover:underline">{t("common.forgotPassword")}</button>
                 </div>
               </div>
-              <button type="submit" className="btn-pine w-full">{t("auth.loginBtn")}</button>
+              <button type="submit" className="btn-secondary w-full">{t("auth.loginBtn")}</button>
             </form>
 
             <p className="text-sm text-text-light text-center mt-5">
@@ -204,7 +204,7 @@ export function AuthModal({
               <input type="checkbox" onChange={(e) => set("terms", e.target.checked ? "1" : "")} className="mt-0.5" />
               {t("auth.labelTermsPatient")}
             </label>
-            <button type="submit" className="btn-pine w-full">{t("auth.createPatientAccount")}</button>
+            <button type="submit" className="btn-secondary w-full">{t("auth.createPatientAccount")}</button>
           </form>
         )}
 
@@ -235,7 +235,7 @@ export function AuthModal({
               <input type="checkbox" onChange={(e) => set("terms", e.target.checked ? "1" : "")} className="mt-0.5" />
               {t("auth.labelTermsTherapist")}
             </label>
-            <button type="submit" className="btn-pine w-full">{t("auth.submitApplication")}</button>
+            <button type="submit" className="btn-secondary w-full">{t("auth.submitApplication")}</button>
           </form>
         )}
       </div>
@@ -298,7 +298,7 @@ function SuccessScreen({ title, sub, cta, onCta }: { title: string; sub: string;
       <div className="w-16 h-16 rounded-full bg-surface grid place-items-center mx-auto mb-4 text-3xl">✓</div>
       <h2 className="text-2xl font-display mb-2">{title}</h2>
       <p className="text-text-light text-sm mb-6">{sub}</p>
-      <button onClick={onCta} className="btn-pine">{cta}</button>
+      <button onClick={onCta} className="btn-secondary">{cta}</button>
     </div>
   );
 }

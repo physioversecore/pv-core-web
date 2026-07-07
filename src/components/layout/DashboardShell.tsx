@@ -39,11 +39,11 @@ export function DashboardShell({
   return (
     <div className="min-h-screen flex bg-background">
       <aside
-        className={`fixed lg:static z-40 inset-y-0 left-0 w-64 bg-secondary text-white flex flex-col transition-transform ${
+        className={`fixed lg:static z-40 inset-y-0 left-0 w-64 bg-secondary text-text-inverse flex flex-col transition-transform ${
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
-        <div className="p-5 flex items-center justify-between border-b border-white/10">
+        <div className="p-5 flex items-center justify-between border-b border-text-inverse/10">
           <Link href="/" className="flex items-center gap-2">
             <span className="w-7 h-7 rounded-full bg-primary" />
             <span className="font-display text-lg">{t("header.brand")}</span>
@@ -59,7 +59,7 @@ export function DashboardShell({
                 href={n.to}
                 onClick={() => setMobileOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition ${
-                  active ? "bg-white/15 text-white" : "text-white/70 hover:bg-white/10 hover:text-white"
+                  active ? "bg-text-inverse/15 text-text-inverse" : "text-text-inverse/70 hover:bg-text-inverse/10 hover:text-text-inverse"
                 }`}
               >
                 <span className="w-5 grid place-items-center">{n.icon}</span>
@@ -68,15 +68,15 @@ export function DashboardShell({
             );
           })}
         </nav>
-        <div className="p-4 border-t border-white/10">
+        <div className="p-4 border-t border-text-inverse/10">
           <div className="flex items-center gap-3 mb-3">
             <Avatar name={user?.name ?? "User"} size={36} />
             <div className="min-w-0">
               <div className="text-sm font-medium truncate">{user?.name ?? "Guest"}</div>
-              <div className="text-xs text-white/60 capitalize">{user?.role}</div>
+              <div className="text-xs text-text-inverse/60 capitalize">{user?.role}</div>
             </div>
           </div>
-          <button onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-white/80 hover:bg-white/10">
+          <button onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-text-inverse/80 hover:bg-text-inverse/10">
             <LogOut size={15} /> {t("common.logOut")}
           </button>
         </div>
@@ -95,7 +95,7 @@ export function DashboardShell({
               <button onClick={() => setOpen(true)} className="relative p-2.5 rounded-full hover:bg-surface" aria-label={t("cart.title")}>
                 <ShoppingCart size={18} />
                 {count > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 bg-primary text-white text-[10px] font-bold w-5 h-5 rounded-full grid place-items-center">{count}</span>
+                  <span className="absolute -top-0.5 -right-0.5 bg-primary text-text-inverse text-[10px] font-bold w-5 h-5 rounded-full grid place-items-center">{count}</span>
                 )}
               </button>
             )}

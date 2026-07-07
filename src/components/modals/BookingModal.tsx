@@ -40,7 +40,7 @@ export function BookingModal({ therapist, onClose }: { therapist: Therapist; onC
             <div className="text-sm text-text-light mb-5">
               {therapist.name} · {formatDate(date)} at {time}
             </div>
-            <button onClick={onClose} className="btn-pine w-full">{t("common.done")}</button>
+            <button onClick={onClose} className="btn-secondary w-full">{t("common.done")}</button>
           </div>
         ) : (
           <>
@@ -71,7 +71,7 @@ export function BookingModal({ therapist, onClose }: { therapist: Therapist; onC
                   <label className="text-xs font-medium text-text-light">{t("booking.homeAddress")}</label>
                   <textarea value={address} onChange={(e) => setAddress(e.target.value)} rows={2} className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white" placeholder={t("booking.placeholderAddress")} />
                 </div>
-                <button onClick={() => date && time && address ? setStep(2) : toast.error(t("booking.errorCompleteFields"))} className="btn-pine w-full">{t("booking.review")}</button>
+                <button onClick={() => date && time && address ? setStep(2) : toast.error(t("booking.errorCompleteFields"))} className="btn-secondary w-full">{t("booking.review")}</button>
               </div>
             )}
 
@@ -98,7 +98,7 @@ export function BookingModal({ therapist, onClose }: { therapist: Therapist; onC
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => setStep(1)} className="btn-outline flex-1">{t("common.back")}</button>
-                  <button onClick={confirm} className="btn-pine flex-1">{t("booking.confirmBooking")}</button>
+                  <button onClick={confirm} className="btn-secondary flex-1">{t("booking.confirmBooking")}</button>
                 </div>
               </div>
             )}

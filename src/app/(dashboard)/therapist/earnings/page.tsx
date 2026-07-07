@@ -25,11 +25,11 @@ export default function Earnings() {
 
   return (
     <>
-      <div className="flex gap-1 p-1 bg-surface rounded-full mb-5 w-fit">
-        {TABS.map((tabKey) => <button key={tabKey} onClick={() => setTab(tabKey)} className={`px-4 py-1.5 rounded-full text-sm font-medium ${tab === tabKey ? "bg-white text-secondary shadow-sm" : "text-text-light"}`}>{t(`therapist_dashboard.${tabKey}`)}</button>)}
+      <div className="tabs-filter">
+        {TABS.map((tabKey) => <button key={tabKey} onClick={() => setTab(tabKey)} className={`px-4 py-1.5 rounded-full text-sm font-medium ${tab === tabKey ? "tab-active" : "text-text-light"}`}>{t(`therapist_dashboard.${tabKey}`)}</button>)}
       </div>
 
-      <div className="grid sm:grid-cols-4 gap-4 mb-5">
+      <div className="stats-grid">
         <Stat label={t("therapist_dashboard.payouts")} value={String(PAYOUTS.length)} />
         <Stat label={t("therapist_dashboard.grossEarnings")} value={npr(gross)} />
         <Stat label={t("therapist_dashboard.platformFee")} value={npr(fee)} />
@@ -37,28 +37,28 @@ export default function Earnings() {
       </div>
 
       <div className="card-soft p-5 mb-5">
-        <div className="flex items-center justify-between mb-3">
+        <div className="section-header">
           <div>
             <p className="eyebrow mb-1">{t("therapist_dashboard.withdrawalHistory")}</p>
-            <h3 className="font-display text-lg">{t("therapist_dashboard.payoutsTitle")}</h3>
+            <h3 className="section-title">{t("therapist_dashboard.payoutsTitle")}</h3>
           </div>
           <span className="chip">{PAYOUTS.length} {t("therapist_dashboard.entries")}</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="text-xs uppercase tracking-wider font-mono text-text-light text-left border-b border-border">
-              <tr><th className="py-2 pr-3">{t("therapist_dashboard.date")}</th><th className="py-2 pr-3">{t("therapist_dashboard.reference")}</th><th className="py-2 pr-3">{t("therapist_dashboard.method")}</th><th className="py-2 pr-3">{t("therapist_dashboard.account")}</th><th className="py-2 pr-3 text-right">{t("therapist_dashboard.amount")}</th><th className="py-2 pr-3">{t("therapist_dashboard.status")}</th></tr>
+            <thead className="table-header">
+              <tr><th className="table-cell">{t("therapist_dashboard.date")}</th><th className="table-cell">{t("therapist_dashboard.reference")}</th><th className="table-cell">{t("therapist_dashboard.method")}</th><th className="table-cell">{t("therapist_dashboard.account")}</th><th className="table-cell text-right">{t("therapist_dashboard.amount")}</th><th className="table-cell">{t("therapist_dashboard.status")}</th></tr>
             </thead>
             <tbody className="divide-y divide-border">
               {PAYOUTS.map((p) => (
                 <tr key={p.ref}>
-                  <td className="py-3 pr-3 text-text-light">{p.date}</td>
-                  <td className="py-3 pr-3 font-mono text-xs text-secondary">{p.ref}</td>
-                  <td className="py-3 pr-3">{p.method}</td>
-                  <td className="py-3 pr-3 font-mono text-xs text-text-light">{p.account}</td>
-                  <td className="py-3 pr-3 text-right font-medium">{npr(p.amount)}</td>
-                  <td className="py-3 pr-3">
-                    <span className={`chip ${p.status === "Paid" ? "!bg-secondary !text-white" : p.status === "Processing" ? "!bg-primary/15 !text-primary" : "!bg-red-100 !text-red-700"}`}>{p.status === "Paid" ? t("therapist_dashboard.paid") : p.status === "Processing" ? t("therapist_dashboard.processing") : t("therapist_dashboard.failed")}</span>
+                  <td className="table-cell text-text-light">{p.date}</td>
+                  <td className="table-cell font-mono text-xs text-secondary">{p.ref}</td>
+                  <td className="table-cell">{p.method}</td>
+                  <td className="table-cell font-mono text-xs text-text-light">{p.account}</td>
+                  <td className="table-cell text-right font-medium">{npr(p.amount)}</td>
+                  <td className="table-cell">
+                    <span className={p.status === "Paid" ? "badge-success" : p.status === "Processing" ? "badge-warning" : "badge-danger"}>{p.status === "Paid" ? t("therapist_dashboard.paid") : p.status === "Processing" ? t("therapist_dashboard.processing") : t("therapist_dashboard.failed")}</span>
                   </td>
                 </tr>
               ))}
@@ -74,9 +74,9 @@ export default function Earnings() {
 
 function Stat({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
-    <div className={`card-soft p-4 ${highlight ? "!bg-secondary !text-white !border-secondary" : ""}`}>
-      <div className={`text-xs uppercase tracking-wider font-mono ${highlight ? "text-white/70" : "text-text-light"}`}>{label}</div>
-      <div className="font-display text-2xl mt-1">{value}</div>
+    <div className={`card-soft p-4 ${highlight ? "card-highlight-stat" : ""}`}>
+      <div className={`stat-label ${highlight ? "text-white/70" : "text-text-light"}`}>{label}</div>
+      <div className="stat-value">{value}</div>
     </div>
   );
 }

@@ -41,7 +41,7 @@ export default function Help() {
           <form onSubmit={(e) => { e.preventDefault(); toast.success(t("patient_dashboard.messageSent")); setMsg(""); }} className="card-soft p-5">
             <p className="eyebrow mb-3">{t("patient_dashboard.contactSupport")}</p>
             <textarea value={msg} onChange={(e) => setMsg(e.target.value)} rows={4} placeholder={t("patient_dashboard.supportPlaceholder")} className="w-full px-3 py-2.5 rounded-xl border border-border bg-white" />
-            <button type="submit" className="btn-pine w-full mt-3">{t("common.send")}</button>
+            <button type="submit" className="btn-secondary w-full mt-3">{t("common.send")}</button>
           </form>
         </div>
       </div>

@@ -24,7 +24,7 @@ export default function AdminSettings() {
           <div className="flex items-center gap-2">
             <input type="number" value={fee} onChange={(e) => setFee(+e.target.value)} className="w-24 px-3 py-2 rounded-xl border border-border bg-white" />
             <span className="text-text-light">%</span>
-            <button onClick={() => toast.success(t("admin_dashboard.feeUpdated"))} className="btn-pine !py-1.5 !px-3 text-xs ml-auto">{t("common.save")}</button>
+            <button onClick={() => toast.success(t("admin_dashboard.feeUpdated"))} className="btn-secondary !py-1.5 !px-3 text-xs ml-auto">{t("common.save")}</button>
           </div>
         </div>
 
@@ -44,7 +44,7 @@ export default function AdminSettings() {
         <div className="card-soft p-5 lg:col-span-2">
           <p className="eyebrow mb-2">{t("admin_dashboard.welcomeEmailTemplate")}</p>
           <textarea value={welcome} onChange={(e) => setWelcome(e.target.value)} rows={4} className="w-full px-3 py-2.5 rounded-xl border border-border bg-white" />
-          <button onClick={() => toast.success(t("admin_dashboard.templateSaved"))} className="btn-pine mt-3 !py-1.5 !px-3 text-xs">{t("common.saveTemplate")}</button>
+          <button onClick={() => toast.success(t("admin_dashboard.templateSaved"))} className="btn-secondary mt-3 !py-1.5 !px-3 text-xs">{t("common.saveTemplate")}</button>
         </div>
       </div>
     </div>
@@ -67,7 +67,7 @@ function Listed({ title, items, setItems, input, setInput }: { title: string; it
       </div>
       <div className="flex gap-2">
         <input value={input} onChange={(e) => setInput(e.target.value)} placeholder={t("admin_dashboard.addNew")} className="flex-1 px-3 py-2 rounded-xl border border-border bg-white text-sm" />
-        <button onClick={add} className="btn-pine !py-1.5 !px-3 text-xs">{t("admin_dashboard.add")}</button>
+        <button onClick={add} className="btn-secondary !py-1.5 !px-3 text-xs">{t("admin_dashboard.add")}</button>
       </div>
     </div>
   );

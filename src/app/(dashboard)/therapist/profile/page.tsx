@@ -41,7 +41,7 @@ export default function TProfile() {
       </div>
       <SelectField label={t("therapist_dashboard.primaryCity")} value={f.city} onChange={(v) => setF({ ...f, city: v })} options={[...CITIES]} />
       <div className="p-3 rounded-xl bg-surface/60 text-xs text-text-light">{t("therapist_dashboard.nmcLicense")} <span className="font-mono text-secondary">NMC-PT-2018-XXXX</span> · <span className="chip !bg-secondary !text-white">{t("therapist_dashboard.verified")}</span></div>
-      <button type="submit" className="btn-pine">{t("common.saveChanges")}</button>
+      <button type="submit" className="btn-secondary">{t("common.saveChanges")}</button>
     </form>
   );
 }

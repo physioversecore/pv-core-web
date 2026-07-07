@@ -34,7 +34,7 @@ export default function TSettings() {
         <p className="eyebrow mb-1">{t("therapist_dashboard.settingsProfile")}</p>
         <h3 className="font-display text-lg mb-2">{t("therapist_dashboard.settingsEditProfile")}</h3>
         <p className="text-sm text-text-light mb-3">{t("therapist_dashboard.settingsProfileDesc")}</p>
-        <Link href="/therapist/profile" className="btn-pine !px-5 inline-block">{t("therapist_dashboard.openProfileEditor")}</Link>
+        <Link href="/therapist/profile" className="btn-secondary !px-5 inline-block">{t("therapist_dashboard.openProfileEditor")}</Link>
       </div>
 
       <form onSubmit={submitOff} className="card-soft p-5">
@@ -58,7 +58,7 @@ export default function TSettings() {
         </div>
         <label className="text-xs font-medium text-text-light">{t("therapist_dashboard.noteForAdmin")}</label>
         <textarea value={off.note} onChange={(e) => setOff({ ...off, note: e.target.value })} rows={3} className="w-full mt-1 mb-3 px-3 py-2 rounded-xl border border-border bg-white text-sm" />
-        <button type="submit" className="btn-pine w-full">{t("common.submit")}</button>
+        <button type="submit" className="btn-secondary w-full">{t("common.submit")}</button>
         <p className="text-xs text-text-light mt-2">{t("therapist_dashboard.affectedBookingsNote")}</p>
       </form>
 
@@ -83,7 +83,7 @@ export default function TSettings() {
         </div>
         <label className="text-xs font-medium text-text-light">{t("therapist_dashboard.justification")}</label>
         <textarea value={rate.reason} onChange={(e) => setRate({ ...rate, reason: e.target.value })} rows={3} placeholder={t("therapist_dashboard.justificationPlaceholder")} className="w-full mt-1 mb-3 px-3 py-2 rounded-xl border border-border bg-white text-sm" />
-        <button type="submit" className="btn-pine !px-6">{t("therapist_dashboard.submitRateChange")}</button>
+        <button type="submit" className="btn-secondary !px-6">{t("therapist_dashboard.submitRateChange")}</button>
         <p className="text-xs text-text-light mt-2">{t("therapist_dashboard.rateChangeNote")}</p>
       </form>
 

@@ -77,7 +77,7 @@ export default function FindPage() {
                 <option value="">{t("find.anyGender")}</option>
                 <option>{t("find.male")}</option><option>{t("find.female")}</option>
               </select>
-              <button className="btn-pine !px-5">{t("find.search")}</button>
+              <button className="btn-secondary !px-5">{t("find.search")}</button>
             </div>
           </Reveal>
           <div className="text-sm text-text-light mb-4">{filtered.length} {t("find.therapistsFound")}</div>

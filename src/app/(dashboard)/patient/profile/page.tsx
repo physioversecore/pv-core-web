@@ -50,7 +50,7 @@ export default function Profile() {
             <label className="flex items-center gap-2"><input type="checkbox" checked={form.notif.sms} onChange={(e) => setForm({ ...form, notif: { ...form.notif, sms: e.target.checked } })} /> {t("patient_dashboard.sms")}</label>
           </div>
         </div>
-        <button type="submit" className="btn-pine">{t("common.saveChanges")}</button>
+        <button type="submit" className="btn-secondary">{t("common.saveChanges")}</button>
       </form>
     </div>
   );

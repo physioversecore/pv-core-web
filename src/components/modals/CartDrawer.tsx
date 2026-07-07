@@ -46,7 +46,7 @@ export function CartDrawer() {
               <p className="font-display text-2xl mb-1">{t("cart.thanks")}</p>
               <p className="text-text-light text-sm mb-1">{t("cart.orderReference")}</p>
               <p className="font-mono text-secondary font-semibold mb-5">{orderId}</p>
-              <button onClick={() => { setOpen(false); setCheckout(false); setOrderId(null); }} className="btn-pine">{t("common.continueShopping")}</button>
+              <button onClick={() => { setOpen(false); setCheckout(false); setOrderId(null); }} className="btn-secondary">{t("common.continueShopping")}</button>
             </div>
           </div>
         ) : items.length === 0 ? (
@@ -93,7 +93,7 @@ export function CartDrawer() {
               <Row label={t("cart.subtotal")} value={npr(subtotal)} />
               <Row label={t("cart.delivery")} value={delivery === 0 ? t("cart.free") : npr(delivery)} />
               <Row label={t("cart.total")} value={npr(total)} bold />
-              <button onClick={() => setCheckout(true)} className="btn-pine w-full mt-2">{t("cart.proceedToCheckout")}</button>
+              <button onClick={() => setCheckout(true)} className="btn-secondary w-full mt-2">{t("cart.proceedToCheckout")}</button>
             </footer>
           </>
         ) : (
@@ -126,7 +126,7 @@ export function CartDrawer() {
             </div>
             <footer className="border-t border-border p-5 flex gap-2">
               <button onClick={() => setCheckout(false)} className="btn-outline flex-1">{t("common.back")}</button>
-              <button onClick={placeOrder} className="btn-pine flex-1">{t("cart.placeOrder")}</button>
+              <button onClick={placeOrder} className="btn-secondary flex-1">{t("cart.placeOrder")}</button>
             </footer>
           </>
         )}

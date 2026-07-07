@@ -61,7 +61,7 @@ export default function Settings() {
             <textarea value={c.details} onChange={(e) => setC({ ...c, details: e.target.value })} rows={4} maxLength={1000} placeholder={t("patient_dashboard.settingsDescribePlaceholder")} className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white text-sm" />
             <div className="flex items-center justify-between mt-3">
               <span className="text-xs text-text-light">{t("patient_dashboard.settingsIdentityNote")}</span>
-              <button type="submit" className="btn-pine !px-5">{t("common.send")}</button>
+              <button type="submit" className="btn-secondary !px-5">{t("common.send")}</button>
             </div>
           </form>
 
@@ -97,7 +97,7 @@ export default function Settings() {
           <form onSubmit={(e) => { e.preventDefault(); toast.success(t("patient_dashboard.messageSent")); setMsg(""); }} className="card-soft p-5">
             <p className="eyebrow mb-3">{t("patient_dashboard.contactSupport")}</p>
             <textarea value={msg} onChange={(e) => setMsg(e.target.value)} rows={4} placeholder={t("patient_dashboard.supportPlaceholder")} className="w-full px-3 py-2.5 rounded-xl border border-border bg-white" />
-            <button type="submit" className="btn-pine w-full mt-3">{t("common.send")}</button>
+            <button type="submit" className="btn-secondary w-full mt-3">{t("common.send")}</button>
           </form>
           <div className="card-soft p-5">
             <p className="eyebrow mb-2">{t("patient_dashboard.settingsAccount")}</p>

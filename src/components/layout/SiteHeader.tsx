@@ -64,7 +64,7 @@ export function SiteHeader({ variant = "solid" }: { variant?: "hero" | "solid" }
         <div className="flex items-center gap-2">
           <LangSwitcher />
           {user ? (
-            <button onClick={goDash} className="btn-pine !py-2 !px-4 text-sm">{t("header.openDashboard")}</button>
+            <button onClick={goDash} className="btn-secondary !py-2 !px-4 text-sm">{t("header.openDashboard")}</button>
           ) : (
             <>
               <button
