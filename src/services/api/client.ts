@@ -4,8 +4,8 @@ import { getToken } from "./session";
 const BASE = process.env.BACKEND_URL || "http://localhost:8000";
 
 export class AuthError extends Error {
-  constructor() {
-    super("Not authenticated");
+  constructor(message?: string) {
+    super(message ?? "Not authenticated");
     this.name = "AuthError";
   }
 }
@@ -33,7 +33,10 @@ async function request<T = unknown>(
     cache: "no-store",
   });
 
-  if (res.status === 401) throw new AuthError();
+  if (res.status === 401) {
+    const body = await res.json().catch(() => null);
+    throw new AuthError(body?.detail);
+  }
 
   if (!res.ok) {
     const body = await res.json().catch(() => null);

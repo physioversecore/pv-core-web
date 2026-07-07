@@ -23,17 +23,14 @@ const RATE_LIST = [
 
 export default function Overview() {
   const { t } = useLang();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const raw = localStorage.getItem("sahayatri.user");
-      if (!raw) router.push("/");
-    }
-  }, [router]);
+    if (!loading && !user) router.push("/");
+  }, [loading, user, router]);
 
-  if (!user) return null;
+  if (loading || !user) return null;
 
   return (
     <div>

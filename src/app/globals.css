@@ -204,6 +204,15 @@
   --input: #2f3b3e;
 }
 
+.text-sm {
+  font-size: var(--font-sm);
+  line-height: var(--line-height-sm);
+}
+.text-xs {
+  font-size: var(--font-xs);
+  line-height: 1;
+}
+
 @layer base {
   * { border-color: var(--color-border); }
   html, body { font-family: var(--font-sans); }

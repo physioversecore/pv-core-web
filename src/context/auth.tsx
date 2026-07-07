@@ -38,36 +38,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login: AuthCtx["login"] = async (email, password, role) => {
-    const u = await AuthService.login(email, password, role);
-    setUser(u as User);
-    return u as User;
+    setLoading(true);
+    try {
+      const u = await AuthService.login(email, password, role);
+      setUser(u as User);
+      return u as User;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const signupPatient: AuthCtx["signupPatient"] = async (data) => {
-    const u = await AuthService.signup({
-      name: data.name,
-      email: data.email,
-      password: data.password,
-      role: "PATIENT",
-      city: data.city,
-      phone: data.phone,
-    });
-    setUser(u as User);
-    return u as User;
+    setLoading(true);
+    try {
+      const u = await AuthService.signup({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        role: "PATIENT",
+        city: data.city,
+        phone: data.phone,
+      });
+      setUser(u as User);
+      return u as User;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const signupTherapist: AuthCtx["signupTherapist"] = async (data) => {
-    const u = await AuthService.signup({
-      name: data.name,
-      email: data.email,
-      password: data.password,
-      role: "THERAPIST",
-      city: data.city,
-      phone: data.phone,
-      specialty: data.specialty,
-    });
-    setUser(u as User);
-    return u as User;
+    setLoading(true);
+    try {
+      const u = await AuthService.signup({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        role: "THERAPIST",
+        city: data.city,
+        phone: data.phone,
+        specialty: data.specialty,
+      });
+      setUser(u as User);
+      return u as User;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const logout = async () => {
