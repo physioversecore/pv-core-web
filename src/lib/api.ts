@@ -4,8 +4,8 @@ import { getToken } from "./session";
 const BASE = process.env.BACKEND_URL || "http://localhost:8000";
 
 export class AuthError extends Error {
-  constructor() {
-    super("Not authenticated");
+  constructor(message?: string) {
+    super(message ?? "Not authenticated");
     this.name = "AuthError";
   }
 }

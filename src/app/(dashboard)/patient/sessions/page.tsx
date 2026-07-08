@@ -6,14 +6,17 @@ import { Avatar } from "@/components/Avatar";
 import { BookingModal } from "@/components/BookingModal";
 import { TherapistCard } from "@/components/TherapistCard";
 import { toast } from "sonner";
-import { formatDate, type Therapist, type Session } from "@/lib/types";
-import { getTherapists } from "@/lib/actions/therapists";
-import { getSessions, updateSession } from "@/lib/actions/sessions";
+import { formatDate } from "@/utils/format";
+import type { Therapist, Session } from "@/types";
+import { getTherapists } from "@/services/api/therapists";
+import { getSessions, updateSession } from "@/services/api/sessions";
+import { useLang } from "@/context/i18n";
 
-const TABS = ["Upcoming", "Past", "Cancelled"] as const;
+const TABS = ["sessionsUpcoming", "sessionsPast", "sessionsCancelled"] as const;
 
 export default function Sessions() {
-  const [tab, setTab] = useState<(typeof TABS)[number]>("Upcoming");
+  const { t } = useLang();
+  const [tab, setTab] = useState<(typeof TABS)[number]>("sessionsUpcoming");
   const [picker, setPicker] = useState(false);
   const [book, setBook] = useState<Therapist | null>(null);
   const queryClient = useQueryClient();
@@ -32,21 +35,21 @@ export default function Sessions() {
     mutationFn: (id: string) => updateSession(id, { status: "CANCELLED" }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
-      toast.success("Session cancelled");
+      toast.success(t("patient_dashboard.sessionsCancelled"));
     },
-    onError: () => toast.error("Failed to cancel session"),
+    onError: () => toast.error(t("patient_dashboard.cancel")),
   });
 
-  const allTherapists: Therapist[] = (therapistsData?.therapists ?? []).map((t) => ({
-    ...t,
-    gender: t.gender as "Male" | "Female",
+  const allTherapists: Therapist[] = (therapistsData?.therapists ?? []).map((_t) => ({
+    ..._t,
+    gender: _t.gender as "Male" | "Female",
   }));
 
   const sessions: Session[] = (sessionsData?.sessions ?? []).map((s) => {
     const therapist = allTherapists.find((t) => t.id === s.therapistId);
     return {
       id: s.id,
-      therapist: therapist?.name ?? "Unknown",
+      therapist: therapist?.name ?? "—",
       therapistId: s.therapistId,
       date: s.date,
       time: s.time,
@@ -56,7 +59,7 @@ export default function Sessions() {
   });
 
   const filter = (s: Session) =>
-    tab === "Upcoming" ? s.status === "Confirmed" || s.status === "Pending" : tab === "Past" ? s.status === "Completed" : s.status === "Cancelled";
+    tab === "sessionsUpcoming" ? s.status === "Confirmed" || s.status === "Pending" : tab === "sessionsPast" ? s.status === "Completed" : s.status === "Cancelled";
 
   const cancel = (id: string) => cancelMutation.mutate(id);
 
@@ -64,13 +67,13 @@ export default function Sessions() {
     <div>
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div className="flex gap-1 p-1 bg-surface rounded-full">
-          {TABS.map((t) => (
-            <button key={t} onClick={() => setTab(t)} className={`px-4 py-1.5 rounded-full text-sm font-medium ${tab === t ? "bg-white text-secondary shadow-sm" : "text-text-light"}`}>
-              {t}
+          {TABS.map((_t) => (
+            <button key={_t} onClick={() => setTab(_t)} className={`px-4 py-1.5 rounded-full text-sm font-medium ${tab === _t ? "bg-white text-secondary shadow-sm" : "text-text-light"}`}>
+              {t(`patient_dashboard.${_t}`)}
             </button>
           ))}
         </div>
-        <button onClick={() => setPicker(true)} className="btn-primary !py-2 !px-4 text-sm">Book a new session</button>
+        <button onClick={() => setPicker(true)} className="btn-primary !py-2 !px-4 text-sm">{t("patient_dashboard.bookNewSession")}</button>
       </div>
 
       <div className="space-y-3">
@@ -82,20 +85,20 @@ export default function Sessions() {
               <div className="text-xs text-text-light">{formatDate(s.date)} · {s.time} · {s.type}</div>
             </div>
             <span className={`chip ${s.status === "Confirmed" || s.status === "SCHEDULED" ? "!bg-pine !text-white" : s.status === "Completed" ? "!bg-amber !text-white" : "!bg-border !text-slate"}`}>
-              {s.status === "SCHEDULED" ? "Confirmed" : s.status}
+              {s.status === "SCHEDULED" ? t("patient_dashboard.confirmed") : s.status === "Confirmed" ? t("patient_dashboard.confirmed") : s.status === "Completed" ? t("therapist_dashboard.completed") : s.status === "Cancelled" ? t("therapist_dashboard.cancelled") : s.status}
             </span>
             <div className="flex gap-2">
-              {tab === "Upcoming" && (
+              {tab === "sessionsUpcoming" && (
                 <>
-                  <button onClick={() => toast("Reschedule sent to therapist")} className="btn-outline !py-1.5 !px-3 text-xs">Reschedule</button>
-                  <button onClick={() => cancel(s.id)} className="btn-outline !py-1.5 !px-3 text-xs">Cancel</button>
+                  <button onClick={() => toast(t("patient_dashboard.rescheduleSent"))} className="btn-outline !py-1.5 !px-3 text-xs">{t("patient_dashboard.reschedule")}</button>
+                  <button onClick={() => cancel(s.id)} className="btn-outline !py-1.5 !px-3 text-xs">{t("patient_dashboard.cancel")}</button>
                 </>
               )}
-              {tab === "Past" && <button onClick={() => toast.success("Review submitted")} className="btn-primary !py-1.5 !px-3 text-xs">Rate & Review</button>}
+              {tab === "sessionsPast" && <button onClick={() => toast.success(t("patient_dashboard.reviewSubmitted"))} className="btn-primary !py-1.5 !px-3 text-xs">{t("common.rateReview")}</button>}
             </div>
           </div>
         ))}
-        {sessions.filter(filter).length === 0 && <p className="text-text-light text-sm">No sessions here yet.</p>}
+        {sessions.filter(filter).length === 0 && <p className="text-text-light text-sm">{t("patient_dashboard.noSessions")}</p>}
       </div>
 
       {picker && (
@@ -103,11 +106,11 @@ export default function Sessions() {
           <button className="absolute inset-0 bg-text/60 backdrop-blur-sm" onClick={() => setPicker(false)} />
           <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-background rounded-3xl border border-border shadow-2xl p-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="font-display text-xl">Pick a therapist</h3>
+              <h3 className="font-display text-xl">{t("patient_dashboard.pickTherapist")}</h3>
               <button onClick={() => setPicker(false)} className="p-2 rounded-full hover:bg-surface">✕</button>
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {allTherapists.map((t) => <TherapistCard key={t.id} t={t} onBook={(th) => { setPicker(false); setBook(th); }} />)}
+              {allTherapists.map((th) => <TherapistCard key={th.id} t={th} onBook={(thr) => { setPicker(false); setBook(thr); }} />)}
             </div>
           </div>
         </div>

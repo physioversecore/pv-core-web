@@ -1,25 +1,28 @@
 "use client";
 
 import { Star, Quote } from "lucide-react";
+import { useLang } from "@/context/i18n";
 import { PageShell } from "@/components/PageShell";
 import { Reveal } from "@/components/Reveal";
 import { Avatar } from "@/components/Avatar";
 
-const REVIEWS = [
-  { name: "Sunita Rai", city: "Kathmandu", rating: 5, q: "After my knee surgery I dreaded traffic and clinic waits. Sahayatri's therapist came home three times a week — I was walking without support in six weeks." },
-  { name: "Rajesh Karki", city: "Pokhara", rating: 5, q: "My father had a stroke and we couldn't move him easily. Dr. Aarati was patient, professional, and gave us a plan we could follow between visits." },
-  { name: "Anisha Shrestha", city: "Lalitpur", rating: 4, q: "Booked a sports rehab session for a torn ligament. The app made it easy to see progress and message my therapist between sessions." },
-  { name: "Prakash Adhikari", city: "Bhaktapur", rating: 5, q: "I appreciated the NMC verification — I knew I was getting a real, licensed physio. The reports uploaded after each visit were incredibly detailed." },
-  { name: "Kamala Poudel", city: "Chitwan", rating: 5, q: "My mother's mobility improved dramatically after 8 sessions. The therapist even trained our family on safe transfers." },
-  { name: "Bibek Thapa", city: "Biratnagar", rating: 5, q: "Great platform for post-surgery rehab in Biratnagar. Everything from booking to payment was smooth." },
-];
-
 export default function Testimonials() {
+  const { t } = useLang();
+
+  const REVIEWS = [
+    { name: t("testimonials.reviewer1Name"), city: t("testimonials.reviewer1City"), rating: 5, q: t("testimonials.reviewer1Quote") },
+    { name: t("testimonials.reviewer2Name"), city: t("testimonials.reviewer2City"), rating: 5, q: t("testimonials.reviewer2Quote") },
+    { name: t("testimonials.reviewer3Name"), city: t("testimonials.reviewer3City"), rating: 4, q: t("testimonials.reviewer3Quote") },
+    { name: t("testimonials.reviewer4Name"), city: t("testimonials.reviewer4City"), rating: 5, q: t("testimonials.reviewer4Quote") },
+    { name: t("testimonials.reviewer5Name"), city: t("testimonials.reviewer5City"), rating: 5, q: t("testimonials.reviewer5Quote") },
+    { name: t("testimonials.reviewer6Name"), city: t("testimonials.reviewer6City"), rating: 5, q: t("testimonials.reviewer6Quote") },
+  ];
+
   return (
     <PageShell
-      eyebrow="Testimonials"
-      title="Recovery stories from real patients."
-      subtitle="Only verified patients can leave a review after their session — every word here is from someone we treated."
+      eyebrow={t("testimonials.eyebrow")}
+      title={t("testimonials.title")}
+      subtitle={t("testimonials.subtitle")}
     >
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-5 lg:px-8">

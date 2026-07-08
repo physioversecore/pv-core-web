@@ -1,42 +1,47 @@
 "use client";
 
 import { Bell, FileText, MessageCircle, Smartphone } from "lucide-react";
+import { useLang } from "@/context/i18n";
 import { PageShell } from "@/components/PageShell";
 import { Reveal } from "@/components/Reveal";
 
 export default function AppPage() {
+  const { t } = useLang();
+
+  const FEATURES = [
+    { icon: <FileText size={18} />, text: t("app.feature1") },
+    { icon: <MessageCircle size={18} />, text: t("app.feature2") },
+    { icon: <Bell size={18} />, text: t("app.feature3") },
+  ];
+
   return (
     <PageShell
-      eyebrow="Sahayatri app"
-      title="Your recovery, in your pocket."
-      subtitle="Track sessions, chat with your therapist, and never miss an exercise reminder — all from your phone."
+      eyebrow={t("app.eyebrow")}
+      title={t("app.title")}
+      subtitle={t("app.subtitle")}
     >
       <section className="py-16 text-white relative overflow-hidden bg-background-dark">
         <div aria-hidden className="pointer-events-none absolute -top-20 -right-20 w-[500px] h-[500px] rounded-full bg-primary/20 blur-3xl blob-drift" />
         <div className="relative max-w-7xl mx-auto px-5 lg:px-8 grid lg:grid-cols-[1.1fr_1fr] gap-10 items-center">
           <Reveal>
-            <p className="eyebrow !text-primary mb-3">Built for recovery</p>
-            <h2 className="text-3xl font-display mb-5">Everything, in one calm app.</h2>
+            <p className="eyebrow !text-primary mb-3">{t("app.builtForRecovery")}</p>
+            <h2 className="text-3xl font-display mb-5">{t("app.sectionTitle")}</h2>
             <ul className="space-y-3 mb-7 text-white/85">
-              {[
-                { icon: <FileText size={18} />, t: "Session reports uploaded after every visit" },
-                { icon: <MessageCircle size={18} />, t: "In-app chat with your therapist" },
-                { icon: <Bell size={18} />, t: "Reminders for exercises and next visits" },
-              ].map((b) => (
-                <li key={b.t} className="flex items-center gap-3">
+              {FEATURES.map((b) => (
+                <li key={b.text} className="flex items-center gap-3">
                   <span className="w-8 h-8 grid place-items-center rounded-lg bg-white/10">{b.icon}</span>
-                  <span>{b.t}</span>
+                  <span>{b.text}</span>
                 </li>
               ))}
             </ul>
             <div className="flex flex-wrap gap-3">
               <a href="#" className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-black text-white hover:bg-black/80 transition">
                 <Smartphone size={20} />
-                <span className="text-left leading-tight"><span className="block text-[10px] opacity-70">GET IT ON</span><span className="block text-sm font-semibold">Google Play</span></span>
+                <span className="text-left leading-tight"><span className="block text-[10px] opacity-70">{t("app.getItOn")}</span><span className="block text-sm font-semibold">{t("app.googlePlay")}</span></span>
               </a>
               <a href="#" className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-black text-white hover:bg-black/80 transition">
                 <Smartphone size={20} />
-                <span className="text-left leading-tight"><span className="block text-[10px] opacity-70">Download on the</span><span className="block text-sm font-semibold">App Store</span></span>
+                <span className="text-left leading-tight"><span className="block text-[10px] opacity-70">{t("app.downloadOnThe")}</span><span className="block text-sm font-semibold">{t("app.appStore")}</span></span>
               </a>
             </div>
           </Reveal>

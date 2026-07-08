@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Avatar } from "@/components/Avatar";
+import { useLang } from "@/context/i18n";
 
 const PATIENTS = [
   { id: "p1", name: "Ramesh Adhikari", condition: "ACL post-op", sessions: 8, last: "2026-06-20", rating: 5 },
@@ -11,6 +12,7 @@ const PATIENTS = [
 ];
 
 export default function Patients() {
+  const { t } = useLang();
   const [selected, setSelected] = useState<typeof PATIENTS[number] | null>(null);
   return (
     <>
@@ -18,7 +20,7 @@ export default function Patients() {
         <table className="w-full text-sm">
           <thead className="text-left bg-surface/60 text-xs uppercase tracking-wider font-mono text-text-light">
             <tr>
-              <th className="p-3">Patient</th><th className="p-3">Condition</th><th className="p-3">Sessions</th><th className="p-3">Last visit</th><th className="p-3">Rating</th>
+              <th className="p-3">{t("therapist_dashboard.patientLabel")}</th><th className="p-3">{t("therapist_dashboard.condition")}</th><th className="p-3">{t("therapist_dashboard.sessions")}</th><th className="p-3">{t("therapist_dashboard.lastVisit")}</th><th className="p-3">{t("therapist_dashboard.rating")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -42,10 +44,10 @@ export default function Patients() {
               <Avatar name={selected.name} size={52} />
               <div><div className="font-display text-xl">{selected.name}</div><div className="text-xs text-text-light">{selected.condition}</div></div>
             </div>
-            <Row label="Total sessions" value={String(selected.sessions)} />
-            <Row label="Last visit" value={selected.last} />
-            <Row label="Rating given" value={`${selected.rating} ★`} />
-            <button onClick={() => setSelected(null)} className="btn-outline w-full mt-5">Close</button>
+            <Row label={t("therapist_dashboard.totalSessions")} value={String(selected.sessions)} />
+            <Row label={t("therapist_dashboard.lastVisit")} value={selected.last} />
+            <Row label={t("therapist_dashboard.ratingGiven")} value={`${selected.rating} ★`} />
+            <button onClick={() => setSelected(null)} className="btn-outline w-full mt-5">{t("common.close")}</button>
           </div>
         </div>
       )}

@@ -1,0 +1,71 @@
+"use server";
+
+import { api, AuthError } from "./client";
+
+export interface SessionData {
+  id: string;
+  therapistId: string;
+  patientId: string;
+  date: string;
+  time: string;
+  type: string;
+  status: string;
+  address: string;
+  fee: number;
+  notes?: string;
+}
+
+interface SessionListResponse {
+  sessions: SessionData[];
+  total: number;
+}
+
+export async function getSessions(params?: {
+  skip?: number;
+  limit?: number;
+}) {
+  try {
+    const searchParams = new URLSearchParams();
+    if (params?.skip) searchParams.set("skip", String(params.skip));
+    if (params?.limit) searchParams.set("limit", String(params.limit));
+
+    return await api.get<SessionListResponse>(
+      `/sessions?${searchParams.toString()}`,
+    );
+  } catch (e) {
+    if (e instanceof AuthError) return { sessions: [], total: 0 };
+    throw e;
+  }
+}
+
+export async function getSession(id: string) {
+  try {
+    return await api.get<SessionData>(`/sessions/${id}`);
+  } catch (e) {
+    if (e instanceof AuthError) return null;
+    throw e;
+  }
+}
+
+export async function createSession(data: {
+  therapistId: string;
+  date: string;
+  time: string;
+  type?: string;
+  address: string;
+  fee: number;
+  notes?: string;
+}) {
+  return api.post<SessionData>("/sessions", data);
+}
+
+export async function updateSession(
+  id: string,
+  data: { status?: string; date?: string; time?: string; notes?: string },
+) {
+  return api.put<SessionData>(`/sessions/${id}`, data);
+}
+
+export async function deleteSession(id: string) {
+  return api.delete(`/sessions/${id}`);
+}
