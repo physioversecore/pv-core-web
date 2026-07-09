@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { DashboardShell } from "@/components/DashboardShell";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useAuth } from "@/lib/auth";
 import { patientNav, therapistNav, adminNav } from "@/lib/nav";
 import type { NavItem } from "@/lib/nav";
@@ -75,7 +76,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <DashboardShell title={title} nav={nav} showCart={showCart}>
-      {children}
+      <ErrorBoundary onError={(e) => console.error("[Dashboard Error]", e)}>
+        {children}
+      </ErrorBoundary>
     </DashboardShell>
   );
 }

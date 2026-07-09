@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { type ReactNode, useState } from "react";
 import { LogOut, Menu, ShoppingCart, X } from "lucide-react";
 import { useAuth } from "@/context/auth";
@@ -27,13 +27,11 @@ export function DashboardShell({
   const { t } = useLang();
   const { user, logout } = useAuth();
   const { count, setOpen } = useCart();
-  const router = useRouter();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const handleLogout = () => {
-    logout();
-    router.push("/");
+  const handleLogout = async () => {
+    await logout();
   };
 
   return (

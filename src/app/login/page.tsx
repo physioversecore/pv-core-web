@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
@@ -16,11 +16,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const redirected = useRef(false);
 
   useEffect(() => {
-    if (loading) return;
-    if (user) {
-      router.push(user.role === "patient" ? "/patient" : user.role === "therapist" ? "/therapist" : "/admin");
+    if (redirected.current) return;
+    if (!loading && user) {
+      redirected.current = true;
+      router.replace(user.role === "patient" ? "/patient" : user.role === "therapist" ? "/therapist" : "/admin");
     }
   }, [loading, user, router]);
 
@@ -31,15 +33,14 @@ export default function LoginPage() {
     try {
       const u = await login(email, password, "patient");
       toast.success(t("auth.successWelcome") + ", " + u.name);
-      router.push(u.role === "patient" ? "/patient" : u.role === "therapist" ? "/therapist" : "/admin");
+      redirected.current = true;
+      router.replace(u.role === "patient" ? "/patient" : u.role === "therapist" ? "/therapist" : "/admin");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("auth.errorLoginFailed"));
     } finally {
       setSubmitting(false);
     }
   };
-
-  if (loading) return null;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">

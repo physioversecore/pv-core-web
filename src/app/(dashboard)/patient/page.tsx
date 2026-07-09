@@ -1,9 +1,32 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { useLang } from "@/context/i18n";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { StatsSkeleton, CardSkeleton, AppointmentsSkeleton } from "@/components/SuspenseFallback";
 import { WelcomeHeader, Statistics, UpcomingAppointments, RateTherapist, ReferFriend } from "./components";
+
+function StatsSection() {
+  return (
+    <ErrorBoundary>
+      <Suspense fallback={<StatsSkeleton />}>
+        <Statistics />
+      </Suspense>
+    </ErrorBoundary>
+  );
+}
+
+function ReferSection() {
+  return (
+    <ErrorBoundary>
+      <Suspense fallback={<CardSkeleton />}>
+        <ReferFriend />
+      </Suspense>
+    </ErrorBoundary>
+  );
+}
 
 export default function Overview() {
   const { t } = useLang();
@@ -12,10 +35,14 @@ export default function Overview() {
   return (
     <div>
       <WelcomeHeader name={user!.name} />
-      <Statistics />
-      <UpcomingAppointments />
+      <StatsSection />
+      <ErrorBoundary>
+        <Suspense fallback={<AppointmentsSkeleton />}>
+          <UpcomingAppointments />
+        </Suspense>
+      </ErrorBoundary>
       <RateTherapist />
-      <ReferFriend />
+      <ReferSection />
 
       <p className="text-xs text-text-light mt-4">
         {t("patient_dashboard.needBookSession")}{" "}

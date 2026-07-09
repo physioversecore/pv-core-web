@@ -40,7 +40,7 @@ export function AuthModal({
       const u = await login(form.email, form.password, "patient");
       toast.success(t("auth.successWelcome") + ", " + u.name);
       onClose();
-      router.push(u.role === "patient" ? "/patient" : u.role === "therapist" ? "/therapist" : "/admin");
+      router.replace(u.role === "patient" ? "/patient" : u.role === "therapist" ? "/therapist" : "/admin");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : t("auth.errorLoginFailed"));
     }
@@ -79,7 +79,7 @@ export function AuthModal({
 
   const onSuccessGo = (role: Role) => {
     onClose();
-    router.push(role === "patient" ? "/patient" : "/therapist");
+    router.replace(role === "patient" ? "/patient" : "/therapist");
   };
 
   return (

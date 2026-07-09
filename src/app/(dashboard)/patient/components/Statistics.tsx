@@ -1,6 +1,7 @@
 import { DashboardStat } from "@/components/dashboard/DashboardStat";
 import { useLang } from "@/context/i18n";
 import { usePatientDashboard } from "@/hooks/usePatientDashboard";
+import { StatsSkeleton } from "@/components/SuspenseFallback";
 
 function formatTime(time: string): string {
   const [h, m] = time.split(":").map(Number);
@@ -21,15 +22,7 @@ export function Statistics() {
   const { t } = useLang();
   const { dashboard, isLoading } = usePatientDashboard();
 
-  if (isLoading) {
-    return (
-      <div className="grid sm:grid-cols-3 gap-4 mb-6">
-        <div className="card-soft p-5 animate-pulse bg-muted" />
-        <div className="card-soft p-5 animate-pulse bg-muted" />
-        <div className="card-soft p-5 animate-pulse bg-muted" />
-      </div>
-    );
-  }
+  if (isLoading) return <StatsSkeleton />;
 
   const total = dashboard?.totalSessions ?? 0;
   const completed = dashboard?.completedSessions ?? 0;

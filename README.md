@@ -16,9 +16,10 @@ Nepal's home-visit physiotherapy platform connecting patients with verified phys
 | Language | TypeScript |
 | Styling | Tailwind CSS v4 + CSS custom properties |
 | UI | shadcn/ui + lucide-react icons |
-| State | React Context (auth, cart), TanStack Query |
+| State | React Context (auth, cart), TanStack Query v5 |
 | Charts | recharts |
 | Notifications | sonner |
+| Backend | FastAPI (separate), PostgreSQL, JWT cookie auth |
 
 ## Getting Started
 
@@ -26,6 +27,7 @@ Nepal's home-visit physiotherapy platform connecting patients with verified phys
 
 - Node.js 20+ (or Bun)
 - npm (or bun)
+- Backend API running at `localhost:8000` (see `pvc-api/` repo)
 
 ### Install & Run
 
@@ -46,19 +48,30 @@ Open [http://localhost:3000](http://localhost:3000).
 | `npm run lint` | Run ESLint |
 | `npm run format` | Format with Prettier |
 
-## Docker
+## Auth
 
-### Development (hot reload)
+Auth is **API-driven** — JWT tokens stored in HTTP-only cookies (not localStorage).
 
-```bash
-docker compose up
-```
+- **Login**: `/login` page — email + password, redirects by role
+- **Signup**: AuthModal (modal on public pages) — patient or therapist registration
+- **Logout**: via sidebar in dashboard — always awaits the API call before redirect
 
-### Production
+## Architecture Highlights
 
-```bash
-docker compose -f docker-compose.prod.yml up --build
-```
+### Error Handling
+- `ErrorBoundary` component wraps dashboard content at layout level and individual sections
+- Next.js convention `error.tsx` at root and dashboard route group
+- Each data section fails independently
+
+### Loading States
+- `loading.tsx` shows page skeleton during navigation
+- Data-fetching sections use `useSuspenseQuery` with `<Suspense fallback={<Skeleton />}>`
+- Skeleton components match real component layout for smooth transitions
+
+### Dashboard Layout
+- Role guard redirects wrong-role users to correct dashboard
+- Fixed sidebar; only main content scrolls
+- Sidebar nav derived from `usePathname()`
 
 ## Project Structure
 
@@ -69,49 +82,57 @@ src/
       admin/               # Admin dashboard (6 pages)
       patient/             # Patient dashboard (8 pages)
       therapist/           # Therapist dashboard (7 pages)
-    about/                 # About page
-    app/                   # App download page
-    blog/                  # Blog page
-    contact/               # Contact page
-    faq/                   # FAQ page
-    find/                  # Find a therapist page
-    how-it-works/          # How it works page
-    services/              # Services page
-    testimonials/          # Testimonials page
-    therapists/            # Therapists page
+    login/                 # Standalone login page
+    about/, app/, blog/, contact/, faq/, find/,
+    how-it-works/, services/, testimonials/, therapists/
     layout.tsx             # Root layout (fonts, providers)
-    page.tsx               # Landing page (hero, features, CTA)
+    providers.tsx          # Client providers (QueryClient, Auth, Cart, Lang, Toaster)
+    page.tsx               # Landing page
     globals.css            # Tailwind v4 + theme
   components/
-    SiteHeader.tsx         # Public site header
-    SiteFooter.tsx         # Public site footer
+    ErrorBoundary.tsx      # Reusable error boundary
+    SuspenseFallback.tsx   # Loading skeleton components
+    SiteHeader.tsx         # Public header
+    SiteFooter.tsx         # Public footer
     PageShell.tsx          # Public page wrapper
     DashboardShell.tsx     # Sidebar + header layout
-    AuthModal.tsx          # Login/signup
-    CartDrawer.tsx         # Shopping cart
+    AuthModal.tsx          # Signup modal (login uses /login page)
+    CartDrawer.tsx         # Shopping cart slide-over
     BookingModal.tsx       # Session booking
     Avatar.tsx             # Initials avatar
     TherapistCard.tsx      # Therapist listing card
-    NotificationBell.tsx   # Notification indicator
     Reveal.tsx             # Scroll animation + CountUp
     ui/                    # shadcn/ui primitives
-  lib/
-    auth.tsx               # Auth (localStorage)
-    cart.tsx               # Cart (localStorage)
-    mock.ts                # Mock data
-    nav.tsx                # Sidebar nav definitions
+    dashboard/             # Dashboard-specific components
+    common/                # Shared components
+    modals/                # Modal components
+    layout/                # Layout helpers
+    sections/              # Page sections
+  context/
+    auth.tsx               # Auth context (API-driven)
+    cart.tsx               # Cart context (API-driven)
     i18n.tsx               # Nepali/English toggle
   hooks/
+    usePatientDashboard.ts # + useSuspensePatientDashboard
+    usePatientReferral.ts  # + useSuspensePatientReferral
+    useSessions.ts         # Patient sessions
+    useProducts.ts         # Shop products
+    useTherapists.ts       # Therapist listing
+    useAuth.ts, useCart.ts, useAuthModal.ts, useBooking.ts
     use-mobile.tsx         # Mobile detection
+  lib/
+    auth.tsx, cart.tsx, i18n.tsx  # Re-exported contexts
+    nav.tsx                # Sidebar nav definitions
+    utils.ts               # cn() helper
+    types.ts               # Shared types
+    constants.ts           # Cities, specialties
+    error-capture.ts       # Error capture
+    error-page.ts          # Error page renderer
+  services/api/            # API service layer
+    client.ts, auth.ts, patients.ts, sessions.ts,
+    products.ts, therapists.ts, profile.ts, cart.ts
+  translations/            # en/ne translation files
 ```
-
-## Auth & Data
-
-Auth and cart are localStorage-based — no real backend. All data is mocked in `src/lib/mock.ts`:
-
-- `THERAPISTS` — 8 physiotherapists with specialties, cities, ratings
-- `PRODUCTS` — Equipment (buy/rent), medicines, nutrition
-- `MOCK_SESSIONS` — Booked/completed/cancelled sessions
 
 ## Theme
 
@@ -126,3 +147,7 @@ Auth and cart are localStorage-based — no real backend. All data is mocked in 
 Fonts: Fraunces (headings), Inter (body), IBM Plex Mono (monospace).
 
 ---
+
+## Backend
+
+The frontend requires the `pvc-api` backend at `http://localhost:8000`. See the `pvc-api/` repository for setup instructions.
