@@ -5,6 +5,7 @@ import { api, AuthError } from "./client";
 export interface SessionData {
   id: string;
   therapistId: string;
+  therapistName?: string;
   patientId: string;
   date: string;
   time: string;

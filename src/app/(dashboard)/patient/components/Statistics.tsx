@@ -2,21 +2,7 @@ import { DashboardStat } from "@/components/dashboard/DashboardStat";
 import { useLang } from "@/context/i18n";
 import { usePatientDashboard } from "@/hooks/usePatientDashboard";
 import { StatsSkeleton } from "@/components/SuspenseFallback";
-
-function formatTime(time: string): string {
-  const [h, m] = time.split(":").map(Number);
-  const period = h >= 12 ? "PM" : "AM";
-  const hour12 = h % 12 || 12;
-  return `${String(hour12).padStart(2, "0")}:${String(m).padStart(2, "0")} ${period}`;
-}
-
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  const day = String(d.getDate()).padStart(2, "0");
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const year = d.getFullYear();
-  return `${day}/${month}/${year}`;
-}
+import { formatWhen, formatType } from "@/lib/format";
 
 export function Statistics() {
   const { t } = useLang();
@@ -29,11 +15,11 @@ export function Statistics() {
   const nextSession = dashboard?.nextSession ?? null;
 
   const nextValue = nextSession
-    ? `${formatTime(nextSession.time)}, ${formatDate(nextSession.date)}`
+    ? formatWhen(nextSession.date, nextSession.time)
     : "—";
 
   const nextLabel = nextSession
-    ? `${nextSession.therapistName} · ${nextSession.type.replace("_", " ").toLowerCase()}`
+    ? `${nextSession.therapistName} · ${formatType(nextSession.type)}`
     : t("patient_dashboard.noUpcoming");
 
   const progressPct = total > 0 ? Math.round((completed / total) * 100) : 0;
