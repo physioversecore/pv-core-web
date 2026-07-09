@@ -16,7 +16,17 @@ The app is a fully client-rendered SPA (all dashboard pages are `"use client"`) 
 ### Public
 | Route | File | Description |
 |---|---|---|
-| `/` | `src/app/page.tsx` | Landing page with therapist discovery, features, signup CTA |
+| `/` | `src/app/page.tsx` | Landing page (hero, therapist discovery, features, services, CTA) |
+| `/about` | `src/app/about/page.tsx` | About page — mission, values, stats |
+| `/app` | `src/app/app/page.tsx` | App download page with phone mockup |
+| `/blog` | `src/app/blog/page.tsx` | Blog — recovery guides, tips |
+| `/contact` | `src/app/contact/page.tsx` | Contact form + info cards |
+| `/faq` | `src/app/faq/page.tsx` | FAQ accordion groups |
+| `/find` | `src/app/find/page.tsx` | Find a therapist with search/filter |
+| `/how-it-works` | `src/app/how-it-works/page.tsx` | How it works — steps, guarantees |
+| `/services` | `src/app/services/page.tsx` | Services — clinical care, shop |
+| `/testimonials` | `src/app/testimonials/page.tsx` | Patient testimonial cards |
+| `/therapists` | `src/app/therapists/page.tsx` | Featured + full therapist roster |
 
 ### Admin Dashboard (`/admin/*`)
 | Route | File |
@@ -129,7 +139,14 @@ Defines three `NavItem[]` arrays — `patientNav`, `therapistNav`, `adminNav` �
 
 ## UI Component Architecture
 
-### DashboardShell (`src/components/DashboardShell.tsx`)
+### Public Layout Components
+| Component | Purpose |
+|---|---|
+| `SiteHeader.tsx` | Fixed public header with nav links, auth buttons, scroll-aware transparent/solid modes |
+| `SiteFooter.tsx` | 4-column footer with explore links, resources, app store, contact info |
+| `PageShell.tsx` | Public page wrapper — renders SiteHeader, decorative hero area (eyebrow, title, subtitle), content, SiteFooter |
+
+### Dashboard Shell (`src/components/DashboardShell.tsx`)
 The main layout wrapper for all dashboard pages. Renders:
 - **Sidebar**: Navigation links from `nav` prop, user avatar/name at bottom, role badge.
 - **Header**: Page title, notification bell, cart icon (patient only), auth modal trigger.
@@ -144,7 +161,18 @@ The main layout wrapper for all dashboard pages. Renders:
 | `CartDrawer.tsx` | Slide-over drawer showing cart items, quantities, rental days, totals |
 | `TherapistCard.tsx` | Card for therapist listings (photo placeholder, specialty, rating, price) |
 | `NotificationBell.tsx` | Bell icon with unread count badge |
-| `Reveal.tsx` | Scroll-triggered reveal animation wrapper |
+| `Reveal.tsx` | Scroll-triggered reveal animation wrapper + CountUp number animator |
+
+### Public Pages — Shared Pattern
+All public pages follow this layout:
+```
+PageShell
+  SiteHeader (solid variant — white header)
+  Hero section (gradient background, eyebrow, title, subtitle)
+  <main> — Page-specific content
+  SiteFooter
+```
+Landing page uses `SiteHeader variant="hero"` (transparent until scroll) and `SiteFooter` directly.
 
 ### shadcn/ui Primitives (`src/components/ui/`)
 51 components generated via shadcn CLI. Customized with the project's theme tokens. Used across pages for inputs, dialogs, selects, tables, etc.
@@ -170,12 +198,24 @@ Defined in `src/app/globals.css` using Tailwind v4's `@theme inline`:
 ```
 
 ### Custom Utility Classes (defined with `@utility`)
-- `btn-primary` — Pine background, white text, rounded-full
-- `btn-pine` — Same as btn-primary
-- `btn-outline` — Ghost button with border
-- `card-soft` — White card with border, rounded-2xl, shadow
-- `chip` — Small label/badge
+- `btn-primary` — Amber background, white text, rounded-full, hover lift + shadow
+- `btn-pine` — Pine background, white text, rounded-full
+- `btn-outline` — Ghost with pine border/color, fill on hover
+- `card-soft` — White card with border, 18px radius, soft shadow
+- `chip` — Small label/badge, mono font, uppercase, rounded-full
 - `eyebrow` — Tiny uppercase label (`font-mono text-xs text-slate`)
+
+### CSS Animations (defined in `globals.css`)
+- `marquee` — Horizontal scrolling trust strip (32s linear, pauses on hover)
+- `phone-float` — Gentle vertical float for mockup phone (6s)
+- `chat-float` — Subtle vertical float for chat bubble (4.5s)
+- `progress-fill` — Animated progress bar width oscillation (40%-78%)
+- `blob-drift` — Slow organic movement for decorative blobs (14s)
+- `blob-float-a/b/c` — Floating motion for hero blobs (9s/11s/13s)
+- `dot-pulse` — Pulsing glow ring (1.6s)
+- `scroll-cue` — Pulsing scroll indicator (2.2s)
+- `hero-gradient-bg` — Slow drifting animated gradient background (22s)
+- `grain-overlay` — Subtle noise texture overlay
 
 ### Dark Mode
 Supported via `.dark` class on `<html>`. Flips `--background` to `--forest` and `--foreground` to `--cream`.
@@ -185,8 +225,8 @@ Supported via `.dark` class on `<html>`. Flips `--background` to `--forest` and 
 ## Key Design Decisions
 
 1. **Route group `(dashboard)`** — All authenticated pages share a single layout that derives nav from pathname, avoiding repetitive `DashboardShell` wrapping in each page.
-2. **Client components only** — Every dashboard page is `"use client"` because they all use state, effects, or interactive event handlers. Server components are only used for the root layout and landing page.
-3. **No real API** — The entire app runs on localStorage and mock data. `@tanstack/react-query` is configured for future backend integration.
-4. **Flat route structure** — Each role's pages are flat under their prefix (e.g., `/patient/sessions`, not `/patient/sessions/list`).
-5. **No data fetching library** for the mock phase — components access context and mock data directly.
-6. **LocalStorage as database** — Auth and cart persist across sessions. Data is seeded on first login.
+3. **Public pages via PageShell** — All public pages use the `PageShell` wrapper which provides `SiteHeader`, a hero section, and `SiteFooter`. The landing page uses these components directly for full control over the hero experience.
+4. **No real API** — The entire app runs on localStorage and mock data. `@tanstack/react-query` is configured for future backend integration.
+5. **Flat route structure** — Each role's pages are flat under their prefix (e.g., `/patient/sessions`, not `/patient/sessions/list`).
+6. **No data fetching library** for the mock phase — components access context and mock data directly.
+7. **LocalStorage as database** — Auth and cart persist across sessions. Data is seeded on first login.

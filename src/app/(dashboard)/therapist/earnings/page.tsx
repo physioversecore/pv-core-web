@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { npr } from "@/lib/cart";
 import { toast } from "sonner";
+import { useLang } from "@/context/i18n";
 
-const TABS = ["This Month", "Last Month", "All Time"] as const;
+const TABS = ["earningsTabsThisMonth", "earningsTabsLastMonth", "earningsTabsAllTime"] as const;
 
 interface Payout { date: string; ref: string; method: "eSewa" | "Khalti" | "Bank transfer"; account: string; amount: number; status: "Paid" | "Processing" | "Failed" }
 const PAYOUTS: Payout[] = [
@@ -16,47 +17,48 @@ const PAYOUTS: Payout[] = [
 const TXN = [{ fee: 5600 }, { fee: 5600 }, { fee: 5600 }, { fee: 5600 }];
 
 export default function Earnings() {
-  const [tab, setTab] = useState<(typeof TABS)[number]>("This Month");
+  const { t } = useLang();
+  const [tab, setTab] = useState<(typeof TABS)[number]>("earningsTabsThisMonth");
   const gross = TXN.reduce((s, t) => s + t.fee, 0);
   const fee = Math.round(gross * 0.15);
   const net = gross - fee;
 
   return (
     <>
-      <div className="flex gap-1 p-1 bg-sage rounded-full mb-5 w-fit">
-        {TABS.map((t) => <button key={t} onClick={() => setTab(t)} className={`px-4 py-1.5 rounded-full text-sm font-medium ${tab === t ? "bg-white text-pine shadow-sm" : "text-slate"}`}>{t}</button>)}
+      <div className="tabs-filter">
+        {TABS.map((tabKey) => <button key={tabKey} onClick={() => setTab(tabKey)} className={`px-4 py-1.5 rounded-full text-sm font-medium ${tab === tabKey ? "tab-active" : "text-text-light"}`}>{t(`therapist_dashboard.${tabKey}`)}</button>)}
       </div>
 
-      <div className="grid sm:grid-cols-4 gap-4 mb-5">
-        <Stat label="Payouts" value={String(PAYOUTS.length)} />
-        <Stat label="Gross earnings" value={npr(gross)} />
-        <Stat label="Platform fee (15%)" value={npr(fee)} />
-        <Stat label="Net payout" value={npr(net)} highlight />
+      <div className="stats-grid">
+        <Stat label={t("therapist_dashboard.payouts")} value={String(PAYOUTS.length)} />
+        <Stat label={t("therapist_dashboard.grossEarnings")} value={npr(gross)} />
+        <Stat label={t("therapist_dashboard.platformFee")} value={npr(fee)} />
+        <Stat label={t("therapist_dashboard.netPayout")} value={npr(net)} highlight />
       </div>
 
       <div className="card-soft p-5 mb-5">
-        <div className="flex items-center justify-between mb-3">
+        <div className="section-header">
           <div>
-            <p className="eyebrow mb-1">Withdrawal history</p>
-            <h3 className="font-display text-lg">Payouts to your account</h3>
+            <p className="eyebrow mb-1">{t("therapist_dashboard.withdrawalHistory")}</p>
+            <h3 className="section-title">{t("therapist_dashboard.payoutsTitle")}</h3>
           </div>
-          <span className="chip">{PAYOUTS.length} entries</span>
+          <span className="chip">{PAYOUTS.length} {t("therapist_dashboard.entries")}</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="text-xs uppercase tracking-wider font-mono text-slate text-left border-b border-border">
-              <tr><th className="py-2 pr-3">Date</th><th className="py-2 pr-3">Reference</th><th className="py-2 pr-3">Method</th><th className="py-2 pr-3">Account</th><th className="py-2 pr-3 text-right">Amount</th><th className="py-2 pr-3">Status</th></tr>
+            <thead className="table-header">
+              <tr><th className="table-cell">{t("therapist_dashboard.date")}</th><th className="table-cell">{t("therapist_dashboard.reference")}</th><th className="table-cell">{t("therapist_dashboard.method")}</th><th className="table-cell">{t("therapist_dashboard.account")}</th><th className="table-cell text-right">{t("therapist_dashboard.amount")}</th><th className="table-cell">{t("therapist_dashboard.status")}</th></tr>
             </thead>
             <tbody className="divide-y divide-border">
               {PAYOUTS.map((p) => (
                 <tr key={p.ref}>
-                  <td className="py-3 pr-3 text-slate">{p.date}</td>
-                  <td className="py-3 pr-3 font-mono text-xs text-pine">{p.ref}</td>
-                  <td className="py-3 pr-3">{p.method}</td>
-                  <td className="py-3 pr-3 font-mono text-xs text-slate">{p.account}</td>
-                  <td className="py-3 pr-3 text-right font-medium">{npr(p.amount)}</td>
-                  <td className="py-3 pr-3">
-                    <span className={`chip ${p.status === "Paid" ? "!bg-pine !text-white" : p.status === "Processing" ? "!bg-amber/15 !text-amber" : "!bg-red-100 !text-red-700"}`}>{p.status}</span>
+                  <td className="table-cell text-text-light">{p.date}</td>
+                  <td className="table-cell font-mono text-xs text-secondary">{p.ref}</td>
+                  <td className="table-cell">{p.method}</td>
+                  <td className="table-cell font-mono text-xs text-text-light">{p.account}</td>
+                  <td className="table-cell text-right font-medium">{npr(p.amount)}</td>
+                  <td className="table-cell">
+                    <span className={p.status === "Paid" ? "badge-success" : p.status === "Processing" ? "badge-warning" : "badge-danger"}>{p.status === "Paid" ? t("therapist_dashboard.paid") : p.status === "Processing" ? t("therapist_dashboard.processing") : t("therapist_dashboard.failed")}</span>
                   </td>
                 </tr>
               ))}
@@ -65,16 +67,16 @@ export default function Earnings() {
         </div>
       </div>
 
-      <button onClick={() => toast.success("Payout request submitted")} className="btn-primary">Request payout</button>
+      <button onClick={() => toast.success(t("therapist_dashboard.requestPayout"))} className="btn-primary">{t("therapist_dashboard.requestPayout")}</button>
     </>
   );
 }
 
 function Stat({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
-    <div className={`card-soft p-4 ${highlight ? "!bg-pine !text-white !border-pine" : ""}`}>
-      <div className={`text-xs uppercase tracking-wider font-mono ${highlight ? "text-white/70" : "text-slate"}`}>{label}</div>
-      <div className="font-display text-2xl mt-1">{value}</div>
+    <div className={`card-soft p-4 ${highlight ? "card-highlight-stat" : ""}`}>
+      <div className={`stat-label ${highlight ? "text-white/70" : "text-text-light"}`}>{label}</div>
+      <div className="stat-value">{value}</div>
     </div>
   );
 }

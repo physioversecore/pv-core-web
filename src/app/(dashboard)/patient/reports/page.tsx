@@ -2,6 +2,7 @@
 
 import { Download, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { useLang } from "@/context/i18n";
 
 const REPORTS = [
   { id: 1, date: "2026-06-20", therapist: "Dr. Aarati Shrestha", type: "Session note", file: "session-2026-06-20.pdf" },
@@ -10,17 +11,18 @@ const REPORTS = [
 ];
 
 export default function Reports() {
+  const { t } = useLang();
   return (
     <div>
       <div className="card-soft divide-y divide-border">
         {REPORTS.map((r) => (
           <div key={r.id} className="p-4 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-sage text-pine grid place-items-center"><FileText size={18} /></div>
+            <div className="w-10 h-10 rounded-xl bg-surface text-secondary grid place-items-center"><FileText size={18} /></div>
             <div className="flex-1 min-w-0">
               <div className="font-medium text-sm">{r.type}</div>
-              <div className="text-xs text-slate">{r.therapist} · {r.date}</div>
+              <div className="text-xs text-text-light">{r.therapist} · {r.date}</div>
             </div>
-            <button onClick={() => toast.success(`Downloaded ${r.file}`)} className="btn-outline !py-1.5 !px-3 text-xs"><Download size={12} /> PDF</button>
+            <button onClick={() => toast.success(`${t("patient_dashboard.downloaded")} ${r.file}`)} className="btn-outline !py-1.5 !px-3 text-xs"><Download size={12} /> PDF</button>
           </div>
         ))}
       </div>
