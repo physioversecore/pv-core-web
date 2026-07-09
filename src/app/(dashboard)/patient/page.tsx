@@ -20,7 +20,7 @@ export default function Overview() {
 
   return (
     <div>
-      <WelcomeHeader />
+      <WelcomeHeader name={user.name} />
       <Statistics />
       <UpcomingAppointments />
       <RateTherapist />
