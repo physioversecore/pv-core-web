@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { useLang } from "@/context/i18n";
@@ -9,18 +7,11 @@ import { WelcomeHeader, Statistics, UpcomingAppointments, RateTherapist, ReferFr
 
 export default function Overview() {
   const { t } = useLang();
-  const { user, loading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!loading && !user) router.push("/");
-  }, [loading, user, router]);
-
-  if (loading || !user) return null;
+  const { user } = useAuth();
 
   return (
     <div>
-      <WelcomeHeader name={user.name} />
+      <WelcomeHeader name={user!.name} />
       <Statistics />
       <UpcomingAppointments />
       <RateTherapist />

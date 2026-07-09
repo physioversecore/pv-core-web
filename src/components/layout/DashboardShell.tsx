@@ -37,20 +37,20 @@ export function DashboardShell({
   };
 
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="h-screen flex bg-background overflow-hidden">
       <aside
-        className={`fixed lg:static z-40 inset-y-0 left-0 w-64 bg-secondary text-text-inverse flex flex-col transition-transform ${
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-secondary text-text-inverse flex flex-col transition-transform ${
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        }`}
+        } ${mobileOpen ? "" : "lg:fixed"}`}
       >
-        <div className="p-5 flex items-center justify-between border-b border-text-inverse/10">
+        <div className="p-5 flex items-center justify-between border-b border-text-inverse/10 shrink-0">
           <Link href="/" className="flex items-center gap-2">
             <span className="w-7 h-7 rounded-full bg-primary" />
             <span className="font-display text-lg">{t("header.brand")}</span>
           </Link>
           <button onClick={() => setMobileOpen(false)} className="lg:hidden p-1"><X size={18} /></button>
         </div>
-        <nav className="flex-1 p-3 space-y-1">
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {nav.map((n) => {
             const active = pathname === n.to || (n.to !== nav[0].to && pathname.startsWith(n.to));
             return (
@@ -68,7 +68,7 @@ export function DashboardShell({
             );
           })}
         </nav>
-        <div className="p-4 border-t border-text-inverse/10">
+        <div className="p-4 border-t border-text-inverse/10 shrink-0">
           <div className="flex items-center gap-3 mb-3">
             <Avatar name={user?.name ?? "User"} size={36} />
             <div className="min-w-0">
@@ -82,8 +82,8 @@ export function DashboardShell({
         </div>
       </aside>
 
-      <div className="flex-1 min-w-0 flex flex-col">
-        <header className="h-16 bg-background border-b border-border flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30 backdrop-blur">
+      <div className="flex-1 min-w-0 flex flex-col lg:ml-64">
+        <header className="h-16 bg-background border-b border-border flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30 backdrop-blur shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <button onClick={() => setMobileOpen(true)} className="lg:hidden p-2 rounded-lg hover:bg-surface"><Menu size={18} /></button>
             <h1 className="font-display text-xl truncate">{title}</h1>
@@ -101,7 +101,7 @@ export function DashboardShell({
             )}
           </div>
         </header>
-        <main className="flex-1 p-4 lg:p-8 overflow-x-hidden">{children}</main>
+        <main className="flex-1 p-4 lg:p-8 overflow-y-auto">{children}</main>
       </div>
 
       {showCart && <CartDrawer />}
