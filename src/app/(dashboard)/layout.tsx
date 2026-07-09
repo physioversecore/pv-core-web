@@ -1,10 +1,19 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { DashboardShell } from "@/components/DashboardShell";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { useAuth } from "@/lib/auth";
 import { patientNav, therapistNav, adminNav } from "@/lib/nav";
 import type { NavItem } from "@/lib/nav";
 import { useLang, type TKey } from "@/context/i18n";
+
+const ROLE_ROUTES: Record<string, string> = {
+  patient: "/patient",
+  therapist: "/therapist",
+  admin: "/admin",
+};
 
 const rolePrefixes = [
   { prefix: "/patient", nav: patientNav },
@@ -15,6 +24,23 @@ const rolePrefixes = [
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { t } = useLang();
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (loading) return;
+    if (!user) {
+      router.push("/");
+      return;
+    }
+
+    const expectedPrefix = ROLE_ROUTES[user.role];
+    if (!pathname.startsWith(expectedPrefix)) {
+      router.push(expectedPrefix);
+    }
+  }, [loading, user, pathname, router]);
+
+  if (loading) return null;
 
   let nav: NavItem[] = adminNav;
   let role = "admin";
@@ -50,7 +76,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <DashboardShell title={title} nav={nav} showCart={showCart}>
-      {children}
+      <ErrorBoundary onError={(e) => console.error("[Dashboard Error]", e)}>
+        {children}
+      </ErrorBoundary>
     </DashboardShell>
   );
 }

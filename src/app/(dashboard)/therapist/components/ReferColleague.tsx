@@ -13,8 +13,7 @@ export function ReferColleague() {
       description={t("therapist_dashboard.referDesc")}
       code={REFERRAL_CODE}
       link={REFERRAL_LINK}
-      copyLabel={t("therapist_dashboard.copy")}
-      shareLabel={t("therapist_dashboard.shareInvite")}
+      copyLabel={t("therapist_dashboard.copyInviteLink")}
       copiedMessage={t("therapist_dashboard.referralCopied")}
     />
   );
