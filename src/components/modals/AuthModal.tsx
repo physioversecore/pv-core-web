@@ -21,7 +21,6 @@ export function AuthModal({
   onClose: () => void;
 }) {
   const [mode, setMode] = useState<AuthMode>(initialMode);
-  const [loginRole, setLoginRole] = useState<Role>("patient");
   const [signupRole, setSignupRole] = useState<SignupRole>(null);
   const [showPw, setShowPw] = useState(false);
   const [form, setForm] = useState<Record<string, string>>({});
@@ -38,10 +37,10 @@ export function AuthModal({
     e.preventDefault();
     if (!form.email || !form.password) return toast.error(t("auth.errorEmailPassword"));
     try {
-      const u = await login(form.email, form.password, loginRole);
+      const u = await login(form.email, form.password, "patient");
       toast.success(t("auth.successWelcome") + ", " + u.name);
       onClose();
-      router.push(loginRole === "patient" ? "/patient" : loginRole === "therapist" ? "/therapist" : "/admin");
+      router.push(u.role === "patient" ? "/patient" : u.role === "therapist" ? "/therapist" : "/admin");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : t("auth.errorLoginFailed"));
     }
@@ -113,20 +112,6 @@ export function AuthModal({
             <p className="eyebrow mb-2">{t("auth.account")}</p>
             <h2 className="text-3xl font-display mb-1">{t("auth.welcomeBack")}</h2>
             <p className="text-text-light text-sm mb-5">{t("auth.loginSubtitle")}</p>
-
-            <div className="flex gap-1 p-1 bg-surface rounded-full mb-5">
-              {(["patient", "therapist", "admin"] as Role[]).map((r) => (
-                <button
-                  key={r}
-                  onClick={() => setLoginRole(r)}
-                  className={`flex-1 py-2 rounded-full text-sm font-medium capitalize transition ${
-                    loginRole === r ? "bg-white text-secondary shadow-sm" : "text-text-light"
-                  }`}
-                >
-                  {r}
-                </button>
-              ))}
-            </div>
 
             <form onSubmit={handleLogin} className="space-y-3">
               <Field label={t("auth.labelEmail")} type="email" value={form.email ?? ""} onChange={(v) => set("email", v)} placeholder={t("auth.placeholderEmail")} />
