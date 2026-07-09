@@ -44,7 +44,7 @@ const en = {
     copyLink: "Copy link",
     shareInvite: "Share invite",
     copyInviteLink: "Copy invite link",
-    submitRating: "Submit rating",
+    submitRating: "Submit review",
     submitting: "Submitting…",
     submitted: "Submitted",
     continueShopping: "Continue shopping",
