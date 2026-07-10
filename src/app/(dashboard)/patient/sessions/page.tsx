@@ -31,6 +31,7 @@ function SessionsContent() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [specialtyFilter, setSpecialtyFilter] = useState("General");
   const [bookTherapist, setBookTherapist] = useState<Therapist | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [cancelTarget, setCancelTarget] = useState<SessionData | null>(null);
@@ -46,6 +47,16 @@ function SessionsContent() {
   const therapists = useMemo(
     () => (therapistsData?.therapists ?? []).map((t) => ({ ...t, gender: t.gender as "Male" | "Female" })),
     [therapistsData],
+  );
+
+  const specialties = useMemo(
+    () => Array.from(new Set(therapists.map((t) => t.specialty).filter(Boolean))),
+    [therapists],
+  );
+
+  const filteredTherapists = useMemo(
+    () => (specialtyFilter === "all" ? therapists : therapists.filter((t) => t.specialty === specialtyFilter)),
+    [therapists, specialtyFilter],
   );
 
   const filtered = useMemo(() => {
@@ -127,7 +138,7 @@ function SessionsContent() {
           ))}
         </div>
         <button
-          onClick={() => setPickerOpen(true)}
+          onClick={() => { setPickerOpen(true); setSpecialtyFilter("General"); }}
           className="btn-primary !py-2 !px-4 text-sm hidden md:inline-flex"
         >
           {t("patient_dashboard.bookNewSession")}
@@ -136,7 +147,7 @@ function SessionsContent() {
 
       {/* Mobile FAB */}
       <button
-        onClick={() => setPickerOpen(true)}
+        onClick={() => { setPickerOpen(true); setSpecialtyFilter("General"); }}
         className="fixed bottom-6 right-6 z-50 md:hidden w-14 h-14 rounded-full bg-primary text-white shadow-lg flex items-center justify-center hover:bg-primary-hover active:scale-95 fab-float"
       >
         <Plus size={24} />
@@ -175,7 +186,7 @@ function SessionsContent() {
               : "No cancelled sessions."}
           </p>
           {!search && tab === "sessionsUpcoming" && (
-            <button onClick={() => setPickerOpen(true)} className="btn-primary !py-2 !px-4 text-sm">
+            <button onClick={() => { setPickerOpen(true); setSpecialtyFilter("General"); }} className="btn-primary !py-2 !px-4 text-sm">
               {t("patient_dashboard.bookNewSession")}
             </button>
           )}
@@ -282,8 +293,21 @@ function SessionsContent() {
               <h3 className="font-display text-xl">{t("patient_dashboard.pickTherapist")}</h3>
               <button onClick={() => setPickerOpen(false)} className="p-2 rounded-full hover:bg-surface">✕</button>
             </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-text-light mb-1">Specialty</label>
+              <select
+                value={specialtyFilter}
+                onChange={(e) => setSpecialtyFilter(e.target.value)}
+                className="w-full sm:w-auto px-3 py-2 rounded-xl border border-border bg-white text-sm"
+              >
+                <option value="all">All</option>
+                {specialties.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {therapists.map((th) => (
+              {filteredTherapists.map((th) => (
                 <TherapistCard
                   key={th.id}
                   t={th}

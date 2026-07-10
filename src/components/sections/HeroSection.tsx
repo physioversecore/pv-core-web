@@ -1,14 +1,12 @@
 "use client";
 
 import { useLang } from "@/context/i18n";
-import { useRouter } from "next/navigation";
 import { Star } from "lucide-react";
 import { Avatar } from "@/components/Avatar";
 import { Reveal } from "@/components/Reveal";
 import { HeroStat } from "@/components/HeroStat";
 import { BookButton } from "@/components/BookButton";
 import { AppStoreBadge } from "@/components/AppStoreBadge";
-import { useAuth } from "@/lib/auth";
 import { useAuthModal } from "@/lib/auth-modal";
 import { npr } from "@/lib/cart";
 import type { Therapist } from "@/lib/types";
@@ -20,9 +18,7 @@ interface HeroSectionProps {
 
 export function HeroSection({ therapists, onBook }: HeroSectionProps) {
   const { t } = useLang();
-  const { user } = useAuth();
   const { openAuth } = useAuthModal();
-  const router = useRouter();
 
   return (
     <section id="top" className="relative min-h-screen overflow-hidden text-white bg-background-dark">
@@ -51,7 +47,7 @@ export function HeroSection({ therapists, onBook }: HeroSectionProps) {
             {t("landing.heroDesc")}
           </p>
           <div className="flex flex-wrap gap-3 mb-6">
-            <button onClick={() => (user ? router.push("/patient") : openAuth("signup"))} className="btn-primary">{t("landing.heroCta")}</button>
+            <button onClick={() => onBook(therapists[0])} className="btn-primary">{t("landing.heroCta")}</button>
             <button onClick={() => openAuth("signup")} className="inline-flex items-center gap-2 px-5 py-3 rounded-full font-semibold border border-white/40 text-white hover:bg-white/10 transition">
               {t("common.becomeTherapist")}
             </button>
