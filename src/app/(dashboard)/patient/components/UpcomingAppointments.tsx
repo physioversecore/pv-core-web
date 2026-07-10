@@ -54,7 +54,7 @@ export function UpcomingAppointments() {
                           if (isPending) {
                             toast(t("patient_dashboard.cancel"));
                           } else {
-                            cancelSession(u.id);
+                            cancelSession({ id: u.id });
                           }
                         }}
                         disabled={isCancelling && !isPending}

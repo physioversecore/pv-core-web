@@ -290,6 +290,11 @@
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(-4px); }
 }
+.fab-float { animation: fabFloat 3s ease-in-out infinite; }
+@keyframes fabFloat {
+  0%, 100% { transform: translateY(0); box-shadow: 0 8px 24px -6px rgba(0,0,0,.15); }
+  50%      { transform: translateY(-6px); box-shadow: 0 16px 32px -6px rgba(0,0,0,.25); }
+}
 .progress-fill { width: 60%; animation: progFill 3.2s ease-in-out infinite alternate; }
 @keyframes progFill { from { width: 40%; } to { width: 78%; } }
 
@@ -441,4 +446,13 @@
   padding: var(--spacing-1) .65rem; border-radius: var(--radius-full);
   font-family: var(--font-mono); font-size: .68rem; text-transform: uppercase; letter-spacing: .1em;
   background: var(--color-danger); color: #fff;
+}
+
+@keyframes slide-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.25s ease-out;
 }

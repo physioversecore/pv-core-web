@@ -1,28 +1,54 @@
 "use client";
 
 import { useState } from "react";
-import { X } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
 import { Avatar } from "@/components/common/Avatar";
-import { npr, formatDate } from "@/utils/format";
+import { npr, formatDate } from "@/lib/format";
+import { createSession } from "@/services/api/sessions";
 import type { Therapist } from "@/types";
 import { useLang } from "@/context/i18n";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 const TIMES = ["08:00", "10:00", "12:00", "14:00", "16:00", "18:00"];
 
-export function BookingModal({ therapist, onClose }: { therapist: Therapist; onClose: () => void }) {
+interface BookingModalProps {
+  therapist: Therapist;
+  onClose: () => void;
+}
+
+export function BookingModal({ therapist, onClose }: BookingModalProps) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [address, setAddress] = useState("");
   const [pay, setPay] = useState("esewa");
   const [ref, setRef] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { t } = useLang();
+  const queryClient = useQueryClient();
 
-  const confirm = () => {
+  const confirm = async () => {
     if (!date || !time || !address) return toast.error(t("booking.errorCompleteFields"));
-    setRef("BK-" + Math.random().toString(36).slice(2, 8).toUpperCase());
-    setStep(3);
+    setIsSubmitting(true);
+    try {
+      const session = await createSession({
+        therapistId: therapist.id,
+        date: new Date(date).toISOString(),
+        time,
+        address,
+        fee: therapist.price,
+      });
+      setRef(session.id);
+      setStep(3);
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["patient-dashboard"] });
+      toast.success(t("booking.bookingConfirmed"));
+    } catch {
+      toast.error("Failed to book session. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -36,7 +62,7 @@ export function BookingModal({ therapist, onClose }: { therapist: Therapist; onC
             <div className="w-16 h-16 rounded-full bg-surface grid place-items-center mx-auto mb-3 text-3xl">✓</div>
             <p className="font-display text-2xl mb-1">{t("booking.bookingConfirmed")}</p>
             <p className="text-text-light text-sm mb-1">{t("booking.reference")}</p>
-            <p className="font-mono text-secondary font-semibold mb-4">{ref}</p>
+            <p className="font-mono text-secondary font-semibold mb-4">#{ref.slice(-8).toUpperCase()}</p>
             <div className="text-sm text-text-light mb-5">
               {therapist.name} · {formatDate(date)} at {time}
             </div>
@@ -98,7 +124,15 @@ export function BookingModal({ therapist, onClose }: { therapist: Therapist; onC
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => setStep(1)} className="btn-outline flex-1">{t("common.back")}</button>
-                  <button onClick={confirm} className="btn-secondary flex-1">{t("booking.confirmBooking")}</button>
+                  <button onClick={confirm} disabled={isSubmitting} className="btn-secondary flex-1">
+                    {isSubmitting ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <Loader2 size={16} className="animate-spin" /> Booking...
+                      </span>
+                    ) : (
+                      t("booking.confirmBooking")
+                    )}
+                  </button>
                 </div>
               </div>
             )}

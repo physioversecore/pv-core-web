@@ -31,3 +31,51 @@ export function formatType(type: string): string {
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
 }
+
+export function mapSessionStatus(status: string): string {
+  switch (status) {
+    case "SCHEDULED": return "Confirmed";
+    case "COMPLETED": return "Completed";
+    case "CANCELLED": return "Cancelled";
+    default: return status;
+  }
+}
+
+export function npr(n: number): string {
+  return `Rs ${n.toLocaleString("en-IN")}`;
+}
+
+export function isToday(date: string): boolean {
+  const d = new Date(date);
+  const today = new Date();
+  return (
+    d.getFullYear() === today.getFullYear() &&
+    d.getMonth() === today.getMonth() &&
+    d.getDate() === today.getDate()
+  );
+}
+
+export function isTomorrow(date: string): boolean {
+  const d = new Date(date);
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return (
+    d.getFullYear() === tomorrow.getFullYear() &&
+    d.getMonth() === tomorrow.getMonth() &&
+    d.getDate() === tomorrow.getDate()
+  );
+}
+
+export function isPast(date: string, time: string): boolean {
+  const [h, m] = time.split(":").map(Number);
+  const d = new Date(date);
+  d.setHours(h, m, 0, 0);
+  return d < new Date();
+}
+
+export function hoursUntil(date: string, time: string): number {
+  const [h, m] = time.split(":").map(Number);
+  const d = new Date(date);
+  d.setHours(h, m, 0, 0);
+  return (d.getTime() - Date.now()) / 3600000;
+}
