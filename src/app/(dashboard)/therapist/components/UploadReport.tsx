@@ -1,11 +1,17 @@
 "use client";
 
 import { useRef, useState, useMemo, useEffect } from "react";
-import { Paperclip, X, FileText, Image, Video, File, Loader2, CheckCircle2 } from "lucide-react";
+import { Paperclip, X, FileText, Image, Video, File, Loader2, CheckCircle2, ZoomIn, Expand, Play, Maximize2 } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useLang } from "@/context/i18n";
 import { createReport, uploadFile, getMyPatients } from "@/services/api/reports";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 const REPORT_TYPES = ["Session note", "Progress report", "X-ray / Image", "Exercise video"];
 const ACCEPTED_TYPES = ".pdf,.jpg,.jpeg,.png,.gif,.mp4,.mov,.avi,.doc,.docx,.webm";
@@ -42,6 +48,7 @@ export function UploadReport() {
   const [note, setNote] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   // Generate preview URL when file changes
   useEffect(() => {
@@ -57,10 +64,11 @@ export function UploadReport() {
     };
   }, [file]);
 
+
   // Fetch real patients list
   const { data: patientsData, isLoading: patientsLoading } = useQuery({
     queryKey: ["my-patients"],
-    queryFn: getMyPatients,
+    queryFn: () => getMyPatients(),
   });
 
   const patients = useMemo(() => patientsData ?? [], [patientsData]);
@@ -184,41 +192,58 @@ export function UploadReport() {
       {/* File upload area or file preview */}
       {file ? (
         <div className="w-full rounded-xl border-2 border-secondary bg-surface/40 text-secondary transition overflow-hidden">
-          {/* Visual Preview */}
+          {/* Visual Preview — click to open full-screen */}
           {previewUrl && (
-            <div className="relative w-full h-48 bg-black/5 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setPreviewOpen(true)}
+              className="relative w-full h-48 bg-black/5 overflow-hidden group cursor-pointer"
+            >
               {file.type.startsWith("image/") && (
-                <img
-                  src={previewUrl}
-                  alt={file.name}
-                  className="w-full h-full object-cover"
-                />
+                <>
+                  <img
+                    src={previewUrl}
+                    alt={file.name}
+                    className="w-full h-full object-cover transition duration-300 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition flex items-center justify-center">
+                    <span className="opacity-0 group-hover:opacity-100 transition bg-white/90 text-text rounded-full px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 shadow-lg">
+                      <ZoomIn size={14} />
+                      View full image
+                    </span>
+                  </div>
+                </>
               )}
               {file.type.startsWith("video/") && (
                 <div className="relative w-full h-full">
                   <video
                     src={previewUrl}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition duration-300 group-hover:scale-105"
                     controls={false}
                     preload="metadata"
                   />
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                    <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M8 5v14l11-7z" />
-                      </svg>
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition">
+                    <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center shadow-lg transition group-hover:scale-110 group-hover:bg-white">
+                      <Play size={24} className="text-text ml-0.5" />
                     </div>
+                  </div>
+                  <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition bg-black/60 text-white text-xs px-2 py-1 rounded-md flex items-center gap-1">
+                    <Maximize2 size={12} />
+                    Open video
                   </div>
                 </div>
               )}
               {file.type === "application/pdf" && (
-                <div className="w-full h-full flex flex-col items-center justify-center bg-red-50">
-                  <FileText size={48} className="text-red-400 mb-2" />
-                  <span className="text-sm font-medium text-red-600">PDF Document</span>
-                  <span className="text-xs text-red-400 mt-1">Preview not available</span>
+                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-secondary/10 to-surface transition group-hover:from-secondary/20 group-hover:to-secondary/5">
+                  <FileText size={48} className="text-secondary/60 mb-2 transition group-hover:scale-110 group-hover:text-secondary" />
+                  <span className="text-sm font-medium text-secondary">PDF Document</span>
+                  <span className="text-xs text-text-light mt-1 flex items-center gap-1">
+                    <Expand size={12} />
+                    Click to preview
+                  </span>
                 </div>
               )}
-            </div>
+            </button>
           )}
 
           {/* File Info */}
@@ -278,6 +303,62 @@ export function UploadReport() {
           )}
         </button>
       </div>
+
+      {/* Full-screen file preview dialog */}
+      {previewUrl && (
+        <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+          <DialogContent className="max-w-5xl w-[95vw] h-[90vh] p-0 gap-0 overflow-hidden rounded-2xl !flex !flex-col !justify-start">
+            <DialogTitle className="sr-only">{file?.name}</DialogTitle>
+            <DialogDescription className="sr-only">
+              Preview of {file?.name}
+            </DialogDescription>
+
+            {/* Top bar */}
+            <div className="flex items-center justify-between px-5 py-3 border-b border-border shrink-0 bg-background">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="w-8 h-8 rounded-lg bg-secondary/10 text-secondary grid place-items-center shrink-0">
+                  {file && getFileIcon(file.name)}
+                </span>
+                <div className="min-w-0">
+                  <div className="text-sm font-medium truncate">{file?.name}</div>
+                  <div className="text-xs text-text-light">
+                    {file && getFileTypeLabel(file.name)} · {file && formatFileSize(file.size)}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Preview body — absolute positioning to prevent image cutting */}
+            <div className="flex-1 min-h-0 relative bg-black/5">
+              <div className="absolute inset-0 flex items-center justify-center p-6">
+                {file?.type.startsWith("image/") && (
+                  <img
+                    src={previewUrl}
+                    alt={file.name}
+                    className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg shadow-xl"
+                  />
+                )}
+                {file?.type.startsWith("video/") && (
+                  <video
+                    src={previewUrl}
+                    controls
+                    autoPlay
+                    muted
+                    className="w-full h-full max-w-full max-h-full rounded-lg shadow-xl"
+                  />
+                )}
+                {file?.type === "application/pdf" && (
+                  <iframe
+                    src={previewUrl}
+                    className="w-full h-full max-w-full max-h-full rounded-lg shadow-xl border-0"
+                    title={file.name}
+                  />
+                )}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </section>
   );
 }

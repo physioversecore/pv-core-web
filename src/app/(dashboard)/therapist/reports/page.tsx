@@ -24,6 +24,8 @@ export default function ReportsUpload() {
     setForm({ patient: "", date: "", notes: "", exercises: "", file: "" });
   };
 
+  console.log(patientNames,'patientNamespatientNames')
+
   return (
     <div className="grid lg:grid-cols-[1.4fr_1fr] gap-5">
       <form onSubmit={submit} className="card-soft p-6 space-y-4">
