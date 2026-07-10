@@ -8,6 +8,7 @@ import { BookingModal } from "@/components/BookingModal";
 import { SessionDrawer } from "@/components/modals/SessionDrawer";
 import { CancelConfirmModal } from "@/components/modals/CancelConfirmModal";
 import { RescheduleModal } from "@/components/modals/RescheduleModal";
+import { RateCard } from "../components/RateCard";
 import { ViewToggle, type ViewMode } from "@/components/sessions/ViewToggle";
 import { SessionRow } from "@/components/sessions/SessionRow";
 import { SessionCard } from "@/components/sessions/SessionCard";
@@ -19,6 +20,7 @@ import { getTherapists } from "@/services/api/therapists";
 import { mapSessionStatus } from "@/lib/format";
 import type { Therapist } from "@/types";
 import type { SessionData } from "@/services/api/sessions";
+import { X } from "lucide-react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const TABS = ["sessionsUpcoming", "sessionsPast", "sessionsCancelled"] as const;
@@ -36,6 +38,7 @@ function SessionsContent() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [cancelTarget, setCancelTarget] = useState<SessionData | null>(null);
   const [rescheduleTarget, setRescheduleTarget] = useState<SessionData | null>(null);
+  const [rateTarget, setRateTarget] = useState<SessionData | null>(null);
 
   const { sessions, isLoading, cancelSession, isCancelling, rescheduleSession, isRescheduling } = useSessions();
   const { data: therapistsData } = useQuery({
@@ -97,6 +100,11 @@ function SessionsContent() {
     if (s) setRescheduleTarget(s);
   };
 
+  const handleRate = (id: string) => {
+    const s = sessions.find((s) => s.id === id);
+    if (s) setRateTarget(s);
+  };
+
   const handleCancelConfirm = (reason?: string) => {
     if (!cancelTarget) return;
     cancelSession({ id: cancelTarget.id, reason });
@@ -117,6 +125,7 @@ function SessionsContent() {
   const rowProps = {
     onCancel: handleCancel,
     onReschedule: handleReschedule,
+    onRate: handleRate,
     onClick: setSelectedId,
   };
 
@@ -282,6 +291,33 @@ function SessionsContent() {
           onClose={() => setRescheduleTarget(null)}
           isPending={isRescheduling}
         />
+      )}
+
+      {/* Rate therapist modal (reuses RateCard from the RateTherapist section) */}
+      {rateTarget && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <button className="absolute inset-0 bg-text/60 backdrop-blur-sm" onClick={() => setRateTarget(null)} />
+          <div className="relative w-full max-w-md bg-background rounded-3xl border border-border shadow-2xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="font-display text-xl">{t("patient_dashboard.rateYourTherapist")}</h3>
+                <p className="text-sm text-text-light">{t("patient_dashboard.rateDesc")}</p>
+              </div>
+              <button
+                onClick={() => setRateTarget(null)}
+                className="p-2 rounded-full hover:bg-surface text-text-light shrink-0"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <RateCard
+              sessionId={rateTarget.id}
+              therapistName={rateTarget.therapistName || "Therapist"}
+              sessionDate={rateTarget.date}
+              sessionType={rateTarget.type || ""}
+            />
+          </div>
+        </div>
       )}
 
       {/* Therapist picker */}
