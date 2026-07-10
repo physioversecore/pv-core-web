@@ -1,131 +1,317 @@
 "use client";
 
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Avatar } from "@/components/Avatar";
-import { BookingModal } from "@/components/BookingModal";
+import { useState, useMemo, Suspense } from "react";
+import { Search, Plus } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { TherapistCard } from "@/components/TherapistCard";
-import { toast } from "sonner";
-import { formatDate } from "@/utils/format";
-import type { Therapist, Session } from "@/types";
-import { getTherapists } from "@/services/api/therapists";
-import { getSessions, updateSession } from "@/services/api/sessions";
+import { BookingModal } from "@/components/BookingModal";
+import { SessionDrawer } from "@/components/modals/SessionDrawer";
+import { CancelConfirmModal } from "@/components/modals/CancelConfirmModal";
+import { RescheduleModal } from "@/components/modals/RescheduleModal";
+import { ViewToggle, type ViewMode } from "@/components/sessions/ViewToggle";
+import { SessionRow } from "@/components/sessions/SessionRow";
+import { SessionCard } from "@/components/sessions/SessionCard";
+import { SessionTable } from "@/components/sessions/SessionTable";
+import { SessionSkeleton } from "@/components/sessions/SessionSkeleton";
+import { useSessions, useSessionDetail } from "@/hooks/useSessions";
 import { useLang } from "@/context/i18n";
+import { getTherapists } from "@/services/api/therapists";
+import { mapSessionStatus } from "@/lib/format";
+import type { Therapist } from "@/types";
+import type { SessionData } from "@/services/api/sessions";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const TABS = ["sessionsUpcoming", "sessionsPast", "sessionsCancelled"] as const;
+const PAGE_SIZE = 10;
 
-export default function Sessions() {
+function SessionsContent() {
   const { t } = useLang();
   const [tab, setTab] = useState<(typeof TABS)[number]>("sessionsUpcoming");
-  const [picker, setPicker] = useState(false);
-  const [book, setBook] = useState<Therapist | null>(null);
-  const queryClient = useQueryClient();
+  const [view, setView] = useState<ViewMode>("list");
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [bookTherapist, setBookTherapist] = useState<Therapist | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<SessionData | null>(null);
+  const [rescheduleTarget, setRescheduleTarget] = useState<SessionData | null>(null);
 
-  const { data: sessionsData } = useQuery({
-    queryKey: ["sessions"],
-    queryFn: () => getSessions(),
-  });
-
+  const { sessions, isLoading, cancelSession, isCancelling, rescheduleSession, isRescheduling } = useSessions();
   const { data: therapistsData } = useQuery({
     queryKey: ["therapists"],
     queryFn: () => getTherapists(),
   });
+  const { data: detailSession } = useSessionDetail(selectedId);
 
-  const cancelMutation = useMutation({
-    mutationFn: (id: string) => updateSession(id, { status: "CANCELLED" }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["sessions"] });
-      toast.success(t("patient_dashboard.sessionsCancelled"));
-    },
-    onError: () => toast.error(t("patient_dashboard.cancel")),
-  });
+  const therapists = useMemo(
+    () => (therapistsData?.therapists ?? []).map((t) => ({ ...t, gender: t.gender as "Male" | "Female" })),
+    [therapistsData],
+  );
 
-  const allTherapists: Therapist[] = (therapistsData?.therapists ?? []).map((_t) => ({
-    ..._t,
-    gender: _t.gender as "Male" | "Female",
-  }));
+  const filtered = useMemo(() => {
+    let list = [...sessions];
 
-  const sessions: Session[] = (sessionsData?.sessions ?? []).map((s) => {
-    const therapist = allTherapists.find((t) => t.id === s.therapistId);
-    return {
-      id: s.id,
-      therapist: therapist?.name ?? "—",
-      therapistId: s.therapistId,
-      date: s.date,
-      time: s.time,
-      type: s.type === "HOME_VISIT" ? "Home visit" : s.type,
-      status: mapStatus(s.status),
-    };
-  });
+    // Filter by tab
+    if (tab === "sessionsUpcoming") {
+      list = list.filter((s) => mapSessionStatus(s.status) === "Confirmed");
+    } else if (tab === "sessionsPast") {
+      list = list.filter((s) => mapSessionStatus(s.status) === "Completed");
+    } else {
+      list = list.filter((s) => mapSessionStatus(s.status) === "Cancelled");
+    }
 
-  const filter = (s: Session) =>
-    tab === "sessionsUpcoming" ? s.status === "Confirmed" || s.status === "Pending" : tab === "sessionsPast" ? s.status === "Completed" : s.status === "Cancelled";
+    // Filter by search
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter((s) => s.therapistName?.toLowerCase().includes(q));
+    }
 
-  const cancel = (id: string) => cancelMutation.mutate(id);
+    return list;
+  }, [sessions, tab, search]);
+
+  const paged = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filtered.slice(start, start + PAGE_SIZE);
+  }, [filtered, page]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+
+  const handleCancel = (id: string) => {
+    const s = sessions.find((s) => s.id === id);
+    if (s) setCancelTarget(s);
+  };
+
+  const handleReschedule = (id: string) => {
+    const s = sessions.find((s) => s.id === id);
+    if (s) setRescheduleTarget(s);
+  };
+
+  const handleCancelConfirm = (reason?: string) => {
+    if (!cancelTarget) return;
+    cancelSession({ id: cancelTarget.id, reason });
+    setCancelTarget(null);
+  };
+
+  const handleRescheduleConfirm = (date: string, time: string) => {
+    if (!rescheduleTarget) return;
+    rescheduleSession({ id: rescheduleTarget.id, date: new Date(date).toISOString(), time });
+    setRescheduleTarget(null);
+  };
+
+  const handleTabChange = (newTab: typeof TABS[number]) => {
+    setTab(newTab);
+    setPage(1);
+  };
+
+  const rowProps = {
+    onCancel: handleCancel,
+    onReschedule: handleReschedule,
+    onClick: setSelectedId,
+  };
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
         <div className="flex gap-1 p-1 bg-surface rounded-full">
           {TABS.map((_t) => (
-            <button key={_t} onClick={() => setTab(_t)} className={`px-4 py-1.5 rounded-full text-sm font-medium ${tab === _t ? "bg-white text-secondary shadow-sm" : "text-text-light"}`}>
+            <button
+              key={_t}
+              onClick={() => handleTabChange(_t)}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition ${
+                tab === _t ? "bg-white text-secondary shadow-sm" : "text-text-light hover:text-text"
+              }`}
+            >
               {t(`patient_dashboard.${_t}`)}
             </button>
           ))}
         </div>
-        <button onClick={() => setPicker(true)} className="btn-primary !py-2 !px-4 text-sm">{t("patient_dashboard.bookNewSession")}</button>
+        <button
+          onClick={() => setPickerOpen(true)}
+          className="btn-primary !py-2 !px-4 text-sm hidden md:inline-flex"
+        >
+          {t("patient_dashboard.bookNewSession")}
+        </button>
       </div>
 
-      <div className="space-y-3">
-        {sessions.filter(filter).map((s) => (
-          <div key={s.id} className="card-soft p-4 flex items-center gap-4 flex-wrap">
-            <Avatar name={s.therapist} size={44} />
-            <div className="flex-1 min-w-[180px]">
-              <div className="font-medium">{s.therapist}</div>
-              <div className="text-xs text-text-light">{formatDate(s.date)} · {s.time} · {s.type}</div>
-            </div>
-            <span className={`chip ${s.status === "Confirmed" || s.status === "SCHEDULED" ? "!bg-pine !text-white" : s.status === "Completed" ? "!bg-amber !text-white" : "!bg-border !text-slate"}`}>
-              {s.status === "SCHEDULED" ? t("patient_dashboard.confirmed") : s.status === "Confirmed" ? t("patient_dashboard.confirmed") : s.status === "Completed" ? t("therapist_dashboard.completed") : s.status === "Cancelled" ? t("therapist_dashboard.cancelled") : s.status}
-            </span>
-            <div className="flex gap-2">
-              {tab === "sessionsUpcoming" && (
-                <>
-                  <button onClick={() => toast(t("patient_dashboard.rescheduleSent"))} className="btn-outline !py-1.5 !px-3 text-xs">{t("patient_dashboard.reschedule")}</button>
-                  <button onClick={() => cancel(s.id)} className="btn-outline !py-1.5 !px-3 text-xs">{t("patient_dashboard.cancel")}</button>
-                </>
-              )}
-              {tab === "sessionsPast" && <button onClick={() => toast.success(t("patient_dashboard.reviewSubmitted"))} className="btn-primary !py-1.5 !px-3 text-xs">{t("common.rateReview")}</button>}
-            </div>
+      {/* Mobile FAB */}
+      <button
+        onClick={() => setPickerOpen(true)}
+        className="fixed bottom-6 right-6 z-50 md:hidden w-14 h-14 rounded-full bg-primary text-white shadow-lg flex items-center justify-center hover:bg-primary-hover active:scale-95 fab-float"
+      >
+        <Plus size={24} />
+      </button>
+
+      {/* Toolbar */}
+      <div className="flex items-center gap-3 mb-4 flex-wrap">
+        <div className="relative flex-1 min-w-[200px] max-w-xs">
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            placeholder="Search by therapist..."
+            className="w-full pl-9 pr-3 py-2 rounded-xl border border-border bg-white text-sm"
+          />
+        </div>
+        <ViewToggle view={view} onChange={setView} />
+      </div>
+
+      {/* Session list */}
+      {isLoading ? (
+        <SessionSkeleton view={view} />
+      ) : paged.length === 0 ? (
+        <div className="text-center py-16">
+          <div className="text-4xl mb-3 opacity-30">
+            {tab === "sessionsUpcoming" ? "📅" : tab === "sessionsPast" ? "✅" : "🗑️"}
           </div>
-        ))}
-        {sessions.filter(filter).length === 0 && <p className="text-text-light text-sm">{t("patient_dashboard.noSessions")}</p>}
-      </div>
+          <p className="text-text-light text-sm mb-4">
+            {search
+              ? "No sessions match your search."
+              : tab === "sessionsUpcoming"
+              ? "No upcoming sessions."
+              : tab === "sessionsPast"
+              ? "No past sessions."
+              : "No cancelled sessions."}
+          </p>
+          {!search && tab === "sessionsUpcoming" && (
+            <button onClick={() => setPickerOpen(true)} className="btn-primary !py-2 !px-4 text-sm">
+              {t("patient_dashboard.bookNewSession")}
+            </button>
+          )}
+        </div>
+      ) : (
+        <>
+          {view === "grid" ? (
+            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+              {paged.map((s) => (
+                <SessionCard key={s.id} session={s} {...rowProps} />
+              ))}
+            </div>
+          ) : view === "compact" ? (
+            <div className="card-soft overflow-hidden">
+              <SessionTable sessions={paged} {...rowProps} />
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {paged.map((s) => (
+                <SessionRow key={s.id} session={s} {...rowProps} />
+              ))}
+            </div>
+          )}
 
-      {picker && (
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-6">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="btn-outline !py-1.5 !px-3 text-xs disabled:opacity-30"
+              >
+                Previous
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPage(p)}
+                  className={`w-8 h-8 rounded-lg text-sm font-medium transition ${
+                    p === page
+                      ? "bg-secondary text-white"
+                      : "text-text-light hover:bg-surface"
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="btn-outline !py-1.5 !px-3 text-xs disabled:opacity-30"
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Session detail drawer */}
+      {detailSession && selectedId && (
+        <SessionDrawer
+          session={detailSession}
+          onClose={() => setSelectedId(null)}
+          onCancel={(id) => {
+            setSelectedId(null);
+            setTimeout(() => handleCancel(id), 200);
+          }}
+          onReschedule={(id) => {
+            setSelectedId(null);
+            setTimeout(() => handleReschedule(id), 200);
+          }}
+        />
+      )}
+
+      {/* Cancel confirmation */}
+      {cancelTarget && (
+        <CancelConfirmModal
+          therapistName={cancelTarget.therapistName || "Therapist"}
+          onConfirm={handleCancelConfirm}
+          onClose={() => setCancelTarget(null)}
+          isPending={isCancelling}
+        />
+      )}
+
+      {/* Reschedule modal */}
+      {rescheduleTarget && (
+        <RescheduleModal
+          therapistName={rescheduleTarget.therapistName || "Therapist"}
+          currentDate={rescheduleTarget.date}
+          currentTime={rescheduleTarget.time}
+          onConfirm={handleRescheduleConfirm}
+          onClose={() => setRescheduleTarget(null)}
+          isPending={isRescheduling}
+        />
+      )}
+
+      {/* Therapist picker */}
+      {pickerOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <button className="absolute inset-0 bg-text/60 backdrop-blur-sm" onClick={() => setPicker(false)} />
+          <button className="absolute inset-0 bg-text/60 backdrop-blur-sm" onClick={() => setPickerOpen(false)} />
           <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-background rounded-3xl border border-border shadow-2xl p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-display text-xl">{t("patient_dashboard.pickTherapist")}</h3>
-              <button onClick={() => setPicker(false)} className="p-2 rounded-full hover:bg-surface">✕</button>
+              <button onClick={() => setPickerOpen(false)} className="p-2 rounded-full hover:bg-surface">✕</button>
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {allTherapists.map((th) => <TherapistCard key={th.id} t={th} onBook={(thr) => { setPicker(false); setBook(thr); }} />)}
+              {therapists.map((th) => (
+                <TherapistCard
+                  key={th.id}
+                  t={th}
+                  onBook={(thr) => {
+                    setPickerOpen(false);
+                    setBookTherapist(thr);
+                  }}
+                />
+              ))}
             </div>
           </div>
         </div>
       )}
 
-      {book && <BookingModal therapist={book} onClose={() => setBook(null)} />}
+      {/* Booking modal */}
+      {bookTherapist && (
+        <BookingModal therapist={bookTherapist} onClose={() => setBookTherapist(null)} />
+      )}
     </div>
   );
 }
 
-function mapStatus(status: string): Session["status"] {
-  switch (status) {
-    case "SCHEDULED": return "Confirmed";
-    case "COMPLETED": return "Completed";
-    case "CANCELLED": return "Cancelled";
-    default: return status as Session["status"];
-  }
+export default function SessionsPage() {
+  return (
+    <ErrorBoundary>
+      <Suspense fallback={<SessionSkeleton view="list" />}>
+        <SessionsContent />
+      </Suspense>
+    </ErrorBoundary>
+  );
 }
