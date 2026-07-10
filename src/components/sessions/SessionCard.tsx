@@ -9,6 +9,7 @@ interface SessionCardProps {
   session: SessionData;
   onCancel: (id: string) => void;
   onReschedule: (id: string) => void;
+  onRate: (id: string) => void;
   onClick: (id: string) => void;
 }
 
@@ -18,7 +19,7 @@ const statusStyles: Record<string, string> = {
   Cancelled: "!bg-danger !text-white",
 };
 
-export function SessionCard({ session, onCancel, onReschedule, onClick }: SessionCardProps) {
+export function SessionCard({ session, onCancel, onReschedule, onRate, onClick }: SessionCardProps) {
   const displayStatus = mapSessionStatus(session.status);
   const isUpcoming = session.status === "SCHEDULED" || session.status === "IN_PROGRESS";
 
@@ -60,6 +61,17 @@ export function SessionCard({ session, onCancel, onReschedule, onClick }: Sessio
             className="inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-xl border border-danger text-danger text-xs font-semibold cursor-pointer hover:bg-danger hover:text-white transition-all flex-1"
           >
             Cancel
+          </button>
+        </div>
+      )}
+
+      {displayStatus === "Completed" && (
+        <div onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() => onRate(session.id)}
+            className="inline-flex items-center justify-center gap-1 px-2.5 py-1 rounded-lg border border-primary text-primary text-[11px] font-semibold cursor-pointer hover:bg-primary hover:text-white transition-all w-full"
+          >
+            Rate
           </button>
         </div>
       )}

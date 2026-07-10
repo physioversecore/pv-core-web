@@ -9,6 +9,7 @@ interface SessionTableProps {
   sessions: SessionData[];
   onCancel: (id: string) => void;
   onReschedule: (id: string) => void;
+  onRate: (id: string) => void;
   onClick: (id: string) => void;
 }
 
@@ -18,7 +19,7 @@ const statusStyles: Record<string, string> = {
   Cancelled: "!bg-danger !text-white",
 };
 
-export function SessionTable({ sessions, onCancel, onReschedule, onClick }: SessionTableProps) {
+export function SessionTable({ sessions, onCancel, onReschedule, onRate, onClick }: SessionTableProps) {
   if (sessions.length === 0) return null;
 
   return (
@@ -101,6 +102,16 @@ export function SessionTable({ sessions, onCancel, onReschedule, onClick }: Sess
                         className="md:hidden w-8 h-8 rounded-xl border border-danger text-danger flex items-center justify-center cursor-pointer hover:bg-danger hover:text-white transition-all"
                       >
                         <X size={12} />
+                      </button>
+                    </div>
+                  )}
+                  {displayStatus === "Completed" && (
+                    <div className="flex items-center justify-end" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={() => onRate(s.id)}
+                        className="inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg border border-primary text-primary text-[11px] font-semibold cursor-pointer hover:bg-primary hover:text-white transition-all whitespace-nowrap"
+                      >
+                        Rate
                       </button>
                     </div>
                   )}
