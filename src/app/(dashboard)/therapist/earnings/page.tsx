@@ -18,7 +18,7 @@ import {
   PaginationNext,
   PaginationEllipsis,
 } from "@/components/ui/pagination";
-import { X, Wallet, AlertCircle, CheckCircle2 } from "lucide-react";
+import { X, Wallet, AlertCircle, CheckCircle2, ChevronDown, Calendar } from "lucide-react";
 
 const TABS = [
   "earningsTabsThisMonth",
@@ -48,6 +48,105 @@ const PAYOUT_DESTINATIONS: PayoutDestination[] = [
   { id: "d2", method: "Khalti", account: "98XXXXXX99", label: "Khalti — 98XXXXXX99" },
   { id: "d3", method: "Bank transfer", account: "NIC Asia ••4521", label: "NIC Asia Bank ••4521" },
 ];
+
+const PAYOUT_METHODS = ["eSewa", "Khalti", "Bank transfer"] as const;
+const SESSION_TYPES = ["In-clinic", "Home visit", "Telehealth"] as const;
+
+const SEED_TRANSACTIONS = [
+  { id: "tx1", date: "2026-07-10", patient: "Sita Sharma", sessionType: "In-clinic", fee: 1500, status: "Completed" as const },
+  { id: "tx2", date: "2026-07-10", patient: "Ram Thapa", sessionType: "Home visit", fee: 2500, status: "Completed" as const },
+  { id: "tx3", date: "2026-07-09", patient: "Gita Magar", sessionType: "In-clinic", fee: 1500, status: "Completed" as const },
+  { id: "tx4", date: "2026-07-08", patient: "Hari Bahadur", sessionType: "In-clinic", fee: 1500, status: "Scheduled" as const },
+  { id: "tx5", date: "2026-07-07", patient: "Anita Gurung", sessionType: "Telehealth", fee: 1000, status: "Completed" as const },
+  { id: "tx6", date: "2026-07-05", patient: "Binod Karki", sessionType: "In-clinic", fee: 1500, status: "Completed" as const },
+  { id: "tx7", date: "2026-07-04", patient: "Sunita Rai", sessionType: "Home visit", fee: 2500, status: "Completed" as const },
+  { id: "tx8", date: "2026-07-03", patient: "Prakash Tamang", sessionType: "In-clinic", fee: 1500, status: "Cancelled" as const },
+  { id: "tx9", date: "2026-07-02", patient: "Kamala Shrestha", sessionType: "Telehealth", fee: 1000, status: "Completed" as const },
+  { id: "tx10", date: "2026-07-01", patient: "Rajesh Adhikari", sessionType: "In-clinic", fee: 1500, status: "Completed" as const },
+  { id: "tx11", date: "2026-06-30", patient: "Laxmi Bhattarai", sessionType: "In-clinic", fee: 1500, status: "Completed" as const },
+  { id: "tx12", date: "2026-06-28", patient: "Deepak Maharjan", sessionType: "Home visit", fee: 2500, status: "Completed" as const },
+  { id: "tx13", date: "2026-06-25", patient: "Nirmala Khadka", sessionType: "In-clinic", fee: 1500, status: "Completed" as const },
+  { id: "tx14", date: "2026-06-20", patient: "Suman Basnet", sessionType: "Telehealth", fee: 1000, status: "Completed" as const },
+  { id: "tx15", date: "2026-06-18", patient: "Mina Koirala", sessionType: "In-clinic", fee: 1500, status: "Completed" as const },
+];
+
+const SEED_PAYOUTS = [
+  { ref: "PAY-2026-071", date: "2026-07-08", method: "eSewa" as const, account: "98XXXXXX21", amount: 12000, status: "Paid" as const },
+  { ref: "PAY-2026-065", date: "2026-06-28", method: "Khalti" as const, account: "98XXXXXX99", amount: 9500, status: "Paid" as const },
+  { ref: "PAY-2026-059", date: "2026-06-18", method: "Bank transfer" as const, account: "NIC Asia ••4521", amount: 15000, status: "Paid" as const },
+  { ref: "PAY-2026-052", date: "2026-06-08", method: "eSewa" as const, account: "98XXXXXX21", amount: 8000, status: "Paid" as const },
+  { ref: "PAY-2026-048", date: "2026-05-28", method: "Khalti" as const, account: "98XXXXXX99", amount: 11000, status: "Paid" as const },
+  { ref: "PAY-2026-045", date: "2026-05-18", method: "Bank transfer" as const, account: "NIC Asia ••4521", amount: 7500, status: "Paid" as const },
+  { ref: "PAY-2026-041", date: "2026-05-08", method: "eSewa" as const, account: "98XXXXXX21", amount: 13000, status: "Paid" as const },
+  { ref: "PAY-2026-038", date: "2026-04-28", method: "Khalti" as const, account: "98XXXXXX99", amount: 6000, status: "Paid" as const },
+  { ref: "PAY-2026-034", date: "2026-04-18", method: "Bank transfer" as const, account: "NIC Asia ••4521", amount: 14500, status: "Paid" as const },
+  { ref: "PAY-2026-030", date: "2026-04-08", method: "eSewa" as const, account: "98XXXXXX21", amount: 10000, status: "Paid" as const },
+  { ref: "PAY-2026-027", date: "2026-03-28", method: "Khalti" as const, account: "98XXXXXX99", amount: 8500, status: "Paid" as const },
+  { ref: "PAY-2026-022", date: "2026-03-18", method: "Bank transfer" as const, account: "NIC Asia ••4521", amount: 16000, status: "Paid" as const },
+];
+
+function hasActiveFilters({
+  dateFrom,
+  dateTo,
+  method,
+  sessionType,
+}: {
+  dateFrom: string;
+  dateTo: string;
+  method: string;
+  sessionType: string;
+}) {
+  return !!(dateFrom || dateTo || method || sessionType);
+}
+
+function matchesPayoutFilters(
+  p: { date: string; method: string },
+  dateFrom: string,
+  dateTo: string,
+  method: string,
+) {
+  if (method && p.method !== method) return false;
+  if (dateFrom && p.date < dateFrom) return false;
+  if (dateTo && p.date > dateTo) return false;
+  return true;
+}
+
+function matchesTxFilters(
+  tx: { date: string; sessionType: string },
+  dateFrom: string,
+  dateTo: string,
+  sessionType: string,
+) {
+  if (sessionType && tx.sessionType !== sessionType) return false;
+  if (dateFrom && tx.date < dateFrom) return false;
+  if (dateTo && tx.date > dateTo) return false;
+  return true;
+}
+
+function FilterBar({
+  hasFilters,
+  onClear,
+  children,
+}: {
+  hasFilters: boolean;
+  onClear: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center px-4 py-3 border-b border-border bg-surface/30">
+      {children}
+      {hasFilters && (
+        <button
+          type="button"
+          onClick={onClear}
+          className="text-xs text-primary hover:underline flex items-center gap-1 shrink-0"
+        >
+          <X className="w-3 h-3" /> Clear
+        </button>
+      )}
+    </div>
+  );
+}
 
 function PageControls({
   pagination,
@@ -157,14 +256,22 @@ export default function Earnings() {
   const [tab, setTab] = useState<TabValue>("earningsTabsThisMonth");
   const [showPayoutModal, setShowPayoutModal] = useState(false);
 
+  const [payoutDateFrom, setPayoutDateFrom] = useState("");
+  const [payoutDateTo, setPayoutDateTo] = useState("");
+  const [payoutMethod, setPayoutMethod] = useState("");
+
+  const [txDateFrom, setTxDateFrom] = useState("");
+  const [txDateTo, setTxDateTo] = useState("");
+  const [txSessionType, setTxSessionType] = useState("");
+
   const period = TAB_PERIOD_MAP[tab];
 
   const txPagination = usePagination({ pageSize: 10 });
   const payoutPagination = usePagination({ pageSize: 10 });
 
-  const { transactions, total: txTotal, isLoading: txLoading } =
+  const { isLoading: txLoading } =
     useTherapistTransactions({ pagination: txPagination, period });
-  const { payouts, total: payoutTotal, isLoading: payoutLoading } =
+  const { isLoading: payoutLoading } =
     useTherapistPayouts({ pagination: payoutPagination, period });
 
   useEffect(() => {
@@ -172,7 +279,41 @@ export default function Earnings() {
     payoutPagination.reset();
   }, [tab]);
 
-  const gross = transactions.reduce((s, tx) => s + tx.fee, 0);
+  useEffect(() => {
+    payoutPagination.reset();
+  }, [payoutDateFrom, payoutDateTo, payoutMethod]);
+
+  useEffect(() => {
+    txPagination.reset();
+  }, [txDateFrom, txDateTo, txSessionType]);
+
+  const allPayouts = SEED_PAYOUTS.filter((p) => {
+    if (period !== "all") {
+      const now = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      if (period === "lastMonth") start.setMonth(start.getMonth() - 1);
+      if (new Date(p.date) < start) return false;
+    }
+    return matchesPayoutFilters(p, payoutDateFrom, payoutDateTo, payoutMethod);
+  });
+
+  const allTransactions = SEED_TRANSACTIONS.filter((tx) => {
+    if (period !== "all") {
+      const now = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      if (period === "lastMonth") start.setMonth(start.getMonth() - 1);
+      if (new Date(tx.date) < start) return false;
+    }
+    return matchesTxFilters(tx, txDateFrom, txDateTo, txSessionType);
+  });
+
+  const filteredPayoutTotal = allPayouts.length;
+  const filteredPayouts = allPayouts.slice(payoutPagination.skip, payoutPagination.skip + payoutPagination.pageSize);
+
+  const filteredTxTotal = allTransactions.length;
+  const filteredTransactions = allTransactions.slice(txPagination.skip, txPagination.skip + txPagination.pageSize);
+
+  const gross = allTransactions.reduce((s, tx) => s + tx.fee, 0);
   const fee = Math.round(gross * 0.15);
   const net = gross - fee;
 
@@ -195,7 +336,7 @@ export default function Earnings() {
       <div className="stats-grid">
         <Stat
           label={t("therapist_dashboard.payouts")}
-          value={String(payoutTotal)}
+          value={String(filteredPayoutTotal)}
         />
         <Stat label={t("therapist_dashboard.grossEarnings")} value={npr(gross)} />
         <Stat label={t("therapist_dashboard.platformFee")} value={npr(fee)} />
@@ -209,9 +350,53 @@ export default function Earnings() {
             <h3 className="section-title">{t("therapist_dashboard.payoutsTitle")}</h3>
           </div>
           <span className="chip">
-            {payoutTotal} {t("therapist_dashboard.entries")}
+            {filteredPayoutTotal} {t("therapist_dashboard.entries")}
           </span>
         </div>
+
+        <FilterBar
+          hasFilters={hasActiveFilters({ dateFrom: payoutDateFrom, dateTo: payoutDateTo, method: payoutMethod, sessionType: "" })}
+          onClear={() => { setPayoutDateFrom(""); setPayoutDateTo(""); setPayoutMethod(""); }}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-text-light whitespace-nowrap">From</span>
+            <div className="relative">
+              <input
+                type="date"
+                value={payoutDateFrom}
+                onChange={(e) => setPayoutDateFrom(e.target.value)}
+                className="pl-3 pr-8 py-2 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <Calendar className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-light pointer-events-none" />
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-text-light whitespace-nowrap">To</span>
+            <div className="relative">
+              <input
+                type="date"
+                value={payoutDateTo}
+                onChange={(e) => setPayoutDateTo(e.target.value)}
+                className="pl-3 pr-8 py-2 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <Calendar className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-light pointer-events-none" />
+            </div>
+          </div>
+          <div className="relative">
+            <select
+              value={payoutMethod}
+              onChange={(e) => setPayoutMethod(e.target.value)}
+              className="appearance-none pl-3 pr-8 py-2 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+            >
+              <option value="">All Methods</option>
+              {PAYOUT_METHODS.map((m) => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-light pointer-events-none" />
+          </div>
+        </FilterBar>
+
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="table-header">
@@ -227,14 +412,14 @@ export default function Earnings() {
             <tbody className="divide-y divide-border">
               {payoutLoading ? (
                 <TableSkeleton colSpan={6} />
-              ) : payouts.length === 0 ? (
+              ) : filteredPayouts.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="table-cell text-center text-text-light py-8">
                     No payouts for this period
                   </td>
                 </tr>
               ) : (
-                payouts.map((p) => (
+                filteredPayouts.map((p) => (
                   <tr key={p.ref}>
                     <td className="table-cell text-text-light">{p.date}</td>
                     <td className="table-cell font-mono text-xs text-secondary">{p.ref}</td>
@@ -264,7 +449,7 @@ export default function Earnings() {
             </tbody>
           </table>
         </div>
-        <PageControls pagination={payoutPagination} total={payoutTotal} />
+        <PageControls pagination={payoutPagination} total={filteredPayoutTotal} />
       </div>
 
       <div className="card-soft p-5 mb-5">
@@ -273,8 +458,52 @@ export default function Earnings() {
             <p className="eyebrow mb-1">Breakdown</p>
             <h3 className="section-title">Session earnings</h3>
           </div>
-          <span className="chip">{txTotal} sessions</span>
+          <span className="chip">{filteredTxTotal} sessions</span>
         </div>
+
+        <FilterBar
+          hasFilters={hasActiveFilters({ dateFrom: txDateFrom, dateTo: txDateTo, method: "", sessionType: txSessionType })}
+          onClear={() => { setTxDateFrom(""); setTxDateTo(""); setTxSessionType(""); }}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-text-light whitespace-nowrap">From</span>
+            <div className="relative">
+              <input
+                type="date"
+                value={txDateFrom}
+                onChange={(e) => setTxDateFrom(e.target.value)}
+                className="pl-3 pr-8 py-2 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <Calendar className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-light pointer-events-none" />
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-text-light whitespace-nowrap">To</span>
+            <div className="relative">
+              <input
+                type="date"
+                value={txDateTo}
+                onChange={(e) => setTxDateTo(e.target.value)}
+                className="pl-3 pr-8 py-2 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <Calendar className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-light pointer-events-none" />
+            </div>
+          </div>
+          <div className="relative">
+            <select
+              value={txSessionType}
+              onChange={(e) => setTxSessionType(e.target.value)}
+              className="appearance-none pl-3 pr-8 py-2 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+            >
+              <option value="">All Types</option>
+              {SESSION_TYPES.map((type) => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-light pointer-events-none" />
+          </div>
+        </FilterBar>
+
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="table-header">
@@ -289,14 +518,14 @@ export default function Earnings() {
             <tbody className="divide-y divide-border">
               {txLoading ? (
                 <TableSkeleton colSpan={5} />
-              ) : transactions.length === 0 ? (
+              ) : filteredTransactions.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="table-cell text-center text-text-light py-8">
                     No sessions for this period
                   </td>
                 </tr>
               ) : (
-                transactions.map((tx) => (
+                filteredTransactions.map((tx) => (
                   <tr key={tx.id}>
                     <td className="table-cell text-text-light">{tx.date}</td>
                     <td className="table-cell font-medium">{tx.patient}</td>
@@ -321,7 +550,7 @@ export default function Earnings() {
             </tbody>
           </table>
         </div>
-        <PageControls pagination={txPagination} total={txTotal} />
+        <PageControls pagination={txPagination} total={filteredTxTotal} />
       </div>
 
       <button onClick={() => setShowPayoutModal(true)} className="btn-primary">
