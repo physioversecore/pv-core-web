@@ -713,6 +713,18 @@ const en = {
     loggedOutDevices: "Logged out other devices",
   },
 
+  availability: {
+    schedule: "SCHEDULE",
+    title: "Manage availability",
+    instruction: "Tap a slot to open, block, or edit it.",
+    booked: "Booked",
+    open: "Open",
+    off: "Off",
+    recurringLabel: "RECURRING AVAILABILITY",
+    saveRecurring: "Save recurring",
+    blockDate: "Block date",
+  },
+
   patient_dashboard: {
     welcomeBack: "Welcome back",
     continueRecovery: "Let's continue your recovery.",

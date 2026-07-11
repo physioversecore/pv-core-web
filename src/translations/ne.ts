@@ -713,6 +713,18 @@ const ne = {
     loggedOutDevices: "अन्य डिभाइसहरू लग आउट गरियो",
   },
 
+  availability: {
+    schedule: "समयतालिका",
+    title: "उपलब्धता व्यवस्थापन गर्नुहोस्",
+    instruction: "स्लट खोल्न, रोक्न वा सम्पादन गर्न ट्याप गर्नुहोस्।",
+    booked: "बुक गरिएको",
+    open: "खुला",
+    off: "बन्द",
+    recurringLabel: "आवर्ती उपलब्धता",
+    saveRecurring: "आवर्ती सेभ गर्नुहोस्",
+    blockDate: "मिति रोक्नुहोस्",
+  },
+
   patient_dashboard: {
     welcomeBack: "फेरि स्वागत छ",
     continueRecovery: "तपाईंको स्वास्थ्यलाभ जारी राखौं।",
