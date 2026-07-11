@@ -3,6 +3,17 @@
 import { useMemo, useState } from "react";
 import { Avatar } from "@/components/Avatar";
 import { useLang } from "@/context/i18n";
+import { usePagination } from "@/hooks/usePagination";
+import { useTherapistPatients } from "@/hooks/useTherapistPatients";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationPrevious,
+  PaginationNext,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
 import { toast } from "sonner";
 import {
   Search,
@@ -24,46 +35,13 @@ interface Patient {
   notes: string;
 }
 
-const PATIENTS: Patient[] = [
-  {
-    id: "p1",
-    name: "Ramesh Adhikari",
-    phone: "9841001001",
-    condition: "Post-surgery",
-    sessions: 8,
-    last: "2026-06-20",
-    notes: "Recovering well, continue exercises.",
-  },
-  {
-    id: "p2",
-    name: "Sita Lama",
-    phone: "9841002002",
-    condition: "Back Pain",
-    sessions: 4,
-    last: "2026-06-22",
-    notes: "Needs posture correction.",
-  },
-  {
-    id: "p3",
-    name: "Hari Pradhan",
-    phone: "9841003003",
-    condition: "Sports Injury",
-    sessions: 12,
-    last: "2026-06-18",
-    notes: "Knee ligament rehab, progressing.",
-  },
-  {
-    id: "p4",
-    name: "Anita Sharma",
-    phone: "9841004004",
-    condition: "Back Pain",
-    sessions: 3,
-    last: "2026-06-15",
-    notes: "Initial assessment done.",
-  },
+const CONDITION_OPTIONS = [
+  "Post-surgery",
+  "Back Pain",
+  "Sports Injury",
+  "Post-stroke rehab",
+  "Frozen shoulder",
 ];
-
-const CONDITION_OPTIONS = ["Post-surgery", "Back Pain", "Sports Injury", "Post-stroke rehab", "Frozen shoulder"];
 
 const LAST_VISIT_OPTIONS = [
   { label: "All Time", value: "all" },
@@ -82,40 +60,42 @@ export default function Patients() {
   const [conditionFilter, setConditionFilter] = useState("");
   const [lastVisitFilter, setLastVisitFilter] = useState("all");
 
-  const filtered = useMemo(() => {
-    let list = [...PATIENTS];
+  const pagination = usePagination({ pageSize: 10 });
 
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      list = list.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.phone.includes(q) ||
-          p.id.toLowerCase().includes(q)
-      );
-    }
+  const { patients, total, isLoading } = useTherapistPatients({
+    pagination,
+    search,
+    condition: conditionFilter,
+    lastVisit: lastVisitFilter,
+  });
 
-    if (conditionFilter) {
-      list = list.filter((p) => p.condition === conditionFilter);
-    }
+  const totalPages = pagination.totalPages(total);
 
-    if (lastVisitFilter !== "all") {
-      const days = parseInt(lastVisitFilter);
-      const cutoff = new Date();
-      cutoff.setDate(cutoff.getDate() - days);
-      const cutoffStr = cutoff.toISOString().slice(0, 10);
-      list = list.filter((p) => p.last >= cutoffStr);
-    }
+  const hasFilters =
+    search.trim() !== "" ||
+    conditionFilter !== "" ||
+    lastVisitFilter !== "all";
 
-    return list;
-  }, [search, conditionFilter, lastVisitFilter]);
+  function handleSearchChange(value: string) {
+    setSearch(value);
+    pagination.reset();
+  }
 
-  const hasFilters = search.trim() !== "" || conditionFilter !== "" || lastVisitFilter !== "all";
+  function handleConditionChange(value: string) {
+    setConditionFilter(value);
+    pagination.reset();
+  }
+
+  function handleLastVisitChange(value: string) {
+    setLastVisitFilter(value);
+    pagination.reset();
+  }
 
   function clearFilters() {
     setSearch("");
     setConditionFilter("");
     setLastVisitFilter("all");
+    pagination.reset();
   }
 
   function openEdit(p: Patient) {
@@ -125,10 +105,6 @@ export default function Patients() {
 
   function saveEdit() {
     if (!editForm) return;
-    const idx = PATIENTS.findIndex((p) => p.id === editForm.id);
-    if (idx !== -1) {
-      PATIENTS[idx] = { ...editForm };
-    }
     setEditing(null);
     setEditForm(null);
     toast.success("Patient details updated!");
@@ -145,13 +121,13 @@ export default function Patients() {
               type="text"
               placeholder="Search by name, phone, or ID…"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
             {search && (
               <button
                 type="button"
-                onClick={() => setSearch("")}
+                onClick={() => handleSearchChange("")}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-text-light hover:text-text"
               >
                 <X className="w-3.5 h-3.5" />
@@ -162,7 +138,7 @@ export default function Patients() {
           <div className="relative">
             <select
               value={conditionFilter}
-              onChange={(e) => setConditionFilter(e.target.value)}
+              onChange={(e) => handleConditionChange(e.target.value)}
               className="appearance-none pl-3 pr-8 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
             >
               <option value="">All Conditions</option>
@@ -178,7 +154,7 @@ export default function Patients() {
           <div className="relative">
             <select
               value={lastVisitFilter}
-              onChange={(e) => setLastVisitFilter(e.target.value)}
+              onChange={(e) => handleLastVisitChange(e.target.value)}
               className="appearance-none pl-3 pr-8 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
             >
               {LAST_VISIT_OPTIONS.map((o) => (
@@ -201,7 +177,7 @@ export default function Patients() {
               <X className="w-3 h-3" /> Clear Filters
             </button>
             <span className="text-[11px] text-text-light">
-              {filtered.length} patient{filtered.length !== 1 ? "s" : ""} found
+              {total} patient{total !== 1 ? "s" : ""} found
             </span>
           </div>
         )}
@@ -220,35 +196,60 @@ export default function Patients() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {filtered.map((p) => (
-              <tr
-                key={p.id}
-                className="hover:bg-surface/40 cursor-pointer"
-                onClick={() => setSelected(p)}
-              >
-                <td className="p-3 flex items-center gap-2">
-                  <Avatar name={p.name} size={32} />
-                  <span className="font-medium">{p.name}</span>
-                </td>
-                <td className="p-3 text-text-light">{p.condition}</td>
-                <td className="p-3">{p.sessions}</td>
-                <td className="p-3 text-text-light">{p.last}</td>
-                <td className="p-3 text-right">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openEdit(p);
-                    }}
-                    className="p-1.5 rounded-lg hover:bg-surface text-text-light hover:text-primary transition-colors"
-                    title="Edit patient"
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {filtered.length === 0 && (
+            {isLoading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <tr key={`skeleton-${i}`}>
+                  <td className="p-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-surface animate-pulse" />
+                      <div className="h-4 w-28 bg-surface rounded animate-pulse" />
+                    </div>
+                  </td>
+                  <td className="p-3">
+                    <div className="h-4 w-20 bg-surface rounded animate-pulse" />
+                  </td>
+                  <td className="p-3">
+                    <div className="h-4 w-8 bg-surface rounded animate-pulse" />
+                  </td>
+                  <td className="p-3">
+                    <div className="h-4 w-20 bg-surface rounded animate-pulse" />
+                  </td>
+                  <td className="p-3 text-right">
+                    <div className="h-4 w-8 bg-surface rounded animate-pulse ml-auto" />
+                  </td>
+                </tr>
+              ))
+            ) : (
+              patients.map((p) => (
+                <tr
+                  key={p.id}
+                  className="hover:bg-surface/40 cursor-pointer"
+                  onClick={() => setSelected(p)}
+                >
+                  <td className="p-3 flex items-center gap-2">
+                    <Avatar name={p.name} size={32} />
+                    <span className="font-medium">{p.name}</span>
+                  </td>
+                  <td className="p-3 text-text-light">{p.condition}</td>
+                  <td className="p-3">{p.sessions}</td>
+                  <td className="p-3 text-text-light">{p.last}</td>
+                  <td className="p-3 text-right">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openEdit(p);
+                      }}
+                      className="p-1.5 rounded-lg hover:bg-surface text-text-light hover:text-primary transition-colors"
+                      title="Edit patient"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+            {!isLoading && patients.length === 0 && (
               <tr>
                 <td
                   colSpan={5}
@@ -260,6 +261,83 @@ export default function Patients() {
             )}
           </tbody>
         </table>
+
+        {/* ─── Pagination ─── */}
+        {total > 0 && (
+          <div className="flex items-center justify-between px-4 py-3 border-t border-border">
+            <span className="text-xs text-text-light">
+              Showing {pagination.skip + 1}–
+              {Math.min(pagination.skip + pagination.pageSize, total)} of{" "}
+              {total}
+            </span>
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={(e) => {
+                      e.preventDefault();
+                      pagination.prevPage();
+                    }}
+                    aria-disabled={!pagination.canPrev}
+                    className={
+                      !pagination.canPrev
+                        ? "pointer-events-none opacity-50"
+                        : "cursor-pointer"
+                    }
+                  />
+                </PaginationItem>
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter((p) => {
+                    if (totalPages <= 7) return true;
+                    if (p === 1 || p === totalPages) return true;
+                    if (Math.abs(p - pagination.page) <= 1) return true;
+                    return false;
+                  })
+                  .reduce<(number | "ellipsis")[]>((acc, p, idx, arr) => {
+                    if (idx > 0 && p - (arr[idx - 1] as number) > 1) {
+                      acc.push("ellipsis");
+                    }
+                    acc.push(p);
+                    return acc;
+                  }, [])
+                  .map((item, idx) =>
+                    item === "ellipsis" ? (
+                      <PaginationItem key={`ellipsis-${idx}`}>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    ) : (
+                      <PaginationItem key={item}>
+                        <PaginationLink
+                          isActive={item === pagination.page}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            pagination.goToPage(item);
+                          }}
+                          className="cursor-pointer"
+                        >
+                          {item}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ),
+                  )}
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={(e) => {
+                      e.preventDefault();
+                      pagination.nextPage(total);
+                    }}
+                    aria-disabled={!pagination.canNext(total)}
+                    className={
+                      !pagination.canNext(total)
+                        ? "pointer-events-none opacity-50"
+                        : "cursor-pointer"
+                    }
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
       </div>
 
       {/* ─── Patient Detail Drawer ─── */}
