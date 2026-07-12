@@ -99,3 +99,46 @@ export type BookingStatus = "Confirmed" | "Pending" | "Completed" | "Cancelled";
 export type PaymentStatus = "Paid" | "Pending" | "Refunded";
 export type TherapistStatus = "Verified" | "Under review" | "Suspended";
 export type UploadKind = "x-ray" | "note" | "video";
+
+// --- Admin Bookings ---
+export type AdminBookingStatus = "Confirmed" | "Cancelled" | "Rescheduled";
+
+export interface AdminBookingTrailEvent {
+  id: string;
+  type: "cancelled" | "rebooked" | "confirmed";
+  timestamp: string;
+  description: string;
+  dotColor: "danger" | "secondary";
+}
+
+export interface AdminBookingData {
+  id: string;
+  patient: string;
+  patientId: string;
+  patientPhone?: string;
+  patientEmail?: string;
+  therapist: string;
+  therapistId: string;
+  therapistPhone?: string;
+  therapistEmail?: string;
+  date: string;
+  originalTime: string;
+  sessionType: string;
+  status: AdminBookingStatus;
+  trail: AdminBookingTrailEvent[];
+  paymentStatus?: "Paid" | "Pending" | "Refunded";
+  sessionNotes?: string;
+}
+
+// --- Admin Team ---
+export type AdminRoleName = "Super Admin" | "Support Admin" | "Finance Admin";
+
+export interface AdminUserData {
+  id: string;
+  name: string;
+  email: string;
+  role: AdminRoleName;
+  isActive: boolean;
+  permissions: string[];
+  permissionSummary: string;
+}

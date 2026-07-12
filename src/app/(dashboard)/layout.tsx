@@ -67,10 +67,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     "Earnings": "nav.earnings",
     "Patients": "nav.patients",
     "Bookings": "nav.bookings",
+    "Schedules": "nav.schedules",
     "Payments": "nav.payments",
     "Therapists": "nav.therapists",
     "Complaints": "nav.complaints",
     "Notifications": "nav.notifications",
+    "Admin Team": "nav.adminTeam",
   };
   const current = nav.find((n) => pathname === n.to);
   const title = current ? t((labelToKey[current.label] ?? current.label) as TKey) : t("nav.overview");

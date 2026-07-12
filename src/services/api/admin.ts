@@ -256,3 +256,82 @@ export async function markNotificationRead(id: string) {
 export async function markAllNotificationsRead() {
   return api.put(`/admin/notifications/read-all`, {});
 }
+
+// --- Admin Bookings (trail/history) ---
+export interface AdminBookingTrailEvent {
+  id: string;
+  type: "cancelled" | "rebooked" | "confirmed";
+  timestamp: string;
+  description: string;
+  dotColor: "danger" | "secondary";
+}
+
+export interface AdminBookingData {
+  id: string;
+  patient: string;
+  patientId: string;
+  patientPhone?: string;
+  patientEmail?: string;
+  therapist: string;
+  therapistId: string;
+  therapistPhone?: string;
+  therapistEmail?: string;
+  date: string;
+  originalTime: string;
+  sessionType: string;
+  status: "Confirmed" | "Cancelled" | "Rescheduled";
+  trail: AdminBookingTrailEvent[];
+  paymentStatus?: "Paid" | "Pending" | "Refunded";
+  sessionNotes?: string;
+}
+
+export interface AdminBookingListParams extends AdminListParams {
+  status?: string;
+}
+
+export async function getAdminBookings(params?: AdminBookingListParams) {
+  const sp = new URLSearchParams();
+  if (params?.skip) sp.set("skip", String(params.skip));
+  if (params?.limit) sp.set("limit", String(params.limit));
+  if (params?.search) sp.set("search", params.search);
+  if (params?.status) sp.set("status", params.status);
+  if (params?.dateFrom) sp.set("dateFrom", params.dateFrom);
+  if (params?.dateTo) sp.set("dateTo", params.dateTo);
+  if (params?.sortBy) sp.set("sortBy", params.sortBy);
+  if (params?.sortOrder) sp.set("sortOrder", params.sortOrder);
+
+  return api.get<ListResponse<AdminBookingData>>(`/admin/bookings?${sp.toString()}`);
+}
+
+// --- Admin Team ---
+export type AdminRoleName = "Super Admin" | "Support Admin" | "Finance Admin";
+
+export interface AdminUserData {
+  id: string;
+  name: string;
+  email: string;
+  role: AdminRoleName;
+  isActive: boolean;
+  permissions: string[];
+  permissionSummary: string;
+}
+
+export async function getAdminUsers() {
+  return api.get<ListResponse<AdminUserData>>("/admin/team");
+}
+
+export async function inviteAdminUser(data: { email: string; name: string; role: AdminRoleName }) {
+  return api.post<AdminUserData>("/admin/team/invite", data);
+}
+
+export async function updateAdminUserRole(id: string, role: AdminRoleName) {
+  return api.put<AdminUserData>(`/admin/team/${id}`, { role });
+}
+
+export async function deactivateAdminUser(id: string) {
+  return api.put<AdminUserData>(`/admin/team/${id}`, { isActive: false });
+}
+
+export async function reactivateAdminUser(id: string) {
+  return api.put<AdminUserData>(`/admin/team/${id}`, { isActive: true });
+}

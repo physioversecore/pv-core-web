@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import { useLang } from "@/context/i18n";
 
-type StatusType = "Paid" | "Pending" | "Refunded" | "Processing" | "Verified" | "Under review" | "Suspended" | "Active" | "Inactive" | "Open" | "Resolved" | "Dismissed" | "Normal" | "Urgent";
+type StatusType = "Paid" | "Pending" | "Refunded" | "Processing" | "Verified" | "Under review" | "Suspended" | "Active" | "Inactive" | "Open" | "Resolved" | "Dismissed" | "Normal" | "Urgent" | "Rescheduled" | "Confirmed" | "Cancelled" | "Super Admin" | "Support Admin" | "Finance Admin";
 
 const STATUS_STYLES: Record<string, string> = {
   "Paid": "!bg-secondary/10 !text-secondary",
@@ -20,6 +20,12 @@ const STATUS_STYLES: Record<string, string> = {
   "Dismissed": "!bg-muted !text-muted-foreground",
   "Normal": "!bg-muted !text-muted-foreground",
   "Urgent": "!bg-destructive/10 !text-destructive",
+  "Rescheduled": "!bg-primary/15 !text-primary",
+  "Confirmed": "!bg-secondary/10 !text-secondary",
+  "Cancelled": "!bg-destructive/10 !text-destructive",
+  "Super Admin": "!bg-secondary text-white",
+  "Support Admin": "!bg-secondary/10 !text-secondary",
+  "Finance Admin": "!bg-primary/15 !text-primary",
 };
 
 export function StatusChip({ status }: { status: StatusType }) {
@@ -39,6 +45,12 @@ export function StatusChip({ status }: { status: StatusType }) {
     Dismissed: t("admin_dashboard.dismissed") ?? "Dismissed",
     Normal: t("admin_dashboard.normal") ?? "Normal",
     Urgent: t("admin_dashboard.urgent") ?? "Urgent",
+    Rescheduled: "Rescheduled",
+    Confirmed: t("admin_dashboard.confirmed") ?? "Confirmed",
+    Cancelled: t("admin_dashboard.cancelled") ?? "Cancelled",
+    "Super Admin": "Super Admin",
+    "Support Admin": "Support Admin",
+    "Finance Admin": "Finance Admin",
   };
 
   return (
