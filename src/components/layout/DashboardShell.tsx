@@ -49,20 +49,31 @@ export function DashboardShell({
           <button onClick={() => setMobileOpen(false)} className="lg:hidden p-1"><X size={18} /></button>
         </div>
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          {nav.map((n) => {
+          {nav.map((n, i) => {
             const active = pathname === n.to || (n.to !== nav[0].to && pathname.startsWith(n.to));
+            const prevGroup = i > 0 ? nav[i - 1].group : undefined;
+            const showGroupLabel = n.group && n.group !== prevGroup;
             return (
-              <Link
-                key={n.to}
-                href={n.to}
-                onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition ${
-                  active ? "bg-text-inverse/15 text-text-inverse" : "text-text-inverse/70 hover:bg-text-inverse/10 hover:text-text-inverse"
-                }`}
-              >
-                <span className="w-5 grid place-items-center">{n.icon}</span>
-                {n.label}
-              </Link>
+              <div key={n.to}>
+                {showGroupLabel && (
+                  <div className="eyebrow mt-4 mb-1 px-3 text-text-inverse/50">{n.group}</div>
+                )}
+                <Link
+                  href={n.to}
+                  onClick={() => setMobileOpen(false)}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition ${
+                    active ? "bg-text-inverse/15 text-text-inverse" : "text-text-inverse/70 hover:bg-text-inverse/10 hover:text-text-inverse"
+                  }`}
+                >
+                  <span className="w-5 grid place-items-center">{n.icon}</span>
+                  {n.label}
+                  {n.badge != null && (
+                    <span className="ml-auto bg-primary/20 text-primary text-[10px] font-bold min-w-[18px] h-[18px] rounded-full grid place-items-center font-mono">
+                      {n.badge}
+                    </span>
+                  )}
+                </Link>
+              </div>
             );
           })}
         </nav>

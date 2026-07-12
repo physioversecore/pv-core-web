@@ -2,12 +2,15 @@ import type { ReactNode } from "react";
 import {
   LayoutDashboard, Calendar, ShoppingBag, Activity, FileText, User, HelpCircle,
   Stethoscope, Upload, Users, Wallet, Settings, Shield, CreditCard, Clock,
+  AlertTriangle, Bell,
 } from "lucide-react";
 
 export interface NavItem {
   to: string;
   label: string;
   icon: ReactNode;
+  badge?: number | string;
+  group?: string;
 }
 
 export const NAV_LINKS = [
@@ -54,5 +57,7 @@ export const adminNav: NavItem[] = [
   { to: "/admin/patients", label: "Patients", icon: <Users size={16} /> },
   { to: "/admin/bookings", label: "Bookings", icon: <Calendar size={16} /> },
   { to: "/admin/payments", label: "Payments", icon: <CreditCard size={16} /> },
+  { to: "/admin/complaints", label: "Complaints", icon: <AlertTriangle size={16} />, group: "Trust & Safety", badge: 4 },
+  { to: "/admin/notifications", label: "Notifications", icon: <Bell size={16} />, group: "Trust & Safety", badge: 7 },
   { to: "/admin/settings", label: "Settings", icon: <Settings size={16} /> },
 ];

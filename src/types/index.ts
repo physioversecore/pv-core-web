@@ -55,6 +55,42 @@ export interface NavItem {
   to: string;
   label: string;
   icon: React.ReactNode;
+  badge?: number | string;
+  group?: string;
+}
+
+export type ComplaintPriority = "Normal" | "Urgent";
+export type ComplaintStatus = "Open" | "Under review" | "Resolved" | "Dismissed";
+export type ComplaintType = "patient" | "therapist";
+
+export interface Complaint {
+  id: string;
+  type: ComplaintType;
+  complainant: string;
+  complainantId: string;
+  against: string;
+  againstId: string;
+  category: string;
+  priority: ComplaintPriority;
+  status: ComplaintStatus;
+  filed: string;
+  description: string;
+  bookingId?: string;
+  notes?: string[];
+}
+
+export type NotificationCategory = "booking" | "reschedule" | "complaint" | "payment" | "system";
+
+export interface AppNotification {
+  id: string;
+  category: NotificationCategory;
+  message: string;
+  timestamp: string;
+  read: boolean;
+  actionLabel?: string;
+  actionHref?: string;
+  relatedEntityType?: string;
+  relatedEntityId?: string;
 }
 
 export type AuthMode = "login" | "signup";

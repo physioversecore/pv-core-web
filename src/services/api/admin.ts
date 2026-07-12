@@ -179,3 +179,80 @@ export async function updateAdminPayout(id: string, data: Partial<AdminPayoutDat
 export async function deleteAdminPayout(id: string) {
   return api.delete(`/admin/payouts/${id}`);
 }
+
+// --- Complaints ---
+export interface AdminComplaintData {
+  id: string;
+  type: "patient" | "therapist";
+  complainant: string;
+  complainantId: string;
+  against: string;
+  againstId: string;
+  category: string;
+  priority: "Normal" | "Urgent";
+  status: "Open" | "Under review" | "Resolved" | "Dismissed";
+  filed: string;
+  description: string;
+  bookingId?: string;
+  notes?: string[];
+}
+
+export interface AdminComplaintListParams extends AdminListParams {
+  type?: "patient" | "therapist";
+}
+
+export async function getAdminComplaints(params?: AdminComplaintListParams) {
+  const sp = new URLSearchParams();
+  if (params?.skip) sp.set("skip", String(params.skip));
+  if (params?.limit) sp.set("limit", String(params.limit));
+  if (params?.search) sp.set("search", params.search);
+  if (params?.type) sp.set("type", params.type);
+  if (params?.dateFrom) sp.set("dateFrom", params.dateFrom);
+  if (params?.dateTo) sp.set("dateTo", params.dateTo);
+  if (params?.sortBy) sp.set("sortBy", params.sortBy);
+  if (params?.sortOrder) sp.set("sortOrder", params.sortOrder);
+
+  return api.get<ListResponse<AdminComplaintData>>(`/admin/complaints?${sp.toString()}`);
+}
+
+export async function updateAdminComplaint(id: string, data: Partial<AdminComplaintData>) {
+  return api.put<AdminComplaintData>(`/admin/complaints/${id}`, data);
+}
+
+// --- Notifications ---
+export interface AdminNotificationData {
+  id: string;
+  category: "booking" | "reschedule" | "complaint" | "payment" | "system";
+  message: string;
+  timestamp: string;
+  read: boolean;
+  actionLabel?: string;
+  actionHref?: string;
+  relatedEntityType?: string;
+  relatedEntityId?: string;
+}
+
+export interface AdminNotificationListParams {
+  skip?: number;
+  limit?: number;
+  category?: string;
+  read?: boolean;
+}
+
+export async function getAdminNotifications(params?: AdminNotificationListParams) {
+  const sp = new URLSearchParams();
+  if (params?.skip) sp.set("skip", String(params.skip));
+  if (params?.limit) sp.set("limit", String(params.limit));
+  if (params?.category) sp.set("category", params.category);
+  if (params?.read !== undefined) sp.set("read", String(params.read));
+
+  return api.get<ListResponse<AdminNotificationData>>(`/admin/notifications?${sp.toString()}`);
+}
+
+export async function markNotificationRead(id: string) {
+  return api.put<AdminNotificationData>(`/admin/notifications/${id}`, { read: true });
+}
+
+export async function markAllNotificationsRead() {
+  return api.put(`/admin/notifications/read-all`, {});
+}
