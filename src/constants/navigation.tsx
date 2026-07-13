@@ -2,7 +2,8 @@ import type { ReactNode } from "react";
 import {
   LayoutDashboard, Calendar, ShoppingBag, Activity, FileText, User, HelpCircle,
   Stethoscope, Upload, Users, Wallet, Settings, Shield, CreditCard, Clock,
-  AlertTriangle, Bell, CalendarClock, UserCog,
+  AlertTriangle, Bell, CalendarClock, UserCog, MapPin, ClipboardCheck,
+  BadgeCheck, BarChart3, ShieldAlert, ScrollText, LineChart, RotateCcw,
 } from "lucide-react";
 
 export interface NavItem {
@@ -56,10 +57,18 @@ export const adminNav: NavItem[] = [
   { to: "/admin/therapists", label: "Therapists", icon: <Shield size={16} />, group: "Operations" },
   { to: "/admin/patients", label: "Patients", icon: <Users size={16} />, group: "Operations" },
   { to: "/admin/bookings", label: "Bookings", icon: <CalendarClock size={16} />, group: "Operations", badge: 3 },
+  { to: "/admin/service-areas", label: "Service Areas", icon: <MapPin size={16} />, group: "Operations" },
   { to: "/admin/schedules", label: "Schedules", icon: <Calendar size={16} />, group: "Operations" },
-  { to: "/admin/payments", label: "Payments", icon: <CreditCard size={16} />, group: "Operations" },
+  { to: "/admin/leave", label: "Leave & Availability", icon: <ClipboardCheck size={16} />, group: "Operations", badge: 3 },
+  { to: "/admin/payments", label: "Payments", icon: <CreditCard size={16} />, group: "Finance" },
+  { to: "/admin/refunds", label: "Refunds & Disputes", icon: <RotateCcw size={16} />, group: "Finance", badge: 2 },
   { to: "/admin/complaints", label: "Complaints", icon: <AlertTriangle size={16} />, group: "Trust & Safety", badge: 4 },
+  { to: "/admin/verification", label: "Therapist Verification", icon: <BadgeCheck size={16} />, group: "Trust & Safety", badge: 3 },
+  { to: "/admin/performance", label: "Therapist Performance", icon: <BarChart3 size={16} />, group: "Trust & Safety", badge: 2 },
+  { to: "/admin/safety-incidents", label: "Safety Incidents", icon: <ShieldAlert size={16} />, group: "Trust & Safety", badge: 1 },
   { to: "/admin/notifications", label: "Notifications", icon: <Bell size={16} />, group: "Trust & Safety", badge: 7 },
+  { to: "/admin/analytics", label: "Analytics & Reports", icon: <LineChart size={16} />, group: "Insights" },
   { to: "/admin/admin-team", label: "Admin Team", icon: <UserCog size={16} />, group: "System" },
+  { to: "/admin/activity-log", label: "Activity Log", icon: <ScrollText size={16} />, group: "System" },
   { to: "/admin/settings", label: "Settings", icon: <Settings size={16} />, group: "System" },
 ];

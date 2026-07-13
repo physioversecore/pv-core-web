@@ -3,7 +3,15 @@
 import { cn } from "@/lib/utils";
 import { useLang } from "@/context/i18n";
 
-type StatusType = "Paid" | "Pending" | "Refunded" | "Processing" | "Verified" | "Under review" | "Suspended" | "Active" | "Inactive" | "Open" | "Resolved" | "Dismissed" | "Normal" | "Urgent" | "Rescheduled" | "Confirmed" | "Cancelled" | "Super Admin" | "Support Admin" | "Finance Admin";
+export type StatusType =
+  | "Paid" | "Pending" | "Refunded" | "Processing" | "Verified" | "Under review" | "Suspended"
+  | "Active" | "Inactive" | "Open" | "Resolved" | "Dismissed" | "Normal" | "Urgent"
+  | "Rescheduled" | "Confirmed" | "Cancelled" | "Super Admin" | "Support Admin" | "Finance Admin"
+  | "Low coverage" | "Approved" | "Declined"
+  | "Expiring soon" | "Expired" | "Rejected" | "Pending review" | "Denied"
+  | "Good standing" | "Needs review" | "Under probation" | "Removed"
+  | "Investigating" | "Critical" | "High" | "Medium"
+  | "System";
 
 const STATUS_STYLES: Record<string, string> = {
   "Paid": "!bg-secondary/10 !text-secondary",
@@ -26,6 +34,23 @@ const STATUS_STYLES: Record<string, string> = {
   "Super Admin": "!bg-secondary text-white",
   "Support Admin": "!bg-secondary/10 !text-secondary",
   "Finance Admin": "!bg-primary/15 !text-primary",
+  "Low coverage": "!bg-destructive/10 !text-destructive",
+  "Approved": "!bg-secondary/10 !text-secondary",
+  "Declined": "!bg-muted !text-muted-foreground",
+  "Expiring soon": "!bg-primary/15 !text-primary",
+  "Expired": "!bg-destructive/10 !text-destructive",
+  "Rejected": "!bg-destructive/10 !text-destructive",
+  "Pending review": "!bg-primary/15 !text-primary",
+  "Denied": "!bg-muted !text-text-light",
+  "Good standing": "!bg-secondary/10 !text-secondary",
+  "Needs review": "!bg-primary/15 !text-primary",
+  "Under probation": "!bg-info/15 !text-info",
+  "Removed": "!bg-muted !text-muted-foreground",
+  "Investigating": "!bg-info/15 !text-info",
+  "Critical": "!bg-destructive text-white",
+  "High": "!bg-destructive/10 !text-destructive",
+  "Medium": "!bg-primary/15 !text-primary",
+  "System": "!bg-muted !text-muted-foreground",
 };
 
 export function StatusChip({ status }: { status: StatusType }) {
@@ -51,6 +76,23 @@ export function StatusChip({ status }: { status: StatusType }) {
     "Super Admin": "Super Admin",
     "Support Admin": "Support Admin",
     "Finance Admin": "Finance Admin",
+    "Low coverage": "Low coverage",
+    Approved: "Approved",
+    Declined: "Declined",
+    "Expiring soon": "Expiring soon",
+    Expired: "Expired",
+    Rejected: "Rejected",
+    "Pending review": "Pending review",
+    Denied: "Denied",
+    "Good standing": "Good standing",
+    "Needs review": "Needs review",
+    "Under probation": "Under probation",
+    Removed: "Removed",
+    Investigating: "Investigating",
+    Critical: "Critical",
+    High: "High",
+    Medium: "Medium",
+    System: "System",
   };
 
   return (
