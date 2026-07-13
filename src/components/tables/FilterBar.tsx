@@ -1,0 +1,92 @@
+"use client";
+
+import { useState } from "react";
+import { Search, X, Calendar } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useLang } from "@/context/i18n";
+
+export interface FilterConfig {
+  key: string;
+  type: "search" | "select" | "date";
+  label: string;
+  placeholder?: string;
+  options?: { value: string; label: string }[];
+  colSpan?: number;
+}
+
+interface FilterBarProps {
+  filters: FilterConfig[];
+  values: Record<string, string>;
+  onChange: (key: string, value: string) => void;
+  onClear: () => void;
+}
+
+export function FilterBar({ filters, values, onChange, onClear }: FilterBarProps) {
+  const { t } = useLang();
+  const hasActiveFilters = Object.values(values).some((v) => v !== "");
+
+  return (
+    <div className="flex flex-wrap items-end gap-3 mb-4">
+      {filters.map((filter) => (
+        <div key={filter.key} className="flex flex-col gap-1.5 min-w-0">
+          <label className="text-[0.65rem] uppercase font-mono text-text-light">
+            {filter.label}
+          </label>
+          {filter.type === "search" && (
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" />
+              <Input
+                value={values[filter.key] ?? ""}
+                onChange={(e) => onChange(filter.key, e.target.value)}
+                placeholder={filter.placeholder}
+                className="pl-9 pr-3 py-2 h-9 rounded-full border-border bg-background text-sm w-56"
+              />
+            </div>
+          )}
+          {filter.type === "select" && (
+            <Select value={values[filter.key] ?? ""} onValueChange={(v) => onChange(filter.key, v)}>
+              <SelectTrigger className="h-9 w-48 rounded-full border-border text-sm">
+                <SelectValue placeholder={filter.placeholder ?? filter.label} />
+              </SelectTrigger>
+              <SelectContent>
+                {filter.options?.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          {filter.type === "date" && (
+            <div className="relative">
+              <Calendar size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light pointer-events-none" />
+              <Input
+                type="date"
+                value={values[filter.key] ?? ""}
+                onChange={(e) => onChange(filter.key, e.target.value)}
+                className="pl-9 pr-3 py-2 h-9 rounded-full border-border bg-background text-sm w-44"
+              />
+            </div>
+          )}
+        </div>
+      ))}
+
+      {hasActiveFilters && (
+        <button
+          onClick={onClear}
+          className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full text-xs font-medium text-text-light hover:text-text hover:bg-muted transition-colors cursor-pointer"
+        >
+          <X size={12} />
+          {t("admin_dashboard.clearFilters") ?? "Clear filters"}
+        </button>
+      )}
+    </div>
+  );
+}
