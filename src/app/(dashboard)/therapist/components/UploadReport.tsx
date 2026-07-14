@@ -260,7 +260,7 @@ export function UploadReport() {
               onChange={(e) => setNote(e.target.value)}
               rows={5}
               placeholder={t("therapist_dashboard.notePlaceholder")}
-              className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white text-sm resize-none"
+              className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white text-sm resize-none placeholder:text-xs"
               disabled={isUploading}
             />
           </div>

@@ -48,7 +48,7 @@ export function DashboardShell({
           </Link>
           <button onClick={() => setMobileOpen(false)} className="lg:hidden p-1"><X size={18} /></button>
         </div>
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto scrollbar-gutter-stable">
           {nav.map((n, i) => {
             const active = pathname === n.to || (n.to !== nav[0].to && pathname.startsWith(n.to));
             const prevGroup = i > 0 ? nav[i - 1].group : undefined;
@@ -110,7 +110,7 @@ export function DashboardShell({
             )}
           </div>
         </header>
-        <main className="flex-1 p-4 lg:p-8 overflow-y-auto">{children}</main>
+        <main className="flex-1 p-4 lg:p-8 overflow-y-auto scrollbar-gutter-stable">{children}</main>
       </div>
 
       {showCart && <CartDrawer />}

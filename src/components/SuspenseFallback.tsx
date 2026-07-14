@@ -14,7 +14,7 @@ export function StatsSkeleton() {
 
 export function CardSkeleton() {
   return (
-    <section className="mt-6 card-soft p-5 bg-surface/40 animate-pulse">
+    <section className="my-6  card-soft p-5 bg-surface/40 animate-pulse">
       <div className="h-4 w-24 bg-border rounded mb-3" />
       <div className="h-5 w-48 bg-border rounded mb-2" />
       <div className="h-4 w-64 bg-border rounded mb-4" />
