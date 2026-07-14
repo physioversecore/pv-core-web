@@ -102,6 +102,7 @@ const ne = {
     patients: "बिरामीहरू",
     bookings: "बुकिङ्गहरू",
     payments: "भुक्तानीहरू",
+    appearance :"रूप"
   },
 
   auth: {

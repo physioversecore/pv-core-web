@@ -48,7 +48,7 @@ export function DashboardShell({
           </Link>
           <button onClick={() => setMobileOpen(false)} className="lg:hidden p-1"><X size={18} /></button>
         </div>
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto scrollbar-gutter-stable">
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto scrollbar-gutter-stable scrollbar-none">
           {nav.map((n, i) => {
             const active = pathname === n.to || (n.to !== nav[0].to && pathname.startsWith(n.to));
             const prevGroup = i > 0 ? nav[i - 1].group : undefined;

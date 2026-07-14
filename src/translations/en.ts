@@ -105,6 +105,7 @@ const en = {
     complaints: "Complaints",
     notifications: "Notifications",
     trustAndSafety: "Trust & Safety",
+    appearance: "Appearance"
   },
 
   auth: {

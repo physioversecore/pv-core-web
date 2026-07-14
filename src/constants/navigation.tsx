@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Calendar, ShoppingBag, Activity, FileText, User, HelpCircle,
   Stethoscope, Upload, Users, Wallet, Settings, Shield, CreditCard, Clock,
   AlertTriangle, Bell, CalendarClock, UserCog, MapPin, ClipboardCheck,
-  BadgeCheck, BarChart3, ShieldAlert, ScrollText, LineChart, RotateCcw,
+  BadgeCheck, BarChart3, ShieldAlert, ScrollText, LineChart, RotateCcw, Palette,
 } from "lucide-react";
 
 export interface NavItem {
@@ -70,5 +70,6 @@ export const adminNav: NavItem[] = [
   { to: "/admin/analytics", label: "Analytics & Reports", icon: <LineChart size={16} />, group: "Insights" },
   { to: "/admin/admin-team", label: "Admin Team", icon: <UserCog size={16} />, group: "System" },
   { to: "/admin/activity-log", label: "Activity Log", icon: <ScrollText size={16} />, group: "System" },
+  { to: "/admin/appearance", label: "Appearance", icon: <Palette size={16} />, group: "System" },
   { to: "/admin/settings", label: "Settings", icon: <Settings size={16} />, group: "System" },
 ];
