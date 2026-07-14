@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { useLang } from "@/context/i18n";
-import { Ban } from "lucide-react";
 import ScheduleCalendar from "@/components/schedule/ScheduleCalendar";
 import type { ScheduleAppointment } from "@/hooks/useTherapistSchedule";
 
@@ -55,26 +54,6 @@ export default function Schedule() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-end">
-        <button
-          onClick={() => {
-            const today = new Date();
-            const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-            const d = new Date(todayStr + "T00:00:00");
-            const now = new Date();
-            if (d < new Date(now.getFullYear(), now.getMonth(), now.getDate())) {
-              toast.error(t("therapist_dashboard.blockFutureOnly"));
-              return;
-            }
-            toast.success(t("therapist_dashboard.blockedTimeSuccess"));
-          }}
-          className="btn-outline !py-1.5 !px-3 text-xs"
-        >
-          <Ban className="w-3.5 h-3.5 mr-1" />
-          {t("therapist_dashboard.blockOffTime")}
-        </button>
-      </div>
-
       <ScheduleCalendar
         appointments={slots}
         onAccept={handleAccept}

@@ -45,3 +45,6 @@ skills-lock.json
 landing_redesigned.html
 
 certificates
+
+# TypeScript incremental build info
+*.tsbuildinfo
