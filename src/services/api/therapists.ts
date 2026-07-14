@@ -36,7 +36,8 @@ export interface RecentUploadData {
   patient: string;
   kind: "x-ray" | "note" | "video";
   title: string;
-  file: string;
+  content: string;
+  files: string[];
   date: string;
 }
 
