@@ -4,24 +4,19 @@ import { useRef, useState, useMemo, useCallback, useEffect } from "react";
 import {
   Paperclip,
   X,
-  FileText,
-  Image,
-  Video,
-  File,
   Loader2,
   CheckCircle2,
-  Eye,
 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useLang } from "@/context/i18n";
 import { getMyPatients } from "@/services/api/reports";
 import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+  PreviewDialog,
+  getFileIcon,
+  formatFileSize,
+  isPreviewableByName,
+} from "@/components/PreviewDialog";
 
 const REPORT_TYPES = [
   "Session note",
@@ -34,22 +29,6 @@ const ACCEPTED_TYPES =
 
 /* ── helpers ── */
 
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function getFileIcon(name: string, size = 16) {
-  const ext = name.split(".").pop()?.toLowerCase();
-  if (ext === "pdf") return <FileText size={size} />;
-  if (["jpg", "jpeg", "png", "gif"].includes(ext ?? ""))
-    return <Image size={size} />;
-  if (["mp4", "mov", "avi", "webm"].includes(ext ?? ""))
-    return <Video size={size} />;
-  return <File size={size} />;
-}
-
 function getFileTint(name: string): string {
   const ext = name.split(".").pop()?.toLowerCase();
   if (ext === "pdf") return "bg-secondary/10 text-secondary";
@@ -58,36 +37,6 @@ function getFileTint(name: string): string {
   if (["mp4", "mov", "avi", "webm"].includes(ext ?? ""))
     return "bg-amber/10 text-amber";
   return "bg-surface text-text-light";
-}
-
-function isPreviewable(name: string) {
-  const ext = name.split(".").pop()?.toLowerCase() ?? "";
-  return [
-    "jpg",
-    "jpeg",
-    "png",
-    "gif",
-    "webp",
-    "mp4",
-    "mov",
-    "avi",
-    "webm",
-    "pdf",
-  ].includes(ext);
-}
-
-function isImageFile(name: string) {
-  const ext = name.split(".").pop()?.toLowerCase() ?? "";
-  return ["jpg", "jpeg", "png", "gif", "webp"].includes(ext);
-}
-
-function isVideoFile(name: string) {
-  const ext = name.split(".").pop()?.toLowerCase() ?? "";
-  return ["mp4", "mov", "avi", "webm"].includes(ext);
-}
-
-function isPdfFile(name: string) {
-  return name.split(".").pop()?.toLowerCase() === "pdf";
 }
 
 /* ── picked file wrapper (stable uid for React keys) ── */
@@ -122,7 +71,6 @@ export function UploadReport() {
   const [submitted, setSubmitted] = useState(false);
   const [previewFile, setPreviewFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [previewOpen, setPreviewOpen] = useState(false);
 
   /* cleanup on unmount */
   useEffect(() => {
@@ -168,13 +116,11 @@ export function UploadReport() {
       const url = URL.createObjectURL(f);
       setPreviewFile(f);
       setPreviewUrl(url);
-      setPreviewOpen(true);
     },
     [previewUrl],
   );
 
   const closePreview = useCallback(() => {
-    setPreviewOpen(false);
     setPreviewFile(null);
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
@@ -368,31 +314,22 @@ export function UploadReport() {
             {picked.map((pf) => (
               <div
                 key={pf.uid}
-                className="inline-flex items-center gap-1.5 pl-2 pr-1.5 py-1.5 rounded-lg border border-border bg-surface/40 cursor-pointer"
+                className="inline-flex items-center gap-1.5 pl-2 pr-1.5 py-1.5 rounded-lg border border-border bg-surface/40"
               >
                 <span
                   className={`w-5 h-5 rounded grid place-items-center shrink-0 ${getFileTint(pf.file.name)}`}
                 >
                   {getFileIcon(pf.file.name, 11)}
                 </span>
-                <span className="text-[11px] font-medium leading-none truncate max-w-[100px]"
-                 onClick={()=>isPreviewable(pf.file.name) && openPreview(pf.file)}>
+                <span
+                  className="text-[11px] font-medium leading-none truncate max-w-[100px] cursor-pointer hover:text-secondary transition"
+                  onClick={() => isPreviewableByName(pf.file.name) && openPreview(pf.file)}
+                >
                   {pf.file.name}
                 </span>
                 <span className="text-[10px] text-text-light leading-none">
                   {formatFileSize(pf.file.size)}
                 </span>
-                 {/*no-separate button needed for now*/}
-                {/*{isPreviewable(pf.file.name) && (
-                  <button
-                    type="button"
-                    onClick={() => openPreview(pf.file)}
-                    className="p-0.5 rounded hover:bg-surface text-text-light hover:text-secondary transition shrink-0"
-                    title="Preview"
-                  >
-                    <Eye size={11} />
-                  </button>
-                )}*/}
                 <button
                   type="button"
                   onClick={() => removeFile(pf.uid)}
@@ -407,67 +344,15 @@ export function UploadReport() {
         </div>
       </div>
 
-      {/* preview dialog */}
-      <Dialog open={previewOpen} onOpenChange={closePreview}>
-        <DialogContent className="max-w-5xl w-[95vw] h-[90vh] p-0 gap-0 overflow-hidden rounded-2xl !flex !flex-col !justify-start">
-          <DialogTitle className="sr-only">
-            {previewFile?.name}
-          </DialogTitle>
-          <DialogDescription className="sr-only">
-            Preview of {previewFile?.name}
-          </DialogDescription>
-
-          <div className="flex items-center justify-between px-5 py-3 border-b border-border shrink-0 bg-background">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <span className="w-8 h-8 rounded-lg bg-secondary/10 text-secondary grid place-items-center shrink-0">
-                {previewFile && getFileIcon(previewFile.name)}
-              </span>
-              <div className="min-w-0">
-                <div className="text-sm font-medium truncate">
-                  {previewFile?.name}
-                </div>
-                <div className="text-xs text-text-light">
-                  {previewFile && formatFileSize(previewFile.size)}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex-1 min-h-0 relative bg-black/5">
-            <div className="absolute inset-0 flex items-center justify-center p-6">
-              {previewFile &&
-                isImageFile(previewFile.name) &&
-                previewUrl && (
-                  <img
-                    src={previewUrl}
-                    alt={previewFile.name}
-                    className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg shadow-xl"
-                  />
-                )}
-              {previewFile &&
-                isVideoFile(previewFile.name) &&
-                previewUrl && (
-                  <video
-                    src={previewUrl}
-                    controls
-                    autoPlay
-                    muted
-                    className="w-full h-full max-w-full max-h-full rounded-lg shadow-xl"
-                  />
-                )}
-              {previewFile &&
-                isPdfFile(previewFile.name) &&
-                previewUrl && (
-                  <iframe
-                    src={previewUrl}
-                    className="w-full h-full max-w-full max-h-full rounded-lg shadow-xl border-0"
-                    title={previewFile.name}
-                  />
-                )}
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* shared preview dialog */}
+      <PreviewDialog
+        open={!!previewFile}
+        onClose={closePreview}
+        title={previewFile?.name ?? ""}
+        src={previewUrl ?? ""}
+        fileName={previewFile?.name}
+        fileSize={previewFile?.size}
+      />
     </section>
   );
 }

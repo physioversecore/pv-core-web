@@ -7,17 +7,11 @@ import {
   Video,
   ChevronDown,
   ChevronUp,
-  X,
 } from "lucide-react";
 import { useLang } from "@/context/i18n";
 import { useTherapistDashboard } from "@/hooks/useTherapistDashboard";
 import { CardSkeleton } from "@/components/SuspenseFallback";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { PreviewDialog, isPreviewableByName } from "@/components/PreviewDialog";
 import type { UploadKind } from "@/types";
 
 const iconMap: Record<UploadKind, React.ReactNode> = {
@@ -38,10 +32,6 @@ const kindLabel: Record<UploadKind, string> = {
   note: "Session Note",
 };
 
-const PREVIEWABLE_EXTS = ["jpg", "jpeg", "png", "gif", "webp", "mp4", "mov", "avi", "webm", "pdf"];
-const IMAGE_EXTS = ["jpg", "jpeg", "png", "gif", "webp"];
-const VIDEO_EXTS = ["mp4", "mov", "avi", "webm"];
-
 function getOriginalName(url: string): string {
   try {
     const u = new URL(url, "http://localhost");
@@ -60,89 +50,11 @@ function getDisplayFileUrl(url: string): string {
   try {
     const u = new URL(url, "http://localhost");
     u.searchParams.delete("name");
-    return u.pathname + u.search;
+    return u.pathname;
   } catch {
     return url.split("?")[0];
   }
 }
-
-function isPreviewable(url: string) {
-  console.log("DOCUMENTS URL",url)
-  return PREVIEWABLE_EXTS.includes(getDisplayExt(url));
-}
-
-function isImageUrl(url: string) {
-  return IMAGE_EXTS.includes(getDisplayExt(url));
-}
-
-function isVideoUrl(url: string) {
-  return VIDEO_EXTS.includes(getDisplayExt(url));
-}
-
-function isPdfUrl(url: string) {
-  return getDisplayExt(url) === "pdf";
-}
-
-/* ── preview dialog ── */
-
-function PreviewDialog({
-  open,
-  onClose,
-  title,
-  url,
-}: {
-  open: boolean;
-  onClose: () => void;
-  title: string;
-  url: string;
-}) {
-  const src = getDisplayFileUrl(url);
-
-  return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-5xl w-[95vw] h-[90vh] p-0 gap-0 overflow-hidden rounded-2xl !flex !flex-col !justify-start">
-        <DialogTitle className="sr-only">{title}</DialogTitle>
-        <DialogDescription className="sr-only">
-          File preview
-        </DialogDescription>
-
-        <div className="flex items-center justify-between px-5 py-3 border-b border-border shrink-0 bg-background">
-          <div className="text-sm font-medium truncate pr-4">{title}</div>
-        </div>
-
-        <div className="flex-1 min-h-0 relative bg-black/5">
-          <div className="absolute inset-0 flex items-center justify-center p-6">
-            {isImageUrl(url) && (
-              <img
-                src={src}
-                alt={title}
-                className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg shadow-xl"
-              />
-            )}
-            {isVideoUrl(url) && (
-              <video
-                src={src}
-                controls
-                autoPlay
-                muted
-                className="w-full h-full max-w-full max-h-full rounded-lg shadow-xl"
-              />
-            )}
-            {isPdfUrl(url) && (
-              <iframe
-                src={src}
-                className="w-full h-full max-w-full max-h-full rounded-lg shadow-xl border-0"
-                title={title}
-              />
-            )}
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-/* ── main component ── */
 
 export function RecentlyUploaded() {
   const { t } = useLang();
@@ -150,6 +62,7 @@ export function RecentlyUploaded() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewTitle, setPreviewTitle] = useState("");
+  const [previewFileName, setPreviewFileName] = useState("");
 
   if (isLoading) return <CardSkeleton />;
 
@@ -180,12 +93,9 @@ export function RecentlyUploaded() {
 
           return (
             <div key={u.id} className="first:pt-0 last:pb-0">
-              {/* ── row header ── */}
               <button
                 type="button"
-                onClick={() =>
-                  setExpandedId(isExpanded ? null : u.id)
-                }
+                onClick={() => setExpandedId(isExpanded ? null : u.id)}
                 className="w-full flex items-center gap-3 py-3 text-left hover:bg-surface/30 rounded-lg transition -mx-1 px-1"
               >
                 <span
@@ -195,40 +105,27 @@ export function RecentlyUploaded() {
                 </span>
 
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium truncate">
-                    {u.patient}
-                  </div>
-                  <div className="text-xs text-text-light truncate">
-                    {u.title}
-                  </div>
+                  <div className="text-sm font-medium truncate">{u.patient}</div>
+                  <div className="text-xs text-text-light truncate">{u.title}</div>
                 </div>
 
-                {/* file count badge */}
                 {hasFiles && (
                   <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-surface border border-border text-text-light shrink-0">
                     {u.files.length} file{u.files.length > 1 ? "s" : ""}
                   </span>
                 )}
 
-                <span className="text-xs text-text-light font-mono shrink-0">
-                  {u.date}
-                </span>
+                <span className="text-xs text-text-light font-mono shrink-0">{u.date}</span>
 
                 {(hasContent || hasFiles) && (
                   <span className="text-text-light shrink-0">
-                    {isExpanded ? (
-                      <ChevronUp size={14} />
-                    ) : (
-                      <ChevronDown size={14} />
-                    )}
+                    {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                   </span>
                 )}
               </button>
 
-              {/* ── expanded body ── */}
               {isExpanded && (
                 <div className="pb-4 pl-11 pr-1 space-y-3 animate-in slide-in-from-top-1 fade-in duration-150">
-                  {/* kind label */}
                   <span
                     className={`inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded-full ${tintMap[u.kind]}`}
                   >
@@ -236,7 +133,6 @@ export function RecentlyUploaded() {
                     {kindLabel[u.kind]}
                   </span>
 
-                  {/* progress note */}
                   {hasContent && (
                     <div className="bg-surface/40 rounded-xl p-4 border border-border/50">
                       <div className="text-[10px] font-medium uppercase tracking-wider text-text-light mb-1.5">
@@ -248,7 +144,6 @@ export function RecentlyUploaded() {
                     </div>
                   )}
 
-                  {/* files */}
                   {hasFiles && (
                     <div className="space-y-2">
                       <div className="text-[10px] font-medium uppercase tracking-wider text-text-light">
@@ -258,7 +153,7 @@ export function RecentlyUploaded() {
                         {u.files.map((url, i) => {
                           const ext = getDisplayExt(url);
                           const name = getOriginalName(url);
-                          const previewable = isPreviewable(url);
+                          const previewable = isPreviewableByName(name);
 
                           return (
                             <button
@@ -267,7 +162,8 @@ export function RecentlyUploaded() {
                               onClick={() => {
                                 if (previewable) {
                                   setPreviewTitle(`${u.patient} — ${name}`);
-                                  setPreviewUrl(url);
+                                  setPreviewFileName(name);
+                                  setPreviewUrl(getDisplayFileUrl(url));
                                 }
                               }}
                               disabled={!previewable}
@@ -277,12 +173,8 @@ export function RecentlyUploaded() {
                                   : "border-border bg-surface/20 opacity-60 cursor-default"
                                 }`}
                             >
-                              <span className="text-text-light uppercase font-mono text-[10px]">
-                                {ext}
-                              </span>
-                              <span className="truncate max-w-[120px] text-text">
-                                {name}
-                              </span>
+                              <span className="text-text-light uppercase font-mono text-[10px]">{ext}</span>
+                              <span className="truncate max-w-[120px] text-text">{name}</span>
                             </button>
                           );
                         })}
@@ -296,12 +188,12 @@ export function RecentlyUploaded() {
         })}
       </div>
 
-      {/* full-screen preview dialog */}
       <PreviewDialog
         open={!!previewUrl}
         onClose={() => setPreviewUrl(null)}
         title={previewTitle}
-        url={previewUrl ?? ""}
+        src={previewUrl ?? ""}
+        fileName={previewFileName}
       />
     </section>
   );
