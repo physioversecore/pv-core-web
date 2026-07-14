@@ -36,6 +36,10 @@ export async function createReport(data: ReportCreateData): Promise<ReportData> 
   return api.post<ReportData>("/reports", data);
 }
 
+export async function uploadReport(formData: FormData): Promise<ReportData> {
+  return api.upload<ReportData>("/reports", formData);
+}
+
 export async function uploadFile(file: File, patientId: string): Promise<UploadResponse> {
   const formData = new FormData();
   formData.append("file", file);
