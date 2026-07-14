@@ -36,6 +36,7 @@ interface DataTableProps<T> {
   onPageChange: (page: number) => void;
   renderActions?: (row: T) => ReactNode;
   emptyMessage?: string;
+  rowClassName?: (row: T) => string | undefined;
 }
 
 export function DataTable<T extends { id: string }>({
@@ -51,6 +52,7 @@ export function DataTable<T extends { id: string }>({
   onPageChange,
   renderActions,
   emptyMessage,
+  rowClassName,
 }: DataTableProps<T>) {
   const { t } = useLang();
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -100,7 +102,7 @@ export function DataTable<T extends { id: string }>({
               <EmptyTableRow colSpan={columns.length + (renderActions ? 1 : 0)} message={emptyMessage ?? (t("common.noResults") ?? "No results found")} />
             ) : (
               data.map((row) => (
-                <tr key={row.id} className="hover:bg-muted/30 transition-colors">
+                <tr key={row.id} className={`hover:bg-muted/30 transition-colors ${rowClassName?.(row) ?? ""}`}>
                   {columns.map((col) => (
                     <td key={col.key} className={`py-3 pr-3 ${col.className ?? ""}`}>
                       {col.render(row)}
