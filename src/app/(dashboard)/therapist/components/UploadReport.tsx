@@ -160,6 +160,7 @@ export function UploadReport() {
 
       toast.success(t("therapist_dashboard.reportUploaded"));
       queryClient.invalidateQueries({ queryKey: ["therapist-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["therapist-reports"] });
 
       setSubmitted(true);
       timerRef.current = setTimeout(() => {

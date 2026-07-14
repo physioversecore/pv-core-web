@@ -73,3 +73,7 @@ export async function getTherapistReports(
 export async function getMyPatients(): Promise<PatientSummary[]> {
   return api.get<PatientSummary[]>("/patients/my-patients");
 }
+
+export async function deleteReport(reportId: string): Promise<void> {
+  return api.delete(`/reports/${reportId}`);
+}

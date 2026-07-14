@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   FileText,
@@ -9,15 +9,31 @@ import {
   ChevronDown,
   ChevronUp,
   ChevronRight,
+  ChevronLeft,
+  Loader2,
+  Trash2,
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { useLang } from "@/context/i18n";
 import { CardSkeleton } from "@/components/SuspenseFallback";
 import {
   getTherapistReports,
+  deleteReport,
   type TherapistReportData,
 } from "@/services/api/reports";
 import { PreviewDialog, isPreviewableByName } from "@/components/PreviewDialog";
+import { ConfirmDialog } from "@/components/tables/ConfirmDialog";
+import {
+  detectKind,
+  kindTint,
+  kindLabel,
+  getOriginalName,
+  getDisplayFileUrl,
+  getFileSize,
+} from "./report-helpers";
+
+const LIMIT = 6;
 
 const iconMap: Record<string, React.ReactNode> = {
   "x-ray": <ImageIcon size={14} />,
@@ -25,83 +41,64 @@ const iconMap: Record<string, React.ReactNode> = {
   note: <FileText size={14} />,
 };
 
-const tintMap: Record<string, string> = {
-  "x-ray": "bg-primary/10 text-primary",
-  video: "bg-amber/10 text-amber",
-  note: "bg-surface text-secondary",
-};
-
-const kindLabel: Record<string, string> = {
-  "x-ray": "X-ray / Image",
-  video: "Exercise Video",
-  note: "Session Note",
-};
-
-function detectKind(r: TherapistReportData): string {
-  if (!r.fileUrl) return "note";
-  const ext = r.fileUrl.split(".").pop()?.toLowerCase() ?? "";
-  if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) return "x-ray";
-  if (["mp4", "mov", "avi", "webm"].includes(ext)) return "video";
-  return "note";
-}
-
-function getOriginalName(url: string): string {
-  try {
-    const u = new URL(url, "http://localhost");
-    return u.searchParams.get("name") ?? url.split("/").pop() ?? url;
-  } catch {
-    return url.split("/").pop() ?? url;
-  }
-}
-
-function getFileSize(url: string): number {
-  try {
-    const u = new URL(url, "http://localhost");
-    return Number(u.searchParams.get("size")) || 0;
-  } catch {
-    return 0;
-  }
-}
-
 function getDisplayExt(url: string): string {
-  const name = getOriginalName(url);
-  return name.split(".").pop()?.toLowerCase() ?? "";
+  return getOriginalName(url).split(".").pop()?.toLowerCase() ?? "";
 }
 
-function getDisplayFileUrl(url: string): string {
-  try {
-    const u = new URL(url, "http://localhost");
-    u.searchParams.delete("name");
-    u.searchParams.delete("size");
-    return u.pathname;
-  } catch {
-    return url.split("?")[0];
-  }
+interface RecentlyUploadedProps {
+  paginated?: boolean;
 }
 
-const OVERVIEW_LIMIT = 6;
-
-export function RecentlyUploaded() {
+export function RecentlyUploaded({ paginated = false }: RecentlyUploadedProps) {
   const { t } = useLang();
+  const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewTitle, setPreviewTitle] = useState("");
   const [previewFileName, setPreviewFileName] = useState("");
   const [previewFileSize, setPreviewFileSize] = useState(0);
+  const [deleteTarget, setDeleteTarget] = useState<TherapistReportData | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["therapist-reports", 1],
-    queryFn: () => getTherapistReports(1, OVERVIEW_LIMIT),
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: ["therapist-reports", page],
+    queryFn: () => getTherapistReports(page, LIMIT),
+    placeholderData: paginated ? (prev) => prev : undefined,
   });
+
+  useEffect(() => {
+    if (!paginated) return;
+    return () => {
+      queryClient.removeQueries({ queryKey: ["therapist-reports"] });
+    };
+  }, [paginated, queryClient]);
 
   const uploads = data?.reports ?? [];
   const total = data?.total ?? 0;
+  const totalPages = Math.ceil(total / LIMIT);
+
+  const handleDelete = useCallback(async () => {
+    if (!deleteTarget) return;
+    setDeletingId(deleteTarget.id);
+    try {
+      await deleteReport(deleteTarget.id);
+      queryClient.invalidateQueries({ queryKey: ["therapist-reports"] });
+      if (expandedId === deleteTarget.id) setExpandedId(null);
+      toast.success("Report deleted");
+    } catch {
+      toast.error("Failed to delete report");
+    } finally {
+      setDeletingId(null);
+      setDeleteTarget(null);
+    }
+  }, [deleteTarget, queryClient, expandedId]);
 
   if (isLoading) return <CardSkeleton />;
 
   if (uploads.length === 0) {
     return (
-      <section className="card-soft p-5 mb-6">
+      <section className={`card-soft p-5 ${paginated ? "" : "mb-6"}`}>
         <div className="eyebrow mb-3">
           {t("therapist_dashboard.recentlyUploaded")}
         </div>
@@ -111,19 +108,31 @@ export function RecentlyUploaded() {
   }
 
   return (
-    <section className="card-soft p-5 mb-6">
+    <section className={`card-soft p-5 ${paginated ? "" : "mb-6"}`}>
       <div className="flex items-center justify-between mb-3">
-        <div className="eyebrow">
-          {t("therapist_dashboard.recentlyUploaded")}
-        </div>
-        {total > OVERVIEW_LIMIT && (
-          <Link
-            href="/therapist/reports"
-            className="text-xs text-secondary font-medium hover:underline inline-flex items-center gap-0.5"
-          >
-            View all ({total})
-            <ChevronRight size={12} />
-          </Link>
+        {paginated ? (
+          <div>
+            <p className="eyebrow mb-1">{t("therapist_dashboard.reportsRecent")}</p>
+            <h3 className="font-display text-lg">{t("therapist_dashboard.reportsPatientReports")}</h3>
+          </div>
+        ) : (
+          <div className="eyebrow">
+            {t("therapist_dashboard.recentlyUploaded")}
+          </div>
+        )}
+
+        {paginated ? (
+          total > 0 && <span className="chip">{total}</span>
+        ) : (
+          total > LIMIT && (
+            <Link
+              href="/therapist/reports"
+              className="text-xs text-secondary font-medium hover:underline inline-flex items-center gap-0.5"
+            >
+              View all ({total})
+              <ChevronRight size={12} />
+            </Link>
+          )
         )}
       </div>
 
@@ -142,14 +151,14 @@ export function RecentlyUploaded() {
                 className="w-full flex items-center gap-3 py-3 text-left hover:bg-surface/30 rounded-lg transition -mx-1 px-1"
               >
                 <span
-                  className={`w-8 h-8 rounded-lg grid place-items-center font-mono text-[10px] uppercase shrink-0 ${tintMap[kind]}`}
+                  className={`w-8 h-8 rounded-lg grid place-items-center font-mono text-[10px] uppercase shrink-0 ${kindTint[kind]}`}
                 >
                   {iconMap[kind]}
                 </span>
 
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium truncate">{u.patient}</div>
-                  <div className="text-xs text-text-light truncate">{u.title}</div>
+                  <div className="text-[11px] text-text-light truncate">{u.title}</div>
                 </div>
 
                 {hasFiles && (
@@ -165,12 +174,24 @@ export function RecentlyUploaded() {
                     {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                   </span>
                 )}
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteTarget(u);
+                  }}
+                  disabled={deletingId === u.id}
+                  className="shrink-0 p-1 rounded text-text-light hover:text-destructive hover:bg-destructive/10 transition"
+                >
+                  <Trash2 size={16} />
+                </button>
               </button>
 
               {isExpanded && (
                 <div className="pb-4 pl-11 pr-1 space-y-3 animate-in slide-in-from-top-1 fade-in duration-150">
                   <span
-                    className={`inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded-full ${tintMap[kind]}`}
+                    className={`inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded-full ${kindTint[kind]}`}
                   >
                     {iconMap[kind]}
                     {kindLabel[kind]}
@@ -232,6 +253,52 @@ export function RecentlyUploaded() {
         })}
       </div>
 
+      {paginated && totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+          <span className="text-xs text-text-light">
+            Page {page} of {totalPages}
+          </span>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="p-1.5 rounded-lg border border-border hover:bg-surface disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >
+              <ChevronLeft size={14} />
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setPage(p)}
+                className={`w-7 h-7 rounded-lg text-xs font-medium transition
+                  ${p === page
+                    ? "bg-secondary text-white"
+                    : "border border-border hover:bg-surface text-text-light"
+                  }`}
+              >
+                {p}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="p-1.5 rounded-lg border border-border hover:bg-surface disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >
+              <ChevronRight size={14} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {paginated && isFetching && !isLoading && (
+        <div className="flex items-center justify-center py-2">
+          <Loader2 size={14} className="animate-spin text-text-light" />
+        </div>
+      )}
+
       <PreviewDialog
         open={!!previewUrl}
         onClose={() => setPreviewUrl(null)}
@@ -239,6 +306,14 @@ export function RecentlyUploaded() {
         src={previewUrl ?? ""}
         fileName={previewFileName}
         fileSize={previewFileSize || undefined}
+      />
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
+        onConfirm={handleDelete}
+        title="Delete report"
+        description={`Delete <strong>${deleteTarget?.patient}'s</strong> ${deleteTarget?.title} ? This cannot be undone.`}
       />
     </section>
   );
