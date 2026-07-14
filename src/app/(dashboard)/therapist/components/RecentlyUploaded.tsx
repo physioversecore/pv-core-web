@@ -41,6 +41,15 @@ function getOriginalName(url: string): string {
   }
 }
 
+function getFileSize(url: string): number {
+  try {
+    const u = new URL(url, "http://localhost");
+    return Number(u.searchParams.get("size")) || 0;
+  } catch {
+    return 0;
+  }
+}
+
 function getDisplayExt(url: string): string {
   const name = getOriginalName(url);
   return name.split(".").pop()?.toLowerCase() ?? "";
@@ -50,6 +59,7 @@ function getDisplayFileUrl(url: string): string {
   try {
     const u = new URL(url, "http://localhost");
     u.searchParams.delete("name");
+    u.searchParams.delete("size");
     return u.pathname;
   } catch {
     return url.split("?")[0];
@@ -63,6 +73,7 @@ export function RecentlyUploaded() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewTitle, setPreviewTitle] = useState("");
   const [previewFileName, setPreviewFileName] = useState("");
+  const [previewFileSize, setPreviewFileSize] = useState(0);
 
   if (isLoading) return <CardSkeleton />;
 
@@ -163,6 +174,7 @@ export function RecentlyUploaded() {
                                 if (previewable) {
                                   setPreviewTitle(`${u.patient} — ${name}`);
                                   setPreviewFileName(name);
+                                  setPreviewFileSize(getFileSize(url));
                                   setPreviewUrl(getDisplayFileUrl(url));
                                 }
                               }}
@@ -194,6 +206,7 @@ export function RecentlyUploaded() {
         title={previewTitle}
         src={previewUrl ?? ""}
         fileName={previewFileName}
+        fileSize={previewFileSize || undefined}
       />
     </section>
   );
