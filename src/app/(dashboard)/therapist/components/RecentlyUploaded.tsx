@@ -1,36 +1,49 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   FileText,
   Image as ImageIcon,
   Video,
   ChevronDown,
   ChevronUp,
+  ChevronRight,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { useLang } from "@/context/i18n";
-import { useTherapistDashboard } from "@/hooks/useTherapistDashboard";
 import { CardSkeleton } from "@/components/SuspenseFallback";
+import {
+  getTherapistReports,
+  type TherapistReportData,
+} from "@/services/api/reports";
 import { PreviewDialog, isPreviewableByName } from "@/components/PreviewDialog";
-import type { UploadKind } from "@/types";
 
-const iconMap: Record<UploadKind, React.ReactNode> = {
+const iconMap: Record<string, React.ReactNode> = {
   "x-ray": <ImageIcon size={14} />,
   video: <Video size={14} />,
   note: <FileText size={14} />,
 };
 
-const tintMap: Record<UploadKind, string> = {
+const tintMap: Record<string, string> = {
   "x-ray": "bg-primary/10 text-primary",
   video: "bg-amber/10 text-amber",
   note: "bg-surface text-secondary",
 };
 
-const kindLabel: Record<UploadKind, string> = {
+const kindLabel: Record<string, string> = {
   "x-ray": "X-ray / Image",
   video: "Exercise Video",
   note: "Session Note",
 };
+
+function detectKind(r: TherapistReportData): string {
+  if (!r.fileUrl) return "note";
+  const ext = r.fileUrl.split(".").pop()?.toLowerCase() ?? "";
+  if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) return "x-ray";
+  if (["mp4", "mov", "avi", "webm"].includes(ext)) return "video";
+  return "note";
+}
 
 function getOriginalName(url: string): string {
   try {
@@ -66,18 +79,25 @@ function getDisplayFileUrl(url: string): string {
   }
 }
 
+const OVERVIEW_LIMIT = 6;
+
 export function RecentlyUploaded() {
   const { t } = useLang();
-  const { dashboard, isLoading } = useTherapistDashboard();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewTitle, setPreviewTitle] = useState("");
   const [previewFileName, setPreviewFileName] = useState("");
   const [previewFileSize, setPreviewFileSize] = useState(0);
 
-  if (isLoading) return <CardSkeleton />;
+  const { data, isLoading } = useQuery({
+    queryKey: ["therapist-reports", 1],
+    queryFn: () => getTherapistReports(1, OVERVIEW_LIMIT),
+  });
 
-  const uploads = dashboard?.recentUploads ?? [];
+  const uploads = data?.reports ?? [];
+  const total = data?.total ?? 0;
+
+  if (isLoading) return <CardSkeleton />;
 
   if (uploads.length === 0) {
     return (
@@ -92,13 +112,25 @@ export function RecentlyUploaded() {
 
   return (
     <section className="card-soft p-5 mb-6">
-      <div className="eyebrow mb-3">
-        {t("therapist_dashboard.recentlyUploaded")}
+      <div className="flex items-center justify-between mb-3">
+        <div className="eyebrow">
+          {t("therapist_dashboard.recentlyUploaded")}
+        </div>
+        {total > OVERVIEW_LIMIT && (
+          <Link
+            href="/therapist/reports"
+            className="text-xs text-secondary font-medium hover:underline inline-flex items-center gap-0.5"
+          >
+            View all ({total})
+            <ChevronRight size={12} />
+          </Link>
+        )}
       </div>
 
       <div className="divide-y divide-border">
         {uploads.map((u) => {
           const isExpanded = expandedId === u.id;
+          const kind = detectKind(u);
           const hasContent = !!u.content?.trim();
           const hasFiles = u.files.length > 0;
 
@@ -110,9 +142,9 @@ export function RecentlyUploaded() {
                 className="w-full flex items-center gap-3 py-3 text-left hover:bg-surface/30 rounded-lg transition -mx-1 px-1"
               >
                 <span
-                  className={`w-8 h-8 rounded-lg grid place-items-center font-mono text-[10px] uppercase shrink-0 ${tintMap[u.kind]}`}
+                  className={`w-8 h-8 rounded-lg grid place-items-center font-mono text-[10px] uppercase shrink-0 ${tintMap[kind]}`}
                 >
-                  {iconMap[u.kind]}
+                  {iconMap[kind]}
                 </span>
 
                 <div className="flex-1 min-w-0">
@@ -138,10 +170,10 @@ export function RecentlyUploaded() {
               {isExpanded && (
                 <div className="pb-4 pl-11 pr-1 space-y-3 animate-in slide-in-from-top-1 fade-in duration-150">
                   <span
-                    className={`inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded-full ${tintMap[u.kind]}`}
+                    className={`inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded-full ${tintMap[kind]}`}
                   >
-                    {iconMap[u.kind]}
-                    {kindLabel[u.kind]}
+                    {iconMap[kind]}
+                    {kindLabel[kind]}
                   </span>
 
                   {hasContent && (

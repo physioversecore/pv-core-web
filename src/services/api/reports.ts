@@ -13,6 +13,17 @@ export interface ReportData {
   updatedAt: string;
 }
 
+export interface TherapistReportData extends ReportData {
+  patient: string;
+  files: string[];
+  date: string;
+}
+
+export interface PaginatedReports {
+  reports: TherapistReportData[];
+  total: number;
+}
+
 export interface ReportCreateData {
   patientId: string;
   sessionId?: string;
@@ -49,6 +60,14 @@ export async function uploadFile(file: File, patientId: string): Promise<UploadR
 export async function getReports(patientId?: string): Promise<ReportData[]> {
   const query = patientId ? `?patient_id=${patientId}` : "";
   return api.get<ReportData[]>(`/reports${query}`);
+}
+
+export async function getTherapistReports(
+  page: number = 1,
+  limit: number = 6,
+): Promise<PaginatedReports> {
+  const skip = (page - 1) * limit;
+  return api.get<PaginatedReports>(`/reports/therapist?skip=${skip}&limit=${limit}`);
 }
 
 export async function getMyPatients(): Promise<PatientSummary[]> {
