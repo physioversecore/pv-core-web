@@ -2,7 +2,7 @@
   "name": "sahayatri-physio",
   "private": true,
   "scripts": {
-    "dev": "next dev --experimental-https --hostname physiocore.com",
+    "dev": "next dev --experimental-https",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
