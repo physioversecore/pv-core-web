@@ -36,10 +36,10 @@ export async function createReport(data: ReportCreateData): Promise<ReportData> 
   return api.post<ReportData>("/reports", data);
 }
 
-export async function uploadFile(file: File): Promise<UploadResponse> {
+export async function uploadFile(file: File, patientId: string): Promise<UploadResponse> {
   const formData = new FormData();
   formData.append("file", file);
-  return api.upload<UploadResponse>("/uploads", formData);
+  return api.upload<UploadResponse>(`/uploads/${patientId}`, formData);
 }
 
 export async function getReports(patientId?: string): Promise<ReportData[]> {

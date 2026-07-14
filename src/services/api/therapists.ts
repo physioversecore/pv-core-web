@@ -21,6 +21,54 @@ interface TherapistListResponse {
   total: number;
 }
 
+export interface TodaySessionData {
+  id: string;
+  time: string;
+  patient: string;
+  patientId: string;
+  address: string;
+  type: string;
+  status: string;
+}
+
+export interface RecentUploadData {
+  id: string;
+  patient: string;
+  kind: "x-ray" | "note" | "video";
+  title: string;
+  file: string;
+  date: string;
+}
+
+export interface PublicProfileData {
+  name: string;
+  specialty: string;
+  experience: number;
+  rating: number;
+  totalReviews: number;
+}
+
+export interface RecentRatingData {
+  id: string;
+  name: string;
+  stars: number;
+  text: string;
+}
+
+export interface TherapistDashboardData {
+  name: string;
+  sessionsThisWeek: number;
+  totalPatients: number;
+  earningsThisMonth: number;
+  averageRating: number;
+  todaySessions: TodaySessionData[];
+  recentUploads: RecentUploadData[];
+  publicProfile: PublicProfileData;
+  recentRatings: RecentRatingData[];
+  referralCode: string;
+  referralLink: string;
+}
+
 export async function getTherapists(params?: {
   skip?: number;
   limit?: number;
@@ -55,4 +103,8 @@ export async function createTherapist(data: {
   bio: string;
 }) {
   return api.post<TherapistData>("/therapists", data);
+}
+
+export async function getTherapistDashboard(): Promise<TherapistDashboardData> {
+  return api.get<TherapistDashboardData>("/therapists/me/dashboard");
 }
