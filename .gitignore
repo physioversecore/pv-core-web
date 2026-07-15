@@ -39,6 +39,8 @@ Thumbs.db
 #Agents
 AGENTS.md
 .agents/
+.opencode/
+.claude/
 skills-lock.json
 
 #Landing Page Design

@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { useLang } from "@/context/i18n";
 import { cn } from "@/utils/cn";
 import { to12h } from "@/lib/format";
-import { ChevronLeft, ChevronRight, CalendarDays, Check, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, CalendarDays, Check, X, Trash2, MoreHorizontal, CalendarClock, CalendarOff } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -14,22 +14,21 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import {
-  generateTimeSlots,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useAvailability, useCountOpenSlots } from "@/hooks/useAvailability";
+import {
   sessionPeriodForTime,
-  getTherapistWorkingHours,
-  getAvailability,
-  setSlotStatus as setSlotStatusApi,
-  applyRecurringPattern as applyRecurringApi,
-  openFullMonth as openFullMonthApi,
-  blockDate as blockDateApi,
-  countOpenSlotsForMonth,
+  dateKeyStr,
   isDateInPast,
   isSlotInPast,
-  SLOT_INTERVAL_MINUTES,
+  DEFAULT_SLOT_INTERVAL,
   type SlotInfo,
   type SlotStatus,
-  type WorkingHours,
-} from "@/services/availability";
+} from "@/lib/availability-utils";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
 const FULL_DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
@@ -38,8 +37,6 @@ const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
 ] as const;
-
-const THERAPIST_ID = "therapist-1";
 
 function toDateKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -74,28 +71,31 @@ function buildMonthGrid(year: number, month: number): (Date | null)[] {
 
 export default function ManageAvailability() {
   const { t } = useLang();
+  const countOpenSlots = useCountOpenSlots();
 
-  const [workingHours, setWorkingHours] = useState<WorkingHours>({ start: "08:00", end: "18:00" });
-
-  const timeSlots = useMemo(
-    () => generateTimeSlots(workingHours.start, workingHours.end, SLOT_INTERVAL_MINUTES),
-    [workingHours]
-  );
-
-  const sessionPeriods = useMemo(() => {
-    const periods = new Set<string>();
-    for (const ts of timeSlots) periods.add(sessionPeriodForTime(ts));
-    return [...periods];
-  }, [timeSlots]);
-
-  const timeRowMap = useMemo(() => {
-    const map: Record<string, number[]> = { Morning: [], Afternoon: [], Evening: [] };
-    timeSlots.forEach((ts, i) => {
-      const p = sessionPeriodForTime(ts);
-      if (map[p]) map[p].push(i);
-    });
-    return map;
-  }, [timeSlots]);
+  const {
+    workingHours,
+    updateWorkingHours,
+    timeSlots,
+    availability,
+    setAvailability,
+    dirtySlots,
+    setDirtySlots,
+    loading,
+    loadMonth,
+    setSlotStatus: setSlotStatusHook,
+    blockWholeDay: blockWholeDayApi,
+    handleBlockDate: handleBlockDateApi,
+    getMonthSummaries,
+    recurringPatterns,
+    saveRecurring,
+    isSavingRecurring,
+    deleteRecurring,
+    openFullMonth: openFullMonthApi,
+    isOpeningMonth,
+    applySchedule: applyScheduleApi,
+    isApplyingSchedule,
+  } = useAvailability();
 
   const [viewMode, setViewMode] = useState<"week" | "month">("week");
   const [weekOffset, setWeekOffset] = useState(0);
@@ -117,30 +117,26 @@ export default function ManageAvailability() {
   const monthGrid = useMemo(() => buildMonthGrid(monthYear, monthMonth), [monthYear, monthMonth]);
   const monthLabel = useMemo(() => `${MONTH_NAMES[monthMonth]} ${monthYear}`, [monthMonth, monthYear]);
 
-  // ════════════════════════════════════════════════════════════════
-  // SINGLE SOURCE OF TRUTH — keyed by "YYYY-MM-DD_HH:mm" → SlotInfo
-  // Both Weekly and Monthly views derive their display from this.
-  // ════════════════════════════════════════════════════════════════
-  const [availability, setAvailability] = useState<Record<string, SlotInfo>>({});
-  const [dirtySlots, setDirtySlots] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(true);
-
-  // Monthly summaries derived from the single store (no separate fetch)
-  const monthDaySummaries = useMemo(() => {
-    const result: Record<string, { open: number; booked: number; off: number }> = {};
-    for (const cellDate of monthGrid) {
-      if (!cellDate) continue;
-      const dk = toDateKey(cellDate);
-      const counts = { open: 0, booked: 0, off: 0 };
-      for (const time of timeSlots) {
-        const key = `${dk}_${time}`;
-        const slot = availability[key];
-        counts[(slot?.status ?? "off") as keyof typeof counts]++;
+  // Load months needed for week view
+  useEffect(() => {
+    const monthsNeeded = new Set<string>();
+    if (viewMode === "week") {
+      for (const day of weekDays) {
+        monthsNeeded.add(`${day.getFullYear()}-${day.getMonth()}`);
       }
-      result[dk] = counts;
+    } else {
+      monthsNeeded.add(`${monthYear}-${monthMonth}`);
     }
-    return result;
-  }, [availability, monthGrid, timeSlots]);
+    for (const mk of monthsNeeded) {
+      const [y, m] = mk.split("-").map(Number);
+      loadMonth(y, m);
+    }
+  }, [viewMode, weekDays, monthYear, monthMonth, loadMonth]);
+
+  const monthDaySummaries = useMemo(
+    () => getMonthSummaries(monthGrid),
+    [getMonthSummaries, monthGrid]
+  );
 
   const [selectedDays, setSelectedDays] = useState<Set<number>>(new Set());
   const [selectedSessions, setSelectedSessions] = useState<Set<string>>(new Set());
@@ -148,12 +144,12 @@ export default function ManageAvailability() {
   const [flashingCols, setFlashingCols] = useState<Set<number>>(new Set());
 
   const [showOfmModal, setShowOfmModal] = useState(false);
+  const [showBlockDateModal, setShowBlockDateModal] = useState(false);
   const [ofmMonth, setOfmMonth] = useState(new Date().getMonth());
   const [ofmYear, setOfmYear] = useState(new Date().getFullYear());
   const [ofmDays, setOfmDays] = useState<Set<number>>(new Set([1, 3, 5]));
   const [ofmSessions, setOfmSessions] = useState<Set<string>>(new Set(["Morning"]));
   const [ofmConfirmData, setOfmConfirmData] = useState<{ total: number; booked: number; skippedPast: number } | null>(null);
-  const [ofmApplying, setOfmApplying] = useState(false);
 
   const [showSlotDetail, setShowSlotDetail] = useState<SlotInfo | null>(null);
 
@@ -161,68 +157,59 @@ export default function ManageAvailability() {
   const [drillDownDirty, setDrillDownDirty] = useState<Set<string>>(new Set());
   const [drillDownLoading, setDrillDownLoading] = useState(false);
 
-  const pendingCount = dirtySlots.size;
+  const [whStart, setWhStart] = useState(workingHours.start);
+  const [whEnd, setWhEnd] = useState(workingHours.end);
+  const [whInterval, setWhInterval] = useState(workingHours.slotInterval ?? DEFAULT_SLOT_INTERVAL);
+  const [scheduleRecurrence, setScheduleRecurrence] = useState("weekly");
+  const [scheduleDateFrom, setScheduleDateFrom] = useState("");
+  const [scheduleDateTo, setScheduleDateTo] = useState("");
 
-  // ─── SINGLE LOADING EFFECT — loads any month not yet in the store ───
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
-      const wh = await getTherapistWorkingHours(THERAPIST_ID);
-      if (cancelled) return;
-      setWorkingHours(wh);
+  const SLOT_INTERVAL_OPTIONS = [
+    { value: 30, label: "30 min" },
+    { value: 60, label: "1 hr" },
+    { value: 90, label: "1.5 hr" },
+    { value: 120, label: "2 hr" },
+    { value: 180, label: "3 hr" },
+    { value: 240, label: "4 hr" },
+    { value: 360, label: "6 hr" },
+    { value: 480, label: "8 hr" },
+  ];
 
-      const monthsToLoad = new Set<string>();
-      if (viewMode === "week") {
-        for (const day of weekDays) {
-          monthsToLoad.add(`${day.getFullYear()}-${day.getMonth()}`);
-        }
-      } else {
-        monthsToLoad.add(`${monthYear}-${monthMonth}`);
-      }
-
-      for (const mk of monthsToLoad) {
-        const [y, m] = mk.split("-").map(Number);
-        const grid = await getAvailability(THERAPIST_ID, m, y, wh);
-        if (cancelled) return;
-        setAvailability((prev) => {
-          const next = { ...prev };
-          for (const slot of grid.slots) next[`${slot.date}_${slot.time}`] = slot;
-          return next;
-        });
-      }
-
-      setLoading(false);
-    })();
-    return () => { cancelled = true; };
-  }, [viewMode, weekStart.getMonth(), weekStart.getFullYear(), monthMonth, monthYear]);
-
-  // ─── Refresh a specific month into the store (after mutations) ───
-  const refreshMonth = useCallback(
-    async (year: number, month: number) => {
-      const grid = await getAvailability(THERAPIST_ID, month, year, workingHours);
-      setAvailability((prev) => {
-        const next = { ...prev };
-        for (const slot of grid.slots) next[`${slot.date}_${slot.time}`] = slot;
-        return next;
-      });
-    },
-    [workingHours]
-  );
-
-  const commitChanges = useCallback(async () => {
-    const promises: Promise<void>[] = [];
-    for (const key of dirtySlots) {
-      const slot = availability[key];
-      if (slot) {
-        promises.push(setSlotStatusApi(THERAPIST_ID, slot.date, slot.time, slot.status));
-      }
+  const TIME_OPTIONS = useMemo(() => {
+    const opts: string[] = [];
+    for (let h = 0; h < 24; h++) {
+      opts.push(`${String(h).padStart(2, "0")}:00`);
     }
-    await Promise.all(promises);
-    setDirtySlots(new Set());
-  }, [dirtySlots, availability]);
+    return opts;
+  }, []);
 
-  // ─── Weekly view: toggle cell ───
+  useEffect(() => {
+    setWhStart(workingHours.start);
+    setWhEnd(workingHours.end);
+    setWhInterval(workingHours.slotInterval ?? DEFAULT_SLOT_INTERVAL);
+  }, [workingHours]);
+
+  const saveAndApplyHandler = useCallback(async () => {
+    if (whStart >= whEnd) {
+      toast.error("Start time must be before end time");
+      return;
+    }
+    try {
+      await updateWorkingHours({ start: whStart, end: whEnd, slotInterval: whInterval });
+      const result = await applyScheduleApi({
+        recurrence: scheduleRecurrence,
+        dateFrom: scheduleRecurrence === "range" ? scheduleDateFrom : undefined,
+        dateTo: scheduleRecurrence === "range" ? scheduleDateTo : undefined,
+      });
+      let msg = `Schedule saved & applied: ${result.opened} slot(s) opened`;
+      if (result.skippedBooked > 0) msg += `, ${result.skippedBooked} booking(s) kept`;
+      if (result.skippedPast > 0) msg += `, ${result.skippedPast} past slot(s) skipped`;
+      toast.success(msg);
+    } catch {
+      toast.error("Failed to save schedule");
+    }
+  }, [whStart, whEnd, whInterval, scheduleRecurrence, scheduleDateFrom, scheduleDateTo, updateWorkingHours, applyScheduleApi]);
+
   const toggleCell = useCallback((row: number, col: number) => {
     const day = weekDays[col];
     const time = timeSlots[row];
@@ -239,11 +226,9 @@ export default function ManageAvailability() {
       return;
     }
     const next: SlotStatus = current.status === "open" ? "off" : "open";
-    setAvailability((prev) => ({ ...prev, [key]: { ...current, status: next } }));
-    setDirtySlots((prev) => { const s = new Set(prev); s.add(key); return s; });
-  }, [weekDays, timeSlots, availability]);
+    setSlotStatusHook(dk, time, next);
+  }, [weekDays, timeSlots, availability, setSlotStatusHook]);
 
-  // ─── Weekly view: block whole day ───
   const blockWholeDay = useCallback(
     async (col: number) => {
       const day = weekDays[col];
@@ -252,27 +237,37 @@ export default function ManageAvailability() {
         toast.info("Can't edit availability in the past");
         return;
       }
-      const updates: Record<string, SlotInfo> = {};
+      const updates: { date: string; time: string; status: SlotStatus }[] = [];
       for (const time of timeSlots) {
         if (isSlotInPast(dk, time)) continue;
         const key = `${dk}_${time}`;
         const current = availability[key];
         if (current?.status === "booked") continue;
-        updates[key] = { ...current, date: dk, time, status: "off", sessionType: sessionPeriodForTime(time) };
+        updates.push({ date: dk, time, status: "off" });
       }
-      setAvailability((prev) => ({ ...prev, ...updates }));
-      setDirtySlots((prev) => { const s = new Set(prev); for (const k in updates) s.add(k); return s; });
+      setAvailability((prev) => {
+        const next = { ...prev };
+        for (const u of updates) {
+          const k = `${u.date}_${u.time}`;
+          const existing = next[k];
+          next[k] = { ...existing, date: u.date, time: u.time, status: u.status, sessionType: sessionPeriodForTime(u.time) };
+        }
+        return next;
+      });
+      setDirtySlots((prev) => { const s = new Set(prev); for (const u of updates) s.add(`${u.date}_${u.time}`); return s; });
 
-      const promises = Object.values(updates).map((s) =>
-        setSlotStatusApi(THERAPIST_ID, s.date, s.time, s.status)
-      );
-      await Promise.all(promises);
+      try {
+        const { bulkUpdateSlots } = await import("@/services/api/availability");
+        await bulkUpdateSlots(updates);
+      } catch {
+        // silent
+      }
 
       setFlashingCols(new Set([col]));
       setTimeout(() => setFlashingCols(new Set()), 400);
       toast.success(`${FULL_DAYS[day.getDay()]} marked as off`);
     },
-    [weekDays, timeSlots, availability]
+    [weekDays, timeSlots, availability, setAvailability, setDirtySlots]
   );
 
   const togglePill = (setter: React.Dispatch<React.SetStateAction<Set<number>>>) => (idx: number) => {
@@ -291,30 +286,27 @@ export default function ManageAvailability() {
     });
   };
 
-  // ─── Save recurring ───
-  const saveRecurring = useCallback(async () => {
+  const saveRecurringHandler = useCallback(async () => {
     if (selectedDays.size === 0 || selectedSessions.size === 0) {
       toast.error("Select at least one day and one session period");
       return;
     }
-    const { affected, skippedPast } = await applyRecurringApi(THERAPIST_ID, {
-      days: [...selectedDays],
-      sessions: [...selectedSessions],
-    }, workingHours);
+    try {
+      const result = await saveRecurring({
+        days: [...selectedDays],
+        sessions: [...selectedSessions],
+      });
+      const dayNames = [...selectedDays].map((i) => DAYS[i]).join(", ");
+      let msg = `Recurring pattern saved: ${dayNames} — ${[...selectedSessions].join(", ")} (${result.affected} slots)`;
+      if (result.skippedPast > 0) msg += `. ${result.skippedPast} past slot(s) were skipped.`;
+      toast.success(msg);
+      setSelectedDays(new Set());
+      setSelectedSessions(new Set());
+    } catch {
+      toast.error("Failed to save recurring pattern");
+    }
+  }, [selectedDays, selectedSessions, saveRecurring]);
 
-    // Refresh current month into the unified store
-    const now = new Date();
-    await refreshMonth(now.getFullYear(), now.getMonth());
-
-    const dayNames = [...selectedDays].map((i) => DAYS[i]).join(", ");
-    let msg = `Recurring pattern saved: ${dayNames} — ${[...selectedSessions].join(", ")} (${affected} slots)`;
-    if (skippedPast > 0) msg += `. ${skippedPast} past slot(s) were skipped.`;
-    toast.success(msg);
-    setSelectedDays(new Set());
-    setSelectedSessions(new Set());
-  }, [selectedDays, selectedSessions, workingHours, refreshMonth]);
-
-  // ─── Block date (respects day-part pills) ───
   const handleBlockDate = useCallback(async () => {
     if (!blockDateVal) {
       toast.error("Pick a date to block");
@@ -326,54 +318,42 @@ export default function ManageAvailability() {
     }
     const dk = blockDateVal;
     const sessions = selectedSessions.size > 0 ? [...selectedSessions] : undefined;
-    await blockDateApi(THERAPIST_ID, dk, workingHours, sessions);
-
-    // Refresh the month containing this date into the unified store
-    const d = new Date(dk + "T00:00:00");
-    await refreshMonth(d.getFullYear(), d.getMonth());
-
-    let msg = `${FULL_DAYS[d.getDay()]} ${d.toLocaleDateString("en-US", { month: "short", day: "numeric" })} marked as off`;
-    if (sessions) msg += ` (${sessions.join(", ")})`;
-    toast.success(msg);
-    setBlockDateVal("");
-  }, [blockDateVal, selectedSessions, workingHours, refreshMonth]);
+    try {
+      await handleBlockDateApi(dk, sessions);
+      const d = new Date(dk + "T00:00:00");
+      let msg = `${FULL_DAYS[d.getDay()]} ${d.toLocaleDateString("en-US", { month: "short", day: "numeric" })} marked as off`;
+      if (sessions) msg += ` (${sessions.join(", ")})`;
+      toast.success(msg);
+      setBlockDateVal("");
+    } catch {
+      toast.error("Failed to block date");
+    }
+  }, [blockDateVal, selectedSessions, handleBlockDateApi]);
 
   const computeOfmPreview = useCallback(() => {
-    const result = countOpenSlotsForMonth(ofmYear, ofmMonth, [...ofmDays], [...ofmSessions], workingHours);
+    const result = countOpenSlots(ofmYear, ofmMonth, [...ofmDays], [...ofmSessions], workingHours, availability);
     setOfmConfirmData(result);
-  }, [ofmYear, ofmMonth, ofmDays, ofmSessions, workingHours]);
+  }, [ofmYear, ofmMonth, ofmDays, ofmSessions, workingHours, availability, countOpenSlots]);
 
   const executeOpenFullMonth = useCallback(async () => {
-    setOfmApplying(true);
-    const result = await openFullMonthApi(THERAPIST_ID, {
-      days: [...ofmDays],
-      sessions: [...ofmSessions],
-      month: ofmMonth,
-      year: ofmYear,
-    }, workingHours);
-
-    // Refresh the target month into the unified store
-    await refreshMonth(ofmYear, ofmMonth);
-
-    const data = ofmConfirmData ?? { total: 0, booked: 0, skippedPast: 0 };
-    let msg = `Opened ${data.total - data.booked} slots in ${MONTH_NAMES[ofmMonth]}. ${data.booked} booking(s) left untouched.`;
-    if (data.skippedPast > 0) msg += ` Past dates were skipped (${data.skippedPast} slot${data.skippedPast > 1 ? "s" : ""}).`;
-    toast.success(msg);
-    setShowOfmModal(false);
-    setOfmConfirmData(null);
-    setOfmApplying(false);
-  }, [ofmDays, ofmSessions, ofmMonth, ofmYear, workingHours, refreshMonth, ofmConfirmData]);
-
-  const handleFinishUpdate = useCallback(async () => {
-    if (pendingCount === 0) {
-      toast.info("No pending changes to save");
-      return;
+    try {
+      const result = await openFullMonthApi({
+        days: [...ofmDays],
+        sessions: [...ofmSessions],
+        month: ofmMonth,
+        year: ofmYear,
+      });
+      const data = ofmConfirmData ?? { total: 0, booked: 0, skippedPast: 0 };
+      let msg = `Opened ${data.total - data.booked} slots in ${MONTH_NAMES[ofmMonth]}. ${data.booked} booking(s) left untouched.`;
+      if (data.skippedPast > 0) msg += ` Past dates were skipped (${data.skippedPast} slot${data.skippedPast > 1 ? "s" : ""}).`;
+      toast.success(msg);
+      setShowOfmModal(false);
+      setOfmConfirmData(null);
+    } catch {
+      toast.error("Failed to open full month");
     }
-    await commitChanges();
-    toast.success(`${pendingCount} slot(s) updated successfully`);
-  }, [pendingCount, commitChanges]);
+  }, [ofmDays, ofmSessions, ofmMonth, ofmYear, openFullMonthApi, ofmConfirmData]);
 
-  // ─── Drill-down: open a day from monthly view ───
   const openDrillDown = useCallback(async (date: Date) => {
     const dk = toDateKey(date);
     if (isDateInPast(dk)) return;
@@ -381,19 +361,17 @@ export default function ManageAvailability() {
     setDrillDownDate(date);
     setDrillDownDirty(new Set());
 
-    // Ensure data is loaded for this month
     const hasData = timeSlots.some((t) => availability[`${dk}_${t}`]);
     if (!hasData) {
       setDrillDownLoading(true);
-      const grid = await getAvailability(THERAPIST_ID, date.getMonth(), date.getFullYear(), workingHours);
-      setAvailability((prev) => {
-        const next = { ...prev };
-        for (const slot of grid.slots) next[`${slot.date}_${slot.time}`] = slot;
-        return next;
-      });
+      try {
+        await loadMonth(date.getFullYear(), date.getMonth());
+      } catch {
+        // silent
+      }
       setDrillDownLoading(false);
     }
-  }, [workingHours, timeSlots]);
+  }, [timeSlots, availability, loadMonth]);
 
   const toggleDrillDownCell = useCallback((time: string) => {
     if (!drillDownDate) return;
@@ -409,21 +387,23 @@ export default function ManageAvailability() {
       return;
     }
     const next: SlotStatus = current.status === "open" ? "off" : "open";
-    setAvailability((prev) => ({ ...prev, [key]: { ...current, status: next } }));
+    setSlotStatusHook(dk, time, next);
     setDrillDownDirty((prev) => { const s = new Set(prev); s.add(key); return s; });
-    setDirtySlots((prev) => { const s = new Set(prev); s.add(key); return s; });
-  }, [drillDownDate, availability]);
+  }, [drillDownDate, availability, setSlotStatusHook]);
 
   const commitDrillDown = useCallback(async () => {
     const promises: Promise<void>[] = [];
     for (const key of drillDownDirty) {
       const slot = availability[key];
       if (slot) {
-        promises.push(setSlotStatusApi(THERAPIST_ID, slot.date, slot.time, slot.status));
+        promises.push(
+          import("@/services/api/availability").then((m) =>
+            m.setSlotStatus(slot.date, slot.time, slot.status)
+          )
+        );
       }
     }
     await Promise.all(promises);
-    // Remove committed slots from main dirty tracking
     setDirtySlots((prev) => {
       const s = new Set(prev);
       for (const k of drillDownDirty) s.delete(k);
@@ -432,7 +412,7 @@ export default function ManageAvailability() {
     setDrillDownDirty(new Set());
     toast.success(`${drillDownDirty.size} slot(s) updated`);
     setDrillDownDate(null);
-  }, [drillDownDirty, availability]);
+  }, [drillDownDirty, availability, setDirtySlots]);
 
   const slotBg = (status: SlotStatus) => {
     if (status === "booked") return "bg-[#16332A] text-white";
@@ -445,31 +425,107 @@ export default function ManageAvailability() {
     return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, "0")}-${String(n.getDate()).padStart(2, "0")}`;
   }, []);
 
-  // Block date min = today
   const blockDateMin = todayStr;
 
   return (
     <>
       {/* ─── PAGE HEADER ─── */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
         <div>
           <p className="eyebrow mb-2">{t("availability.schedule")}</p>
-          <h1 className="text-[28px] font-display text-text leading-tight mb-1">
+          <h1 className="text-[28px] font-display text-text leading-tight">
             {t("availability.title")}
           </h1>
-          <p className="text-sm text-text-light">{t("availability.instruction")}</p>
         </div>
-        <button
-          onClick={handleFinishUpdate}
-          className={cn(
-            "btn-secondary !py-2 !px-5 text-sm shrink-0 self-start",
-            pendingCount === 0 && "opacity-50 cursor-not-allowed"
+      </div>
+
+      {/* ─── SCHEDULE CONFIG ─── */}
+      <div className="card-soft p-5 sm:p-6 mb-6">
+        <div className="flex flex-wrap items-end gap-3 mb-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] font-mono uppercase tracking-wider text-text-light">{t("availability.startTime")}</label>
+            <select
+              value={whStart}
+              onChange={(e) => setWhStart(e.target.value)}
+              className="px-3 py-2 rounded-xl border border-border bg-white text-sm text-text focus:outline-none focus:ring-2 focus:ring-secondary"
+            >
+              {TIME_OPTIONS.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </div>
+          <span className="text-text-light pb-2">—</span>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] font-mono uppercase tracking-wider text-text-light">{t("availability.endTime")}</label>
+            <select
+              value={whEnd}
+              onChange={(e) => setWhEnd(e.target.value)}
+              className="px-3 py-2 rounded-xl border border-border bg-white text-sm text-text focus:outline-none focus:ring-2 focus:ring-secondary"
+            >
+              {TIME_OPTIONS.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] font-mono uppercase tracking-wider text-text-light">{t("availability.slotInterval")}</label>
+            <select
+              value={whInterval}
+              onChange={(e) => setWhInterval(+e.target.value)}
+              className="px-3 py-2 rounded-xl border border-border bg-white text-sm text-text focus:outline-none focus:ring-2 focus:ring-secondary"
+            >
+              {SLOT_INTERVAL_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] font-mono uppercase tracking-wider text-text-light">{t("availability.applyScheduleLabel")}</label>
+            <select
+              value={scheduleRecurrence}
+              onChange={(e) => setScheduleRecurrence(e.target.value)}
+              className="px-3 py-2 rounded-xl border border-border bg-white text-sm text-text focus:outline-none focus:ring-2 focus:ring-secondary"
+            >
+              <option value="weekly">{t("availability.thisWeek")}</option>
+              <option value="monthly">{t("availability.thisMonth")}</option>
+              <option value="yearly">{t("availability.thisYear")}</option>
+              <option value="range">{t("availability.dateRange")}</option>
+            </select>
+          </div>
+          {scheduleRecurrence === "range" && (
+            <>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[11px] font-mono uppercase tracking-wider text-text-light">{t("availability.from")}</label>
+                <input
+                  type="date"
+                  value={scheduleDateFrom}
+                  onChange={(e) => setScheduleDateFrom(e.target.value)}
+                  className="px-3 py-2 rounded-xl border border-border bg-white text-sm text-text focus:outline-none focus:ring-2 focus:ring-secondary"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[11px] font-mono uppercase tracking-wider text-text-light">{t("availability.to")}</label>
+                <input
+                  type="date"
+                  value={scheduleDateTo}
+                  onChange={(e) => setScheduleDateTo(e.target.value)}
+                  min={scheduleDateFrom}
+                  className="px-3 py-2 rounded-xl border border-border bg-white text-sm text-text focus:outline-none focus:ring-2 focus:ring-secondary"
+                />
+              </div>
+            </>
           )}
-          disabled={pendingCount === 0}
-        >
-          <Check className="w-4 h-4 mr-1" />
-          Finish update{pendingCount > 0 ? ` (${pendingCount})` : ""}
-        </button>
+          <button
+            onClick={saveAndApplyHandler}
+            disabled={isApplyingSchedule}
+            className="btn-secondary !py-2 !px-6 text-sm"
+          >
+            {isApplyingSchedule ? (
+              <span className="flex items-center gap-2"><span className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full" /> {t("availability.saving")}</span>
+            ) : t("availability.saveAndApply")}
+          </button>
+        </div>
+        <p className="text-xs text-text-light">{t("availability.workingHoursDesc")}</p>
       </div>
 
       {/* ─── NAVIGATION BAR: view toggle + date nav ─── */}
@@ -482,7 +538,6 @@ export default function ManageAvailability() {
         </button>
 
         <div className="flex items-center gap-3">
-          {/* View toggle */}
           <div className="tabs-filter">
             <button
               onClick={() => setViewMode("week")}
@@ -493,7 +548,7 @@ export default function ManageAvailability() {
                   : "text-text-light hover:text-text"
               )}
             >
-              Weekly
+              {t("availability.weekly")}
             </button>
             <button
               onClick={() => setViewMode("month")}
@@ -504,11 +559,10 @@ export default function ManageAvailability() {
                   : "text-text-light hover:text-text"
               )}
             >
-              Monthly
+              {t("availability.monthly")}
             </button>
           </div>
 
-          {/* Date range label */}
           <span className="font-mono text-xs uppercase tracking-[0.1em] text-text-light">
             {viewMode === "week" ? weekLabel : monthLabel}
           </span>
@@ -526,7 +580,6 @@ export default function ManageAvailability() {
       {viewMode === "week" && (
         <div className="card-soft p-4 sm:p-6 mb-8 overflow-x-auto">
           <div className="min-w-[680px]">
-            {/* Column headers */}
             <div className="grid grid-cols-[64px_repeat(7,1fr)] gap-[5px] mb-[5px]">
               <div />
               {DAYS.map((day, ci) => {
@@ -553,9 +606,8 @@ export default function ManageAvailability() {
               })}
             </div>
 
-            {/* Grid rows */}
             {loading ? (
-              <div className="py-12 text-center text-sm text-text-light">Loading availability…</div>
+              <div className="py-12 text-center text-sm text-text-light">{t("availability.loading")}</div>
             ) : (
               timeSlots.map((time, ri) => (
                 <div key={time} className="grid grid-cols-[64px_repeat(7,1fr)] gap-[5px] mb-[5px]">
@@ -597,7 +649,6 @@ export default function ManageAvailability() {
             )}
           </div>
 
-          {/* Legend */}
           <div className="flex items-center gap-5 mt-4 pt-4 border-t border-border">
             <span className="flex items-center gap-1.5 font-mono text-[11px] text-text-light">
               <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#16332A]" />
@@ -615,7 +666,7 @@ export default function ManageAvailability() {
               <span className="inline-block w-2.5 h-2.5 rounded-[3px] bg-[#e8e8e8]" style={{
                 backgroundImage: "repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px)",
               }} />
-              Past
+              {t("availability.past")}
             </span>
           </div>
         </div>
@@ -625,10 +676,9 @@ export default function ManageAvailability() {
       {viewMode === "month" && (
         <div className="card-soft p-4 sm:p-6 mb-8">
           {loading ? (
-            <div className="py-12 text-center text-sm text-text-light">Loading month summary…</div>
+            <div className="py-12 text-center text-sm text-text-light">{t("availability.loadingMonth")}</div>
           ) : (
             <>
-              {/* Day-of-week headers */}
               <div className="grid grid-cols-7 gap-[5px] mb-[5px]">
                 {DAYS.map((day) => (
                   <div
@@ -640,7 +690,6 @@ export default function ManageAvailability() {
                 ))}
               </div>
 
-              {/* Calendar cells */}
               <div className="grid grid-cols-7 gap-[5px]">
                 {monthGrid.map((cellDate, idx) => {
                   if (!cellDate) {
@@ -682,7 +731,6 @@ export default function ManageAvailability() {
 
                       {totalSlots > 0 && !past && (
                         <div className="flex-1 flex flex-col justify-end w-full">
-                          {/* Proportional colored segments */}
                           <div className="flex h-[6px] rounded-full overflow-hidden gap-px mb-1">
                             {bookedCount > 0 && (
                               <div
@@ -722,7 +770,6 @@ export default function ManageAvailability() {
                 })}
               </div>
 
-              {/* Legend */}
               <div className="flex items-center gap-5 mt-4 pt-4 border-t border-border">
                 <span className="flex items-center gap-1.5 font-mono text-[11px] text-text-light">
                   <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#16332A]" />
@@ -740,7 +787,7 @@ export default function ManageAvailability() {
                   <span className="inline-block w-2.5 h-2.5 rounded-[3px] bg-[#e8e8e8]" style={{
                     backgroundImage: "repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px)",
                   }} />
-                  Past
+                  {t("availability.past")}
                 </span>
               </div>
             </>
@@ -748,75 +795,80 @@ export default function ManageAvailability() {
         </div>
       )}
 
-      {/* ─── RECURRING AVAILABILITY CARD ─── */}
-      <div className="mb-8">
-        <p className="eyebrow mb-3">{t("availability.recurringLabel")}</p>
-        <div className="card-soft p-5 sm:p-6">
-          {/* Day-of-week pills */}
-          <div className="flex flex-wrap gap-2 mb-4">
-            {DAYS.map((day, i) => (
-              <button
-                key={day}
-                onClick={() => togglePill(setSelectedDays)(i)}
-                className={cn(
-                  "px-4 py-1.5 rounded-full font-mono text-xs uppercase tracking-wider transition-all duration-150",
-                  selectedDays.has(i)
-                    ? "bg-secondary text-white"
-                    : "bg-white border-[1.5px] border-[rgba(30,42,46,.14)] text-text-light hover:border-secondary hover:text-secondary"
-                )}
-              >
-                {day}
-              </button>
-            ))}
-          </div>
-
-          {/* Session-period pills */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            {SESSION_PILLS.map((label) => (
-              <button
-                key={label}
-                onClick={() => toggleSessionPill(label)}
-                className={cn(
-                  "px-4 py-1.5 rounded-full font-mono text-xs uppercase tracking-wider transition-all duration-150",
-                  selectedSessions.has(label)
-                    ? "bg-secondary text-white"
-                    : "bg-white border-[1.5px] border-[rgba(30,42,46,.14)] text-text-light hover:border-secondary hover:text-secondary"
-                )}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-
-          {/* Action buttons */}
-          <div className="flex flex-wrap items-center gap-3">
-            <button onClick={saveRecurring} className="btn-secondary !py-2 !px-5 text-sm">
-              {t("availability.saveRecurring")}
+      {/* ─── SECONDARY ACTIONS ─── */}
+      <div className="mb-6">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="btn-outline !py-2 !px-4 text-sm flex items-center gap-2">
+              <MoreHorizontal className="w-4 h-4" />
+              {t("availability.moreActions")}
             </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-56">
+            <DropdownMenuItem onClick={() => { setShowOfmModal(true); computeOfmPreview(); }}>
+              <CalendarClock className="w-4 h-4 mr-2" />
+              {t("availability.openFullMonth")}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setShowBlockDateModal(true)}>
+              <CalendarOff className="w-4 h-4 mr-2" />
+              {t("availability.blockDate")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
-            <div className="flex items-center gap-2">
-              <input
-                type="date"
-                value={blockDateVal}
-                min={blockDateMin}
-                onChange={(e) => setBlockDateVal(e.target.value)}
-                className="px-3 py-1.5 rounded-full border border-border text-sm font-sans text-text bg-white outline-none focus:border-secondary transition-colors"
-              />
-              <button onClick={handleBlockDate} className="btn-outline !py-2 !px-5 text-sm">
-                {t("availability.blockDate")}
-              </button>
+      {/* ─── RECURRING PATTERNS ─── */}
+      {recurringPatterns.length > 0 && (
+        <div className="mb-8">
+          <p className="eyebrow mb-3">{t("availability.savedPatterns")}</p>
+          <div className="card-soft p-4">
+            <div className="space-y-2">
+              {recurringPatterns.map((pattern) => (
+                <div
+                  key={pattern.id}
+                  className={cn(
+                    "flex items-center justify-between p-3 rounded-xl border transition-colors",
+                    pattern.isActive
+                      ? "border-secondary/30 bg-secondary/5"
+                      : "border-border bg-white/50 opacity-60"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex gap-1">
+                      {pattern.days.map((d) => (
+                        <span
+                          key={d}
+                          className="px-2 py-0.5 rounded-full bg-secondary/10 text-secondary font-mono text-[10px] uppercase"
+                        >
+                          {DAYS[d]}
+                        </span>
+                      ))}
+                    </div>
+                    <span className="text-text-muted">·</span>
+                    <div className="flex gap-1">
+                      {pattern.sessions.map((s) => (
+                        <span
+                          key={s}
+                          className="px-2 py-0.5 rounded-full bg-surface text-text-light font-mono text-[10px] uppercase"
+                        >
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => deleteRecurring(pattern.id)}
+                    className="p-1.5 rounded-lg text-text-muted hover:text-danger hover:bg-danger/10 transition-colors"
+                    title={t("availability.deletePattern")}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
             </div>
-
-            <button
-              onClick={() => { setShowOfmModal(true); computeOfmPreview(); }}
-              className="btn-outline !py-2 !px-5 text-sm"
-            >
-              <CalendarDays className="w-4 h-4 mr-1" />
-              Open full month
-            </button>
           </div>
         </div>
-      </div>
+      )}
 
       {/* ─── SLOT DETAIL POPUP ─── */}
       {showSlotDetail && (
@@ -828,41 +880,41 @@ export default function ManageAvailability() {
             className="card-soft p-6 w-[320px] animate-slide-in-right"
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="eyebrow mb-2">Booking details</p>
+            <p className="eyebrow mb-2">{t("availability.bookingDetails")}</p>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-text-light">Patient</span>
+                <span className="text-text-light">{t("availability.patient")}</span>
                 <span className="font-medium text-text">{showSlotDetail.patientName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-text-light">Phone</span>
+                <span className="text-text-light">{t("availability.phone")}</span>
                 <span className="font-mono text-text">{showSlotDetail.patientPhone}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-text-light">Date</span>
+                <span className="text-text-light">{t("availability.date")}</span>
                 <span className="text-text">{showSlotDetail.date}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-text-light">Time</span>
+                <span className="text-text-light">{t("availability.time")}</span>
                 <span className="text-text">{to12h(showSlotDetail.time)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-text-light">Session</span>
+                <span className="text-text-light">{t("availability.session")}</span>
                 <span className="text-text">{showSlotDetail.sessionType}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-text-light">Fee</span>
+                <span className="text-text-light">{t("availability.fee")}</span>
                 <span className="font-medium text-text">Rs {showSlotDetail.fee?.toLocaleString()}</span>
               </div>
             </div>
             <p className="text-[11px] text-text-muted mt-3 pt-3 border-t border-border">
-              Booked slots cannot be edited here. Use schedule management to reschedule or cancel.
+              {t("availability.bookedEditNote")}
             </p>
             <button
               onClick={() => setShowSlotDetail(null)}
               className="btn-outline !py-1.5 !px-4 text-xs w-full mt-3"
             >
-              Close
+              {t("availability.close")}
             </button>
           </div>
         </div>
@@ -876,12 +928,12 @@ export default function ManageAvailability() {
               {drillDownDate && `${FULL_DAYS[drillDownDate.getDay()]}, ${drillDownDate.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`}
             </DialogTitle>
             <DialogDescription className="text-sm text-text-light">
-              Tap a slot to open or block it. Booked slots are view-only.
+              {t("availability.drillDownDesc")}
             </DialogDescription>
           </DialogHeader>
 
           {drillDownLoading ? (
-            <div className="py-8 text-center text-sm text-text-light">Loading slots…</div>
+            <div className="py-8 text-center text-sm text-text-light">{t("availability.loadingSlots")}</div>
           ) : drillDownDate ? (
             <div className="space-y-[5px]">
               {timeSlots.map((time) => {
@@ -925,29 +977,27 @@ export default function ManageAvailability() {
             </div>
           ) : null}
 
-          {/* Drill-down legend */}
           <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border">
             <span className="flex items-center gap-1.5 font-mono text-[10px] text-text-light">
               <span className="inline-block w-2 h-2 rounded-full bg-[#16332A]" />
-              Booked
+              {t("availability.booked")}
             </span>
             <span className="flex items-center gap-1.5 font-mono text-[10px] text-text-light">
               <span className="inline-block w-2 h-2 rounded-full bg-[#D1E8DF]" />
-              Open
+              {t("availability.open")}
             </span>
             <span className="flex items-center gap-1.5 font-mono text-[10px] text-text-light">
               <span className="inline-block w-2 h-2 rounded-full border border-[rgba(30,42,46,.25)] bg-[#FBFBF8]" />
-              Off
+              {t("availability.off")}
             </span>
           </div>
 
-          {/* Drill-down actions */}
           <div className="flex justify-end gap-3 pt-2">
             <button
               onClick={() => setDrillDownDate(null)}
               className="btn-outline !py-1.5 !px-4 text-xs"
             >
-              Cancel
+              {t("availability.cancel")}
             </button>
             {drillDownDirty.size > 0 && (
               <button
@@ -955,9 +1005,45 @@ export default function ManageAvailability() {
                 className="btn-secondary !py-1.5 !px-4 text-xs"
               >
                 <Check className="w-3.5 h-3.5 mr-1" />
-                Save ({drillDownDirty.size})
+                {t("availability.save")} ({drillDownDirty.size})
               </button>
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── BLOCK DATE MODAL ─── */}
+      <Dialog open={showBlockDateModal} onOpenChange={setShowBlockDateModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display">{t("availability.blockDate")}</DialogTitle>
+            <DialogDescription className="text-text-light text-sm">Select a date to block all slots.</DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 mt-2">
+            <input
+              type="date"
+              value={blockDateVal}
+              min={blockDateMin}
+              onChange={(e) => setBlockDateVal(e.target.value)}
+              className="px-3 py-2 rounded-xl border border-border bg-white text-sm text-text focus:outline-none focus:ring-2 focus:ring-secondary"
+            />
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setShowBlockDateModal(false)}
+                className="btn-outline !py-1.5 !px-4 text-xs"
+              >
+                {t("availability.cancel")}
+              </button>
+              <button
+                onClick={async () => {
+                  await handleBlockDate();
+                  setShowBlockDateModal(false);
+                }}
+                className="btn-secondary !py-1.5 !px-4 text-xs"
+              >
+                {t("availability.blockDate")}
+              </button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
@@ -966,13 +1052,12 @@ export default function ManageAvailability() {
       <Dialog open={showOfmModal} onOpenChange={setShowOfmModal}>
         <DialogContent className="sm:max-w-[440px]">
           <DialogHeader>
-            <DialogTitle className="font-display text-lg">Open full month</DialogTitle>
+            <DialogTitle className="font-display text-lg">{t("availability.openFullMonth")}</DialogTitle>
             <DialogDescription className="text-sm text-text-light">
-              Bulk-open slots for every matching day in a chosen month.
+              {t("availability.openFullMonthDesc")}
             </DialogDescription>
           </DialogHeader>
 
-          {/* Month / Year selector */}
           <div className="flex gap-3">
             <select
               value={ofmMonth}
@@ -994,9 +1079,8 @@ export default function ManageAvailability() {
             </select>
           </div>
 
-          {/* Day-of-week pills */}
           <div>
-            <p className="text-xs font-medium text-text-light mb-2">Days of week</p>
+            <p className="text-xs font-medium text-text-light mb-2">{t("availability.daysOfWeek")}</p>
             <div className="flex flex-wrap gap-2">
               {DAYS.map((day, i) => (
                 <button
@@ -1022,9 +1106,8 @@ export default function ManageAvailability() {
             </div>
           </div>
 
-          {/* Session-period pills */}
           <div>
-            <p className="text-xs font-medium text-text-light mb-2">Session periods</p>
+            <p className="text-xs font-medium text-text-light mb-2">{t("availability.sessionPeriods")}</p>
             <div className="flex flex-wrap gap-2">
               {SESSION_PILLS.map((label) => (
                 <button
@@ -1050,46 +1133,44 @@ export default function ManageAvailability() {
             </div>
           </div>
 
-          {/* Confirmation summary */}
           {ofmConfirmData && (
             <div className="p-3 rounded-xl bg-surface/60 text-sm text-text">
-              This will open{" "}
+              {t("availability.willOpen")}{" "}
               <span className="font-semibold text-secondary">
-                {ofmConfirmData.total - ofmConfirmData.booked} slot{ofmConfirmData.total - ofmConfirmData.booked !== 1 ? "s" : ""}
+                {ofmConfirmData.total - ofmConfirmData.booked} {t("availability.slots")}
               </span>{" "}
-              across {MONTH_NAMES[ofmMonth]}.{" "}
+              {t("availability.across")} {MONTH_NAMES[ofmMonth]}.{" "}
               {ofmConfirmData.booked > 0 && (
                 <>
                   <span className="font-semibold text-text-light">
-                    {ofmConfirmData.booked} existing booking(s)
+                    {ofmConfirmData.booked} {t("availability.existingBookings")}
                   </span>{" "}
-                  will be left untouched.{" "}
+                  {t("availability.leftUntouched")}{" "}
                 </>
               )}
               {ofmConfirmData.skippedPast > 0 && (
                 <span className="font-semibold text-text-light">
-                  Past dates were skipped ({ofmConfirmData.skippedPast} slot{ofmConfirmData.skippedPast > 1 ? "s" : ""}).
+                  {t("availability.pastSkipped")} ({ofmConfirmData.skippedPast} {t("availability.slots")}).
                 </span>
               )}
             </div>
           )}
 
-          {/* Actions */}
           <div className="flex justify-end gap-3 pt-2">
             {!ofmConfirmData ? (
               <button
                 onClick={computeOfmPreview}
                 className="btn-secondary !py-2 !px-5 text-sm"
               >
-                Preview
+                {t("availability.preview")}
               </button>
             ) : (
               <button
                 onClick={executeOpenFullMonth}
-                disabled={ofmApplying}
+                disabled={isOpeningMonth}
                 className="btn-secondary !py-2 !px-5 text-sm"
               >
-                {ofmApplying ? "Applying…" : "Confirm & apply"}
+                {isOpeningMonth ? t("availability.applying") : t("availability.confirmApply")}
               </button>
             )}
           </div>
