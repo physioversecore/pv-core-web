@@ -905,6 +905,11 @@ const ne = {
     reschedule: "पुनः तालिका गर्नुहोस्",
     deactivate: "निष्क्रिय गर्नुहोस्",
     patientDeactivated: "बिरामी निष्क्रिय भयो",
+    therapistDeleted: "चिकित्सक मेटाइयो",
+    therapistDeactivated: "चिकित्सक निष्क्रिय भयो",
+    therapistActivated: "चिकित्सक सक्रिय भयो",
+    phone: "फोन",
+    email: "इमेल",
     allBookings: "सबै बुकिङ्गहरू",
     bookingId: "बुकिङ्ग ID",
     patient: "बिरामी",
@@ -976,6 +981,9 @@ const ne = {
     noPayouts: "कुनै भुक्तानी फेला भएन।",
     paymentDetails: "भुक्तानी विवरण",
     payoutDetails: "भुक्तानी विवरण",
+    allSpecialties: "All Specialities",
+    allCities:"All cities"
+
   },
 
   notifs: {
