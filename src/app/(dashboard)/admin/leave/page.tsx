@@ -1,18 +1,23 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-import { Check, X, Eye, Calendar } from "lucide-react";
+import { Check, X, Eye, Search } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTableSort } from "@/hooks/useTableSort";
 import { useAdminLeaves } from "@/hooks/useAdminLeaves";
 import { DashboardStat } from "@/components/dashboard/DashboardStat";
 import {
   DataTable,
-  FilterBar,
   StatusChip,
   type Column,
-  type FilterConfig,
 } from "@/components/tables";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { AdminLeaveData } from "@/services/api/admin";
 import {
   Sheet,
@@ -22,13 +27,13 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 
+
 export default function LeavePage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
   const [page, setPage] = useState(1);
   const [detailRow, setDetailRow] = useState<AdminLeaveData | null>(null);
+  const [dateFrom, setDateFrom] = useState("");
 
   const debouncedSearch = useDebounce(search);
   const { sort, toggleSort, sortBy, sortOrder } = useTableSort({ defaultColumn: "therapist" });
@@ -38,7 +43,6 @@ export default function LeavePage() {
     search: debouncedSearch,
     status,
     dateFrom,
-    dateTo,
     sortBy,
     sortOrder,
     page,
@@ -49,21 +53,14 @@ export default function LeavePage() {
     setSearch("");
     setStatus("");
     setDateFrom("");
-    setDateTo("");
     setPage(1);
   }, []);
-
-  const filterValues = useMemo(
-    () => ({ search, status, dateFrom, dateTo }),
-    [search, status, dateFrom, dateTo],
-  );
 
   const handleFilterChange = useCallback(
     (key: string, value: string) => {
       if (key === "search") setSearch(value);
       else if (key === "status") setStatus(value);
       else if (key === "dateFrom") setDateFrom(value);
-      else if (key === "dateTo") setDateTo(value);
       setPage(1);
     },
     [],
@@ -150,26 +147,6 @@ export default function LeavePage() {
     [approveLeaveRequest, declineLeaveRequest],
   );
 
-  const filterConfig: FilterConfig[] = useMemo(
-    () => [
-      { key: "search", type: "search", label: "Therapist", placeholder: "Search therapist…" },
-      {
-        key: "status",
-        type: "select",
-        label: "Status",
-        placeholder: "All statuses",
-        options: [
-          { value: "Pending", label: "Pending" },
-          { value: "Approved", label: "Approved" },
-          { value: "Declined", label: "Declined" },
-        ],
-      },
-      { key: "dateFrom", type: "date", label: "From date" },
-      { key: "dateTo", type: "date", label: "To date" },
-    ],
-    [],
-  );
-
   return (
     <div>
       <div className="mb-5">
@@ -187,12 +164,63 @@ export default function LeavePage() {
       </div>
 
       <div className="card-soft p-5">
-        <FilterBar
-          filters={filterConfig}
-          values={filterValues}
-          onChange={handleFilterChange}
-          onClear={resetFilters}
-        />
+        <div className="flex items-end gap-3 mb-4">
+          <div className="flex flex-col gap-1.5 min-w-0">
+            <label className="text-[0.65rem] uppercase font-mono text-text-light">
+              Therapist
+            </label>
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" />
+              <input
+                value={search}
+                onChange={(e) => handleFilterChange("search", e.target.value)}
+                placeholder="Search therapist…"
+                className="pl-9 pr-3 py-2 h-9 rounded-full border border-border bg-background text-sm w-56"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5 min-w-0">
+            <label className="text-[0.65rem] uppercase font-mono text-text-light">
+              Status
+            </label>
+            <Select
+              value={status}
+              onValueChange={(v) => handleFilterChange("status", v)}
+            >
+              <SelectTrigger className="h-9 w-40 rounded-full border-border text-sm">
+                <SelectValue placeholder="All statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="Approved">Approved</SelectItem>
+                <SelectItem value="Declined">Declined</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col gap-1.5 min-w-0">
+            <label className="text-[0.65rem] uppercase font-mono text-text-light">
+              Date
+            </label>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => handleFilterChange("dateFrom", e.target.value)}
+              className="h-9 w-40 rounded-full border border-border bg-background px-3 text-sm"
+            />
+          </div>
+
+          {(status || dateFrom) && (
+            <button
+              onClick={resetFilters}
+              className="inline-flex items-center gap-1.5 h-9 self-end px-3 rounded-full text-xs font-medium text-text-light hover:text-text hover:bg-muted transition-colors cursor-pointer"
+            >
+              <X size={12} />
+              Clear
+            </button>
+          )}
+        </div>
         <DataTable
           columns={columns}
           data={items}
