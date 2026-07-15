@@ -219,6 +219,62 @@ export async function updateAdminComplaint(id: string, data: Partial<AdminCompla
   return api.put<AdminComplaintData>(`/admin/complaints/${id}`, data);
 }
 
+export interface PatientComplaintPayload {
+  patientId: string;
+  patient: string;
+  therapistId: string;
+  therapist: string;
+  bookingId?: string;
+  category: string;
+  priority: "Normal" | "Urgent";
+  description: string;
+  evidenceUrls?: string[];
+  preferredOutcome?: string;
+}
+
+export async function submitPatientComplaint(data: PatientComplaintPayload) {
+  return api.post<AdminComplaintData>("/admin/complaints", {
+    ...data,
+    type: "patient",
+    status: "Open",
+    filed: new Date().toISOString(),
+  });
+}
+
+export async function getPatientComplaints(patientId: string) {
+  return api.get<ListResponse<AdminComplaintData>>(
+    `/admin/complaints?type=patient&complainantId=${patientId}`
+  );
+}
+
+export interface TherapistComplaintPayload {
+  therapistId: string;
+  therapist: string;
+  patientId: string;
+  patient: string;
+  bookingId?: string;
+  category: string;
+  priority: "Normal" | "Urgent";
+  description: string;
+  evidenceUrls?: string[];
+  preferredOutcome?: string;
+}
+
+export async function submitTherapistComplaint(data: TherapistComplaintPayload) {
+  return api.post<AdminComplaintData>("/admin/complaints", {
+    ...data,
+    type: "therapist",
+    status: "Open",
+    filed: new Date().toISOString(),
+  });
+}
+
+export async function getTherapistComplaints(therapistId: string) {
+  return api.get<ListResponse<AdminComplaintData>>(
+    `/admin/complaints?type=therapist&complainantId=${therapistId}`
+  );
+}
+
 // --- Notifications ---
 export interface AdminNotificationData {
   id: string;
