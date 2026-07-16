@@ -1,7 +1,7 @@
 "use server";
 
 import { api, AuthError } from "./client";
-import type { WorkingHours, MonthlyGrid, RecurringPattern, RecurringPatternInput, OpenFullMonthOptions } from "@/lib/availability-utils";
+import type { WorkingHours, MonthlyGrid } from "@/lib/availability-utils";
 
 export async function getWorkingHours(): Promise<WorkingHours> {
   try {
@@ -44,45 +44,6 @@ export async function bulkUpdateSlots(
   return api.post<{ updated: number }>("/availability/bulk", { slots });
 }
 
-export async function applyRecurringPattern(
-  pattern: RecurringPatternInput,
-): Promise<{ affected: number; skippedPast: number; patternId: string }> {
-  return api.post<{ affected: number; skippedPast: number; patternId: string }>(
-    "/availability/recurring",
-    pattern,
-  );
-}
-
-export async function getRecurringPatterns(): Promise<RecurringPattern[]> {
-  try {
-    const res = await api.get<{ patterns: RecurringPattern[] }>("/availability/recurring");
-    return res.patterns ?? [];
-  } catch (e) {
-    if (e instanceof AuthError) return [];
-    throw e;
-  }
-}
-
-export async function deleteRecurringPattern(id: string): Promise<void> {
-  await api.delete(`/availability/recurring/${id}`);
-}
-
-export async function toggleRecurringPattern(
-  id: string,
-  isActive: boolean,
-): Promise<void> {
-  await api.put(`/availability/recurring/${id}`, { isActive });
-}
-
-export async function openFullMonth(
-  options: OpenFullMonthOptions,
-): Promise<{ opened: number; skippedBooked: number; skippedPast: number }> {
-  return api.post<{ opened: number; skippedBooked: number; skippedPast: number }>(
-    "/availability/open-month",
-    options,
-  );
-}
-
 export async function blockDate(
   date: string,
   sessions?: string[],
@@ -90,17 +51,5 @@ export async function blockDate(
   return api.post<{ blocked: number }>("/availability/block-date", {
     date,
     sessions,
-  });
-}
-
-export async function applySchedule(
-  recurrence: string,
-  dateFrom?: string,
-  dateTo?: string,
-): Promise<{ opened: number; skippedBooked: number; skippedPast: number; from: string; to: string }> {
-  return api.post("/availability/apply-schedule", {
-    recurrence,
-    dateFrom,
-    dateTo,
   });
 }

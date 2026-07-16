@@ -8,25 +8,20 @@ import {
   updateWorkingHours,
   getMonthlyAvailability,
   bulkUpdateSlots,
-  applyRecurringPattern as applyRecurringPatternApi,
-  getRecurringPatterns,
-  deleteRecurringPattern,
-  openFullMonth as openFullMonthApi,
   blockDate as blockDateApi,
-  applySchedule as applyScheduleApi,
 } from "@/services/api/availability";
 import {
   generateTimeSlots,
-  sessionPeriodForTime,
   isDateInPast,
   isSlotInPast,
   dateKeyStr,
   DEFAULT_SLOT_INTERVAL,
-  countOpenSlotsForMonth,
+  generateSlotsFromConfig,
+  isTimeInDayParts,
   type SlotInfo,
   type SlotStatus,
-  type WorkingHours,
-  type RecurringPatternInput,
+  type SessionBreakConfig,
+  type DayPart,
 } from "@/lib/availability-utils";
 
 export function useAvailability() {
@@ -51,21 +46,6 @@ export function useAvailability() {
     () => generateTimeSlots(workingHours.start, workingHours.end, workingHours.slotInterval ?? DEFAULT_SLOT_INTERVAL),
     [workingHours],
   );
-
-  const sessionPeriods = useMemo(() => {
-    const periods = new Set<string>();
-    for (const ts of timeSlots) periods.add(sessionPeriodForTime(ts));
-    return [...periods];
-  }, [timeSlots]);
-
-  const timeRowMap = useMemo(() => {
-    const map: Record<string, number[]> = { Morning: [], Afternoon: [], Evening: [] };
-    timeSlots.forEach((ts, i) => {
-      const p = sessionPeriodForTime(ts);
-      if (map[p]) map[p].push(i);
-    });
-    return map;
-  }, [timeSlots]);
 
   const [currentMonth, setCurrentMonth] = useState<{ year: number; month: number }>(() => {
     const now = new Date();
@@ -111,29 +91,6 @@ export function useAvailability() {
     [queryClient],
   );
 
-  const { data: recurringPatterns = [], isLoading: patternsLoading } = useQuery({
-    queryKey: ["availability", "recurring-patterns"],
-    queryFn: getRecurringPatterns,
-  });
-
-  const saveRecurringMutation = useMutation({
-    mutationFn: (pattern: RecurringPatternInput) => applyRecurringPatternApi(pattern),
-    onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: ["availability", "monthly"] });
-      queryClient.invalidateQueries({ queryKey: ["availability", "recurring-patterns"] });
-      return result;
-    },
-  });
-
-  const deleteRecurringMutation = useMutation({
-    mutationFn: (id: string) => deleteRecurringPattern(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["availability", "recurring-patterns"] });
-      toast.success("Recurring pattern deleted");
-    },
-    onError: () => toast.error("Failed to delete recurring pattern"),
-  });
-
   const setSlotStatus = useCallback(
     async (date: string, time: string, status: SlotStatus) => {
       const key = `${date}_${time}`;
@@ -150,20 +107,6 @@ export function useAvailability() {
     },
     [],
   );
-
-  const commitChanges = useCallback(async () => {
-    const updates: { date: string; time: string; status: string }[] = [];
-    for (const key of dirtySlots) {
-      const slot = availability[key];
-      if (slot) {
-        updates.push({ date: slot.date, time: slot.time, status: slot.status });
-      }
-    }
-    if (updates.length === 0) return;
-    await bulkUpdateSlots(updates);
-    setDirtySlots(new Set());
-    queryClient.invalidateQueries({ queryKey: ["availability", "monthly"] });
-  }, [dirtySlots, availability, queryClient]);
 
   const blockWholeDay = useCallback(
     async (date: Date) => {
@@ -188,49 +131,121 @@ export function useAvailability() {
   );
 
   const handleBlockDate = useCallback(
-    async (dateStr: string, sessions?: string[]) => {
+    async (dateStr: string) => {
       if (isDateInPast(dateStr)) {
         toast.info("Can't block a date in the past");
         return;
       }
-      await blockDateApi(dateStr, sessions);
+      await blockDateApi(dateStr);
       queryClient.invalidateQueries({ queryKey: ["availability", "monthly"] });
     },
     [queryClient],
   );
 
-  const openFullMonthMut = useMutation({
-    mutationFn: openFullMonthApi,
-    onSuccess: () => {
+  const applyScheduleConfig = useCallback(
+    async (config: SessionBreakConfig, days: number[]) => {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      const updates = generateSlotsFromConfig(config, days, year, month, availability);
+      if (updates.length === 0) {
+        toast.info("No slots to update");
+        return 0;
+      }
+      await bulkUpdateSlots(updates);
       queryClient.invalidateQueries({ queryKey: ["availability", "monthly"] });
+      return updates.length;
     },
-  });
+    [availability, queryClient],
+  );
 
-  const applyScheduleMut = useMutation({
-    mutationFn: ({ recurrence, dateFrom, dateTo }: { recurrence: string; dateFrom?: string; dateTo?: string }) =>
-      applyScheduleApi(recurrence, dateFrom, dateTo),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["availability", "monthly"] });
-    },
-  });
-
-  const getMonthSummaries = useCallback(
-    (monthGrid: (Date | null)[]) => {
-      const result: Record<string, { open: number; booked: number; off: number }> = {};
-      for (const cellDate of monthGrid) {
-        if (!cellDate) continue;
-        const dk = dateKeyStr(cellDate.getFullYear(), cellDate.getMonth(), cellDate.getDate());
-        const counts = { open: 0, booked: 0, off: 0 };
+  const blockDaysOff = useCallback(
+    async (days: number[], parts: DayPart[]) => {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const updates: { date: string; time: string; status: string }[] = [];
+      for (let d = 1; d <= daysInMonth; d++) {
+        const date = new Date(year, month, d);
+        const dow = date.getDay();
+        if (!days.includes(dow)) continue;
+        const dk = dateKeyStr(year, month, d);
+        if (isDateInPast(dk)) continue;
         for (const time of timeSlots) {
+          if (!isTimeInDayParts(time, parts)) continue;
+          if (isSlotInPast(dk, time)) continue;
+          const key = `${dk}_${time}`;
+          const current = availability[key];
+          if (current?.status === "booked") continue;
+          updates.push({ date: dk, time, status: "off" });
+        }
+      }
+      if (updates.length === 0) {
+        toast.info("No slots to block");
+        return 0;
+      }
+      await bulkUpdateSlots(updates);
+      queryClient.invalidateQueries({ queryKey: ["availability", "monthly"] });
+      return updates.length;
+    },
+    [timeSlots, availability, queryClient],
+  );
+
+  const unblockDaysOff = useCallback(
+    async (days: number[], parts: DayPart[]) => {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const updates: { date: string; time: string; status: string }[] = [];
+      for (let d = 1; d <= daysInMonth; d++) {
+        const date = new Date(year, month, d);
+        const dow = date.getDay();
+        if (!days.includes(dow)) continue;
+        const dk = dateKeyStr(year, month, d);
+        if (isDateInPast(dk)) continue;
+        for (const time of timeSlots) {
+          if (!isTimeInDayParts(time, parts)) continue;
+          if (isSlotInPast(dk, time)) continue;
+          const key = `${dk}_${time}`;
+          const current = availability[key];
+          if (current?.status !== "off") continue;
+          updates.push({ date: dk, time, status: "open" });
+        }
+      }
+      if (updates.length === 0) {
+        toast.info("No slots to unblock");
+        return 0;
+      }
+      await bulkUpdateSlots(updates);
+      queryClient.invalidateQueries({ queryKey: ["availability", "monthly"] });
+      return updates.length;
+    },
+    [timeSlots, availability, queryClient],
+  );
+
+  const hasBookingsOnDays = useCallback(
+    (days: number[], parts: DayPart[]): boolean => {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      for (let d = 1; d <= daysInMonth; d++) {
+        const date = new Date(year, month, d);
+        const dow = date.getDay();
+        if (!days.includes(dow)) continue;
+        const dk = dateKeyStr(year, month, d);
+        for (const time of timeSlots) {
+          if (!isTimeInDayParts(time, parts)) continue;
           const key = `${dk}_${time}`;
           const slot = availability[key];
-          counts[(slot?.status ?? "off") as keyof typeof counts]++;
+          if (slot?.status === "booked") return true;
         }
-        result[dk] = counts;
       }
-      return result;
+      return false;
     },
-    [availability, timeSlots],
+    [timeSlots, availability],
   );
 
   return {
@@ -239,8 +254,6 @@ export function useAvailability() {
     updateWorkingHours: updateWorkingHoursMut.mutateAsync,
     isUpdatingHours: updateWorkingHoursMut.isPending,
     timeSlots,
-    sessionPeriods,
-    timeRowMap,
     availability,
     setAvailability,
     dirtySlots,
@@ -250,32 +263,11 @@ export function useAvailability() {
     setCurrentMonth,
     loadMonth,
     setSlotStatus,
-    commitChanges,
     blockWholeDay,
     handleBlockDate,
-    getMonthSummaries,
-    recurringPatterns,
-    patternsLoading,
-    saveRecurring: saveRecurringMutation.mutateAsync,
-    isSavingRecurring: saveRecurringMutation.isPending,
-    deleteRecurring: deleteRecurringMutation.mutate,
-    openFullMonth: openFullMonthMut.mutateAsync,
-    isOpeningMonth: openFullMonthMut.isPending,
-    applySchedule: applyScheduleMut.mutateAsync,
-    isApplyingSchedule: applyScheduleMut.isPending,
+    applyScheduleConfig,
+    blockDaysOff,
+    unblockDaysOff,
+    hasBookingsOnDays,
   };
-}
-
-export function useCountOpenSlots() {
-  return useCallback(
-    (
-      year: number,
-      month: number,
-      days: number[],
-      sessions: string[],
-      wh: WorkingHours,
-      store?: Record<string, SlotInfo>,
-    ) => countOpenSlotsForMonth(year, month, days, sessions, wh, store),
-    [],
-  );
 }

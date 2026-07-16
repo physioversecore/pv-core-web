@@ -6,11 +6,6 @@ export {
   getMonthlyAvailability,
   setSlotStatus,
   bulkUpdateSlots,
-  applyRecurringPattern,
-  getRecurringPatterns,
-  deleteRecurringPattern,
-  toggleRecurringPattern,
-  openFullMonth,
   blockDate,
 } from "@/services/api/availability";
 
@@ -19,8 +14,5 @@ export type {
   SlotInfo,
   SlotStatus,
   MonthlyGrid,
-  RecurringPattern,
-  RecurringPatternInput,
-  OpenFullMonthOptions,
   MonthDaySummary,
 } from "@/lib/availability-utils";
