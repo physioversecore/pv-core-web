@@ -479,7 +479,7 @@ export default function ManageAvailability() {
               ))}
             </select>
           </div>
-          <div className="flex flex-col gap-1.5">
+          {/*<div className="flex flex-col gap-1.5">
             <label className="text-[11px] font-mono uppercase tracking-wider text-text-light">{t("availability.applyScheduleLabel")}</label>
             <select
               value={scheduleRecurrence}
@@ -491,8 +491,8 @@ export default function ManageAvailability() {
               <option value="yearly">{t("availability.thisYear")}</option>
               <option value="range">{t("availability.dateRange")}</option>
             </select>
-          </div>
-          {scheduleRecurrence === "range" && (
+          </div>*/}
+          {/*{scheduleRecurrence === "range" && (
             <>
               <div className="flex flex-col gap-1.5">
                 <label className="text-[11px] font-mono uppercase tracking-wider text-text-light">{t("availability.from")}</label>
@@ -514,7 +514,7 @@ export default function ManageAvailability() {
                 />
               </div>
             </>
-          )}
+          )}*/}
           <button
             onClick={saveAndApplyHandler}
             disabled={isApplyingSchedule}
