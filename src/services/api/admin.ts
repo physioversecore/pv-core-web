@@ -345,6 +345,7 @@ export interface AdminBookingData {
   status: "Confirmed" | "Cancelled" | "Rescheduled";
   trail: AdminBookingTrailEvent[];
   paymentStatus?: "Paid" | "Pending" | "Refunded";
+  paymentMethod?: string;
   sessionNotes?: string;
 }
 
@@ -487,12 +488,17 @@ export interface AdminVerificationData {
   documentType: "Practice license" | "Government ID" | "Certification";
   uploaded: string;
   expires: string | null;
-  status: "Pending review" | "Verified" | "Expiring soon" | "Expired" | "Rejected";
+  status: "Pending review" | "Verified" | "Expiring soon" | "Expired" | "Rejected" | "Escalated";
+  severity?: "Low" | "Medium" | "High" | "Critical";
+  reportedBy?: string;
+  phone?: string;
 }
 
 export interface AdminVerificationListParams extends AdminListParams {
   documentType?: string;
   status?: string;
+  severity?: string;
+  reportedBy?: string;
 }
 
 export async function getAdminVerifications(params?: AdminVerificationListParams) {
@@ -502,6 +508,8 @@ export async function getAdminVerifications(params?: AdminVerificationListParams
   if (params?.search) sp.set("search", params.search);
   if (params?.documentType) sp.set("documentType", params.documentType);
   if (params?.status) sp.set("status", params.status);
+  if (params?.severity) sp.set("severity", params.severity);
+  if (params?.reportedBy) sp.set("reportedBy", params.reportedBy);
   if (params?.sortBy) sp.set("sortBy", params.sortBy);
   if (params?.sortOrder) sp.set("sortOrder", params.sortOrder);
   return api.get<ListResponse<AdminVerificationData>>(`/admin/verifications?${sp.toString()}`);

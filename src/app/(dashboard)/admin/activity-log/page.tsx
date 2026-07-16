@@ -1,22 +1,21 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-import { Download } from "lucide-react";
+import { Download, Filter } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useTableSort } from "@/hooks/useTableSort";
 import { useAdminActivityLog } from "@/hooks/useAdminActivityLog";
-import { FilterBar, type FilterConfig } from "@/components/tables";
+import { DataTable, FilterBar, type Column, type FilterConfig } from "@/components/tables";
 import { toast } from "sonner";
+import type { AdminActivityLogEntry } from "@/services/api/admin";
 
 function formatTimestamp(dateStr: string): string {
   const date = new Date(dateStr);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
-  const diffMin = Math.floor(diffMs / 60000);
-  const diffHr = Math.floor(diffMs / 3600000);
   const diffDay = Math.floor(diffMs / 86400000);
-  const isToday = diffDay === 0;
 
-  if (isToday) {
+  if (diffDay === 0) {
     return `Today, ${date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}`;
   }
   if (diffDay === 1) {
@@ -32,8 +31,10 @@ export default function ActivityLogPage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [page, setPage] = useState(1);
+  const [showFilters, setShowFilters] = useState(false);
 
   const debouncedSearch = useDebounce(search);
+  const { sort, toggleSort, sortBy, sortOrder } = useTableSort({ defaultColumn: "timestamp", defaultDirection: "desc" });
   const pageSize = 15;
 
   const { items, total, isLoading } = useAdminActivityLog({
@@ -87,6 +88,52 @@ export default function ActivityLogPage() {
     toast.success("Exported audit log");
   }, [items]);
 
+  const columns: Column<AdminActivityLogEntry>[] = useMemo(
+    () => [
+      {
+        key: "timestamp",
+        label: "Time",
+        sortable: true,
+        render: (row) => (
+          <span className="font-mono text-[0.65rem] text-text-light uppercase">
+            {formatTimestamp(row.timestamp)}
+          </span>
+        ),
+      },
+      {
+        key: "actor",
+        label: "Actor",
+        sortable: true,
+        render: (row) => (
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-secondary shrink-0" />
+            <div className="flex flex-col">
+              <span className="font-medium">{row.actor}</span>
+              <span className="text-xs text-text-light">{row.actionType}</span>
+            </div>
+          </div>
+        ),
+      },
+      {
+        key: "actionType",
+        label: "Action",
+        render: (row) => (
+          <span className="chip !bg-muted !text-muted-foreground">{row.actionType}</span>
+        ),
+      },
+      {
+        key: "description",
+        label: "Description",
+        render: (row) => (
+          <p className="text-sm text-text leading-relaxed">
+            {highlightDescription(row.description)}
+          </p>
+        ),
+      },
+    ],
+    [],
+  );
+
   const filterConfig: FilterConfig[] = useMemo(
     () => [
       { key: "search", type: "search", label: "Search", placeholder: "Search admin or entity…" },
@@ -124,67 +171,52 @@ export default function ActivityLogPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between gap-3 flex-wrap mb-5">
-        <div>
-          <h2 className="font-display text-xl">Activity Log</h2>
-          <p className="text-sm text-text-light mt-1">
-            A complete, admin-level audit trail — every action taken across the platform.
-          </p>
-        </div>
-        <button onClick={exportCsv} className="btn-outline !py-2 !px-3 text-xs cursor-pointer">
-          <Download size={14} className="inline mr-1" /> Export audit log
-        </button>
-      </div>
-
       <div className="card-soft p-5">
-        <FilterBar
-          filters={filterConfig}
-          values={filterValues}
-          onChange={handleFilterChange}
-          onClear={resetFilters}
-        />
-
-        {isLoading ? (
-          <div className="space-y-3 py-4">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-16 bg-surface rounded-xl animate-pulse" />
-            ))}
+        <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+          <div>
+            <h3 className="font-display text-xl">Activity Log</h3>
+            <p className="text-sm text-text-light mt-1">
+              A complete, admin-level audit trail — every action taken across the platform.
+            </p>
           </div>
-        ) : items.length === 0 ? (
-          <p className="text-sm text-text-muted py-8 text-center">No log entries found</p>
-        ) : (
-          <div className="space-y-0 divide-y divide-border">
-            {items.map((entry) => (
-              <div key={entry.id} className="py-3.5 px-1">
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 rounded-full bg-secondary mt-1.5 shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="font-mono text-[0.65rem] text-text-light uppercase">
-                        {formatTimestamp(entry.timestamp)}
-                      </span>
-                      <span className="text-xs font-medium text-text">{entry.actor}</span>
-                    </div>
-                    <p className="text-sm text-text leading-relaxed">
-                      {highlightDescription(entry.description)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {total > pageSize && (
-          <div className="mt-4 flex justify-center">
+          <div className="flex items-center gap-2">
             <button
-              onClick={() => setPage((p) => p + 1)}
-              className="btn-outline !py-2 !px-4 text-xs cursor-pointer"
+              onClick={() => setShowFilters(!showFilters)}
+              className={`btn-outline !py-2 !px-3 text-xs cursor-pointer ${showFilters ? "!bg-secondary !text-white" : ""}`}
             >
-              Load more
+              <Filter size={14} className="inline mr-1" /> Filter
+            </button>
+            <button onClick={exportCsv} className="btn-outline !py-2 !px-3 text-xs cursor-pointer">
+              <Download size={14} className="inline mr-1" /> Export audit log
             </button>
           </div>
+        </div>
+
+        {showFilters && (
+          <FilterBar
+            filters={filterConfig}
+            values={filterValues}
+            onChange={handleFilterChange}
+            onClear={resetFilters}
+          />
         )}
+
+        <DataTable
+          columns={columns}
+          data={items}
+          total={total}
+          isLoading={isLoading}
+          sortColumn={sort.column}
+          sortOrder={sort.direction}
+          onSortToggle={(col) => {
+            toggleSort(col);
+            setPage(1);
+          }}
+          page={page}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          emptyMessage="No log entries found"
+        />
       </div>
 
       <p className="text-xs text-text-muted mt-4 text-center italic">

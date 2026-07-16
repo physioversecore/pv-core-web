@@ -20,12 +20,12 @@ import {
 } from "@/components/ui/select";
 import type { AdminLeaveData } from "@/services/api/admin";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 
 export default function LeavePage() {
@@ -250,12 +250,12 @@ function LeaveDetailDrawer({ leave, onClose }: { leave: AdminLeaveData; onClose:
   ];
 
   return (
-    <Sheet open onOpenChange={(open) => !open && onClose()}>
-      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle className="font-display">Leave Request</SheetTitle>
-          <SheetDescription>{leave.therapist} · {leave.reason}</SheetDescription>
-        </SheetHeader>
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="font-display">Leave Request</DialogTitle>
+          <DialogDescription>{leave.therapist} · {leave.reason}</DialogDescription>
+        </DialogHeader>
         <div className="mt-6 space-y-5">
           <div className="flex items-center gap-3">
             <StatusChip status={leave.status} />
@@ -288,8 +288,16 @@ function LeaveDetailDrawer({ leave, onClose }: { leave: AdminLeaveData; onClose:
             </div>
           </div>
         </div>
-      </SheetContent>
-    </Sheet>
+        <div className="mt-6 flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-full border border-border text-sm font-medium text-text-light hover:bg-muted transition-colors cursor-pointer"
+          >
+            Cancel
+          </button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
