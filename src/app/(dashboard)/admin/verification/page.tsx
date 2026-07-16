@@ -10,6 +10,8 @@ import {
   Phone,
   AlertTriangle,
   SlidersHorizontal,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -41,6 +43,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -63,6 +66,17 @@ export default function VerificationPage() {
     Record<string, Partial<AdminVerificationData>>
   >({});
 
+  const [editRow, setEditRow] = useState<AdminVerificationData | null>(null);
+  const [editForm, setEditForm] = useState({
+    documentType: "",
+    status: "",
+    severity: "",
+    expires: "",
+  });
+  const [editSaving, setEditSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<AdminVerificationData | null>(null);
+  const [deleteSaving, setDeleteSaving] = useState(false);
+
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
   const [severityFilter, setSeverityFilter] = useState("");
   const [reportedByFilter, setReportedByFilter] = useState("");
@@ -73,7 +87,7 @@ export default function VerificationPage() {
   });
   const pageSize = 10;
 
-  const { items, total, isLoading, approveVerif, rejectVerif } =
+  const { items, total, isLoading, approveVerif, rejectVerif, editVerif, deleteVerif } =
     useAdminVerifications({
       search: debouncedSearch,
       documentType,
@@ -153,6 +167,48 @@ export default function VerificationPage() {
     toast.success(`${escalateRow.therapist} has been escalated`);
     setEscalateRow(null);
   }, [escalateRow]);
+
+  const handleEditSave = useCallback(async () => {
+    if (!editRow) return;
+    setEditSaving(true);
+    try {
+      const payload: Partial<AdminVerificationData> = {};
+      if (editForm.documentType) payload.documentType = editForm.documentType as AdminVerificationData["documentType"];
+      if (editForm.status) payload.status = editForm.status as AdminVerificationData["status"];
+      if (editForm.severity) payload.severity = editForm.severity as AdminVerificationData["severity"];
+      if (editForm.expires !== undefined) payload.expires = editForm.expires || null;
+      await editVerif(editRow.id, payload);
+      setLocalOverrides((prev) => ({
+        ...prev,
+        [editRow.id]: { ...prev[editRow.id], ...payload },
+      }));
+      toast.success(`Verification for ${editRow.therapist} updated`);
+      setEditRow(null);
+    } catch {
+      toast.error("Failed to update verification");
+    } finally {
+      setEditSaving(false);
+    }
+  }, [editRow, editForm, editVerif]);
+
+  const handleDeleteSubmit = useCallback(async () => {
+    if (!deleteTarget) return;
+    setDeleteSaving(true);
+    try {
+      await deleteVerif(deleteTarget.id);
+      setLocalOverrides((prev) => {
+        const next = { ...prev };
+        delete next[deleteTarget.id];
+        return next;
+      });
+      toast.success(`Verification for ${deleteTarget.therapist} deleted`);
+      setDeleteTarget(null);
+    } catch {
+      toast.error("Failed to delete verification");
+    } finally {
+      setDeleteSaving(false);
+    }
+  }, [deleteTarget, deleteVerif]);
 
   const columns: Column<AdminVerificationData>[] = useMemo(
     () => [
@@ -278,6 +334,29 @@ export default function VerificationPage() {
           },
         });
       }
+
+      actions.push({
+        key: "edit",
+        label: "Edit",
+        icon: <Pencil size={14} />,
+        onClick: () => {
+          setEditForm({
+            documentType: row.documentType,
+            status: row.status,
+            severity: row.severity ?? "",
+            expires: row.expires ?? "",
+          });
+          setEditRow(row);
+        },
+      });
+
+      actions.push({
+        key: "delete",
+        label: "Delete",
+        icon: <Trash2 size={14} />,
+        variant: "destructive",
+        onClick: () => setDeleteTarget(row),
+      });
 
       return <ActionMenu actions={actions} />;
     },
@@ -517,6 +596,25 @@ export default function VerificationPage() {
           }}
         />
       )}
+
+      {editRow && (
+        <EditDrawer
+          verification={editRow}
+          form={editForm}
+          onFormChange={setEditForm}
+          onClose={() => setEditRow(null)}
+          onSave={handleEditSave}
+          saving={editSaving}
+        />
+      )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        onConfirm={handleDeleteSubmit}
+        title="Delete this verification?"
+        description={`Permanently delete the verification record for <strong>${deleteTarget?.therapist ?? ""}</strong> (${deleteTarget?.documentType ?? ""})? This action cannot be undone.`}
+      />
     </div>
   );
 }
@@ -664,6 +762,126 @@ function ReviewDrawer({
             </button>
             <button className="chip !bg-destructive !text-white cursor-pointer">
               <X size={12} className="inline mr-1" /> Reject
+            </button>
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function EditDrawer({
+  verification,
+  form,
+  onFormChange,
+  onClose,
+  onSave,
+  saving,
+}: {
+  verification: AdminVerificationData;
+  form: { documentType: string; status: string; severity: string; expires: string };
+  onFormChange: (f: { documentType: string; status: string; severity: string; expires: string }) => void;
+  onClose: () => void;
+  onSave: () => void;
+  saving: boolean;
+}) {
+  return (
+    <Sheet open onOpenChange={(open) => !open && onClose()}>
+      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle className="font-display">Edit Verification</SheetTitle>
+          <SheetDescription>
+            {verification.therapist} · {verification.documentType}
+          </SheetDescription>
+        </SheetHeader>
+        <div className="mt-6 space-y-5">
+          <div>
+            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+              Document Type
+            </label>
+            <Select
+              value={form.documentType}
+              onValueChange={(v) => onFormChange({ ...form, documentType: v })}
+            >
+              <SelectTrigger className="h-9 w-full rounded-full border-border text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Practice license">Practice license</SelectItem>
+                <SelectItem value="Government ID">Government ID</SelectItem>
+                <SelectItem value="Certification">Certification</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+              Status
+            </label>
+            <Select
+              value={form.status}
+              onValueChange={(v) => onFormChange({ ...form, status: v })}
+            >
+              <SelectTrigger className="h-9 w-full rounded-full border-border text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Pending review">Pending review</SelectItem>
+                <SelectItem value="Verified">Verified</SelectItem>
+                <SelectItem value="Expiring soon">Expiring soon</SelectItem>
+                <SelectItem value="Expired">Expired</SelectItem>
+                <SelectItem value="Rejected">Rejected</SelectItem>
+                <SelectItem value="Escalated">Escalated</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+              Severity
+            </label>
+            <Select
+              value={form.severity}
+              onValueChange={(v) => onFormChange({ ...form, severity: v })}
+            >
+              <SelectTrigger className="h-9 w-full rounded-full border-border text-sm">
+                <SelectValue placeholder="None" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Low">Low</SelectItem>
+                <SelectItem value="Medium">Medium</SelectItem>
+                <SelectItem value="High">High</SelectItem>
+                <SelectItem value="Critical">Critical</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+              Expiry Date
+            </label>
+            <Input
+              type="date"
+              value={form.expires}
+              onChange={(e) => onFormChange({ ...form, expires: e.target.value })}
+              className="h-9 w-full rounded-full border-border text-sm"
+            />
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <button
+              onClick={onSave}
+              disabled={saving}
+              className="chip !bg-success !text-white cursor-pointer disabled:opacity-50"
+            >
+              <Check size={12} className="inline mr-1" />
+              {saving ? "Saving…" : "Save Changes"}
+            </button>
+            <button
+              onClick={onClose}
+              className="chip cursor-pointer"
+            >
+              Cancel
             </button>
           </div>
         </div>

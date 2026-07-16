@@ -1,10 +1,13 @@
 "use client";
 
+import { useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getAdminVerifications,
   approveVerification,
   rejectVerification,
+  updateAdminVerification,
+  deleteAdminVerification,
   type AdminVerificationData,
 } from "@/services/api/admin";
 import type { SortDirection } from "@/hooks/useTableSort";
@@ -68,12 +71,28 @@ export function useAdminVerifications(params: UseAdminVerificationsParams) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
   });
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<AdminVerificationData> }) =>
+      updateAdminVerification(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteAdminVerification(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
+  });
+
   return {
     items,
     total,
     isLoading: query.isLoading,
     approveVerif: (id: string) => approveMutation.mutateAsync(id),
     rejectVerif: (id: string, note: string) => rejectMutation.mutateAsync({ id, note }),
+    editVerif: useCallback(
+      (id: string, data: Partial<AdminVerificationData>) => updateMutation.mutateAsync({ id, data }),
+      [updateMutation],
+    ),
+    deleteVerif: useCallback((id: string) => deleteMutation.mutateAsync(id), [deleteMutation]),
   };
 }
 

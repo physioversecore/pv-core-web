@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   Phone,
   ArrowUpRight,
@@ -132,6 +133,7 @@ function sleep(ms: number) {
 /* ------------------------------------------------------------------ */
 
 export default function SafetyIncidentsPage() {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [severity, setSeverity] = useState("");
   const [status, setStatus] = useState("");
@@ -496,7 +498,10 @@ export default function SafetyIncidentsPage() {
               {formatRelativeTime(activeIncidents[0].reportedAt)}
             </span>
           </div>
-          <button className="bg-white text-destructive font-bold px-4 py-2 rounded-full text-xs cursor-pointer hover:bg-white/90 transition">
+          <button
+            onClick={() => router.push("/admin/complaints")}
+            className="bg-white text-destructive font-bold px-4 py-2 rounded-full text-xs cursor-pointer hover:bg-white/90 transition"
+          >
             Respond now
           </button>
         </div>

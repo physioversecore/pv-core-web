@@ -1,15 +1,19 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-import { Check, X, Eye, Search } from "lucide-react";
+import { Check, X, Eye, Search, Pencil, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTableSort } from "@/hooks/useTableSort";
 import { useAdminLeaves } from "@/hooks/useAdminLeaves";
 import { DashboardStat } from "@/components/dashboard/DashboardStat";
 import {
   DataTable,
+  ActionMenu,
+  ConfirmDialog,
   StatusChip,
   type Column,
+  type ActionItem,
 } from "@/components/tables";
 import {
   Select,
@@ -33,13 +37,15 @@ export default function LeavePage() {
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
   const [detailRow, setDetailRow] = useState<AdminLeaveData | null>(null);
+  const [editRow, setEditRow] = useState<AdminLeaveData | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AdminLeaveData | null>(null);
   const [dateFrom, setDateFrom] = useState("");
 
   const debouncedSearch = useDebounce(search);
   const { sort, toggleSort, sortBy, sortOrder } = useTableSort({ defaultColumn: "therapist" });
   const pageSize = 10;
 
-  const { items, total, isLoading, approveLeaveRequest, declineLeaveRequest } = useAdminLeaves({
+  const { items, total, isLoading, approveLeaveRequest, declineLeaveRequest, updateLeaveRequest, deleteLeaveRequest } = useAdminLeaves({
     search: debouncedSearch,
     status,
     dateFrom,
@@ -64,6 +70,31 @@ export default function LeavePage() {
       setPage(1);
     },
     [],
+  );
+
+  const handleDelete = useCallback(async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteLeaveRequest(deleteTarget.id);
+      toast.success("Leave request deleted");
+      setDeleteTarget(null);
+    } catch {
+      toast.error("Something went wrong");
+    }
+  }, [deleteTarget, deleteLeaveRequest]);
+
+  const handleEditSave = useCallback(
+    async (data: Partial<Pick<AdminLeaveData, "dateFrom" | "dateTo" | "reason">>) => {
+      if (!editRow) return;
+      try {
+        await updateLeaveRequest(editRow.id, data);
+        toast.success("Leave request updated");
+        setEditRow(null);
+      } catch {
+        toast.error("Something went wrong");
+      }
+    },
+    [editRow, updateLeaveRequest],
   );
 
   const columns: Column<AdminLeaveData>[] = useMemo(
@@ -114,36 +145,49 @@ export default function LeavePage() {
   );
 
   const renderActions = useCallback(
-    (row: AdminLeaveData) => (
-      <div className="flex items-center justify-end gap-1">
-        {row.status === "Pending" ? (
-          <>
-            <button
-              onClick={() => approveLeaveRequest(row.id)}
-              className="p-1.5 rounded-lg hover:bg-success/10 text-success transition cursor-pointer"
-              title="Approve"
-            >
-              <Check size={15} />
-            </button>
-            <button
-              onClick={() => declineLeaveRequest(row.id)}
-              className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive transition cursor-pointer"
-              title="Decline"
-            >
-              <X size={15} />
-            </button>
-          </>
-        ) : (
-          <button
-            onClick={() => setDetailRow(row)}
-            className="p-1.5 rounded-lg hover:bg-surface text-text-light hover:text-secondary transition cursor-pointer"
-            title="View"
-          >
-            <Eye size={15} />
-          </button>
-        )}
-      </div>
-    ),
+    (row: AdminLeaveData) => {
+      const actions: ActionItem[] = [];
+
+      if (row.status === "Pending") {
+        actions.push({
+          key: "approve",
+          label: "Approve",
+          icon: <Check size={14} />,
+          onClick: () => approveLeaveRequest(row.id),
+        });
+        actions.push({
+          key: "decline",
+          label: "Decline",
+          icon: <X size={14} />,
+          variant: "destructive",
+          onClick: () => declineLeaveRequest(row.id),
+        });
+      }
+
+      actions.push({
+        key: "view",
+        label: "View",
+        icon: <Eye size={14} />,
+        onClick: () => setDetailRow(row),
+      });
+
+      actions.push({
+        key: "edit",
+        label: "Edit",
+        icon: <Pencil size={14} />,
+        onClick: () => setEditRow(row),
+      });
+
+      actions.push({
+        key: "delete",
+        label: "Delete",
+        icon: <Trash2 size={14} />,
+        variant: "destructive",
+        onClick: () => setDeleteTarget(row),
+      });
+
+      return <ActionMenu actions={actions} />;
+    },
     [approveLeaveRequest, declineLeaveRequest],
   );
 
@@ -238,6 +282,22 @@ export default function LeavePage() {
       </div>
 
       {detailRow && <LeaveDetailDrawer leave={detailRow} onClose={() => setDetailRow(null)} />}
+
+      {editRow && (
+        <EditLeaveDialog
+          leave={editRow}
+          onClose={() => setEditRow(null)}
+          onSave={handleEditSave}
+        />
+      )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        title="Delete leave request"
+        description={`Are you sure you want to delete the leave request for ${deleteTarget?.therapist ?? ""}?`}
+      />
     </div>
   );
 }
@@ -303,4 +363,87 @@ function LeaveDetailDrawer({ leave, onClose }: { leave: AdminLeaveData; onClose:
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function EditLeaveDialog({
+  leave,
+  onClose,
+  onSave,
+}: {
+  leave: AdminLeaveData;
+  onClose: () => void;
+  onSave: (data: Partial<Pick<AdminLeaveData, "dateFrom" | "dateTo" | "reason">>) => Promise<void>;
+}) {
+  const [dateFrom, setDateFrom] = useState(leave.dateFrom);
+  const [dateTo, setDateTo] = useState(leave.dateTo);
+  const [reason, setReason] = useState(leave.reason);
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await onSave({ dateFrom, dateTo, reason });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+      <div
+        className="bg-background rounded-lg border shadow-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 className="font-display text-lg mb-4">Edit Leave Request</h3>
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div>
+            <label className="text-xs font-mono text-text-light uppercase">Therapist</label>
+            <p className="mt-1 text-sm font-medium">{leave.therapist}</p>
+          </div>
+          <div>
+            <label className="text-xs font-mono text-text-light uppercase">Date From</label>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              required
+              className="w-full mt-1 px-3 py-2 rounded-md border border-input bg-transparent text-sm"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-mono text-text-light uppercase">Date To</label>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              required
+              className="w-full mt-1 px-3 py-2 rounded-md border border-input bg-transparent text-sm"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-mono text-text-light uppercase">Reason</label>
+            <input
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              required
+              className="w-full mt-1 px-3 py-2 rounded-md border border-input bg-transparent text-sm"
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" onClick={onClose} className="btn-outline !py-1.5 !px-4 text-xs cursor-pointer">
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="chip !bg-secondary !text-white cursor-pointer disabled:opacity-50"
+            >
+              {saving ? "Saving..." : "Save"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 }

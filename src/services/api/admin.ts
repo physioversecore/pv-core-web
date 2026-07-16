@@ -480,6 +480,14 @@ export async function declineLeave(id: string, reason?: string) {
   return api.put<AdminLeaveData>(`/admin/leaves/${id}`, { status: "Declined", reason });
 }
 
+export async function updateLeave(id: string, data: Partial<Pick<AdminLeaveData, "dateFrom" | "dateTo" | "reason">>) {
+  return api.put<AdminLeaveData>(`/admin/leaves/${id}`, data);
+}
+
+export async function deleteLeave(id: string) {
+  return api.delete(`/admin/leaves/${id}`);
+}
+
 // --- Therapist Verification ---
 export interface AdminVerificationData {
   id: string;
@@ -525,6 +533,14 @@ export async function rejectVerification(id: string, note: string) {
 
 export async function suspendTherapistBookings(id: string) {
   return api.put(`/admin/verifications/${id}/suspend`, {});
+}
+
+export async function updateAdminVerification(id: string, data: Partial<AdminVerificationData>) {
+  return api.put<AdminVerificationData>(`/admin/verifications/${id}`, data);
+}
+
+export async function deleteAdminVerification(id: string) {
+  return api.delete(`/admin/verifications/${id}`);
 }
 
 // --- Therapist Performance ---
