@@ -1,13 +1,72 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-import { ChevronDown, ChevronRight, ArrowLeftRight, Phone, Mail, FileText } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  ArrowLeftRight,
+  Phone,
+  Mail,
+  FileText,
+  Plus,
+} from "lucide-react";
+import { toast } from "sonner";
 import { useLang } from "@/context/i18n";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTableSort } from "@/hooks/useTableSort";
 import { useAdminBookings } from "@/hooks/useAdminBookings";
 import { FilterBar, StatusChip, type FilterConfig } from "@/components/tables";
+import BookingModal from "@/components/booking/BookingModal";
 import type { AdminBookingData, AdminBookingTrailEvent } from "@/services/api/admin";
+import type { AdminBookingResult } from "@/components/booking/types";
+
+function notifyBookingParties(booking: AdminBookingResult) {
+  const dateStr = new Date(booking.date).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+
+  toast.success(
+    `Notified ${booking.patientName}: Your session with ${booking.therapistName} on ${dateStr} at ${booking.time} is confirmed.`,
+  );
+
+  setTimeout(() => {
+    toast.info(
+      `Notified ${booking.therapistName}: New session booked with ${booking.patientName} on ${dateStr} at ${booking.time}.`,
+    );
+  }, 600);
+}
+
+function buildAdminBookingFromResult(result: AdminBookingResult): AdminBookingData {
+  const dateStr = new Date(result.date).toISOString().slice(0, 10);
+  return {
+    id: result.reference,
+    patient: result.patientName,
+    patientId: result.patientId,
+    patientPhone: result.patientPhone,
+    patientEmail: result.patientEmail,
+    therapist: result.therapistName,
+    therapistId: result.therapistId,
+    therapistPhone: result.therapistPhone,
+    therapistEmail: result.therapistEmail,
+    date: dateStr,
+    originalTime: result.time,
+    sessionType: "Physiotherapy session",
+    status: "Confirmed",
+    paymentStatus: "Pending",
+    paymentMethod: result.paymentMethod,
+    trail: [
+      {
+        id: "evt-new-" + result.reference,
+        type: "confirmed",
+        timestamp: new Date().toISOString(),
+        description: `Session booked by admin — ${result.patientName} with ${result.therapistName} on ${dateStr} at ${result.time}.${result.paymentMethod ? ` Payment via ${result.paymentMethod}.` : ""}`,
+        dotColor: "secondary",
+      },
+    ],
+  };
+}
 
 export default function AdminBookingsPage() {
   const { t } = useLang();
@@ -17,12 +76,14 @@ export default function AdminBookingsPage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [page, setPage] = useState(1);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [adminBookings, setAdminBookings] = useState<AdminBookingData[]>([]);
 
   const debouncedSearch = useDebounce(search);
   const { sort, toggleSort, sortBy, sortOrder } = useTableSort({ defaultColumn: "date" });
   const pageSize = 20;
 
-  const { items, total, isLoading } = useAdminBookings({
+  const { items: apiItems, total: apiTotal, isLoading } = useAdminBookings({
     search: debouncedSearch,
     status,
     dateFrom,
@@ -32,6 +93,32 @@ export default function AdminBookingsPage() {
     page,
     pageSize,
   });
+
+  const allItems = useMemo(() => {
+    const combined = [...adminBookings, ...apiItems];
+    let result = combined;
+
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase();
+      result = result.filter(
+        (r) =>
+          r.patient.toLowerCase().includes(q) ||
+          r.therapist.toLowerCase().includes(q) ||
+          r.id.toLowerCase().includes(q),
+      );
+    }
+    if (status) {
+      result = result.filter((r) => r.status === status);
+    }
+    if (dateFrom) {
+      result = result.filter((r) => r.date >= dateFrom);
+    }
+    if (dateTo) {
+      result = result.filter((r) => r.date <= dateTo);
+    }
+
+    return result;
+  }, [adminBookings, apiItems, debouncedSearch, status, dateFrom, dateTo]);
 
   const resetFilters = useCallback(() => {
     setSearch("");
@@ -82,6 +169,12 @@ export default function AdminBookingsPage() {
     [t],
   );
 
+  const handleBookingCreated = useCallback((result: AdminBookingResult) => {
+    const newBooking = buildAdminBookingFromResult(result);
+    setAdminBookings((prev) => [newBooking, ...prev]);
+    notifyBookingParties(result);
+  }, []);
+
   return (
     <div className="space-y-4">
       <div className="card-soft p-5">
@@ -92,6 +185,13 @@ export default function AdminBookingsPage() {
               Cancellations and reschedules update the therapist&apos;s calendar instantly and notify both sides.
             </p>
           </div>
+          <button
+            onClick={() => setShowBookingModal(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#1F3D2B] text-white text-sm font-semibold hover:bg-[#1F3D2B]/90 transition-colors shrink-0"
+          >
+            <Plus size={16} />
+            Book Session
+          </button>
         </div>
 
         <FilterBar
@@ -111,16 +211,24 @@ export default function AdminBookingsPage() {
               <div className="h-3 w-32 bg-surface rounded" />
             </div>
           ))
-        ) : items.length === 0 ? (
+        ) : allItems.length === 0 ? (
           <div className="card-soft p-12 text-center">
             <p className="text-sm text-text-muted">{t("common.noResults") ?? "No bookings found."}</p>
           </div>
         ) : (
-          items.map((booking) => (
+          allItems.map((booking) => (
             <BookingCard key={booking.id} booking={booking} />
           ))
         )}
       </div>
+
+      {showBookingModal && (
+        <BookingModal
+          mode="admin"
+          onClose={() => setShowBookingModal(false)}
+          onBookingCreated={handleBookingCreated}
+        />
+      )}
     </div>
   );
 }
@@ -192,6 +300,12 @@ function BookingCard({ booking }: { booking: AdminBookingData }) {
                 <div>
                   <div className="text-[0.65rem] uppercase font-mono text-text-light">Payment</div>
                   <StatusChip status={booking.paymentStatus} />
+                </div>
+              )}
+              {booking.paymentMethod && (
+                <div>
+                  <div className="text-[0.65rem] uppercase font-mono text-text-light">Payment method</div>
+                  <div className="text-sm text-text capitalize">{booking.paymentMethod}</div>
                 </div>
               )}
               {booking.sessionNotes && (

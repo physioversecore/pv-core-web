@@ -4,6 +4,8 @@ import { useState, useCallback, useMemo } from "react";
 import {
   approveLeave,
   declineLeave,
+  updateLeave,
+  deleteLeave,
   type AdminLeaveData,
 } from "@/services/api/admin";
 import type { SortDirection } from "@/hooks/useTableSort";
@@ -86,11 +88,39 @@ export function useAdminLeaves(params: UseAdminLeavesParams) {
     [],
   );
 
+  const updateLeaveRequest = useCallback(
+    async (id: string, data: Partial<Pick<AdminLeaveData, "dateFrom" | "dateTo" | "reason">>) => {
+      try {
+        await updateLeave(id, data);
+      } catch {
+        // API unavailable — update mock locally
+      }
+      setSeed((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, ...data } : r)),
+      );
+    },
+    [],
+  );
+
+  const deleteLeaveRequest = useCallback(
+    async (id: string) => {
+      try {
+        await deleteLeave(id);
+      } catch {
+        // API unavailable — update mock locally
+      }
+      setSeed((prev) => prev.filter((r) => r.id !== id));
+    },
+    [],
+  );
+
   return {
     items,
     total,
     isLoading: false,
     approveLeaveRequest,
     declineLeaveRequest,
+    updateLeaveRequest,
+    deleteLeaveRequest,
   };
 }

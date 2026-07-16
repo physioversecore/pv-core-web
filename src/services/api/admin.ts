@@ -345,6 +345,7 @@ export interface AdminBookingData {
   status: "Confirmed" | "Cancelled" | "Rescheduled";
   trail: AdminBookingTrailEvent[];
   paymentStatus?: "Paid" | "Pending" | "Refunded";
+  paymentMethod?: string;
   sessionNotes?: string;
 }
 
@@ -479,6 +480,14 @@ export async function declineLeave(id: string, reason?: string) {
   return api.put<AdminLeaveData>(`/admin/leaves/${id}`, { status: "Declined", reason });
 }
 
+export async function updateLeave(id: string, data: Partial<Pick<AdminLeaveData, "dateFrom" | "dateTo" | "reason">>) {
+  return api.put<AdminLeaveData>(`/admin/leaves/${id}`, data);
+}
+
+export async function deleteLeave(id: string) {
+  return api.delete(`/admin/leaves/${id}`);
+}
+
 // --- Therapist Verification ---
 export interface AdminVerificationData {
   id: string;
@@ -487,12 +496,17 @@ export interface AdminVerificationData {
   documentType: "Practice license" | "Government ID" | "Certification";
   uploaded: string;
   expires: string | null;
-  status: "Pending review" | "Verified" | "Expiring soon" | "Expired" | "Rejected";
+  status: "Pending review" | "Verified" | "Expiring soon" | "Expired" | "Rejected" | "Escalated";
+  severity?: "Low" | "Medium" | "High" | "Critical";
+  reportedBy?: string;
+  phone?: string;
 }
 
 export interface AdminVerificationListParams extends AdminListParams {
   documentType?: string;
   status?: string;
+  severity?: string;
+  reportedBy?: string;
 }
 
 export async function getAdminVerifications(params?: AdminVerificationListParams) {
@@ -502,6 +516,8 @@ export async function getAdminVerifications(params?: AdminVerificationListParams
   if (params?.search) sp.set("search", params.search);
   if (params?.documentType) sp.set("documentType", params.documentType);
   if (params?.status) sp.set("status", params.status);
+  if (params?.severity) sp.set("severity", params.severity);
+  if (params?.reportedBy) sp.set("reportedBy", params.reportedBy);
   if (params?.sortBy) sp.set("sortBy", params.sortBy);
   if (params?.sortOrder) sp.set("sortOrder", params.sortOrder);
   return api.get<ListResponse<AdminVerificationData>>(`/admin/verifications?${sp.toString()}`);
@@ -517,6 +533,14 @@ export async function rejectVerification(id: string, note: string) {
 
 export async function suspendTherapistBookings(id: string) {
   return api.put(`/admin/verifications/${id}/suspend`, {});
+}
+
+export async function updateAdminVerification(id: string, data: Partial<AdminVerificationData>) {
+  return api.put<AdminVerificationData>(`/admin/verifications/${id}`, data);
+}
+
+export async function deleteAdminVerification(id: string) {
+  return api.delete(`/admin/verifications/${id}`);
 }
 
 // --- Therapist Performance ---
