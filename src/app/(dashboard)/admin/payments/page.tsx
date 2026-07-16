@@ -29,6 +29,8 @@ export default function AdminPayments() {
   const [patientSearch, setPatientSearch] = useState("");
   const [patientDateFrom, setPatientDateFrom] = useState("");
   const [patientDateTo, setPatientDateTo] = useState("");
+  const [patientStatus, setPatientStatus] = useState("");
+  const [patientMethod, setPatientMethod] = useState("");
   const [patientPage, setPatientPage] = useState(1);
   const [editPaymentRow, setEditPaymentRow] = useState<AdminPaymentData | null>(null);
   const [deletePaymentTarget, setDeletePaymentTarget] = useState<AdminPaymentData | null>(null);
@@ -50,6 +52,8 @@ export default function AdminPayments() {
     dateTo: patientDateTo,
     patientId: "",
     therapistId: "",
+    status: patientStatus,
+    method: patientMethod,
     sortBy: patientSort.sortBy,
     sortOrder: patientSort.sortOrder,
     page: patientPage,
@@ -60,12 +64,20 @@ export default function AdminPayments() {
     setPatientSearch("");
     setPatientDateFrom("");
     setPatientDateTo("");
+    setPatientStatus("");
+    setPatientMethod("");
     setPatientPage(1);
   }, []);
 
   const patientFilterValues = useMemo(
-    () => ({ search: patientSearch, dateFrom: patientDateFrom, dateTo: patientDateTo }),
-    [patientSearch, patientDateFrom, patientDateTo],
+    () => ({
+      search: patientSearch,
+      dateFrom: patientDateFrom,
+      dateTo: patientDateTo,
+      status: patientStatus,
+      method: patientMethod,
+    }),
+    [patientSearch, patientDateFrom, patientDateTo, patientStatus, patientMethod],
   );
 
   const handlePatientFilterChange = useCallback(
@@ -73,6 +85,8 @@ export default function AdminPayments() {
       if (key === "search") setPatientSearch(value);
       else if (key === "dateFrom") setPatientDateFrom(value);
       else if (key === "dateTo") setPatientDateTo(value);
+      else if (key === "status") setPatientStatus(value);
+      else if (key === "method") setPatientMethod(value);
       setPatientPage(1);
     },
     [],
@@ -243,6 +257,29 @@ export default function AdminPayments() {
         label: t("admin_dashboard.patient") ?? "Patient",
         placeholder: t("admin_dashboard.searchPlaceholder") ?? "Search patient name...",
       },
+      {
+        key: "status",
+        type: "select",
+        label: t("admin_dashboard.status") ?? "Status",
+        placeholder: "All statuses",
+        options: [
+          { value: "Paid", label: t("admin_dashboard.paid") ?? "Paid" },
+          { value: "Pending", label: t("admin_dashboard.pending") ?? "Pending" },
+          { value: "Refunded", label: t("admin_dashboard.refunded") ?? "Refunded" },
+        ],
+      },
+      {
+        key: "method",
+        type: "select",
+        label: t("admin_dashboard.method") ?? "Method",
+        placeholder: "All methods",
+        options: [
+          { value: "eSewa", label: "eSewa" },
+          { value: "Khalti", label: "Khalti" },
+          { value: "Cash", label: "Cash" },
+          { value: "Bank", label: "Bank" },
+        ],
+      },
       { key: "dateFrom", type: "date", label: t("admin_dashboard.joined") ?? "From date" },
       { key: "dateTo", type: "date", label: "To date" },
     ],
@@ -253,6 +290,8 @@ export default function AdminPayments() {
   const [payoutSearch, setPayoutSearch] = useState("");
   const [payoutDateFrom, setPayoutDateFrom] = useState("");
   const [payoutDateTo, setPayoutDateTo] = useState("");
+  const [payoutStatus, setPayoutStatus] = useState("");
+  const [payoutMethod, setPayoutMethod] = useState("");
   const [payoutPage, setPayoutPage] = useState(1);
   const [editPayoutRow, setEditPayoutRow] = useState<AdminPayoutData | null>(null);
   const [deletePayoutTarget, setDeletePayoutTarget] = useState<AdminPayoutData | null>(null);
@@ -273,6 +312,8 @@ export default function AdminPayments() {
     dateFrom: payoutDateFrom,
     dateTo: payoutDateTo,
     therapistId: "",
+    status: payoutStatus,
+    method: payoutMethod,
     sortBy: payoutSort.sortBy,
     sortOrder: payoutSort.sortOrder,
     page: payoutPage,
@@ -283,12 +324,20 @@ export default function AdminPayments() {
     setPayoutSearch("");
     setPayoutDateFrom("");
     setPayoutDateTo("");
+    setPayoutStatus("");
+    setPayoutMethod("");
     setPayoutPage(1);
   }, []);
 
   const payoutFilterValues = useMemo(
-    () => ({ search: payoutSearch, dateFrom: payoutDateFrom, dateTo: payoutDateTo }),
-    [payoutSearch, payoutDateFrom, payoutDateTo],
+    () => ({
+      search: payoutSearch,
+      dateFrom: payoutDateFrom,
+      dateTo: payoutDateTo,
+      status: payoutStatus,
+      method: payoutMethod,
+    }),
+    [payoutSearch, payoutDateFrom, payoutDateTo, payoutStatus, payoutMethod],
   );
 
   const handlePayoutFilterChange = useCallback(
@@ -296,6 +345,8 @@ export default function AdminPayments() {
       if (key === "search") setPayoutSearch(value);
       else if (key === "dateFrom") setPayoutDateFrom(value);
       else if (key === "dateTo") setPayoutDateTo(value);
+      else if (key === "status") setPayoutStatus(value);
+      else if (key === "method") setPayoutMethod(value);
       setPayoutPage(1);
     },
     [],
@@ -445,6 +496,27 @@ export default function AdminPayments() {
         label: t("admin_dashboard.therapist") ?? "Therapist",
         placeholder: t("admin_dashboard.searchTherapist") ?? "Search therapist name...",
       },
+      {
+        key: "status",
+        type: "select",
+        label: t("admin_dashboard.status") ?? "Status",
+        placeholder: "All statuses",
+        options: [
+          { value: "Paid", label: t("admin_dashboard.paid") ?? "Paid" },
+          { value: "Pending", label: t("admin_dashboard.pending") ?? "Pending" },
+          { value: "Processing", label: t("admin_dashboard.processing") ?? "Processing" },
+        ],
+      },
+      {
+        key: "method",
+        type: "select",
+        label: t("admin_dashboard.method") ?? "Method",
+        placeholder: "All methods",
+        options: [
+          { value: "Bank", label: "Bank" },
+          { value: "Cash", label: "Cash" },
+        ],
+      },
       { key: "dateFrom", type: "date", label: t("admin_dashboard.joined") ?? "From date" },
       { key: "dateTo", type: "date", label: "To date" },
     ],
@@ -462,6 +534,7 @@ export default function AdminPayments() {
           values={patientFilterValues}
           onChange={handlePatientFilterChange}
           onClear={resetPatientFilters}
+          expandable
         />
 
         <DataTable
@@ -492,6 +565,7 @@ export default function AdminPayments() {
           values={payoutFilterValues}
           onChange={handlePayoutFilterChange}
           onClear={resetPayoutFilters}
+          expandable
         />
 
         <DataTable

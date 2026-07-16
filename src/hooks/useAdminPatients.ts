@@ -24,6 +24,8 @@ interface UseAdminPatientsParams {
   search: string;
   dateFrom: string;
   dateTo: string;
+  status: string;
+  city: string;
   therapistId?: string;
   sortBy: string;
   sortOrder: SortDirection;
@@ -33,16 +35,18 @@ interface UseAdminPatientsParams {
 
 export function useAdminPatients(params: UseAdminPatientsParams) {
   const queryClient = useQueryClient();
-  const { search, dateFrom, dateTo, therapistId, sortBy, sortOrder, page, pageSize } = params;
+  const { search, dateFrom, dateTo, status, city, therapistId, sortBy, sortOrder, page, pageSize } = params;
   const skip = (page - 1) * pageSize;
 
   const query = useQuery({
-    queryKey: [QUERY_KEY, { search, dateFrom, dateTo, therapistId, sortBy, sortOrder, skip, pageSize }],
+    queryKey: [QUERY_KEY, { search, dateFrom, dateTo, status, city, therapistId, sortBy, sortOrder, skip, pageSize }],
     queryFn: () =>
       getAdminPatients({
         search: search || undefined,
         dateFrom: dateFrom || undefined,
         dateTo: dateTo || undefined,
+        status: status || undefined,
+        city: city || undefined,
         therapistId: therapistId || undefined,
         sortBy: sortBy || undefined,
         sortOrder,
@@ -52,7 +56,7 @@ export function useAdminPatients(params: UseAdminPatientsParams) {
     placeholderData: (prev) => prev,
   });
 
-  const seedFiltered = useSeedFilter(SEED, { search, dateFrom, dateTo, therapistId, sortBy, sortOrder });
+  const seedFiltered = useSeedFilter(SEED, { search, dateFrom, dateTo, status, city, therapistId, sortBy, sortOrder });
   const items = query.data?.items ?? seedFiltered;
   const total = query.data?.total ?? seedFiltered.length;
 
@@ -96,13 +100,19 @@ export function useAdminPatients(params: UseAdminPatientsParams) {
 
 function useSeedFilter(
   seed: AdminPatientData[],
-  params: { search: string; dateFrom: string; dateTo: string; therapistId?: string; sortBy: string; sortOrder: SortDirection },
+  params: { search: string; dateFrom: string; dateTo: string; status: string; city: string; therapistId?: string; sortBy: string; sortOrder: SortDirection },
 ): AdminPatientData[] {
   let result = [...seed];
 
   if (params.search) {
     const q = params.search.toLowerCase();
     result = result.filter((r) => r.name.toLowerCase().includes(q));
+  }
+  if (params.status) {
+    result = result.filter((r) => (params.status === "Active" ? r.isActive : !r.isActive));
+  }
+  if (params.city) {
+    result = result.filter((r) => r.city === params.city);
   }
   if (params.therapistId) {
     result = result.filter((r) => r.therapistId === params.therapistId);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getAdminPayments,
@@ -10,7 +10,7 @@ import {
 } from "@/services/api/admin";
 import type { SortDirection } from "@/hooks/useTableSort";
 
-const SEED: AdminPaymentData[] = [
+const INITIAL_SEED: AdminPaymentData[] = [
   { id: "BK-1041", patient: "Sita Gurung", patientId: "u1", therapist: "Rajesh Shrestha", therapistId: "t1", amount: 1200, method: "eSewa", status: "Paid", date: "2026-07-10" },
   { id: "BK-1040", patient: "Hari Bahadur Rai", patientId: "u2", therapist: "Rajesh Shrestha", therapistId: "t1", amount: 1200, method: "Khalti", status: "Paid", date: "2026-07-09" },
   { id: "BK-1039", patient: "Nabin Khadka", patientId: "u3", therapist: "Anita Tamang", therapistId: "t2", amount: 1500, method: "Cash", status: "Pending", date: "2026-07-08" },
@@ -25,6 +25,8 @@ interface UseAdminPaymentsParams {
   dateTo: string;
   patientId: string;
   therapistId: string;
+  status: string;
+  method: string;
   sortBy: string;
   sortOrder: SortDirection;
   page: number;
@@ -33,11 +35,13 @@ interface UseAdminPaymentsParams {
 
 export function useAdminPayments(params: UseAdminPaymentsParams) {
   const queryClient = useQueryClient();
-  const { search, dateFrom, dateTo, patientId, therapistId, sortBy, sortOrder, page, pageSize } = params;
+  const { search, dateFrom, dateTo, patientId, therapistId, status, method, sortBy, sortOrder, page, pageSize } = params;
   const skip = (page - 1) * pageSize;
 
+  const [seed, setSeed] = useState(INITIAL_SEED);
+
   const query = useQuery({
-    queryKey: [QUERY_KEY, { search, dateFrom, dateTo, patientId, therapistId, sortBy, sortOrder, skip, pageSize }],
+    queryKey: [QUERY_KEY, { search, dateFrom, dateTo, patientId, therapistId, status, method, sortBy, sortOrder, skip, pageSize }],
     queryFn: () =>
       getAdminPayments({
         search: search || undefined,
@@ -53,19 +57,40 @@ export function useAdminPayments(params: UseAdminPaymentsParams) {
     placeholderData: (prev) => prev,
   });
 
-  const seedFiltered = useSeedFilter(SEED, { search, dateFrom, dateTo, patientId, therapistId, sortBy, sortOrder });
+  const usingApiData = !!query.data;
+  const seedFiltered = useSeedFilter(seed, { search, dateFrom, dateTo, patientId, therapistId, status, method, sortBy, sortOrder });
   const items = query.data?.items ?? seedFiltered;
   const total = query.data?.total ?? seedFiltered.length;
 
   const deleteMutation = useMutation({
     mutationFn: deleteAdminPayment,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
+    onSuccess: (_result, id) => {
+      if (!usingApiData) {
+        setSeed((prev) => prev.filter((item) => item.id !== id));
+      }
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+    },
+    onError: (_err, id) => {
+      if (!usingApiData) {
+        setSeed((prev) => prev.filter((item) => item.id !== id));
+      }
+    },
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<AdminPaymentData> }) =>
       updateAdminPayment(id, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
+    onSuccess: (_result, { id, data }) => {
+      if (!usingApiData) {
+        setSeed((prev) => prev.map((item) => (item.id === id ? { ...item, ...data } : item)));
+      }
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+    },
+    onError: (_err, { id, data }) => {
+      if (!usingApiData) {
+        setSeed((prev) => prev.map((item) => (item.id === id ? { ...item, ...data } : item)));
+      }
+    },
   });
 
   return {
@@ -93,7 +118,7 @@ export function useAdminPayments(params: UseAdminPaymentsParams) {
 
 function useSeedFilter(
   seed: AdminPaymentData[],
-  params: { search: string; dateFrom: string; dateTo: string; patientId: string; therapistId: string; sortBy: string; sortOrder: SortDirection },
+  params: { search: string; dateFrom: string; dateTo: string; patientId: string; therapistId: string; status: string; method: string; sortBy: string; sortOrder: SortDirection },
 ): AdminPaymentData[] {
   let result = [...seed];
 
@@ -106,6 +131,12 @@ function useSeedFilter(
   }
   if (params.therapistId) {
     result = result.filter((r) => r.therapistId === params.therapistId);
+  }
+  if (params.status) {
+    result = result.filter((r) => r.status === params.status);
+  }
+  if (params.method) {
+    result = result.filter((r) => r.method === params.method);
   }
   if (params.dateFrom) {
     result = result.filter((r) => r.date >= params.dateFrom);

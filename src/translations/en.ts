@@ -1019,6 +1019,11 @@ const en = {
     reschedule: "Reschedule",
     deactivate: "Deactivate",
     patientDeactivated: "Patient deactivated",
+    therapistDeleted: "Therapist deleted",
+    therapistDeactivated: "Therapist deactivated",
+    therapistActivated: "Therapist activated",
+    phone: "Phone",
+    email: "Email",
     allBookings: "All bookings",
     bookingId: "Booking ID",
     patient: "Patient",
@@ -1121,6 +1126,8 @@ const en = {
     filterComplaints: "Complaints",
     filterPayments: "Payments",
     filterSystem: "System",
+    allSpecialties: "All Specialities",
+    allCities:"All cities"
   },
 
   complaints: {
