@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getAdminPayouts,
@@ -10,7 +10,7 @@ import {
 } from "@/services/api/admin";
 import type { SortDirection } from "@/hooks/useTableSort";
 
-const SEED: AdminPayoutData[] = [
+const INITIAL_SEED: AdminPayoutData[] = [
   { id: "PO-201", therapist: "Rajesh Shrestha", therapistId: "t1", amount: 9600, status: "Paid", date: "2026-07-10", sessionsCovered: 8, method: "Bank" },
   { id: "PO-200", therapist: "Anita Tamang", therapistId: "t2", amount: 7200, status: "Paid", date: "2026-07-09", sessionsCovered: 6, method: "Bank" },
   { id: "PO-199", therapist: "Sujan Karki", therapistId: "t3", amount: 4800, status: "Pending", date: "2026-07-08", sessionsCovered: 4, method: "Cash" },
@@ -24,6 +24,8 @@ interface UseAdminPayoutsParams {
   dateFrom: string;
   dateTo: string;
   therapistId: string;
+  status: string;
+  method: string;
   sortBy: string;
   sortOrder: SortDirection;
   page: number;
@@ -32,11 +34,13 @@ interface UseAdminPayoutsParams {
 
 export function useAdminPayouts(params: UseAdminPayoutsParams) {
   const queryClient = useQueryClient();
-  const { search, dateFrom, dateTo, therapistId, sortBy, sortOrder, page, pageSize } = params;
+  const { search, dateFrom, dateTo, therapistId, status, method, sortBy, sortOrder, page, pageSize } = params;
   const skip = (page - 1) * pageSize;
 
+  const [seed, setSeed] = useState(INITIAL_SEED);
+
   const query = useQuery({
-    queryKey: [QUERY_KEY, { search, dateFrom, dateTo, therapistId, sortBy, sortOrder, skip, pageSize }],
+    queryKey: [QUERY_KEY, { search, dateFrom, dateTo, therapistId, status, method, sortBy, sortOrder, skip, pageSize }],
     queryFn: () =>
       getAdminPayouts({
         search: search || undefined,
@@ -51,19 +55,40 @@ export function useAdminPayouts(params: UseAdminPayoutsParams) {
     placeholderData: (prev) => prev,
   });
 
-  const seedFiltered = useSeedFilter(SEED, { search, dateFrom, dateTo, therapistId, sortBy, sortOrder });
+  const usingApiData = !!query.data;
+  const seedFiltered = useSeedFilter(seed, { search, dateFrom, dateTo, therapistId, status, method, sortBy, sortOrder });
   const items = query.data?.items ?? seedFiltered;
   const total = query.data?.total ?? seedFiltered.length;
 
   const deleteMutation = useMutation({
     mutationFn: deleteAdminPayout,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
+    onSuccess: (_result, id) => {
+      if (!usingApiData) {
+        setSeed((prev) => prev.filter((item) => item.id !== id));
+      }
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+    },
+    onError: (_err, id) => {
+      if (!usingApiData) {
+        setSeed((prev) => prev.filter((item) => item.id !== id));
+      }
+    },
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<AdminPayoutData> }) =>
       updateAdminPayout(id, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
+    onSuccess: (_result, { id, data }) => {
+      if (!usingApiData) {
+        setSeed((prev) => prev.map((item) => (item.id === id ? { ...item, ...data } : item)));
+      }
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+    },
+    onError: (_err, { id, data }) => {
+      if (!usingApiData) {
+        setSeed((prev) => prev.map((item) => (item.id === id ? { ...item, ...data } : item)));
+      }
+    },
   });
 
   return {
@@ -85,7 +110,7 @@ export function useAdminPayouts(params: UseAdminPayoutsParams) {
 
 function useSeedFilter(
   seed: AdminPayoutData[],
-  params: { search: string; dateFrom: string; dateTo: string; therapistId: string; sortBy: string; sortOrder: SortDirection },
+  params: { search: string; dateFrom: string; dateTo: string; therapistId: string; status: string; method: string; sortBy: string; sortOrder: SortDirection },
 ): AdminPayoutData[] {
   let result = [...seed];
 
@@ -95,6 +120,12 @@ function useSeedFilter(
   }
   if (params.therapistId) {
     result = result.filter((r) => r.therapistId === params.therapistId);
+  }
+  if (params.status) {
+    result = result.filter((r) => r.status === params.status);
+  }
+  if (params.method) {
+    result = result.filter((r) => r.method === params.method);
   }
   if (params.dateFrom) {
     result = result.filter((r) => r.date >= params.dateFrom);

@@ -52,6 +52,9 @@ export interface AdminListParams {
   search?: string;
   dateFrom?: string;
   dateTo?: string;
+  specialty?: string;
+  status?: string;
+  city?: string;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
 }
@@ -89,6 +92,9 @@ export async function getAdminTherapists(params?: AdminListParams) {
   if (params?.search) sp.set("search", params.search);
   if (params?.dateFrom) sp.set("dateFrom", params.dateFrom);
   if (params?.dateTo) sp.set("dateTo", params.dateTo);
+  if (params?.specialty) sp.set("specialty", params.specialty);
+  if (params?.status) sp.set("status", params.status);
+  if (params?.city) sp.set("city", params.city);
   if (params?.sortBy) sp.set("sortBy", params.sortBy);
   if (params?.sortOrder) sp.set("sortOrder", params.sortOrder);
 
@@ -195,6 +201,7 @@ export interface AdminComplaintData {
   description: string;
   bookingId?: string;
   notes?: string[];
+  assignee?: string;
 }
 
 export interface AdminComplaintListParams extends AdminListParams {
@@ -217,6 +224,62 @@ export async function getAdminComplaints(params?: AdminComplaintListParams) {
 
 export async function updateAdminComplaint(id: string, data: Partial<AdminComplaintData>) {
   return api.put<AdminComplaintData>(`/admin/complaints/${id}`, data);
+}
+
+export interface PatientComplaintPayload {
+  patientId: string;
+  patient: string;
+  therapistId: string;
+  therapist: string;
+  bookingId?: string;
+  category: string;
+  priority: "Normal" | "Urgent";
+  description: string;
+  evidenceUrls?: string[];
+  preferredOutcome?: string;
+}
+
+export async function submitPatientComplaint(data: PatientComplaintPayload) {
+  return api.post<AdminComplaintData>("/admin/complaints", {
+    ...data,
+    type: "patient",
+    status: "Open",
+    filed: new Date().toISOString(),
+  });
+}
+
+export async function getPatientComplaints(patientId: string) {
+  return api.get<ListResponse<AdminComplaintData>>(
+    `/admin/complaints?type=patient&complainantId=${patientId}`
+  );
+}
+
+export interface TherapistComplaintPayload {
+  therapistId: string;
+  therapist: string;
+  patientId: string;
+  patient: string;
+  bookingId?: string;
+  category: string;
+  priority: "Normal" | "Urgent";
+  description: string;
+  evidenceUrls?: string[];
+  preferredOutcome?: string;
+}
+
+export async function submitTherapistComplaint(data: TherapistComplaintPayload) {
+  return api.post<AdminComplaintData>("/admin/complaints", {
+    ...data,
+    type: "therapist",
+    status: "Open",
+    filed: new Date().toISOString(),
+  });
+}
+
+export async function getTherapistComplaints(therapistId: string) {
+  return api.get<ListResponse<AdminComplaintData>>(
+    `/admin/complaints?type=therapist&complainantId=${therapistId}`
+  );
 }
 
 // --- Notifications ---
@@ -371,6 +434,10 @@ export async function updateAdminServiceArea(id: string, data: Partial<AdminServ
 
 export async function assignTherapistToZone(zoneId: string, therapistId: string) {
   return api.post(`/admin/service-areas/${zoneId}/assign`, { therapistId });
+}
+
+export async function deleteAdminServiceArea(id: string) {
+  return api.delete(`/admin/service-areas/${id}`);
 }
 
 // --- Leave & Availability ---
@@ -653,6 +720,14 @@ export async function approveRefund(id: string) {
 
 export async function denyRefund(id: string, reason: string) {
   return api.put<AdminRefundData>(`/admin/refunds/${id}`, { status: "Denied", denyReason: reason });
+}
+
+export async function updateAdminRefund(id: string, data: Partial<AdminRefundData>) {
+  return api.put<AdminRefundData>(`/admin/refunds/${id}`, data);
+}
+
+export async function deleteAdminRefund(id: string) {
+  return api.delete(`/admin/refunds/${id}`);
 }
 
 export async function getAdminRefundStats() {
