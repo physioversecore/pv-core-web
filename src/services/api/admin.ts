@@ -201,6 +201,7 @@ export interface AdminComplaintData {
   description: string;
   bookingId?: string;
   notes?: string[];
+  assignee?: string;
 }
 
 export interface AdminComplaintListParams extends AdminListParams {
@@ -223,6 +224,10 @@ export async function getAdminComplaints(params?: AdminComplaintListParams) {
 
 export async function updateAdminComplaint(id: string, data: Partial<AdminComplaintData>) {
   return api.put<AdminComplaintData>(`/admin/complaints/${id}`, data);
+}
+
+export async function deleteAdminComplaint(id: string) {
+  return api.delete(`/admin/complaints/${id}`);
 }
 
 // --- Notifications ---
@@ -663,6 +668,14 @@ export async function approveRefund(id: string) {
 
 export async function denyRefund(id: string, reason: string) {
   return api.put<AdminRefundData>(`/admin/refunds/${id}`, { status: "Denied", denyReason: reason });
+}
+
+export async function updateAdminRefund(id: string, data: Partial<AdminRefundData>) {
+  return api.put<AdminRefundData>(`/admin/refunds/${id}`, data);
+}
+
+export async function deleteAdminRefund(id: string) {
+  return api.delete(`/admin/refunds/${id}`);
 }
 
 export async function getAdminRefundStats() {

@@ -2,17 +2,17 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { npr } from "@/lib/cart";
-import { Eye, CheckCircle, XCircle, ExternalLink } from "lucide-react";
+import { Eye, CheckCircle, XCircle, ExternalLink, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useLang } from "@/context/i18n";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTableSort } from "@/hooks/useTableSort";
 import { useAdminRefunds } from "@/hooks/useAdminRefunds";
+import { type RefundReason, type RefundStatus } from "@/services/api/admin";
 import { DashboardStat } from "@/components/dashboard";
 import {
   DataTable,
   ActionMenu,
-  useRowActions,
   ConfirmDialog,
   FilterBar,
   StatusChip,
@@ -20,6 +20,14 @@ import {
   type FilterConfig,
   type StatusType,
 } from "@/components/tables";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function AdminRefunds() {
   const { t } = useLang();
@@ -31,6 +39,11 @@ export default function AdminRefunds() {
   const [dateTo, setDateTo] = useState("");
   const [page, setPage] = useState(1);
   const [viewRow, setViewRow] = useState<RefundRow | null>(null);
+  const [editRow, setEditRow] = useState<RefundRow | null>(null);
+  const [editForm, setEditForm] = useState({ amount: "", reason: "", status: "" });
+  const [editSaving, setEditSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<RefundRow | null>(null);
+  const [deleteSaving, setDeleteSaving] = useState(false);
   const [denyTarget, setDenyTarget] = useState<RefundRow | null>(null);
   const [denyReason, setDenyReason] = useState("");
   const [denySaving, setDenySaving] = useState(false);
@@ -45,6 +58,8 @@ export default function AdminRefunds() {
     isLoading,
     approveRefund,
     denyRefund,
+    updateRefund,
+    deleteRefund,
   } = useAdminRefunds({
     search: debouncedSearch,
     reason,
@@ -110,6 +125,43 @@ export default function AdminRefunds() {
     }
   }, [denyTarget, denyReason, denyRefund, t]);
 
+  const handleEditOpen = useCallback((row: RefundRow) => {
+    setEditRow(row);
+    setEditForm({ amount: String(row.amount), reason: row.reason, status: row.status });
+  }, []);
+
+  const handleEditSave = useCallback(async () => {
+    if (!editRow) return;
+    setEditSaving(true);
+    try {
+      await updateRefund(editRow.id, {
+        amount: Number(editForm.amount),
+        reason: editForm.reason as RefundReason,
+        status: editForm.status as RefundStatus,
+      });
+      toast.success("Refund updated");
+      setEditRow(null);
+    } catch {
+      toast.error(t("common.tryAgain") ?? "Something went wrong");
+    } finally {
+      setEditSaving(false);
+    }
+  }, [editRow, editForm, updateRefund, t]);
+
+  const handleDeleteSubmit = useCallback(async () => {
+    if (!deleteTarget) return;
+    setDeleteSaving(true);
+    try {
+      await deleteRefund(deleteTarget.id);
+      toast.success("Refund deleted");
+      setDeleteTarget(null);
+    } catch {
+      toast.error(t("common.tryAgain") ?? "Something went wrong");
+    } finally {
+      setDeleteSaving(false);
+    }
+  }, [deleteTarget, deleteRefund, t]);
+
   const columns: Column<RefundRow>[] = useMemo(
     () => [
       {
@@ -167,7 +219,20 @@ export default function AdminRefunds() {
 
   const renderActions = useCallback(
     (row: RefundRow) => {
-      const actions: ReturnType<typeof useRowActions> = [];
+      const actions: { key: string; label: string; icon: React.ReactNode; variant?: "default" | "destructive"; onClick: () => void }[] = [
+        {
+          key: "preview",
+          label: t("admin_dashboard.view") ?? "Preview",
+          icon: <Eye size={14} />,
+          onClick: () => setViewRow(row),
+        },
+        {
+          key: "edit",
+          label: t("admin_dashboard.edit") ?? "Edit",
+          icon: <Pencil size={14} />,
+          onClick: () => handleEditOpen(row),
+        },
+      ];
 
       if (row.status === "Pending") {
         actions.push(
@@ -181,22 +246,23 @@ export default function AdminRefunds() {
             key: "deny",
             label: "Deny",
             icon: <XCircle size={14} />,
-            variant: "destructive" as const,
+            variant: "destructive",
             onClick: () => setDenyTarget(row),
           },
         );
-      } else {
-        actions.push({
-          key: "view",
-          label: t("admin_dashboard.view") ?? "View details",
-          icon: <Eye size={14} />,
-          onClick: () => setViewRow(row),
-        });
       }
+
+      actions.push({
+        key: "delete",
+        label: t("admin_dashboard.delete") ?? "Delete",
+        icon: <Trash2 size={14} />,
+        variant: "destructive",
+        onClick: () => setDeleteTarget(row),
+      });
 
       return <ActionMenu actions={actions} />;
     },
-    [handleApprove, t],
+    [handleApprove, handleEditOpen, t],
   );
 
   const filterConfig: FilterConfig[] = useMemo(
@@ -265,6 +331,7 @@ export default function AdminRefunds() {
           values={filterValues}
           onChange={handleFilterChange}
           onClear={resetFilters}
+          expandable
         />
 
         <DataTable
@@ -317,6 +384,82 @@ export default function AdminRefunds() {
           </div>
         </div>
       )}
+
+      {/* Edit Dialog */}
+      {editRow && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setEditRow(null)}>
+          <div className="bg-background rounded-lg border shadow-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-display text-lg mb-1">Edit Refund</h3>
+            <p className="text-sm text-text-light mb-4">
+              Case <span className="font-mono font-medium text-text">{editRow.id}</span>
+            </p>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-mono text-text-light uppercase">Amount (NPR)</label>
+                <Input
+                  type="number"
+                  value={editForm.amount}
+                  onChange={(e) => setEditForm((f) => ({ ...f, amount: e.target.value }))}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-mono text-text-light uppercase">Reason</label>
+                <Select value={editForm.reason} onValueChange={(v) => setEditForm((f) => ({ ...f, reason: v }))}>
+                  <SelectTrigger className="mt-1 h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="No-show">No-show</SelectItem>
+                    <SelectItem value="Double charge">Double charge</SelectItem>
+                    <SelectItem value="Service quality">Service quality</SelectItem>
+                    <SelectItem value="Cancellation">Cancellation</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-xs font-mono text-text-light uppercase">Status</label>
+                <Select value={editForm.status} onValueChange={(v) => setEditForm((f) => ({ ...f, status: v }))}>
+                  <SelectTrigger className="mt-1 h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="Approved">Approved</SelectItem>
+                    <SelectItem value="Denied">Denied</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-4">
+              <button
+                type="button"
+                onClick={() => setEditRow(null)}
+                className="btn-outline !py-1.5 !px-4 text-xs cursor-pointer"
+              >
+                {t("common.cancel") ?? "Cancel"}
+              </button>
+              <button
+                type="button"
+                disabled={editSaving}
+                onClick={handleEditSave}
+                className="chip !bg-secondary !text-white cursor-pointer disabled:opacity-50"
+              >
+                {editSaving ? (t("common.loading") ?? "Loading...") : "Save Changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
+        onConfirm={handleDeleteSubmit}
+        title="Delete Refund"
+        description={`Are you sure you want to delete refund <strong>${deleteTarget?.id}</strong> for <strong>${deleteTarget ? npr(deleteTarget.amount) : ""}</strong>? This action cannot be undone.`}
+      />
 
       {/* Deny Dialog */}
       {denyTarget && (
