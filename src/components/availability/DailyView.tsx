@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Lock, Unlock, Eye, Ban } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { to12h } from "@/lib/format";
 import { isSlotInPast, sessionEndTime, DAY_PART_RANGES } from "@/lib/availability-utils";
 import type { SlotInfo, DayPart } from "@/lib/availability-utils";
@@ -162,7 +160,17 @@ export function DailyView({
                   >
                     View
                   </button>
-                ) : slot.status === "open" && !slotBlocked ? (
+                ) : slotBlocked && !past ? (
+                  <button
+                    className="proto-rowbtn"
+                    disabled={isUnblocking}
+                    onClick={() =>
+                      onUnblock({ date: slot.date, time: slot.time })
+                    }
+                  >
+                    Unblock
+                  </button>
+                ) : slot.status === "open" ? (
                   <button
                     className="proto-rowbtn"
                     disabled={isToggling || past}
@@ -176,7 +184,7 @@ export function DailyView({
                   >
                     Block
                   </button>
-                ) : slot.status === "off" && !slotBlocked && !past ? (
+                ) : slot.status === "off" && !past ? (
                   <button
                     className="proto-rowbtn"
                     disabled={isToggling}

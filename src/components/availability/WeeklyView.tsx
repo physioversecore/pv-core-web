@@ -18,7 +18,9 @@ interface WeeklyViewProps {
     time: string;
     currentStatus: string;
   }) => Promise<void>;
+  onUnblock: (data: { date: string; time?: string }) => Promise<void>;
   isToggling: boolean;
+  isUnblocking: boolean;
 }
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
@@ -45,7 +47,9 @@ export function WeeklyView({
   blockedPartsByDate,
   sessionDuration,
   onToggleSlot,
+  onUnblock,
   isToggling,
+  isUnblocking,
 }: WeeklyViewProps) {
   const [infoSlot, setInfoSlot] = useState<SlotInfo | null>(null);
   const weekDays = useMemo(() => getWeekDays(dateFrom), [dateFrom]);
@@ -99,9 +103,14 @@ export function WeeklyView({
 
               if (isFullyBlocked || slotBlocked) {
                 return (
-                  <div key={`${d.date}_${time}`} className="proto-wk-cell off">
+                  <button
+                    key={`${d.date}_${time}`}
+                    className="proto-wk-cell off"
+                    disabled={isUnblocking || past}
+                    onClick={() => onUnblock({ date: d.date, time: slotBlocked ? time : undefined })}
+                  >
                     <Lock size={10} className="text-danger" />
-                  </div>
+                  </button>
                 );
               }
 

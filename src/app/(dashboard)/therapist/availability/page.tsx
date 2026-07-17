@@ -97,7 +97,8 @@ export default function ManageAvailabilityPage() {
             </button>
           ))}
         </div>
-
+   {/* Legend */}
+      <Legend />
         <div className="flex items-center gap-3.5">
           <button
             onClick={() => av.navigateCursor("prev")}
@@ -118,6 +119,7 @@ export default function ManageAvailabilityPage() {
       </div>
 
       {/* Calendar view */}
+
       {av.isLoading ? (
         <div className="card-proto space-y-3">
           <Skeleton className="h-5 w-48" />
@@ -147,7 +149,9 @@ export default function ManageAvailabilityPage() {
           blockedPartsByDate={av.blockedPartsByDate}
           sessionDuration={av.scheduleConfig.sessionDuration}
           onToggleSlot={av.toggleSlot}
+          onUnblock={av.unblockTime}
           isToggling={av.isToggling}
+          isUnblocking={av.isUnblocking}
         />
       ) : (
         <MonthlyView
@@ -157,7 +161,9 @@ export default function ManageAvailabilityPage() {
           blockedPartsByDate={av.blockedPartsByDate}
           sessionDuration={av.scheduleConfig.sessionDuration}
           onToggleSlot={av.toggleSlot}
+          onUnblock={av.unblockTime}
           isToggling={av.isToggling}
+          isUnblocking={av.isUnblocking}
         />
       )}
 
@@ -167,6 +173,8 @@ export default function ManageAvailabilityPage() {
         <AuditLog
           entries={av.auditLog}
           onDelete={av.deleteAuditEntry}
+          onUnblock={av.unblockTime}
+          isUnblocking={av.isUnblocking}
         />
       </div>
 
@@ -177,9 +185,6 @@ export default function ManageAvailabilityPage() {
           <BlockRequestsList requests={av.blockRequests} />
         </div>
       )}
-
-      {/* Legend */}
-      <Legend />
     </div>
   );
 }

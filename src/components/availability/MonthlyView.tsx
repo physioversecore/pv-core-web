@@ -18,7 +18,9 @@ interface MonthlyViewProps {
     time: string;
     currentStatus: string;
   }) => Promise<void>;
+  onUnblock: (data: { date: string; time?: string }) => Promise<void>;
   isToggling: boolean;
+  isUnblocking: boolean;
 }
 
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
@@ -92,7 +94,9 @@ export function MonthlyView({
   blockedPartsByDate,
   sessionDuration,
   onToggleSlot,
+  onUnblock,
   isToggling,
+  isUnblocking,
 }: MonthlyViewProps) {
   const [infoSlot, setInfoSlot] = useState<SlotInfo | null>(null);
   const grid = useMemo(() => getMonthGrid(cursor), [cursor]);
@@ -132,7 +136,13 @@ export function MonthlyView({
             <div key={cell.date} className={cls}>
               <div className="proto-mo-num">{cell.dayNum}</div>
               {isFullyBlocked ? (
-                <div className="proto-mo-blocklabel">Blocked</div>
+                <button
+                  className="proto-mo-slot offslot"
+                  disabled={isUnblocking}
+                  onClick={() => onUnblock({ date: cell.date })}
+                >
+                  Blocked · tap to unblock
+                </button>
               ) : (
                 <>
                   {visibleSlots.map((slot) => {
@@ -153,12 +163,14 @@ export function MonthlyView({
                     return (
                       <button
                         key={`${slot.date}_${slot.time}`}
-                        disabled={isToggling || past || slot.status === "booked" || slotBlocked}
+                        disabled={isToggling || past || slot.status === "booked"}
                         className={`proto-mo-slot ${chipCls}`}
                         onClick={() => {
                           if (slot.status === "booked") {
                             setInfoSlot(slot);
-                          } else if (!past && !slotBlocked) {
+                          } else if (slotBlocked && !past) {
+                            onUnblock({ date: slot.date, time: slot.time });
+                          } else if (!past) {
                             onToggleSlot({
                               date: slot.date,
                               time: slot.time,
@@ -193,12 +205,14 @@ export function MonthlyView({
                           return (
                             <button
                               key={`${slot.date}_${slot.time}`}
-                              disabled={isToggling || past || slot.status === "booked" || slotBlocked}
+                              disabled={isToggling || past || slot.status === "booked"}
                               className={`proto-mo-slot ${chipCls}`}
                               onClick={() => {
                                 if (slot.status === "booked") {
                                   setInfoSlot(slot);
-                                } else if (!past && !slotBlocked) {
+                                } else if (slotBlocked && !past) {
+                                  onUnblock({ date: slot.date, time: slot.time });
+                                } else if (!past) {
                                   onToggleSlot({
                                     date: slot.date,
                                     time: slot.time,

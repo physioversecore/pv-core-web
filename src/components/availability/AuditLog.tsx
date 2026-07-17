@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Undo2 } from "lucide-react";
 import { to12h } from "@/lib/format";
 import type { AuditLogEntry } from "@/services/api/availability";
@@ -7,10 +8,23 @@ import type { AuditLogEntry } from "@/services/api/availability";
 interface AuditLogProps {
   entries: AuditLogEntry[];
   onDelete: (id: string) => void;
+  onUnblock: (data: { date: string; time?: string }) => Promise<void>;
+  isUnblocking: boolean;
 }
 
-export function AuditLog({ entries, onDelete }: AuditLogProps) {
+export function AuditLog({ entries, onDelete, onUnblock, isUnblocking }: AuditLogProps) {
   const visible = entries.slice(0, 8);
+  const [undoingId, setUndoingId] = useState<string | null>(null);
+
+  const handleUndo = async (entry: AuditLogEntry) => {
+    setUndoingId(entry.id);
+    try {
+      await onUnblock({ date: entry.date, time: entry.time ?? undefined });
+      await onDelete(entry.id);
+    } finally {
+      setUndoingId(null);
+    }
+  };
 
   if (visible.length === 0) {
     return (
@@ -26,7 +40,7 @@ export function AuditLog({ entries, onDelete }: AuditLogProps) {
         <div key={entry.id} className="proto-audit-item">
             <div>
               <div>
-                <strong>{entry.date}</strong> · {entry.slotKey}
+                <strong>{entry.date}</strong>
                 {entry.time && (
                   <span style={{ marginLeft: "6px" }}>{to12h(entry.time)}</span>
                 )}
@@ -37,9 +51,10 @@ export function AuditLog({ entries, onDelete }: AuditLogProps) {
             </div>
           <button
             className="proto-link-btn"
-            onClick={() => onDelete(entry.id)}
+            disabled={isUnblocking || undoingId === entry.id}
+            onClick={() => handleUndo(entry)}
           >
-            Undo
+            {undoingId === entry.id ? "Undoing..." : "Undo"}
           </button>
         </div>
       ))}
