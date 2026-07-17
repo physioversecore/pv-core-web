@@ -7,6 +7,8 @@ export interface SessionData {
   therapistId: string;
   therapistName?: string;
   patientId: string;
+  patientName?: string;
+  patientPhone?: string;
   date: string;
   time: string;
   type: string;

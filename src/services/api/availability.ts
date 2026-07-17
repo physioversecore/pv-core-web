@@ -1,13 +1,13 @@
 "use server";
 
 import { api, AuthError } from "./client";
-import type { WorkingHours, MonthlyGrid, RecurringPattern, RecurringPatternInput, OpenFullMonthOptions } from "@/lib/availability-utils";
+import type { WorkingHours, MonthlyGrid, SlotInfo } from "@/lib/availability-utils";
 
 export async function getWorkingHours(): Promise<WorkingHours> {
   try {
     return await api.get<WorkingHours>("/availability/working-hours");
   } catch (e) {
-    if (e instanceof AuthError) return { start: "08:00", end: "18:00", slotInterval: 120 };
+    if (e instanceof AuthError) return { start: "09:00", end: "18:00", slotInterval: 60 };
     throw e;
   }
 }
@@ -44,45 +44,6 @@ export async function bulkUpdateSlots(
   return api.post<{ updated: number }>("/availability/bulk", { slots });
 }
 
-export async function applyRecurringPattern(
-  pattern: RecurringPatternInput,
-): Promise<{ affected: number; skippedPast: number; patternId: string }> {
-  return api.post<{ affected: number; skippedPast: number; patternId: string }>(
-    "/availability/recurring",
-    pattern,
-  );
-}
-
-export async function getRecurringPatterns(): Promise<RecurringPattern[]> {
-  try {
-    const res = await api.get<{ patterns: RecurringPattern[] }>("/availability/recurring");
-    return res.patterns ?? [];
-  } catch (e) {
-    if (e instanceof AuthError) return [];
-    throw e;
-  }
-}
-
-export async function deleteRecurringPattern(id: string): Promise<void> {
-  await api.delete(`/availability/recurring/${id}`);
-}
-
-export async function toggleRecurringPattern(
-  id: string,
-  isActive: boolean,
-): Promise<void> {
-  await api.put(`/availability/recurring/${id}`, { isActive });
-}
-
-export async function openFullMonth(
-  options: OpenFullMonthOptions,
-): Promise<{ opened: number; skippedBooked: number; skippedPast: number }> {
-  return api.post<{ opened: number; skippedBooked: number; skippedPast: number }>(
-    "/availability/open-month",
-    options,
-  );
-}
-
 export async function blockDate(
   date: string,
   sessions?: string[],
@@ -93,14 +54,151 @@ export async function blockDate(
   });
 }
 
-export async function applySchedule(
-  recurrence: string,
-  dateFrom?: string,
-  dateTo?: string,
-): Promise<{ opened: number; skippedBooked: number; skippedPast: number; from: string; to: string }> {
-  return api.post("/availability/apply-schedule", {
-    recurrence,
-    dateFrom,
-    dateTo,
+export interface AuditLogEntry {
+  id: string;
+  date: string;
+  reason: string;
+  who: string;
+  slotKey: string | null;
+  time: string | null;
+  source: string;
+  createdAt: string;
+}
+
+export async function getAuditLog(): Promise<AuditLogEntry[]> {
+  try {
+    return await api.get<AuditLogEntry[]>("/availability/audit-log");
+  } catch {
+    return [];
+  }
+}
+
+export async function createAuditEntry(
+  entry: Omit<AuditLogEntry, "id" | "createdAt">,
+): Promise<AuditLogEntry> {
+  return api.post<AuditLogEntry>("/availability/audit-log", entry);
+}
+
+export async function deleteAuditEntry(id: string): Promise<void> {
+  await api.delete(`/availability/audit-log/${id}`);
+}
+
+export interface SlotRangeData {
+  slots: SlotInfo[];
+  blocks: BlockData[];
+}
+
+export interface BlockData {
+  id: string;
+  dateFrom: string;
+  dateTo: string;
+  daysOfWeek: string[];
+  partsOfDay: string[];
+  reason: string;
+  notify: boolean;
+  createdAt: string;
+}
+
+export async function generateAvailability(data: {
+  dateFrom: string;
+  dateTo?: string;
+  daysOfWeek: string[];
+  startTime: string;
+  endTime: string;
+  sessionDuration: number;
+  breakDuration: number;
+}): Promise<{ updated: number }> {
+  return api.post<{ updated: number }>("/availability/generate", data);
+}
+
+export async function blockRange(data: {
+  dateFrom: string;
+  dateTo?: string;
+  daysOfWeek: string[];
+  partsOfDay: string[];
+  reason: string;
+  notify: boolean;
+}): Promise<{
+  blocked: number;
+  cancelledCount: number;
+  affectedPatients: { name: string; date: string; time: string }[];
+}> {
+  return api.post("/availability/block-range", data);
+}
+
+export async function unblockTime(data: {
+  date: string;
+  time?: string;
+}): Promise<void> {
+  await api.post("/availability/unblock", data);
+}
+
+export async function getSlotsForRange(
+  fromDate: string,
+  toDate: string,
+): Promise<SlotRangeData> {
+  return api.get<SlotRangeData>(
+    `/availability/slots?from_date=${fromDate}&to_date=${toDate}`,
+  );
+}
+
+export async function getWorkingDays(): Promise<string[]> {
+  try {
+    return await api.get<string[]>("/availability/working-days");
+  } catch {
+    return [];
+  }
+}
+
+export interface BlockRequest {
+  id: string;
+  therapistId?: string;
+  therapistName?: string;
+  therapistEmail?: string;
+  dateFrom: string;
+  dateTo: string;
+  daysOfWeek: string[];
+  partsOfDay: string[];
+  reason: string;
+  notify: boolean;
+  status: string;
+  adminNotes?: string | null;
+  createdAt: string;
+}
+
+export async function createBlockRequest(data: {
+  dateFrom: string;
+  dateTo?: string;
+  daysOfWeek: string[];
+  partsOfDay: string[];
+  reason: string;
+  notify: boolean;
+}): Promise<{ id: string; status: string }> {
+  return api.post("/availability/block-request", data);
+}
+
+export async function getBlockRequests(): Promise<BlockRequest[]> {
+  try {
+    return await api.get<BlockRequest[]>("/availability/block-requests");
+  } catch {
+    return [];
+  }
+}
+
+export async function approveBlockRequest(
+  requestId: string,
+  adminNotes?: string,
+): Promise<{ success: boolean; blocked: number }> {
+  return api.put(`/availability/block-requests/${requestId}/approve`, {
+    adminNotes,
+  });
+}
+
+export async function rejectBlockRequest(
+  requestId: string,
+  adminNotes?: string,
+): Promise<{ success: boolean }> {
+  return api.put(`/availability/block-requests/${requestId}/reject`, {
+    adminNotes,
   });
 }

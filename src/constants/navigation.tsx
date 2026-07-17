@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
 import {
   LayoutDashboard, Calendar, ShoppingBag, Activity, FileText, User, HelpCircle,
-  Stethoscope, Upload, Users, Wallet, Settings, Shield, CreditCard, Clock,
+  Stethoscope, Upload, Users, Wallet, Settings, Shield, CreditCard,
   AlertTriangle, Bell, CalendarClock, UserCog, MapPin, ClipboardCheck,
   BadgeCheck, BarChart3, ShieldAlert, ScrollText, LineChart, RotateCcw, Palette,
-  MessageSquareWarning,
+  MessageSquareWarning, Clock,
 } from "lucide-react";
 
 export interface NavItem {

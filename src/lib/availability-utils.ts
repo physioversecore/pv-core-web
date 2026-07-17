@@ -1,6 +1,22 @@
-export const DEFAULT_SLOT_INTERVAL = 120;
+export const DEFAULT_SLOT_INTERVAL = 60;
 
 export type SlotStatus = "open" | "booked" | "off";
+
+export type DayPart = "morning" | "afternoon" | "evening";
+
+export const DAY_PART_RANGES: Record<DayPart, [number, number]> = {
+  morning: [6, 12],
+  afternoon: [12, 17],
+  evening: [17, 22],
+};
+
+export function isTimeInDayParts(time: string, parts: DayPart[]): boolean {
+  const [h] = time.split(":").map(Number);
+  return parts.some((p) => {
+    const [start, end] = DAY_PART_RANGES[p];
+    return h >= start && h < end;
+  });
+}
 
 export interface WorkingHours {
   start: string;
@@ -25,27 +41,6 @@ export interface MonthlyGrid {
   slots: SlotInfo[];
 }
 
-export interface RecurringPattern {
-  id: string;
-  therapistId: string;
-  days: number[];
-  sessions: string[];
-  isActive: boolean;
-  createdAt: string;
-}
-
-export interface RecurringPatternInput {
-  days: number[];
-  sessions: string[];
-}
-
-export interface OpenFullMonthOptions {
-  days: number[];
-  sessions: string[];
-  month: number;
-  year: number;
-}
-
 export interface MonthDaySummary {
   date: string;
   open: number;
@@ -53,7 +48,27 @@ export interface MonthDaySummary {
   off: number;
 }
 
+export interface SessionBreakConfig {
+  sessionDuration: number;
+  breakDuration: number;
+  startTime: string;
+  endTime: string;
+}
+
+export interface SessionBlock {
+  startTime: string;
+  endTime: string;
+  type: "session" | "break";
+  index: number;
+}
+
 // ─── PURE HELPERS ───
+
+function minsToTime(totalMins: number): string {
+  const h = Math.floor(totalMins / 60);
+  const m = totalMins % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
 
 export function generateTimeSlots(start: string, end: string, intervalMinutes: number): string[] {
   const [sh] = start.split(":").map(Number);
@@ -78,16 +93,6 @@ export function sessionPeriodForTime(time: string): string {
   return "Evening";
 }
 
-export const DAY_PARTS: Record<string, { from: string; to: string }> = {
-  Morning: { from: "08:00", to: "11:59" },
-  Afternoon: { from: "12:00", to: "16:59" },
-  Evening: { from: "17:00", to: "20:59" },
-};
-
-export function isTimeWithinRange(time: string, range: { from: string; to: string }): boolean {
-  return time >= range.from && time <= range.to;
-}
-
 export function dateKeyStr(year: number, month: number, day: number): string {
   return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
@@ -99,6 +104,13 @@ export function isDateInPast(dateStr: string): boolean {
   return d < today;
 }
 
+export function sessionEndTime(startTime: string, durationMinutes: number): string {
+  const [h, m] = startTime.split(":").map(Number);
+  const total = h * 60 + m + durationMinutes;
+  const nh = Math.floor(total / 60) % 24;
+  return `${String(nh).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+}
+
 export function isSlotInPast(dateStr: string, time: string): boolean {
   const [h, m] = time.split(":").map(Number);
   const d = new Date(dateStr);
@@ -106,39 +118,121 @@ export function isSlotInPast(dateStr: string, time: string): boolean {
   return d < new Date();
 }
 
-export function countOpenSlotsForMonth(
+export function generateSessionBlocks(config: SessionBreakConfig): SessionBlock[] {
+  const blocks: SessionBlock[] = [];
+  const [sh, sm] = config.startTime.split(":").map(Number);
+  const [eh, em] = config.endTime.split(":").map(Number);
+  let cursorMin = sh * 60 + (sm || 0);
+  const endMin = eh * 60 + (em || 0);
+  let idx = 1;
+
+  while (cursorMin + config.sessionDuration <= endMin) {
+    const sessionEnd = cursorMin + config.sessionDuration;
+    blocks.push({
+      startTime: minsToTime(cursorMin),
+      endTime: minsToTime(sessionEnd),
+      type: "session",
+      index: idx,
+    });
+    cursorMin = sessionEnd;
+
+    if (config.breakDuration > 0 && cursorMin + config.breakDuration <= endMin) {
+      const breakEnd = cursorMin + config.breakDuration;
+      blocks.push({
+        startTime: minsToTime(cursorMin),
+        endTime: minsToTime(breakEnd),
+        type: "break",
+        index: idx,
+      });
+      cursorMin = breakEnd;
+    }
+
+    idx++;
+  }
+
+  return blocks;
+}
+
+export function sessionBlockTimes(blocks: SessionBlock[]): string[] {
+  const times: string[] = [];
+  for (const block of blocks) {
+    if (block.type !== "session") continue;
+    const [sh] = block.startTime.split(":").map(Number);
+    const [eh] = block.endTime.split(":").map(Number);
+    for (let h = sh; h < eh; h++) {
+      times.push(`${String(h).padStart(2, "0")}:00`);
+    }
+  }
+  return times;
+}
+
+export function breakBlockTimes(blocks: SessionBlock[]): string[] {
+  const times: string[] = [];
+  for (const block of blocks) {
+    if (block.type !== "break") continue;
+    const [sh] = block.startTime.split(":").map(Number);
+    const [eh] = block.endTime.split(":").map(Number);
+    for (let h = sh; h < eh; h++) {
+      times.push(`${String(h).padStart(2, "0")}:00`);
+    }
+  }
+  return times;
+}
+
+export function blockHourTimes(block: SessionBlock): string[] {
+  const times: string[] = [];
+  const [sh] = block.startTime.split(":").map(Number);
+  const [eh] = block.endTime.split(":").map(Number);
+  for (let h = sh; h < eh; h++) {
+    times.push(`${String(h).padStart(2, "0")}:00`);
+  }
+  return times;
+}
+
+export function blockDurationMins(block: SessionBlock): number {
+  const [sh, sm] = block.startTime.split(":").map(Number);
+  const [eh, em] = block.endTime.split(":").map(Number);
+  return (eh * 60 + (em || 0)) - (sh * 60 + (sm || 0));
+}
+
+export interface SlotUpdate {
+  date: string;
+  time: string;
+  status: "open" | "off";
+}
+
+export function generateSlotsFromConfig(
+  config: SessionBreakConfig,
+  days: number[],
   year: number,
   month: number,
-  days: number[],
-  sessions: string[],
-  workingHours: WorkingHours,
-  availabilityStore?: Record<string, SlotInfo>,
-): { total: number; booked: number; skippedPast: number } {
-  const times = generateTimeSlots(workingHours.start, workingHours.end, workingHours.slotInterval ?? DEFAULT_SLOT_INTERVAL);
-  let total = 0;
-  let booked = 0;
-  let skippedPast = 0;
+  availability: Record<string, SlotInfo>,
+): SlotUpdate[] {
+  const blocks = generateSessionBlocks(config);
+  const sessionTimes = new Set(sessionBlockTimes(blocks));
   const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const updates: SlotUpdate[] = [];
 
   for (let d = 1; d <= daysInMonth; d++) {
     const date = new Date(year, month, d);
     const dow = date.getDay();
-    if (dow === 0 || dow === 6) continue;
     if (!days.includes(dow)) continue;
+
     const dk = dateKeyStr(year, month, d);
+    if (isDateInPast(dk)) continue;
 
-    for (const time of times) {
-      if (!sessions.includes(sessionPeriodForTime(time))) continue;
+    for (let h = 0; h < 24; h++) {
+      const time = `${String(h).padStart(2, "0")}:00`;
+      if (isSlotInPast(dk, time)) continue;
 
-      if (isSlotInPast(dk, time)) {
-        skippedPast++;
-        continue;
-      }
-
-      total++;
       const key = `${dk}_${time}`;
-      if (availabilityStore?.[key]?.status === "booked") booked++;
+      const current = availability[key];
+      if (current?.status === "booked") continue;
+
+      const shouldBeOpen = sessionTimes.has(time);
+      updates.push({ date: dk, time, status: shouldBeOpen ? "open" : "off" });
     }
   }
-  return { total, booked, skippedPast };
+
+  return updates;
 }
