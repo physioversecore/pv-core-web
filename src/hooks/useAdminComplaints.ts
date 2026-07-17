@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getAdminComplaints,
   updateAdminComplaint,
+  deleteAdminComplaint,
   type AdminComplaintData,
 } from "@/services/api/admin";
 import type { SortDirection } from "@/hooks/useTableSort";
@@ -58,8 +59,8 @@ interface UseAdminComplaintsParams {
   type: "patient" | "therapist";
   search: string;
   status: string;
-  dateFrom: string;
-  dateTo: string;
+  priority: string;
+  category: string;
   sortBy: string;
   sortOrder: SortDirection;
   page: number;
@@ -68,17 +69,15 @@ interface UseAdminComplaintsParams {
 
 export function useAdminComplaints(params: UseAdminComplaintsParams) {
   const queryClient = useQueryClient();
-  const { type, search, status, dateFrom, dateTo, sortBy, sortOrder, page, pageSize } = params;
+  const { type, search, status, priority, category, sortBy, sortOrder, page, pageSize } = params;
   const skip = (page - 1) * pageSize;
 
   const query = useQuery({
-    queryKey: [QUERY_KEY, { type, search, status, dateFrom, dateTo, sortBy, sortOrder, skip, pageSize }],
+    queryKey: [QUERY_KEY, { type, search, status, priority, category, sortBy, sortOrder, skip, pageSize }],
     queryFn: () =>
       getAdminComplaints({
         type,
         search: search || undefined,
-        dateFrom: dateFrom || undefined,
-        dateTo: dateTo || undefined,
         sortBy: sortBy || undefined,
         sortOrder,
         skip,
@@ -88,7 +87,7 @@ export function useAdminComplaints(params: UseAdminComplaintsParams) {
   });
 
   const seedData = type === "patient" ? SEED_PATIENT : SEED_THERAPIST;
-  const seedFiltered = useSeedFilter(seedData, { search, status, dateFrom, dateTo, sortBy, sortOrder });
+  const seedFiltered = useSeedFilter(seedData, { search, status, priority, category, sortBy, sortOrder });
   const items = query.data?.items ?? seedFiltered;
   const total = query.data?.total ?? seedFiltered.length;
 
@@ -98,18 +97,24 @@ export function useAdminComplaints(params: UseAdminComplaintsParams) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteAdminComplaint(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
+  });
+
   return {
     items,
     total,
     isLoading: query.isLoading,
     updateComplaint: (id: string, data: Partial<AdminComplaintData>) =>
       updateMutation.mutateAsync({ id, data }),
+    deleteComplaint: (id: string) => deleteMutation.mutateAsync(id),
   };
 }
 
 function useSeedFilter(
   seed: AdminComplaintData[],
-  params: { search: string; status: string; dateFrom: string; dateTo: string; sortBy: string; sortOrder: SortDirection },
+  params: { search: string; status: string; priority: string; category: string; sortBy: string; sortOrder: SortDirection },
 ): AdminComplaintData[] {
   let result = [...seed];
 
@@ -120,11 +125,11 @@ function useSeedFilter(
   if (params.status) {
     result = result.filter((r) => r.status === params.status);
   }
-  if (params.dateFrom) {
-    result = result.filter((r) => r.filed >= params.dateFrom);
+  if (params.priority) {
+    result = result.filter((r) => r.priority === params.priority);
   }
-  if (params.dateTo) {
-    result = result.filter((r) => r.filed <= params.dateTo);
+  if (params.category) {
+    result = result.filter((r) => r.category === params.category);
   }
   if (params.sortBy) {
     result.sort((a, b) => {

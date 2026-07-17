@@ -36,7 +36,8 @@ export interface RecentUploadData {
   patient: string;
   kind: "x-ray" | "note" | "video";
   title: string;
-  file: string;
+  content: string;
+  files: string[];
   date: string;
 }
 
@@ -107,4 +108,8 @@ export async function createTherapist(data: {
 
 export async function getTherapistDashboard(): Promise<TherapistDashboardData> {
   return api.get<TherapistDashboardData>("/therapists/me/dashboard");
+}
+
+export async function getMyTherapist(): Promise<TherapistData> {
+  return api.get<TherapistData>("/therapists/me");
 }

@@ -28,7 +28,7 @@ export function ConfirmDialog({ open, onOpenChange, onConfirm, title, descriptio
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>{description}</AlertDialogDescription>
+          <AlertDialogDescription dangerouslySetInnerHTML={{ __html: description }}/>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>{t("common.cancel") ?? "Cancel"}</AlertDialogCancel>

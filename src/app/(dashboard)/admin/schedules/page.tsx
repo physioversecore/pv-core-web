@@ -49,7 +49,7 @@ export default function AdminBookings() {
   const [filter, setFilter] = useState<(typeof STATUSES)[number]>("All statuses");
 
   const weekRange = useMemo(() => getCurrentWeekRange(), []);
-  const { appointments, isLoading: scheduleLoading } = useTherapistSchedule(
+  const { appointments, workingHours, isLoading: scheduleLoading } = useTherapistSchedule(
     selectedTherapistId,
     weekRange.start,
     weekRange.end,
@@ -132,6 +132,7 @@ export default function AdminBookings() {
             {selectedTherapistId ? (
               <ScheduleCalendar
                 appointments={appointments}
+                workingHours={workingHours}
                 isLoading={scheduleLoading}
                 isAdmin
                 emptyMessage={t("admin_dashboard.noSessionsThisWeek")}

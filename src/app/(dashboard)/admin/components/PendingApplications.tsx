@@ -60,7 +60,7 @@ export function PendingApplications() {
                   <button onClick={() => act(p.id, true)} className="btn-secondary !py-1 !px-3 text-xs">
                     {t("admin_dashboard.verify")}
                   </button>
-                  <button onClick={() => act(p.id, false)} className="btn-outline !py-1 !px-3 text-xs">
+                  <button onClick={() => act(p.id, false)} className="btn-outline !py-1 !px-3 text-xs !text-red-500 !border-red-500 hover:!bg-red-500 hover:!text-white">
                     {t("admin_dashboard.reject")}
                   </button>
                 </td>

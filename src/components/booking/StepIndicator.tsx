@@ -2,17 +2,33 @@
 
 import { cn } from "@/utils/cn";
 
-const STEPS = [
+const PATIENT_STEPS = [
   { num: 1, label: "Date & time" },
   { num: 2, label: "Currency" },
   { num: 3, label: "Payment" },
   { num: 4, label: "Confirm" },
 ];
 
-export function StepIndicator({ currentStep }: { currentStep: number }) {
+const ADMIN_STEPS = [
+  { num: 1, label: "Patient" },
+  { num: 2, label: "Therapist" },
+  { num: 3, label: "Date & time" },
+  { num: 4, label: "Payment" },
+  { num: 5, label: "Confirm" },
+];
+
+export function StepIndicator({
+  currentStep,
+  mode = "patient",
+}: {
+  currentStep: number;
+  mode?: "patient" | "admin";
+}) {
+  const steps = mode === "admin" ? ADMIN_STEPS : PATIENT_STEPS;
+
   return (
     <div className="flex items-center justify-between px-1">
-      {STEPS.map((step, i) => {
+      {steps.map((step, i) => {
         const isCompleted = currentStep > step.num;
         const isActive = currentStep === step.num;
         const isUpcoming = currentStep < step.num;
@@ -41,7 +57,7 @@ export function StepIndicator({ currentStep }: { currentStep: number }) {
                 {step.label}
               </span>
             </div>
-            {i < STEPS.length - 1 && (
+            {i < steps.length - 1 && (
               <div
                 className={cn(
                   "flex-1 h-[2px] mx-2 mt-[-1.5rem]",

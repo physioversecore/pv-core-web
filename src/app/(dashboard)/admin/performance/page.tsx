@@ -1,17 +1,30 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-import { Star, TrendingUp, TrendingDown, Minus, Download, Calendar, Shield } from "lucide-react";
+import {
+  Star,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Download,
+  Calendar,
+  Shield,
+  Eye,
+  Pencil,
+  CheckCircle,
+  Trash2,
+} from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTableSort } from "@/hooks/useTableSort";
-import { useAdminPerformance } from "@/hooks/useAdminPerformance";
 import { DashboardStat } from "@/components/dashboard/DashboardStat";
 import {
   DataTable,
+  ActionMenu,
   FilterBar,
   StatusChip,
   type Column,
   type FilterConfig,
+  type ActionItem,
 } from "@/components/tables";
 import type { AdminPerformanceData } from "@/services/api/admin";
 import {
@@ -21,9 +34,42 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
+const SEED: AdminPerformanceData[] = [
+  { id: "t1", name: "Rajesh Shrestha", avgRating: 4.8, sessions: 210, reviews: 142, trend: 0.1, linkedComplaints: 0, status: "Good standing" },
+  { id: "t2", name: "Anita Tamang", avgRating: 4.6, sessions: 180, reviews: 120, trend: 0.0, linkedComplaints: 1, status: "Good standing" },
+  { id: "t5", name: "Bikash Thapa", avgRating: 4.4, sessions: 64, reviews: 41, trend: -0.2, linkedComplaints: 0, status: "Needs review" },
+  { id: "t3", name: "Sujan Karki", avgRating: 4.2, sessions: 95, reviews: 77, trend: -0.3, linkedComplaints: 2, status: "Under probation" },
+];
+
+const EDIT_STATUSES = [
+  "Good standing",
+  "Needs review",
+  "Under probation",
+  "Escalated",
+  "Resolved",
+] as const;
+
 export default function PerformancePage() {
+  const [data, setData] = useState<AdminPerformanceData[]>(SEED);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [minRating, setMinRating] = useState("");
@@ -34,15 +80,78 @@ export default function PerformancePage() {
   const { sort, toggleSort, sortBy, sortOrder } = useTableSort({ defaultColumn: "name" });
   const pageSize = 10;
 
-  const { items, total, isLoading } = useAdminPerformance({
-    search: debouncedSearch,
-    status,
-    minRating,
-    sortBy,
-    sortOrder,
-    page,
-    pageSize,
-  });
+  const [previewRow, setPreviewRow] = useState<AdminPerformanceData | null>(null);
+  const [editRow, setEditRow] = useState<AdminPerformanceData | null>(null);
+  const [resolveRow, setResolveRow] = useState<AdminPerformanceData | null>(null);
+  const [deleteRow, setDeleteRow] = useState<AdminPerformanceData | null>(null);
+
+  const filteredData = useMemo(() => {
+    let result = [...data];
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase();
+      result = result.filter((r) => r.name.toLowerCase().includes(q));
+    }
+    if (status) {
+      result = result.filter((r) => r.status === status);
+    }
+    if (minRating) {
+      const min = Number(minRating);
+      if (!isNaN(min)) result = result.filter((r) => r.avgRating >= min);
+    }
+    return result;
+  }, [data, debouncedSearch, status, minRating]);
+
+  const sortedData = useMemo(() => {
+    if (!sortBy) return filteredData;
+    return [...filteredData].sort((a, b) => {
+      const aVal = a[sortBy as keyof AdminPerformanceData] ?? "";
+      const bVal = b[sortBy as keyof AdminPerformanceData] ?? "";
+      const cmp = String(aVal).localeCompare(String(bVal), undefined, { numeric: true });
+      return sortOrder === "desc" ? -cmp : cmp;
+    });
+  }, [filteredData, sortBy, sortOrder]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedData.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const items = useMemo(
+    () => sortedData.slice((safePage - 1) * pageSize, safePage * pageSize),
+    [sortedData, safePage],
+  );
+  const total = sortedData.length;
+
+  const handleSaveEdit = useCallback(
+    (updated: AdminPerformanceData) => {
+      setData((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+      setEditRow(null);
+      toast.success(`${updated.name}'s profile updated`);
+    },
+    [],
+  );
+
+  const handleResolve = useCallback((row: AdminPerformanceData) => {
+    setData((prev) =>
+      prev.map((r) =>
+        r.id === row.id ? { ...r, status: "Good standing" as const } : r,
+      ),
+    );
+    setResolveRow(null);
+    toast.success(`${row.name} marked as resolved`);
+  }, []);
+
+  const handleDelete = useCallback((row: AdminPerformanceData) => {
+    setData((prev) => prev.filter((r) => r.id !== row.id));
+    setDeleteRow(null);
+    toast.success(`${row.name} removed from the team`, {
+      duration: 5000,
+      action: {
+        label: "Undo",
+        onClick: () => {
+          setData((prev) => [...prev, row]);
+          toast.success(`${row.name} restored`);
+        },
+      },
+    });
+  }, []);
 
   const resetFilters = useCallback(() => {
     setSearch("");
@@ -149,48 +258,60 @@ export default function PerformancePage() {
   );
 
   const renderActions = useCallback(
-    (row: AdminPerformanceData) => (
-      <div className="flex items-center justify-end gap-1">
-        {row.status === "Good standing" ? (
-          <button
-            className="p-1.5 rounded-lg hover:bg-surface text-text-light hover:text-secondary transition cursor-pointer"
-            title="View history"
-          >
-            <Shield size={15} />
-          </button>
-        ) : row.status === "Needs review" ? (
-          <>
-            <button
-              className="p-1.5 rounded-lg hover:bg-surface text-text-light hover:text-secondary transition cursor-pointer"
-              title="Schedule review"
-            >
-              <Calendar size={15} />
-            </button>
-            <button
-              className="chip !bg-info/15 !text-info cursor-pointer !text-[0.6rem]"
-              title="Probation"
-            >
-              Probation
-            </button>
-          </>
-        ) : row.status === "Under probation" ? (
-          <>
-            <button
-              className="p-1.5 rounded-lg hover:bg-surface text-text-light hover:text-secondary transition cursor-pointer"
-              title="View history"
-            >
-              <Shield size={15} />
-            </button>
-            <button
-              className="chip !bg-destructive/10 !text-destructive cursor-pointer !text-[0.6rem]"
-              title="Remove from team"
-            >
-              Remove
-            </button>
-          </>
-        ) : null}
-      </div>
-    ),
+    (row: AdminPerformanceData) => {
+      const actions: ActionItem[] = [
+        {
+          key: "preview",
+          label: "Preview",
+          icon: <Eye size={14} />,
+          onClick: () => setPreviewRow(row),
+        },
+        {
+          key: "edit",
+          label: "Edit",
+          icon: <Pencil size={14} />,
+          onClick: () => setEditRow(row),
+        },
+        ...(row.status === "Needs review" || row.status === "Under probation"
+          ? [
+              {
+                key: "resolve",
+                label: "Resolve",
+                icon: <CheckCircle size={14} />,
+                onClick: () => setResolveRow(row),
+              },
+            ]
+          : []),
+        ...(row.status === "Good standing"
+          ? [
+              {
+                key: "history",
+                label: "View history",
+                icon: <Shield size={14} />,
+                onClick: () => setDetailRow(row),
+              },
+            ]
+          : []),
+        ...(row.status === "Needs review"
+          ? [
+              {
+                key: "schedule",
+                label: "Schedule review",
+                icon: <Calendar size={14} />,
+                onClick: () => toast.info(`Schedule review for ${row.name}`),
+              },
+            ]
+          : []),
+        {
+          key: "delete",
+          label: "Delete",
+          icon: <Trash2 size={14} />,
+          variant: "destructive",
+          onClick: () => setDeleteRow(row),
+        },
+      ];
+      return <ActionMenu actions={actions} />;
+    },
     [],
   );
 
@@ -251,11 +372,11 @@ export default function PerformancePage() {
           columns={columns}
           data={items}
           total={total}
-          isLoading={isLoading}
+          isLoading={false}
           sortColumn={sort.column}
           sortOrder={sort.direction}
           onSortToggle={(col) => { toggleSort(col); setPage(1); }}
-          page={page}
+          page={safePage}
           pageSize={pageSize}
           onPageChange={setPage}
           renderActions={renderActions}
@@ -265,9 +386,273 @@ export default function PerformancePage() {
       </div>
 
       {detailRow && <PerformanceDetailDrawer data={detailRow} onClose={() => setDetailRow(null)} />}
+
+      {previewRow && (
+        <PreviewModal row={previewRow} onClose={() => setPreviewRow(null)} />
+      )}
+
+      {editRow && (
+        <EditModal row={editRow} onSave={handleSaveEdit} onClose={() => setEditRow(null)} />
+      )}
+
+      {resolveRow && (
+        <ResolveConfirmModal
+          row={resolveRow}
+          onConfirm={() => handleResolve(resolveRow)}
+          onClose={() => setResolveRow(null)}
+        />
+      )}
+
+      {deleteRow && (
+        <DeleteConfirmModal
+          row={deleteRow}
+          onConfirm={() => handleDelete(deleteRow)}
+          onClose={() => setDeleteRow(null)}
+        />
+      )}
     </div>
   );
 }
+
+/* ── Preview Modal ─────────────────────────────────────────────── */
+
+function PreviewModal({
+  row,
+  onClose,
+}: {
+  row: AdminPerformanceData;
+  onClose: () => void;
+}) {
+  const fields: { label: string; value: React.ReactNode }[] = [
+    { label: "Avg rating", value: <span className="font-mono">{row.avgRating.toFixed(1)}</span> },
+    { label: "Status", value: <StatusChip status={row.status} /> },
+    { label: "Sessions", value: <span className="font-mono">{row.sessions}</span> },
+    { label: "Reviews", value: <span className="font-mono">{row.reviews}</span> },
+    {
+      label: "Trend",
+      value: (
+        <span className={`font-mono ${row.trend > 0 ? "text-success" : row.trend < 0 ? "text-destructive" : "text-text-muted"}`}>
+          {row.trend > 0 ? "+" : ""}{row.trend.toFixed(1)}
+        </span>
+      ),
+    },
+    { label: "Linked complaints", value: <span className="font-mono">{row.linkedComplaints}</span> },
+  ];
+
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="font-display">{row.name}</DialogTitle>
+          <DialogDescription>Therapist performance details</DialogDescription>
+        </DialogHeader>
+        <div className="grid grid-cols-2 gap-4">
+          {fields.map((f) => (
+            <div key={f.label}>
+              <span className="eyebrow mb-1 block">{f.label}</span>
+              <div className="text-sm">{f.value}</div>
+            </div>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ── Edit Modal ────────────────────────────────────────────────── */
+
+function EditModal({
+  row,
+  onSave,
+  onClose,
+}: {
+  row: AdminPerformanceData;
+  onSave: (updated: AdminPerformanceData) => void;
+  onClose: () => void;
+}) {
+  const [form, setForm] = useState(row);
+
+  const inputClass =
+    "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20 transition";
+
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="font-display">Edit {row.name}</DialogTitle>
+          <DialogDescription>Update therapist performance data</DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div>
+            <label className="eyebrow mb-1 block">Name</label>
+            <input
+              type="text"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className={inputClass}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="eyebrow mb-1 block">Avg rating</label>
+              <input
+                type="number"
+                step="0.1"
+                min="0"
+                max="5"
+                value={form.avgRating}
+                onChange={(e) => setForm({ ...form, avgRating: Number(e.target.value) })}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className="eyebrow mb-1 block">Sessions</label>
+              <input
+                type="number"
+                min="0"
+                value={form.sessions}
+                onChange={(e) => setForm({ ...form, sessions: Number(e.target.value) })}
+                className={inputClass}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="eyebrow mb-1 block">Reviews</label>
+              <input
+                type="number"
+                min="0"
+                value={form.reviews}
+                onChange={(e) => setForm({ ...form, reviews: Number(e.target.value) })}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className="eyebrow mb-1 block">Trend</label>
+              <input
+                type="number"
+                step="0.1"
+                value={form.trend}
+                onChange={(e) => setForm({ ...form, trend: Number(e.target.value) })}
+                className={inputClass}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="eyebrow mb-1 block">Linked complaints</label>
+              <input
+                type="number"
+                min="0"
+                value={form.linkedComplaints}
+                onChange={(e) => setForm({ ...form, linkedComplaints: Number(e.target.value) })}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className="eyebrow mb-1 block">Status</label>
+              <select
+                value={form.status}
+                onChange={(e) =>
+                  setForm({ ...form, status: e.target.value as AdminPerformanceData["status"] })
+                }
+                className={inputClass}
+              >
+                {EDIT_STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-2 pt-2">
+          <Button variant="outline" size="sm" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button size="sm" onClick={() => onSave(form)}>
+            Save
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ── Resolve Confirm Modal ─────────────────────────────────────── */
+
+function ResolveConfirmModal({
+  row,
+  onConfirm,
+  onClose,
+}: {
+  row: AdminPerformanceData;
+  onConfirm: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <AlertDialog open onOpenChange={(open) => !open && onClose()}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="font-display">
+            Mark {row.name} as resolved?
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            Status will change to Good Standing.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <div className="flex justify-end gap-2">
+          <AlertDialogCancel onClick={onClose}>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm}>Resolve</AlertDialogAction>
+        </div>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+/* ── Delete Confirm Modal ──────────────────────────────────────── */
+
+function DeleteConfirmModal({
+  row,
+  onConfirm,
+  onClose,
+}: {
+  row: AdminPerformanceData;
+  onConfirm: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <AlertDialog open onOpenChange={(open) => !open && onClose()}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="font-display">
+            Remove {row.name} from the team?
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            This cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <div className="flex justify-end gap-2">
+          <AlertDialogCancel onClick={onClose}>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            onClick={onConfirm}
+          >
+            Remove
+          </AlertDialogAction>
+        </div>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+/* ── Detail Drawer (unchanged) ─────────────────────────────────── */
 
 function PerformanceDetailDrawer({ data, onClose }: { data: AdminPerformanceData; onClose: () => void }) {
   const ratingHistory = [
