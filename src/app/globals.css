@@ -47,6 +47,33 @@
   --color-white: #ffffff;
   --color-black: #000000;
 
+  /* Slot status colors */
+  --color-slot-open: #D1E8DF;
+  --color-slot-open-text: #134B39;
+  --color-slot-booked: #16332A;
+  --color-slot-booked-text: #FFFFFF;
+  --color-slot-off: #FBFBF8;
+  --color-slot-past: #ECEAE3;
+  --color-slot-past-alt: #E2DFD5;
+  --color-danger-bg: #FBEAE5;
+  --color-danger-ink: #8A3018;
+  --color-warn-bg: #FCF3E1;
+  --color-warn-ink: #8A5A0B;
+  --color-warn-border: #ECD09B;
+
+  /* Slot status colors */
+  --color-slot-open: #D1E8DF;
+  --color-slot-open-text: #134B39;
+  --color-slot-booked: #16332A;
+  --color-slot-off: #FBFBF8;
+  --color-slot-past: #ECEAE3;
+  --color-slot-past-alt: #E2DFD5;
+  --color-danger-bg: #FBEAE5;
+  --color-danger-ink: #8A3018;
+  --color-warn-bg: #FCF3E1;
+  --color-warn-ink: #8A5A0B;
+  --color-warn-border: #ECD09B;
+
   --font-display: "Fraunces", ui-serif, Georgia, serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
@@ -455,4 +482,21 @@
 
 .animate-slide-in-right {
   animation: slide-in-right 0.25s ease-out;
+}
+
+@utility hatch-past {
+  background-image: repeating-linear-gradient(135deg, var(--color-slot-past), var(--color-slot-past) 6px, var(--color-slot-past-alt) 6px, var(--color-slot-past-alt) 12px);
+}
+
+@utility hatch-blocked {
+  background-image: repeating-linear-gradient(135deg, #F6E4DE, #F6E4DE 7px, #F0D5CA 7px, #F0D5CA 14px);
+}
+
+@keyframes toast-in {
+  from { transform: translateY(16px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-toast-in {
+  animation: toast-in 0.25s ease-out;
 }

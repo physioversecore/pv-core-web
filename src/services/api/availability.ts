@@ -53,3 +53,32 @@ export async function blockDate(
     sessions,
   });
 }
+
+export interface AuditLogEntry {
+  id: string;
+  date: string;
+  reason: string;
+  who: string;
+  slotKey: string | null;
+  time: string | null;
+  source: string;
+  createdAt: string;
+}
+
+export async function getAuditLog(): Promise<AuditLogEntry[]> {
+  try {
+    return await api.get<AuditLogEntry[]>("/availability/audit-log");
+  } catch {
+    return [];
+  }
+}
+
+export async function createAuditEntry(
+  entry: Omit<AuditLogEntry, "id" | "createdAt">,
+): Promise<AuditLogEntry> {
+  return api.post<AuditLogEntry>("/availability/audit-log", entry);
+}
+
+export async function deleteAuditEntry(id: string): Promise<void> {
+  await api.delete(`/availability/audit-log/${id}`);
+}
