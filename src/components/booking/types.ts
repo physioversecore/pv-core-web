@@ -1,3 +1,10 @@
+export interface BookingPatient {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+}
+
 export interface BookingTherapist {
   id: string;
   name: string;
@@ -46,4 +53,20 @@ export interface BookingResult {
   amount: number;
   currency: string;
   paymentMethod: string;
+}
+
+export interface AdminBookingResult {
+  reference: string;
+  patientName: string;
+  patientId: string;
+  patientPhone: string;
+  patientEmail: string;
+  therapistName: string;
+  therapistId: string;
+  therapistPhone: string;
+  therapistEmail: string;
+  date: string;
+  time: string;
+  paymentMethod?: string;
+  paymentType?: "nepal" | "international";
 }

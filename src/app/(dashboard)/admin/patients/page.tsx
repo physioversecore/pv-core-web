@@ -325,13 +325,14 @@ function EditPatientDialog({
   const [city, setCity] = useState(patient.city);
   const [phone, setPhone] = useState(patient.phone ?? "");
   const [email, setEmail] = useState(patient.email ?? "");
+  const [isActive, setIsActive] = useState(patient.isActive);
   const [saving, setSaving] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     try {
-      await onSave({ name, city, phone, email });
+      await onSave({ name, city, phone, email, isActive });
     } finally {
       setSaving(false);
     }
@@ -379,6 +380,17 @@ function EditPatientDialog({
               onChange={(e) => setEmail(e.target.value)}
               className="w-full mt-1 px-3 py-2 rounded-md border border-input bg-transparent text-sm"
             />
+          </div>
+          <div>
+            <label className="text-xs font-mono text-text-light uppercase">{t("admin_dashboard.status") ?? "Status"}</label>
+            <select
+              value={isActive ? "Active" : "Inactive"}
+              onChange={(e) => setIsActive(e.target.value === "Active")}
+              className="w-full mt-1 px-3 py-2 rounded-md border border-input bg-transparent text-sm"
+            >
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" onClick={onClose} className="btn-outline !py-1.5 !px-4 text-xs cursor-pointer">

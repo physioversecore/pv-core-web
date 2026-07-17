@@ -10,11 +10,13 @@ import { useTableSort } from "@/hooks/useTableSort";
 import { useAdminComplaints } from "@/hooks/useAdminComplaints";
 import {
   DataTable,
+  ActionMenu,
   FilterBar,
   StatusChip,
   ConfirmDialog,
   type Column,
   type FilterConfig,
+  type ActionItem,
 } from "@/components/tables";
 import type { AdminComplaintData } from "@/services/api/admin";
 import {
@@ -288,45 +290,42 @@ function ComplaintsTab({
   );
 
   const renderActions = useCallback(
-    (row: AdminComplaintData) => (
-      <div className="flex items-center justify-end gap-1">
-        <button
-          onClick={() => onPreview(row)}
-          className="p-1.5 rounded-lg hover:bg-surface text-text-light hover:text-secondary transition cursor-pointer"
-          title={t("complaints.viewComplaint") ?? "View"}
-        >
-          <Eye size={15} />
-        </button>
-        <button
-          onClick={() => onEdit(row)}
-          className="p-1.5 rounded-lg hover:bg-surface text-text-light hover:text-secondary transition cursor-pointer"
-          title={t("admin_dashboard.edit") ?? "Edit"}
-        >
-          <Pencil size={15} />
-        </button>
-        <button
-          onClick={() => onAssign(row)}
-          className="p-1.5 rounded-lg hover:bg-surface text-text-light hover:text-secondary transition cursor-pointer"
-          title={t("admin_dashboard.assign") ?? "Assign"}
-        >
-          <UserPlus size={15} />
-        </button>
-        <button
-          onClick={() => handleEscalate(row)}
-          className="p-1.5 rounded-lg hover:bg-surface text-text-light hover:text-danger transition cursor-pointer"
-          title={t("admin_dashboard.escalate") ?? "Escalate"}
-        >
-          <ArrowUpRight size={15} />
-        </button>
-        <button
-          onClick={() => onDelete(row)}
-          className="p-1.5 rounded-lg hover:bg-surface text-text-light hover:text-danger transition cursor-pointer"
-          title={t("admin_dashboard.delete") ?? "Delete"}
-        >
-          <Trash2 size={15} />
-        </button>
-      </div>
-    ),
+    (row: AdminComplaintData) => {
+      const actions: ActionItem[] = [
+        {
+          key: "preview",
+          label: t("complaints.viewComplaint") ?? "View",
+          icon: <Eye size={14} />,
+          onClick: () => onPreview(row),
+        },
+        {
+          key: "edit",
+          label: t("admin_dashboard.edit") ?? "Edit",
+          icon: <Pencil size={14} />,
+          onClick: () => onEdit(row),
+        },
+        {
+          key: "assign",
+          label: t("admin_dashboard.assign") ?? "Assign",
+          icon: <UserPlus size={14} />,
+          onClick: () => onAssign(row),
+        },
+        {
+          key: "escalate",
+          label: t("admin_dashboard.escalate") ?? "Escalate",
+          icon: <ArrowUpRight size={14} />,
+          onClick: () => handleEscalate(row),
+        },
+        {
+          key: "delete",
+          label: t("admin_dashboard.delete") ?? "Delete",
+          icon: <Trash2 size={14} />,
+          variant: "destructive",
+          onClick: () => onDelete(row),
+        },
+      ];
+      return <ActionMenu actions={actions} />;
+    },
     [onPreview, onEdit, onAssign, t, handleEscalate, onDelete],
   );
 

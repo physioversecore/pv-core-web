@@ -8,9 +8,9 @@ export type StatusType =
   | "Active" | "Inactive" | "Open" | "Resolved" | "Dismissed" | "Normal" | "Urgent"
   | "Rescheduled" | "Confirmed" | "Cancelled" | "Super Admin" | "Support Admin" | "Finance Admin"
   | "Low coverage" | "Approved" | "Declined"
-  | "Expiring soon" | "Expired" | "Rejected" | "Pending review" | "Denied"
+  | "Expiring soon" | "Expired" | "Rejected" | "Pending review" | "Denied" | "Escalated"
   | "Good standing" | "Needs review" | "Under probation" | "Removed"
-  | "Investigating" | "Critical" | "High" | "Medium"
+  | "Investigating" | "Critical" | "High" | "Medium" | "Low"
   | "System";
 
 const STATUS_STYLES: Record<string, string> = {
@@ -50,6 +50,8 @@ const STATUS_STYLES: Record<string, string> = {
   "Critical": "!bg-destructive text-white",
   "High": "!bg-destructive/10 !text-destructive",
   "Medium": "!bg-primary/15 !text-primary",
+  "Low": "!bg-muted !text-muted-foreground",
+  "Escalated": "!bg-destructive/10 !text-destructive",
   "System": "!bg-muted !text-muted-foreground",
 };
 
@@ -92,6 +94,8 @@ export function StatusChip({ status }: { status: StatusType }) {
     Critical: "Critical",
     High: "High",
     Medium: "Medium",
+    Low: "Low",
+    Escalated: "Escalated",
     System: "System",
   };
 
