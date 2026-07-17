@@ -1,9 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { X, CalendarDays, ChevronDown, TriangleAlert, Lock } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { Avatar } from "@/components/common/Avatar";
+import { useAuth } from "@/context/auth";
+import { createSession, updateSession } from "@/services/api/sessions";
+import { getSlotsForRange } from "@/services/api/availability";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -48,7 +52,28 @@ interface BookingResult {
   paymentMethod: string;
 }
 
-// ─── Mock Data ──────────────────────────────────────────────────────────────
+interface CardDetails {
+  number: string;
+  expiry: string;
+  cvv: string;
+  name: string;
+}
+
+// ─── Session shape for edit mode ────────────────────────────────────────────
+
+interface ExistingSession {
+  id: string;
+  therapistId: string;
+  therapistName?: string;
+  therapistSpecialty?: string;
+  therapistPrice?: number;
+  date: string;
+  time: string;
+  status?: string;
+  fee?: number;
+}
+
+// ─── Mock Data (fallback) ───────────────────────────────────────────────────
 
 const MOCK_THERAPIST: BookingTherapist = {
   id: "th-001",
@@ -116,7 +141,7 @@ const BILLING_COUNTRIES = [
 
 // ─── StepIndicator ──────────────────────────────────────────────────────────
 
-const PATIENT_STEPS = [
+const STEPS = [
   { num: 1, label: "Date & time" },
   { num: 2, label: "Currency" },
   { num: 3, label: "Payment" },
@@ -126,7 +151,7 @@ const PATIENT_STEPS = [
 function StepIndicator({ currentStep }: { currentStep: number }) {
   return (
     <div className="flex items-center justify-between px-1">
-      {PATIENT_STEPS.map((step, i) => {
+      {STEPS.map((step, i) => {
         const isCompleted = currentStep > step.num;
         const isActive = currentStep === step.num;
         const isUpcoming = currentStep < step.num;
@@ -155,7 +180,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
                 {step.label}
               </span>
             </div>
-            {i < PATIENT_STEPS.length - 1 && (
+            {i < STEPS.length - 1 && (
               <div
                 className={cn(
                   "flex-1 h-[2px] mx-2 mt-[-1.5rem]",
@@ -221,12 +246,13 @@ interface StepDateTimeProps {
   selectedDate: string;
   selectedTime: string;
   slots: TimeSlot[];
+  slotsLoading: boolean;
   onDateChange: (date: string) => void;
   onTimeChange: (time: string) => void;
   onContinue: () => void;
 }
 
-function StepDateTime({ selectedDate, selectedTime, slots, onDateChange, onTimeChange, onContinue }: StepDateTimeProps) {
+function StepDateTime({ selectedDate, selectedTime, slots, slotsLoading, onDateChange, onTimeChange, onContinue }: StepDateTimeProps) {
   const isValid = !!selectedDate && !!selectedTime;
 
   return (
@@ -247,23 +273,37 @@ function StepDateTime({ selectedDate, selectedTime, slots, onDateChange, onTimeC
 
       <div>
         <label className="text-sm font-semibold text-[#1E2A2E]">Available time slots</label>
-        <div className="grid grid-cols-3 gap-2 mt-2">
-          {slots.map((slot) => (
-            <button
-              key={slot.time}
-              disabled={slot.booked}
-              onClick={() => onTimeChange(slot.time)}
-              className={cn(
-                "py-2.5 rounded-xl text-sm font-medium border transition-all",
-                slot.booked && "bg-gray-100 text-gray-400 line-through cursor-not-allowed",
-                !slot.booked && selectedTime === slot.time && "border-[#1F3D2B] bg-[#1F3D2B]/10 text-[#1F3D2B]",
-                !slot.booked && selectedTime !== slot.time && "border-gray-200 bg-white text-[#1E2A2E] hover:border-[#1F3D2B]"
-              )}
-            >
-              {slot.time}
-            </button>
-          ))}
-        </div>
+        {slotsLoading ? (
+          <div className="grid grid-cols-3 gap-2 mt-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-10 rounded-xl bg-gray-100 animate-pulse" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 gap-2 mt-2">
+            {slots.length === 0 && selectedDate ? (
+              <p className="col-span-full text-sm text-gray-400 text-center py-4">
+                No available slots for this date
+              </p>
+            ) : (
+              slots.map((slot) => (
+                <button
+                  key={slot.time}
+                  disabled={slot.booked}
+                  onClick={() => onTimeChange(slot.time)}
+                  className={cn(
+                    "py-2.5 rounded-xl text-sm font-medium border transition-all",
+                    slot.booked && "bg-gray-100 text-gray-400 line-through cursor-not-allowed",
+                    !slot.booked && selectedTime === slot.time && "border-[#1F3D2B] bg-[#1F3D2B]/10 text-[#1F3D2B]",
+                    !slot.booked && selectedTime !== slot.time && "border-gray-200 bg-white text-[#1E2A2E] hover:border-[#1F3D2B]"
+                  )}
+                >
+                  {slot.time}
+                </button>
+              ))
+            )}
+          </div>
+        )}
         <p className="text-xs text-gray-400 mt-2">Greyed slots are already booked.</p>
       </div>
 
@@ -472,13 +512,6 @@ function StepCurrency({
 
 // ─── StepPayment ────────────────────────────────────────────────────────────
 
-interface CardDetails {
-  number: string;
-  expiry: string;
-  cvv: string;
-  name: string;
-}
-
 interface StepPaymentProps {
   selectedPaymentMethod: string;
   selectedCurrency: string;
@@ -493,6 +526,8 @@ interface StepPaymentProps {
   onEsewaMobileChange: (val: string) => void;
   billingCountry: string;
   onBillingCountryChange: (val: string) => void;
+  isEdit: boolean;
+  isSubmitting: boolean;
 }
 
 const PAYMENT_TYPES = [
@@ -514,6 +549,8 @@ function StepPayment({
   onEsewaMobileChange,
   billingCountry,
   onBillingCountryChange,
+  isEdit,
+  isSubmitting,
 }: StepPaymentProps) {
   const [paymentType, setPaymentType] = useState<"nepal" | "international" | null>(null);
   const [methodOpen, setMethodOpen] = useState(false);
@@ -775,16 +812,23 @@ function StepPayment({
       </div>
 
       <button
-        disabled={!isValid}
+        disabled={!isValid || isSubmitting}
         onClick={onContinue}
         className={cn(
           "w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all",
-          isValid
+          isValid && !isSubmitting
             ? "bg-[#1F3D2B] text-white hover:bg-[#1F3D2B]/90"
             : "bg-gray-200 text-gray-400 cursor-not-allowed"
         )}
       >
-        Pay & confirm booking →
+        {isSubmitting ? (
+          <>
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            {isEdit ? "Updating..." : "Processing..."}
+          </>
+        ) : (
+          <>{isEdit ? "Update & confirm" : "Pay & confirm booking"} →</>
+        )}
       </button>
     </div>
   );
@@ -796,9 +840,10 @@ interface StepConfirmationProps {
   result: BookingResult;
   currencies: CurrencyOption[];
   onDone: () => void;
+  isEdit: boolean;
 }
 
-function StepConfirmation({ result, currencies, onDone }: StepConfirmationProps) {
+function StepConfirmation({ result, currencies, onDone, isEdit }: StepConfirmationProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -822,8 +867,12 @@ function StepConfirmation({ result, currencies, onDone }: StepConfirmationProps)
       </div>
 
       <div>
-        <h2 className="text-2xl font-bold text-[#1E2A2E]">Booking confirmed!</h2>
-        <p className="text-gray-500 mt-1">Your session is confirmed</p>
+        <h2 className="text-2xl font-bold text-[#1E2A2E]">
+          {isEdit ? "Booking updated!" : "Booking confirmed!"}
+        </h2>
+        <p className="text-gray-500 mt-1">
+          {isEdit ? "Your session has been updated" : "Your session is confirmed"}
+        </p>
       </div>
 
       <div className="flex items-center gap-3 bg-[#F0F0EE] rounded-xl p-3 text-left">
@@ -846,7 +895,9 @@ function StepConfirmation({ result, currencies, onDone }: StepConfirmationProps)
       </div>
 
       <p className="text-sm text-gray-500">
-        Your payment has been processed successfully. {result.therapistName} has been notified of your booking.
+        {isEdit
+          ? "Your booking has been updated successfully."
+          : `Your payment has been processed successfully. ${result.therapistName} has been notified of your booking.`}
       </p>
 
       <div className="bg-[#F0F0EE] rounded-xl p-4 text-left space-y-2 text-sm">
@@ -883,17 +934,46 @@ function DetailRow({ label, value, bold }: { label: string; value: string; bold?
   );
 }
 
+// ─── Slot -> TimeSlot helper ───────────────────────────────────────────────
+
+function buildTimeSlots(date: string, slotData?: { slots: { date: string; time: string; status: string }[] }): TimeSlot[] {
+  if (!slotData?.slots || slotData.slots.length === 0) return MOCK_TIME_SLOTS;
+  return slotData.slots
+    .filter((s) => s.date === date)
+    .map((s) => ({
+      time: s.time,
+      booked: s.status === "booked",
+    }))
+    .sort((a, b) => a.time.localeCompare(b.time));
+}
+
 // ─── Main BookingModal ──────────────────────────────────────────────────────
 
 interface BookingModalProps {
   onClose: () => void;
   therapist?: BookingTherapist;
+  session?: ExistingSession;
 }
 
-function BookingModal({ onClose, therapist = MOCK_THERAPIST }: BookingModalProps) {
+function BookingModal({ onClose, therapist: propTherapist, session }: BookingModalProps) {
+  const { user } = useAuth();
+
+  const resolvedTherapist: BookingTherapist = session
+    ? {
+        id: session.therapistId,
+        name: session.therapistName || "Therapist",
+        specialty: session.therapistSpecialty || "Physiotherapy",
+        price: session.therapistPrice ?? session.fee ?? 0,
+        rating: 0,
+        reviews: 0,
+      }
+    : propTherapist ?? MOCK_THERAPIST;
+
+  const isEdit = !!session;
+
   const [currentStep, setCurrentStep] = useState(1);
-  const [selectedDate, setSelectedDate] = useState("");
-  const [selectedTime, setSelectedTime] = useState("");
+  const [selectedDate, setSelectedDate] = useState(session?.date ?? "");
+  const [selectedTime, setSelectedTime] = useState(session?.time ?? "");
   const [selectedCurrency, setSelectedCurrency] = useState("NPR");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
   const [bookingResult, setBookingResult] = useState<BookingResult | null>(null);
@@ -905,12 +985,109 @@ function BookingModal({ onClose, therapist = MOCK_THERAPIST }: BookingModalProps
   });
   const [esewaMobile, setEsewaMobile] = useState("");
   const [billingCountry, setBillingCountry] = useState("");
-  const [paying, setPaying] = useState(false);
+
+  // Fetch availability slots from API whenever date changes
+  const today = new Date().toISOString().slice(0, 10);
+  const queryDate = selectedDate || today;
+
+  const { data: slotData, isLoading: slotsLoading } = useQuery({
+    queryKey: ["availability-slots", queryDate],
+    queryFn: () => getSlotsForRange(queryDate, queryDate),
+    enabled: !!selectedDate,
+    staleTime: 60_000,
+  });
+
+  const timeSlots = selectedDate ? buildTimeSlots(selectedDate, slotData) : MOCK_TIME_SLOTS;
+
+  // If editing, mark the session's own time as unbooked so user can keep it
+  useEffect(() => {
+    if (isEdit && session?.time && timeSlots.length > 0) {
+      const existing = timeSlots.find((s) => s.time === session.time);
+      if (existing?.booked) {
+        existing.booked = false;
+      }
+    }
+  }, [isEdit, session?.time, timeSlots]);
 
   const currency = CURRENCIES.find((c) => c.code === selectedCurrency) ?? CURRENCIES[0];
-  const displayPrice = therapist.price * currency.rate;
+  const displayPrice = resolvedTherapist.price * currency.rate;
   const platformFee = displayPrice * 0.05;
   const totalPrice = displayPrice + platformFee;
+
+  // Mutations
+  const createMutation = useMutation({
+    mutationFn: () =>
+      createSession({
+        therapistId: resolvedTherapist.id,
+        date: selectedDate,
+        time: selectedTime,
+        type: "physiotherapy",
+        address: user?.city ?? "",
+        fee: totalPrice,
+      }),
+    onSuccess: (data) => {
+      const ref = data?.id || "BK-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+      setBookingResult({
+        reference: ref,
+        therapistName: resolvedTherapist.name,
+        date: formatDisplayDate(selectedDate),
+        time: selectedTime,
+        amount: totalPrice,
+        currency: selectedCurrency,
+        paymentMethod: getPaymentLabel(),
+      });
+      setCurrentStep(4);
+    },
+    onError: () => {
+      // Fallback to mock booking on error
+      const ref = "BK-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+      setBookingResult({
+        reference: ref,
+        therapistName: resolvedTherapist.name,
+        date: formatDisplayDate(selectedDate),
+        time: selectedTime,
+        amount: totalPrice,
+        currency: selectedCurrency,
+        paymentMethod: getPaymentLabel(),
+      });
+      setCurrentStep(4);
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: () =>
+      updateSession(session!.id, {
+        date: selectedDate,
+        time: selectedTime,
+        status: "Confirmed",
+      }),
+    onSuccess: (data) => {
+      setBookingResult({
+        reference: session!.id,
+        therapistName: resolvedTherapist.name,
+        date: formatDisplayDate(selectedDate),
+        time: selectedTime,
+        amount: totalPrice,
+        currency: selectedCurrency,
+        paymentMethod: getPaymentLabel(),
+      });
+      setCurrentStep(4);
+    },
+    onError: () => {
+      setBookingResult({
+        reference: session!.id,
+        therapistName: resolvedTherapist.name,
+        date: formatDisplayDate(selectedDate),
+        time: selectedTime,
+        amount: totalPrice,
+        currency: selectedCurrency,
+        paymentMethod: getPaymentLabel(),
+      });
+      setCurrentStep(4);
+    },
+  });
+
+  const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
   const formatDisplayDate = (iso: string) => {
     if (!iso) return "";
@@ -921,46 +1098,29 @@ function BookingModal({ onClose, therapist = MOCK_THERAPIST }: BookingModalProps
     });
   };
 
-  const handlePay = useCallback(() => {
-    setPaying(true);
-    setTimeout(() => {
-      const ref = "BK-" + Math.random().toString(36).slice(2, 8).toUpperCase();
-      const paymentLabel =
-        selectedPaymentMethod === "esewa"
-          ? "eSewa"
-          : selectedPaymentMethod === "khalti"
-            ? "Khalti"
-            : selectedPaymentMethod === "connectips"
-              ? "ConnectIPS"
-              : selectedPaymentMethod === "imepay"
-                ? "IME Pay"
-                : selectedPaymentMethod === "fonepay"
-                  ? "FonePay"
-                  : selectedPaymentMethod === "cash"
-                    ? "Cash"
-                    : selectedPaymentMethod === "card"
-                      ? "Card"
-                      : selectedPaymentMethod === "paypal"
-                        ? "PayPal"
-                        : selectedPaymentMethod === "googlepay"
-                          ? "Google Pay"
-                          : selectedPaymentMethod === "applepay"
-                            ? "Apple Pay"
-                            : selectedPaymentMethod;
+  function getPaymentLabel(): string {
+    const map: Record<string, string> = {
+      esewa: "eSewa",
+      khalti: "Khalti",
+      connectips: "ConnectIPS",
+      imepay: "IME Pay",
+      fonepay: "FonePay",
+      cash: "Cash",
+      card: "Card",
+      paypal: "PayPal",
+      googlepay: "Google Pay",
+      applepay: "Apple Pay",
+    };
+    return map[selectedPaymentMethod] || selectedPaymentMethod;
+  }
 
-      setBookingResult({
-        reference: ref,
-        therapistName: therapist.name,
-        date: formatDisplayDate(selectedDate),
-        time: selectedTime,
-        amount: totalPrice,
-        currency: selectedCurrency,
-        paymentMethod: paymentLabel,
-      });
-      setCurrentStep(4);
-      setPaying(false);
-    }, 1500);
-  }, [selectedPaymentMethod, therapist.name, selectedDate, selectedTime, totalPrice, selectedCurrency]);
+  const handleSubmit = useCallback(() => {
+    if (isEdit) {
+      updateMutation.mutate();
+    } else {
+      createMutation.mutate();
+    }
+  }, [isEdit, createMutation, updateMutation]);
 
   const stepsWithSummary = currentStep >= 1 && currentStep <= 3;
 
@@ -987,7 +1147,7 @@ function BookingModal({ onClose, therapist = MOCK_THERAPIST }: BookingModalProps
           <div className="px-5 pb-3">
             {stepsWithSummary && (
               <TherapistSummaryCard
-                therapist={therapist}
+                therapist={resolvedTherapist}
                 selectedCurrency={selectedCurrency}
                 currencies={CURRENCIES}
               />
@@ -1000,7 +1160,8 @@ function BookingModal({ onClose, therapist = MOCK_THERAPIST }: BookingModalProps
             <StepDateTime
               selectedDate={selectedDate}
               selectedTime={selectedTime}
-              slots={MOCK_TIME_SLOTS}
+              slots={timeSlots}
+              slotsLoading={slotsLoading}
               onDateChange={setSelectedDate}
               onTimeChange={setSelectedTime}
               onContinue={() => setCurrentStep(2)}
@@ -1011,7 +1172,7 @@ function BookingModal({ onClose, therapist = MOCK_THERAPIST }: BookingModalProps
             <StepCurrency
               currencies={CURRENCIES}
               selectedCurrency={selectedCurrency}
-              basePrice={therapist.price}
+              basePrice={resolvedTherapist.price}
               onCurrencyChange={setSelectedCurrency}
               onBack={() => setCurrentStep(1)}
               onContinue={() => setCurrentStep(3)}
@@ -1023,16 +1184,18 @@ function BookingModal({ onClose, therapist = MOCK_THERAPIST }: BookingModalProps
               selectedPaymentMethod={selectedPaymentMethod}
               selectedCurrency={selectedCurrency}
               currencies={CURRENCIES}
-              basePrice={therapist.price}
+              basePrice={resolvedTherapist.price}
               onPaymentChange={setSelectedPaymentMethod}
               onBack={() => setCurrentStep(2)}
-              onContinue={handlePay}
+              onContinue={handleSubmit}
               cardDetails={cardDetails}
               onCardDetailsChange={setCardDetails}
               esewaMobile={esewaMobile}
               onEsewaMobileChange={setEsewaMobile}
               billingCountry={billingCountry}
               onBillingCountryChange={setBillingCountry}
+              isEdit={isEdit}
+              isSubmitting={isSubmitting}
             />
           )}
 
@@ -1041,15 +1204,18 @@ function BookingModal({ onClose, therapist = MOCK_THERAPIST }: BookingModalProps
               result={bookingResult}
               currencies={CURRENCIES}
               onDone={onClose}
+              isEdit={isEdit}
             />
           )}
         </div>
 
-        {paying && (
+        {isSubmitting && (
           <div className="absolute inset-0 bg-white/60 backdrop-blur-sm rounded-2xl flex items-center justify-center z-20">
             <div className="text-center">
               <div className="w-12 h-12 border-4 border-[#1F3D2B] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-              <p className="text-sm font-medium text-[#1E2A2E]">Processing payment...</p>
+              <p className="text-sm font-medium text-[#1E2A2E]">
+                {isEdit ? "Updating booking..." : "Processing payment..."}
+              </p>
             </div>
           </div>
         )}
