@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import {
   LayoutDashboard, Calendar, ShoppingBag, Activity, FileText, User, HelpCircle,
-  Stethoscope, Upload, Users, Wallet, Settings, Shield, CreditCard, Clock,
+  Stethoscope, Upload, Users, Wallet, Settings, Shield, CreditCard,
   AlertTriangle, Bell, CalendarClock, UserCog, MapPin, ClipboardCheck,
   BadgeCheck, BarChart3, ShieldAlert, ScrollText, LineChart, RotateCcw, Palette,
   MessageSquareWarning,
@@ -46,7 +46,6 @@ export const patientNav: NavItem[] = [
 export const therapistNav: NavItem[] = [
   { to: "/therapist", label: "Overview", icon: <LayoutDashboard size={16} /> },
   { to: "/therapist/schedule", label: "My Schedule", icon: <Calendar size={16} /> },
-  { to: "/therapist/availability", label: "Manage Availability", icon: <Clock size={16} /> },
   { to: "/therapist/reports", label: "Upload Reports", icon: <Upload size={16} /> },
   { to: "/therapist/patients", label: "My Patients", icon: <Users size={16} /> },
   { to: "/therapist/earnings", label: "Earnings", icon: <Wallet size={16} /> },
