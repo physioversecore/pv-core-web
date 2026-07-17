@@ -1,7 +1,7 @@
 "use server";
 
 import { api, AuthError } from "./client";
-import type { WorkingHours, MonthlyGrid } from "@/lib/availability-utils";
+import type { WorkingHours, MonthlyGrid, SlotInfo } from "@/lib/availability-utils";
 
 export async function getWorkingHours(): Promise<WorkingHours> {
   try {
@@ -81,4 +81,71 @@ export async function createAuditEntry(
 
 export async function deleteAuditEntry(id: string): Promise<void> {
   await api.delete(`/availability/audit-log/${id}`);
+}
+
+export interface SlotRangeData {
+  slots: SlotInfo[];
+  blocks: BlockData[];
+}
+
+export interface BlockData {
+  id: string;
+  dateFrom: string;
+  dateTo: string;
+  daysOfWeek: string[];
+  partsOfDay: string[];
+  reason: string;
+  notify: boolean;
+  createdAt: string;
+}
+
+export async function generateAvailability(data: {
+  dateFrom: string;
+  dateTo?: string;
+  daysOfWeek: string[];
+  startTime: string;
+  endTime: string;
+  sessionDuration: number;
+  breakDuration: number;
+}): Promise<{ updated: number }> {
+  return api.post<{ updated: number }>("/availability/generate", data);
+}
+
+export async function blockRange(data: {
+  dateFrom: string;
+  dateTo?: string;
+  daysOfWeek: string[];
+  partsOfDay: string[];
+  reason: string;
+  notify: boolean;
+}): Promise<{
+  blocked: number;
+  cancelledCount: number;
+  affectedPatients: { name: string; date: string; time: string }[];
+}> {
+  return api.post("/availability/block-range", data);
+}
+
+export async function unblockTime(data: {
+  date: string;
+  time?: string;
+}): Promise<void> {
+  await api.post("/availability/unblock", data);
+}
+
+export async function getSlotsForRange(
+  fromDate: string,
+  toDate: string,
+): Promise<SlotRangeData> {
+  return api.get<SlotRangeData>(
+    `/availability/slots?from_date=${fromDate}&to_date=${toDate}`,
+  );
+}
+
+export async function getWorkingDays(): Promise<string[]> {
+  try {
+    return await api.get<string[]>("/availability/working-days");
+  } catch {
+    return [];
+  }
 }

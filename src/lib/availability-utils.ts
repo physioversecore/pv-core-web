@@ -104,6 +104,13 @@ export function isDateInPast(dateStr: string): boolean {
   return d < today;
 }
 
+export function sessionEndTime(startTime: string, durationMinutes: number): string {
+  const [h, m] = startTime.split(":").map(Number);
+  const total = h * 60 + m + durationMinutes;
+  const nh = Math.floor(total / 60) % 24;
+  return `${String(nh).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+}
+
 export function isSlotInPast(dateStr: string, time: string): boolean {
   const [h, m] = time.split(":").map(Number);
   const d = new Date(dateStr);
