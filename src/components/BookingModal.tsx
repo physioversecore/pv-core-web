@@ -1,3 +1,3 @@
 "use client";
 
-export { BookingModal } from "@/components/modals/BookingModal";
+export { default as BookingModal } from "@/components/modals/BookingModal";
