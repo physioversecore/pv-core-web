@@ -13,11 +13,11 @@ import type { DayPart } from "@/lib/availability-utils";
 import { ConfirmModal } from "./ConfirmModal";
 
 const ALL_DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
-const DAY_PARTS: { key: DayPart; label: string; time: string }[] = [
-  { key: "morning", label: "Morning", time: "6:00–12:00" },
-  { key: "afternoon", label: "Afternoon", time: "12:00–17:00" },
-  { key: "evening", label: "Evening", time: "17:00–22:00" },
-];
+// const DAY_PARTS: { key: DayPart; label: string; time: string }[] = [
+//   { key: "morning", label: "Morning", time: "6:00–12:00" },
+//   { key: "afternoon", label: "Afternoon", time: "12:00–17:00" },
+//   { key: "evening", label: "Evening", time: "17:00–22:00" },
+// ];
 const PRESETS = [
   { key: "today" as const, label: "Today" },
   { key: "4weeks" as const, label: "Next 4 weeks" },
@@ -633,7 +633,7 @@ function BlockMode({
       )}
 
       {/* ── Parts of day (optional, all modes) ── */}
-      <div style={{ marginTop: "16px" }}>
+      {/* <div style={{ marginTop: "16px" }}>
         <div className="proto-subhead">
           Part of day{" "}
           <span className="text-text-muted font-normal">(optional)</span>
@@ -654,7 +654,7 @@ function BlockMode({
         <p className="proto-preview-note" style={{ marginTop: "6px" }}>
           Leave empty to block the entire day.
         </p>
-      </div>
+      </div> */}
 
       {/* ── Reason ── */}
       <div style={{ marginTop: "16px" }}>

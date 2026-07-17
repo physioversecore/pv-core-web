@@ -3,14 +3,15 @@
 import { useMemo, useState } from "react";
 import { Lock } from "lucide-react";
 import { to12h } from "@/lib/format";
-import { isSlotInPast, dateKeyStr, sessionEndTime } from "@/lib/availability-utils";
-import type { SlotInfo } from "@/lib/availability-utils";
+import { isSlotInPast, dateKeyStr, sessionEndTime, DAY_PART_RANGES } from "@/lib/availability-utils";
+import type { SlotInfo, DayPart } from "@/lib/availability-utils";
 import { ConfirmModal } from "./ConfirmModal";
 
 interface WeeklyViewProps {
   dateFrom: string;
   slotsByDate: Record<string, SlotInfo[]>;
   blockedDates: Set<string>;
+  blockedPartsByDate: Record<string, DayPart[]>;
   sessionDuration: number;
   onToggleSlot: (data: {
     date: string;
@@ -41,6 +42,7 @@ export function WeeklyView({
   dateFrom,
   slotsByDate,
   blockedDates,
+  blockedPartsByDate,
   sessionDuration,
   onToggleSlot,
   isToggling,
@@ -80,10 +82,22 @@ export function WeeklyView({
             <div className="proto-wk-time">{to12h(time)}</div>
             {weekDays.map((d) => {
               const slot = getSlot(d.date, time);
-              const blocked = blockedDates.has(d.date);
+              const isFullyBlocked = blockedDates.has(d.date);
+              const blockedParts = blockedPartsByDate[d.date] ?? [];
+              const cellTimeRanges =
+                blockedParts.length > 0 && blockedParts.length < 3
+                  ? blockedParts.map((p) => DAY_PART_RANGES[p])
+                  : null;
+              const slotBlocked =
+                !isFullyBlocked &&
+                cellTimeRanges !== null &&
+                cellTimeRanges.some(([start, end]) => {
+                  const [h] = time.split(":").map(Number);
+                  return h >= start && h < end;
+                });
               const past = isSlotInPast(d.date, time);
 
-              if (blocked) {
+              if (isFullyBlocked || slotBlocked) {
                 return (
                   <div key={`${d.date}_${time}`} className="proto-wk-cell off">
                     <Lock size={10} className="text-danger" />

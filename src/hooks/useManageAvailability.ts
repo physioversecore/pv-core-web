@@ -22,6 +22,7 @@ import type {
   SlotInfo,
   DayPart,
 } from "@/lib/availability-utils";
+import { DAY_PART_RANGES } from "@/lib/availability-utils";
 
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
 
@@ -70,6 +71,15 @@ function endOfMonth(dateStr: string): string {
   const d = new Date(dateStr + "T00:00:00");
   const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0);
   return `${lastDay.getFullYear()}-${String(lastDay.getMonth() + 1).padStart(2, "0")}-${String(lastDay.getDate()).padStart(2, "0")}`;
+}
+
+function partsOfDayTimeRanges(parts: DayPart[]): [number, number][] {
+  return parts.map((p) => DAY_PART_RANGES[p]);
+}
+
+function timeInRange(time: string, ranges: [number, number][]): boolean {
+  const [h] = time.split(":").map(Number);
+  return ranges.some(([start, end]) => h >= start && h < end);
 }
 
 function computeDateRange(
@@ -233,6 +243,32 @@ export function useManageAvailability(userId?: string | null) {
     return set;
   }, [slotsData?.blocks]);
 
+  const blockedPartsByDate = useMemo(() => {
+    const map: Record<string, DayPart[]> = {};
+    for (const b of slotsData?.blocks ?? []) {
+      const from = new Date(b.dateFrom + "T00:00:00");
+      const to = new Date(b.dateTo + "T00:00:00");
+      const blockParts = (b.partsOfDay ?? []) as DayPart[];
+      for (
+        let d = new Date(from);
+        d <= to;
+        d.setDate(d.getDate() + 1)
+      ) {
+        const dk = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        const dayName = DAY_NAMES[d.getDay()];
+        const dayApplies =
+          b.daysOfWeek.length === 0 || b.daysOfWeek.includes(dayName);
+        if (!dayApplies) continue;
+        if (blockParts.length === 0) {
+          map[dk] = ["morning", "afternoon", "evening"];
+        } else {
+          map[dk] = [...new Set([...(map[dk] ?? []), ...blockParts])];
+        }
+      }
+    }
+    return map;
+  }, [slotsData?.blocks]);
+
   const generateMutation = useMutation({
     mutationFn: generateAvailability,
     onSuccess: (res) => {
@@ -392,14 +428,20 @@ export function useManageAvailability(userId?: string | null) {
       const from = new Date(dateFrom + "T00:00:00");
       const to = new Date(dateTo + "T00:00:00");
       const daySet = new Set(daysOfWeek);
+      const timeRanges =
+        partsOfDay.length > 0
+          ? partsOfDayTimeRanges(partsOfDay as DayPart[])
+          : null;
 
       for (let d = new Date(from); d <= to; d.setDate(d.getDate() + 1)) {
         const dk = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        const dayName = DAY_NAMES[d.getDay()];
+        if (daySet.size > 0 && !daySet.has(dayName)) continue;
         const daySlots = slotsByDate[dk] ?? [];
         for (const slot of daySlots) {
-          if (slot.status === "booked") {
-            return true;
-          }
+          if (slot.status !== "booked") continue;
+          if (timeRanges && !timeInRange(slot.time, timeRanges)) continue;
+          return true;
         }
       }
       return false;
@@ -431,6 +473,7 @@ export function useManageAvailability(userId?: string | null) {
     slots,
     slotsByDate,
     blockedDates,
+    blockedPartsByDate,
     auditLog,
     isLoading: slotsLoading,
     generateAvailability: generateMutation.mutateAsync,

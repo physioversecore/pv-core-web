@@ -3,14 +3,15 @@
 import { useMemo, useState } from "react";
 import { Lock } from "lucide-react";
 import { to12h } from "@/lib/format";
-import { isSlotInPast, sessionEndTime } from "@/lib/availability-utils";
-import type { SlotInfo } from "@/lib/availability-utils";
+import { isSlotInPast, sessionEndTime, DAY_PART_RANGES } from "@/lib/availability-utils";
+import type { SlotInfo, DayPart } from "@/lib/availability-utils";
 import { ConfirmModal } from "./ConfirmModal";
 
 interface MonthlyViewProps {
   cursor: string;
   slotsByDate: Record<string, SlotInfo[]>;
   blockedDates: Set<string>;
+  blockedPartsByDate: Record<string, DayPart[]>;
   sessionDuration: number;
   onToggleSlot: (data: {
     date: string;
@@ -88,6 +89,7 @@ export function MonthlyView({
   cursor,
   slotsByDate,
   blockedDates,
+  blockedPartsByDate,
   sessionDuration,
   onToggleSlot,
   isToggling,
@@ -110,12 +112,18 @@ export function MonthlyView({
           }
 
           const daySlots = slotsByDate[cell.date] ?? [];
-          const blocked = blockedDates.has(cell.date);
+          const isFullyBlocked = blockedDates.has(cell.date);
+          const blockedParts = blockedPartsByDate[cell.date] ?? [];
+          const isPartiallyBlocked =
+            !isFullyBlocked && blockedParts.length > 0 && blockedParts.length < 3;
+          const cellTimeRanges = isPartiallyBlocked
+            ? blockedParts.map((p) => DAY_PART_RANGES[p])
+            : null;
 
           let cls = "proto-mo-cell";
           if (cell.isPast) cls += " pastcell";
           if (cell.isToday) cls += " today";
-          if (blocked) cls += " blockedday";
+          if (isFullyBlocked) cls += " blockedday";
 
           const visibleSlots = daySlots.slice(0, MAX_VISIBLE);
           const rest = daySlots.slice(MAX_VISIBLE);
@@ -123,28 +131,34 @@ export function MonthlyView({
           return (
             <div key={cell.date} className={cls}>
               <div className="proto-mo-num">{cell.dayNum}</div>
-              {blocked ? (
+              {isFullyBlocked ? (
                 <div className="proto-mo-blocklabel">Blocked</div>
               ) : (
                 <>
                   {visibleSlots.map((slot) => {
                     const past = isSlotInPast(slot.date, slot.time);
+                    const slotBlocked =
+                      cellTimeRanges !== null &&
+                      cellTimeRanges.some(([start, end]) => {
+                        const [h] = slot.time.split(":").map(Number);
+                        return h >= start && h < end;
+                      });
                     const chipCls =
                       slot.status === "booked"
                         ? "booked"
-                        : slot.status === "off"
+                        : slot.status === "off" || slotBlocked
                           ? "offslot"
                           : "";
 
                     return (
                       <button
                         key={`${slot.date}_${slot.time}`}
-                        disabled={isToggling || past || slot.status === "booked"}
+                        disabled={isToggling || past || slot.status === "booked" || slotBlocked}
                         className={`proto-mo-slot ${chipCls}`}
                         onClick={() => {
                           if (slot.status === "booked") {
                             setInfoSlot(slot);
-                          } else if (!past) {
+                          } else if (!past && !slotBlocked) {
                             onToggleSlot({
                               date: slot.date,
                               time: slot.time,
@@ -154,7 +168,7 @@ export function MonthlyView({
                         }}
                       >
                         {to12h(slot.time)} – {to12h(sessionEndTime(slot.time, sessionDuration))}
-                        {slot.status === "off" && " · off"}
+                        {(slot.status === "off" || slotBlocked) && " · off"}
                       </button>
                     );
                   })}
@@ -164,21 +178,27 @@ export function MonthlyView({
                       <div className="proto-mo-pop">
                         {rest.map((slot) => {
                           const past = isSlotInPast(slot.date, slot.time);
+                          const slotBlocked =
+                            cellTimeRanges !== null &&
+                            cellTimeRanges.some(([start, end]) => {
+                              const [h] = slot.time.split(":").map(Number);
+                              return h >= start && h < end;
+                            });
                           const chipCls =
                             slot.status === "booked"
                               ? "booked"
-                              : slot.status === "off"
+                              : slot.status === "off" || slotBlocked
                                 ? "offslot"
                                 : "";
                           return (
                             <button
                               key={`${slot.date}_${slot.time}`}
-                              disabled={isToggling || past || slot.status === "booked"}
+                              disabled={isToggling || past || slot.status === "booked" || slotBlocked}
                               className={`proto-mo-slot ${chipCls}`}
                               onClick={() => {
                                 if (slot.status === "booked") {
                                   setInfoSlot(slot);
-                                } else if (!past) {
+                                } else if (!past && !slotBlocked) {
                                   onToggleSlot({
                                     date: slot.date,
                                     time: slot.time,
@@ -188,7 +208,7 @@ export function MonthlyView({
                               }}
                             >
                               {to12h(slot.time)} – {to12h(sessionEndTime(slot.time, sessionDuration))}
-                              {slot.status === "off" && " · off"}
+                              {(slot.status === "off" || slotBlocked) && " · off"}
                             </button>
                           );
                         })}

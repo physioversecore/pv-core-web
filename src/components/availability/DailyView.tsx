@@ -4,14 +4,15 @@ import { useState } from "react";
 import { Lock, Unlock, Eye, Ban } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { to12h } from "@/lib/format";
-import { isSlotInPast, sessionEndTime } from "@/lib/availability-utils";
-import type { SlotInfo } from "@/lib/availability-utils";
+import { isSlotInPast, sessionEndTime, DAY_PART_RANGES } from "@/lib/availability-utils";
+import type { SlotInfo, DayPart } from "@/lib/availability-utils";
 import { ConfirmModal } from "./ConfirmModal";
 
 interface DailyViewProps {
   date: string;
   slots: SlotInfo[];
   isBlocked: boolean;
+  blockedPartsByDate: Record<string, DayPart[]>;
   sessionDuration: number;
   onToggleSlot: (data: {
     date: string;
@@ -40,6 +41,7 @@ export function DailyView({
   date,
   slots,
   isBlocked,
+  blockedPartsByDate,
   sessionDuration,
   onToggleSlot,
   onUnblock,
@@ -54,6 +56,13 @@ export function DailyView({
     affectedPatients: { name: string; date: string; time: string }[];
     cancelledCount: number;
   } | null>(null);
+
+  const blockedParts = blockedPartsByDate[date] ?? [];
+  const blockedTimeRanges =
+    blockedParts.length > 0 && blockedParts.length < 3
+      ? blockedParts.map((p) => DAY_PART_RANGES[p])
+      : null;
+  const isFullyBlocked = isBlocked || blockedParts.length >= 3;
 
   const handleBlockDay = async () => {
     const result = await onBlockDay({
@@ -72,7 +81,7 @@ export function DailyView({
     }
   };
 
-  if (isBlocked) {
+  if (isFullyBlocked) {
     return (
       <div className="proto-daily-banner">
         <span>This day is blocked</span>
@@ -108,6 +117,14 @@ export function DailyView({
         ) : (
           slots.map((slot) => {
             const past = isSlotInPast(slot.date, slot.time);
+            const slotBlocked =
+              blockedTimeRanges !== null &&
+              blockedTimeRanges.some(
+                ([start, end]) => {
+                  const [h] = slot.time.split(":").map(Number);
+                  return h >= start && h < end;
+                },
+              );
             return (
               <div
                 key={`${slot.date}_${slot.time}`}
@@ -127,6 +144,8 @@ export function DailyView({
                         </strong>
                       )}
                     </>
+                  ) : slotBlocked ? (
+                    <span className="proto-badge off">Off</span>
                   ) : slot.status === "open" ? (
                     <span className="proto-badge open">Open</span>
                   ) : past ? (
@@ -143,7 +162,7 @@ export function DailyView({
                   >
                     View
                   </button>
-                ) : slot.status === "open" && !isBlocked ? (
+                ) : slot.status === "open" && !slotBlocked ? (
                   <button
                     className="proto-rowbtn"
                     disabled={isToggling || past}
@@ -157,7 +176,7 @@ export function DailyView({
                   >
                     Block
                   </button>
-                ) : slot.status === "off" && !isBlocked && !past ? (
+                ) : slot.status === "off" && !slotBlocked && !past ? (
                   <button
                     className="proto-rowbtn"
                     disabled={isToggling}

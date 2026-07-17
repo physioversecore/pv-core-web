@@ -130,6 +130,7 @@ export default function ManageAvailabilityPage() {
           date={av.cursor}
           slots={av.slotsByDate[av.cursor] ?? []}
           isBlocked={av.blockedDates.has(av.cursor)}
+          blockedPartsByDate={av.blockedPartsByDate}
           sessionDuration={av.scheduleConfig.sessionDuration}
           onToggleSlot={av.toggleSlot}
           onUnblock={av.unblockTime}
@@ -143,6 +144,7 @@ export default function ManageAvailabilityPage() {
           dateFrom={av.dateFrom}
           slotsByDate={av.slotsByDate}
           blockedDates={av.blockedDates}
+          blockedPartsByDate={av.blockedPartsByDate}
           sessionDuration={av.scheduleConfig.sessionDuration}
           onToggleSlot={av.toggleSlot}
           isToggling={av.isToggling}
@@ -152,6 +154,7 @@ export default function ManageAvailabilityPage() {
           cursor={av.cursor}
           slotsByDate={av.slotsByDate}
           blockedDates={av.blockedDates}
+          blockedPartsByDate={av.blockedPartsByDate}
           sessionDuration={av.scheduleConfig.sessionDuration}
           onToggleSlot={av.toggleSlot}
           isToggling={av.isToggling}
