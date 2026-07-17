@@ -12,6 +12,7 @@ import { DailyView } from "@/components/availability/DailyView";
 import { WeeklyView } from "@/components/availability/WeeklyView";
 import { MonthlyView } from "@/components/availability/MonthlyView";
 import { AuditLog } from "@/components/availability/AuditLog";
+import { BlockRequestsList } from "@/components/availability/BlockRequestsList";
 import { Legend } from "@/components/availability/Legend";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -78,6 +79,9 @@ export default function ManageAvailabilityPage() {
         isGenerating={av.isGenerating}
         blockRange={av.blockRange}
         isBlocking={av.isBlocking}
+        blockRequest={av.blockRequest}
+        isRequestingBlock={av.isRequestingBlock}
+        hasBookedSlotsInRange={av.hasBookedSlotsInRange}
       />
 
       {/* View tabs + date nav */}
@@ -162,6 +166,14 @@ export default function ManageAvailabilityPage() {
           onDelete={av.deleteAuditEntry}
         />
       </div>
+
+      {/* Block requests */}
+      {av.blockRequests.length > 0 && (
+        <div className="card-proto">
+          <h2>Block requests</h2>
+          <BlockRequestsList requests={av.blockRequests} />
+        </div>
+      )}
 
       {/* Legend */}
       <Legend />

@@ -149,3 +149,56 @@ export async function getWorkingDays(): Promise<string[]> {
     return [];
   }
 }
+
+export interface BlockRequest {
+  id: string;
+  therapistId?: string;
+  therapistName?: string;
+  therapistEmail?: string;
+  dateFrom: string;
+  dateTo: string;
+  daysOfWeek: string[];
+  partsOfDay: string[];
+  reason: string;
+  notify: boolean;
+  status: string;
+  adminNotes?: string | null;
+  createdAt: string;
+}
+
+export async function createBlockRequest(data: {
+  dateFrom: string;
+  dateTo?: string;
+  daysOfWeek: string[];
+  partsOfDay: string[];
+  reason: string;
+  notify: boolean;
+}): Promise<{ id: string; status: string }> {
+  return api.post("/availability/block-request", data);
+}
+
+export async function getBlockRequests(): Promise<BlockRequest[]> {
+  try {
+    return await api.get<BlockRequest[]>("/availability/block-requests");
+  } catch {
+    return [];
+  }
+}
+
+export async function approveBlockRequest(
+  requestId: string,
+  adminNotes?: string,
+): Promise<{ success: boolean; blocked: number }> {
+  return api.put(`/availability/block-requests/${requestId}/approve`, {
+    adminNotes,
+  });
+}
+
+export async function rejectBlockRequest(
+  requestId: string,
+  adminNotes?: string,
+): Promise<{ success: boolean }> {
+  return api.put(`/availability/block-requests/${requestId}/reject`, {
+    adminNotes,
+  });
+}

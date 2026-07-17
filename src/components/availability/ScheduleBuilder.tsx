@@ -64,6 +64,21 @@ interface ScheduleBuilderProps {
     affectedPatients: { name: string; date: string; time: string }[];
   }>;
   isBlocking: boolean;
+  blockRequest: (data: {
+    dateFrom: string;
+    dateTo?: string;
+    daysOfWeek: string[];
+    partsOfDay: string[];
+    reason: string;
+    notify: boolean;
+  }) => Promise<{ id: string; status: string }>;
+  isRequestingBlock: boolean;
+  hasBookedSlotsInRange: (
+    dateFrom: string,
+    dateTo: string,
+    daysOfWeek: string[],
+    partsOfDay: string[],
+  ) => boolean;
 }
 
 export function ScheduleBuilder({
@@ -79,6 +94,9 @@ export function ScheduleBuilder({
   isGenerating,
   blockRange,
   isBlocking,
+  blockRequest,
+  isRequestingBlock,
+  hasBookedSlotsInRange,
 }: ScheduleBuilderProps) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingBlockResult, setPendingBlockResult] = useState<{
@@ -143,22 +161,65 @@ export function ScheduleBuilder({
   };
 
   const handleBlock = async () => {
-    const result = await blockRange({
-      dateFrom: scheduleConfig.dateFrom,
-      dateTo: scheduleConfig.dateTo ?? undefined,
+    const dateFrom =
+      blockConfig.blockType === "specific"
+        ? blockConfig.dateSpecific
+        : blockConfig.dateFrom;
+    const dateTo =
+      blockConfig.blockType === "specific"
+        ? blockConfig.dateSpecific
+        : blockConfig.dateTo ?? blockConfig.dateFrom;
+
+    const hasBooked = hasBookedSlotsInRange(
+      dateFrom,
+      dateTo,
+      blockConfig.daysOfWeek,
+      blockConfig.partsOfDay,
+    );
+
+    const payload = {
+      dateFrom,
+      dateTo: blockConfig.blockType === "specific" ? undefined : dateTo,
       daysOfWeek: blockConfig.daysOfWeek,
       partsOfDay: blockConfig.partsOfDay,
       reason: blockConfig.reason,
       notify: blockConfig.notify,
-    });
-    if (result.affectedPatients.length > 0) {
-      setPendingBlockResult({
-        affectedPatients: result.affectedPatients,
-        cancelledCount: result.cancelledCount,
-      });
-      setConfirmOpen(true);
+    };
+
+    if (hasBooked) {
+      await blockRequest(payload);
+    } else {
+      const result = await blockRange(payload);
+      if (result.affectedPatients.length > 0) {
+        setPendingBlockResult({
+          affectedPatients: result.affectedPatients,
+          cancelledCount: result.cancelledCount,
+        });
+        setConfirmOpen(true);
+      }
     }
   };
+
+  const blockDateFrom =
+    blockConfig.blockType === "specific"
+      ? blockConfig.dateSpecific
+      : blockConfig.dateFrom;
+  const blockDateTo =
+    blockConfig.blockType === "specific"
+      ? blockConfig.dateSpecific
+      : blockConfig.dateTo ?? blockConfig.dateFrom;
+
+  const hasBookedInRange = hasBookedSlotsInRange(
+    blockDateFrom,
+    blockDateTo,
+    blockConfig.daysOfWeek,
+    blockConfig.partsOfDay,
+  );
+
+  const canBlock =
+    blockConfig.blockType === "specific"
+      ? !!blockConfig.dateSpecific
+      : !!blockConfig.dateFrom;
 
   const isAvail = builderMode === "avail";
 
@@ -195,14 +256,15 @@ export function ScheduleBuilder({
         />
       ) : (
         <BlockMode
-          scheduleConfig={scheduleConfig}
           blockConfig={blockConfig}
           setBlockConfig={setBlockConfig}
-          workingDays={workingDays}
           toggleDay={toggleDay}
           togglePart={togglePart}
           onBlock={handleBlock}
           isBlocking={isBlocking}
+          isRequestingBlock={isRequestingBlock}
+          hasBookedInRange={hasBookedInRange}
+          canBlock={canBlock}
         />
       )}
 
@@ -422,65 +484,160 @@ function AvailMode({
 }
 
 function BlockMode({
-  scheduleConfig,
   blockConfig,
   setBlockConfig,
-  workingDays,
   toggleDay,
   togglePart,
   onBlock,
   isBlocking,
+  isRequestingBlock,
+  hasBookedInRange,
+  canBlock,
 }: {
-  scheduleConfig: ScheduleConfig;
   blockConfig: BlockConfig;
   setBlockConfig: React.Dispatch<React.SetStateAction<BlockConfig>>;
-  workingDays: string[];
   toggleDay: (day: string, mode: "block") => void;
   togglePart: (part: DayPart) => void;
   onBlock: () => void;
   isBlocking: boolean;
+  isRequestingBlock: boolean;
+  hasBookedInRange: boolean;
+  canBlock: boolean;
 }) {
+  const setBlockType = (t: BlockConfig["blockType"]) =>
+    setBlockConfig((prev) => ({ ...prev, blockType: t }));
+
   return (
     <>
-      {/* Date range (reuses schedule config) */}
-      <div className="proto-field">
-        <label>Applies to</label>
-        <div className="flex items-center gap-2">
-          <input type="date" className="proto-input" value={scheduleConfig.dateFrom} disabled />
-          <span className="text-text-light">to</span>
-          <input type="date" className="proto-input" value={scheduleConfig.dateTo ?? ""} disabled />
+      {/* ── Block type segmented ── */}
+      <div className="proto-subhead">What to block</div>
+      <div className="proto-modeswitch" style={{ marginBottom: "16px" }}>
+        <button
+          onClick={() => setBlockType("specific")}
+          className={blockConfig.blockType === "specific" ? "active" : ""}
+        >
+          Specific date
+        </button>
+        <button
+          onClick={() => setBlockType("range")}
+          className={blockConfig.blockType === "range" ? "active" : ""}
+        >
+          Date range
+        </button>
+        <button
+          onClick={() => setBlockType("recurring")}
+          className={blockConfig.blockType === "recurring" ? "active" : ""}
+        >
+          Recurring days
+        </button>
+      </div>
+
+      {/* ── Specific date ── */}
+      {blockConfig.blockType === "specific" && (
+        <div className="proto-field">
+          <label>Pick a date to block</label>
+          <input
+            type="date"
+            className="proto-input"
+            value={blockConfig.dateSpecific}
+            onChange={(e) =>
+              setBlockConfig((prev) => ({
+                ...prev,
+                dateSpecific: e.target.value,
+              }))
+            }
+          />
         </div>
-      </div>
+      )}
 
-      {/* Days of week to block */}
-      <div className="proto-subhead">Days of week to block</div>
-      <div className="proto-pillrow">
-        {ALL_DAYS.map((day) => {
-          const isWorking = workingDays.includes(day);
-          return (
-            <button
-              key={day}
-              onClick={() => isWorking && toggleDay(day, "block")}
-              disabled={!isWorking}
-              className={`proto-pill danger ${
-                blockConfig.daysOfWeek.includes(day) ? "on" : ""
-              } ${!isWorking ? "disabled" : ""}`}
-              title={
-                !isWorking ? "Not a working day — nothing to block" : undefined
+      {/* ── Date range ── */}
+      {blockConfig.blockType === "range" && (
+        <div className="proto-field">
+          <label>Date range</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              className="proto-input"
+              value={blockConfig.dateFrom}
+              onChange={(e) =>
+                setBlockConfig((prev) => ({ ...prev, dateFrom: e.target.value }))
               }
-            >
-              {day}
-            </button>
-          );
-        })}
-      </div>
-      <p className="proto-preview-note" style={{ marginTop: "6px" }}>
-        Pick which of your working days to block for this range. Days you don&apos;t work are already off.
-      </p>
+            />
+            <span className="text-text-light">to</span>
+            <input
+              type="date"
+              className="proto-input"
+              value={blockConfig.dateTo ?? ""}
+              onChange={(e) =>
+                setBlockConfig((prev) => ({
+                  ...prev,
+                  dateTo: e.target.value || null,
+                }))
+              }
+            />
+          </div>
+        </div>
+      )}
 
-      {/* Parts of day */}
+      {/* ── Recurring days ── */}
+      {blockConfig.blockType === "recurring" && (
+        <>
+          <div className="proto-field">
+            <label>Applies to</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                className="proto-input"
+                value={blockConfig.dateFrom}
+                onChange={(e) =>
+                  setBlockConfig((prev) => ({
+                    ...prev,
+                    dateFrom: e.target.value,
+                  }))
+                }
+              />
+              <span className="text-text-light">to</span>
+              <input
+                type="date"
+                className="proto-input"
+                value={blockConfig.dateTo ?? ""}
+                onChange={(e) =>
+                  setBlockConfig((prev) => ({
+                    ...prev,
+                    dateTo: e.target.value || null,
+                  }))
+                }
+              />
+            </div>
+          </div>
+
+          {/* Days of week */}
+          <div className="proto-subhead">Days of week to block</div>
+          <div className="proto-pillrow">
+            {ALL_DAYS.map((day) => (
+              <button
+                key={day}
+                onClick={() => toggleDay(day, "block")}
+                className={`proto-pill danger ${
+                  blockConfig.daysOfWeek.includes(day) ? "on" : ""
+                }`}
+              >
+                {day}
+              </button>
+            ))}
+          </div>
+          <p className="proto-preview-note" style={{ marginTop: "6px" }}>
+            Leave empty to block every day in the range.
+          </p>
+        </>
+      )}
+
+      {/* ── Parts of day (optional, all modes) ── */}
       <div style={{ marginTop: "16px" }}>
-        <div className="proto-subhead">Part of day</div>
+        <div className="proto-subhead">
+          Part of day{" "}
+          <span className="text-text-muted font-normal">(optional)</span>
+        </div>
         <div className="proto-pillrow">
           {DAY_PARTS.map((part) => (
             <button
@@ -494,9 +651,12 @@ function BlockMode({
             </button>
           ))}
         </div>
+        <p className="proto-preview-note" style={{ marginTop: "6px" }}>
+          Leave empty to block the entire day.
+        </p>
       </div>
 
-      {/* Reason */}
+      {/* ── Reason ── */}
       <div style={{ marginTop: "16px" }}>
         <label className="proto-label">
           Reason (shown to affected patients)
@@ -513,8 +673,11 @@ function BlockMode({
         />
       </div>
 
-      {/* Notify */}
-      <label className="flex items-center gap-2 cursor-pointer" style={{ marginTop: "16px" }}>
+      {/* ── Notify ── */}
+      <label
+        className="flex items-center gap-2 cursor-pointer"
+        style={{ marginTop: "16px" }}
+      >
         <Checkbox
           checked={blockConfig.notify}
           onCheckedChange={(v) =>
@@ -524,26 +687,39 @@ function BlockMode({
         <span className="text-sm text-text">Notify affected patients</span>
       </label>
 
-      {/* Warning */}
-      <div className="proto-warn-banner" style={{ marginTop: "16px" }}>
-        <span>
-          Blocking time may cancel existing bookings. Patients will be notified
-          if the checkbox above is selected.
-        </span>
-      </div>
+      {/* ── Warning ── */}
+      {hasBookedInRange ? (
+        <div
+          className="proto-warn-banner"
+          style={{ marginTop: "16px", background: "#FEF3C7", borderColor: "#F59E0B" }}
+        >
+          <span>
+            This selection has existing bookings. You cannot block directly — a
+            request will be sent to admin for approval.
+          </span>
+        </div>
+      ) : (
+        <div className="proto-warn-banner" style={{ marginTop: "16px" }}>
+          <span>
+            Blocking will mark open slots as off. No bookings will be affected.
+          </span>
+        </div>
+      )}
 
-      {/* CTA */}
+      {/* ── CTA ── */}
       <button
         onClick={onBlock}
-        disabled={
-          isBlocking ||
-          blockConfig.partsOfDay.length === 0 ||
-          blockConfig.daysOfWeek.length === 0
-        }
+        disabled={isBlocking || isRequestingBlock || !canBlock}
         className="proto-cta block"
         style={{ marginTop: "8px" }}
       >
-        {isBlocking ? "Blocking..." : "Block selected time"}
+        {isBlocking
+          ? "Blocking..."
+          : isRequestingBlock
+            ? "Sending request..."
+            : hasBookedInRange
+              ? "Request block from admin"
+              : "Block selected time"}
       </button>
     </>
   );

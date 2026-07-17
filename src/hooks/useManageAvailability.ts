@@ -14,6 +14,8 @@ import {
   setSlotStatus,
   getAuditLog,
   deleteAuditEntry,
+  createBlockRequest,
+  getBlockRequests,
 } from "@/services/api/availability";
 import type {
   WorkingHours,
@@ -37,6 +39,10 @@ export interface ScheduleConfig {
 }
 
 export interface BlockConfig {
+  blockType: "specific" | "range" | "recurring";
+  dateSpecific: string;
+  dateFrom: string;
+  dateTo: string | null;
   daysOfWeek: string[];
   partsOfDay: DayPart[];
   reason: string;
@@ -115,6 +121,10 @@ export function useManageAvailability(userId?: string | null) {
   });
 
   const [blockConfig, setBlockConfig] = useState<BlockConfig>({
+    blockType: "specific",
+    dateSpecific: todayStr(),
+    dateFrom: todayStr(),
+    dateTo: addDays(todayStr(), 6),
     daysOfWeek: [],
     partsOfDay: [],
     reason: "",
@@ -151,6 +161,11 @@ export function useManageAvailability(userId?: string | null) {
   const { data: auditLog = [] } = useQuery({
     queryKey: ["availability", "audit-log"],
     queryFn: getAuditLog,
+  });
+
+  const { data: blockRequests = [] } = useQuery({
+    queryKey: ["availability", "block-requests"],
+    queryFn: getBlockRequests,
   });
 
   useEffect(() => {
@@ -291,6 +306,20 @@ export function useManageAvailability(userId?: string | null) {
     onError: () => toast.error("Failed to remove entry"),
   });
 
+  const blockRequestMutation = useMutation({
+    mutationFn: createBlockRequest,
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ["availability", "block-requests"] });
+      toast.success("Block request sent to admin", { duration: 4500 });
+      setLastAction({
+        type: "block",
+        description: "Block request sent",
+        undoFn: async () => {},
+      });
+    },
+    onError: () => toast.error("Failed to send block request"),
+  });
+
   const navigateCursor = useCallback(
     (direction: "prev" | "next") => {
       const offset = direction === "next" ? 1 : -1;
@@ -358,6 +387,26 @@ export function useManageAvailability(userId?: string | null) {
     [],
   );
 
+  const hasBookedSlotsInRange = useCallback(
+    (dateFrom: string, dateTo: string, daysOfWeek: string[], partsOfDay: string[]): boolean => {
+      const from = new Date(dateFrom + "T00:00:00");
+      const to = new Date(dateTo + "T00:00:00");
+      const daySet = new Set(daysOfWeek);
+
+      for (let d = new Date(from); d <= to; d.setDate(d.getDate() + 1)) {
+        const dk = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        const daySlots = slotsByDate[dk] ?? [];
+        for (const slot of daySlots) {
+          if (slot.status === "booked") {
+            return true;
+          }
+        }
+      }
+      return false;
+    },
+    [slotsByDate],
+  );
+
   return {
     view,
     setView,
@@ -393,6 +442,10 @@ export function useManageAvailability(userId?: string | null) {
     toggleSlot: toggleSlotMutation.mutateAsync,
     isToggling: toggleSlotMutation.isPending,
     deleteAuditEntry: deleteAuditMutation.mutateAsync,
+    blockRequest: blockRequestMutation.mutateAsync,
+    isRequestingBlock: blockRequestMutation.isPending,
+    hasBookedSlotsInRange,
+    blockRequests,
     lastAction,
     undoLast,
   };
