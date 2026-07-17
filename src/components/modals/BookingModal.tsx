@@ -250,14 +250,20 @@ interface StepDateTimeProps {
   onDateChange: (date: string) => void;
   onTimeChange: (time: string) => void;
   onContinue: () => void;
+  onBack?: () => void;
 }
 
-function StepDateTime({ selectedDate, selectedTime, slots, slotsLoading, onDateChange, onTimeChange, onContinue }: StepDateTimeProps) {
+function StepDateTime({ selectedDate, selectedTime, slots, slotsLoading, onDateChange, onTimeChange, onContinue, onBack }: StepDateTimeProps) {
   const isValid = !!selectedDate && !!selectedTime;
 
   return (
     <div className="space-y-5">
       <div>
+        {onBack && (
+          <button onClick={onBack} className="text-sm text-gray-500 hover:text-[#1F3D2B] mb-2 flex items-center gap-1">
+            ← Back
+          </button>
+        )}
         <label className="text-sm font-semibold text-[#1E2A2E]">Select date</label>
         <div className="relative mt-1.5">
           <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -1165,6 +1171,7 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
               onDateChange={setSelectedDate}
               onTimeChange={setSelectedTime}
               onContinue={() => setCurrentStep(2)}
+              onBack={onClose}
             />
           )}
 
