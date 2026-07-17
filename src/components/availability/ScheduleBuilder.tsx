@@ -11,6 +11,7 @@ import { to12h } from "@/lib/format";
 import type { ScheduleConfig, BlockConfig, BuilderMode } from "@/hooks/useManageAvailability";
 import type { DayPart } from "@/lib/availability-utils";
 import { ConfirmModal } from "./ConfirmModal";
+import { config } from "process";
 
 const ALL_DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
 // const DAY_PARTS: { key: DayPart; label: string; time: string }[] = [

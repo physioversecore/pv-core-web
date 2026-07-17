@@ -121,10 +121,10 @@ export function useManageAvailability(userId?: string | null) {
   const [lastAction, setLastAction] = useState<LastAction | null>(null);
 
   const [scheduleConfig, setScheduleConfig] = useState<ScheduleConfig>({
-    startTime: "08:00",
+    startTime: "09:00",
     endTime: "18:00",
     sessionDuration: 60,
-    breakDuration: 15,
+    breakDuration: 60,
     daysOfWeek: ["Mon", "Tue", "Wed", "Thu", "Fri"],
     dateFrom: todayStr(),
     dateTo: addDays(todayStr(), 27),
@@ -465,7 +465,7 @@ export function useManageAvailability(userId?: string | null) {
     dateFrom,
     dateTo,
     workingHours: workingHours ?? {
-      start: "08:00",
+      start: "09:00",
       end: "18:00",
       slotInterval: 60,
     } as WorkingHours,
