@@ -220,9 +220,10 @@ export function ScheduleBuilder({
   );
 
   const canBlock =
-    blockConfig.blockType === "specific"
+    !!blockConfig.reason.trim() &&
+    (blockConfig.blockType === "specific"
       ? !!blockConfig.dateSpecific
-      : !!blockConfig.dateFrom;
+      : !!blockConfig.dateFrom);
 
   const isAvail = builderMode === "avail";
 
@@ -545,6 +546,7 @@ function BlockMode({
           <input
             type="date"
             className="proto-input"
+            style={{ maxWidth: "240px" }}
             value={blockConfig.dateSpecific}
             onChange={(e) =>
               setBlockConfig((prev) => ({
@@ -670,8 +672,9 @@ function BlockMode({
         <input
           type="text"
           className="proto-input"
-          style={{ maxWidth: "480px" }}
+          style={{ width: "100%", maxWidth: "640px" }}
           placeholder="e.g. Personal emergency, clinic closed"
+          required
           value={blockConfig.reason}
           onChange={(e) =>
             setBlockConfig((prev) => ({ ...prev, reason: e.target.value }))

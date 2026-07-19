@@ -355,6 +355,16 @@ export function useManageAvailability(userId?: string | null) {
         description: msg,
         undoFn: async () => {},
       });
+      setBlockConfig({
+        blockType: "specific",
+        dateSpecific: todayStr(),
+        dateFrom: todayStr(),
+        dateTo: addDays(todayStr(), 6),
+        daysOfWeek: [],
+        partsOfDay: [],
+        reason: "",
+        notify: false,
+      });
     },
     onError: () => toast.error("Failed to block time"),
   });
