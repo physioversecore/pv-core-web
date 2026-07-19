@@ -364,7 +364,7 @@ function AvailMode({
             <SelectContent>
               {[30, 45, 60, 90, 120, 150, 180].map((m) => (
                 <SelectItem key={m} value={String(m)}>
-                  {m} min
+                  {m >= 60 ? `${m / 60}h` : `${m} min`}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -385,9 +385,9 @@ function AvailMode({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {[0, 5, 10, 15, 20, 30, 45, 60].map((m) => (
+              {[30, 45, 60, 90, 120, 150, 180].map((m) => (
                 <SelectItem key={m} value={String(m)}>
-                  {m} min
+                  {m >= 60 ? `${m / 60}h` : `${m} min`}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -465,7 +465,7 @@ function AvailMode({
               ))}
             </div>
             <p className="proto-preview-note">
-              {sessions.length} session(s) · {config.breakDuration} min break between
+              {sessions.length} session(s) · {config.breakDuration >= 60 ? `${config.breakDuration / 60}h` : `${config.breakDuration} min`} break between
             </p>
           </>
         )}
