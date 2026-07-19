@@ -13,7 +13,7 @@ export async function getWorkingHours(): Promise<WorkingHours> {
         end: "18:00",
         slotInterval: 60,
         sessionDuration: 60,
-        breakDuration: 0,
+        breakDuration: 60,
         daysOfWeek: ["Mon", "Tue", "Wed", "Thu", "Fri"],
       };
     throw e;
@@ -70,7 +70,11 @@ export interface AuditLogEntry {
   slotKey: string | null;
   time: string | null;
   source: string;
+  scope: string;
   createdAt: string;
+  dateTo: string | null;
+  daysOfWeek: string[];
+  partsOfDay: string[];
 }
 
 export async function getAuditLog(): Promise<AuditLogEntry[]> {
