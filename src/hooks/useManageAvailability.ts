@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getMyTherapist } from "@/services/api/therapists";
@@ -194,6 +194,47 @@ export function useManageAvailability(userId?: string | null) {
     }
   }, [workingHours]);
 
+  const lastSavedConfig = useRef<{
+    startTime: string;
+    endTime: string;
+    sessionDuration: number;
+    breakDuration: number;
+    daysOfWeek: string[];
+  } | null>(null);
+
+  useEffect(() => {
+    if (workingHours) {
+      lastSavedConfig.current = {
+        startTime: workingHours.start,
+        endTime: workingHours.end,
+        sessionDuration: workingHours.sessionDuration ?? 60,
+        breakDuration: workingHours.breakDuration ?? 0,
+        daysOfWeek: workingHours.daysOfWeek ?? [],
+      };
+    }
+  }, [workingHours]);
+
+  const hasConfigChanged = useMemo(() => {
+    if (!lastSavedConfig.current) return false;
+    const s = lastSavedConfig.current;
+    const sortedA = [...scheduleConfig.daysOfWeek].sort();
+    const sortedB = [...s.daysOfWeek].sort();
+    return (
+      s.startTime !== scheduleConfig.startTime ||
+      s.endTime !== scheduleConfig.endTime ||
+      s.sessionDuration !== scheduleConfig.sessionDuration ||
+      s.breakDuration !== scheduleConfig.breakDuration ||
+      sortedA.length !== sortedB.length ||
+      sortedA.some((d, i) => d !== sortedB[i])
+    );
+  }, [
+    scheduleConfig.startTime,
+    scheduleConfig.endTime,
+    scheduleConfig.sessionDuration,
+    scheduleConfig.breakDuration,
+    scheduleConfig.daysOfWeek,
+  ]);
+
   const slots: SlotInfo[] = slotsData?.slots ?? [];
 
   const expectedTimes = useMemo(() => {
@@ -280,6 +321,13 @@ export function useManageAvailability(userId?: string | null) {
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ["availability", "slots-range"] });
       queryClient.invalidateQueries({ queryKey: ["availability", "working-hours"] });
+      lastSavedConfig.current = {
+        startTime: scheduleConfig.startTime,
+        endTime: scheduleConfig.endTime,
+        sessionDuration: scheduleConfig.sessionDuration,
+        breakDuration: scheduleConfig.breakDuration,
+        daysOfWeek: [...scheduleConfig.daysOfWeek],
+      };
       toast.success(`Availability updated — ${res.updated} slots changed`, {
         duration: 4500,
       });
@@ -488,6 +536,7 @@ export function useManageAvailability(userId?: string | null) {
     isLoading: slotsLoading,
     generateAvailability: generateMutation.mutateAsync,
     isGenerating: generateMutation.isPending,
+    hasConfigChanged,
     blockRange: blockMutation.mutateAsync,
     isBlocking: blockMutation.isPending,
     unblockTime: unblockMutation.mutateAsync,

@@ -77,6 +77,7 @@ export default function ManageAvailabilityPage() {
         workingDays={av.workingDays}
         generateAvailability={av.generateAvailability}
         isGenerating={av.isGenerating}
+        hasConfigChanged={av.hasConfigChanged}
         blockRange={av.blockRange}
         isBlocking={av.isBlocking}
         blockRequest={av.blockRequest}

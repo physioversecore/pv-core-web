@@ -52,6 +52,7 @@ interface ScheduleBuilderProps {
     breakDuration: number;
   }) => Promise<{ updated: number }>;
   isGenerating: boolean;
+  hasConfigChanged: boolean;
   blockRange: (data: {
     dateFrom: string;
     dateTo?: string;
@@ -93,6 +94,7 @@ export function ScheduleBuilder({
   workingDays,
   generateAvailability,
   isGenerating,
+  hasConfigChanged,
   blockRange,
   isBlocking,
   blockRequest,
@@ -254,6 +256,7 @@ export function ScheduleBuilder({
           applyPreset={applyPreset}
           onGenerate={handleGenerate}
           isGenerating={isGenerating}
+          hasConfigChanged={hasConfigChanged}
         />
       ) : (
         <BlockMode
@@ -294,6 +297,7 @@ function AvailMode({
   applyPreset,
   onGenerate,
   isGenerating,
+  hasConfigChanged,
 }: {
   config: ScheduleConfig;
   setConfig: React.Dispatch<React.SetStateAction<ScheduleConfig>>;
@@ -303,6 +307,7 @@ function AvailMode({
   applyPreset: (p: "today" | "4weeks" | "month" | "ongoing") => void;
   onGenerate: () => void;
   isGenerating: boolean;
+  hasConfigChanged: boolean;
 }) {
   return (
     <>
@@ -474,7 +479,7 @@ function AvailMode({
       {/* CTA */}
       <button
         onClick={onGenerate}
-        disabled={isGenerating || config.daysOfWeek.length === 0}
+        disabled={isGenerating || config.daysOfWeek.length === 0 || !hasConfigChanged}
         className="proto-cta build"
         style={{ marginTop: "8px" }}
       >
