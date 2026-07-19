@@ -60,6 +60,7 @@ interface ScheduleBuilderProps {
     partsOfDay: string[];
     reason: string;
     notify: boolean;
+    blockType?: string;
   }) => Promise<{
     blocked: number;
     cancelledCount: number;
@@ -171,7 +172,7 @@ export function ScheduleBuilder({
     const dateTo =
       blockConfig.blockType === "specific"
         ? blockConfig.dateSpecific
-        : blockConfig.dateTo ?? blockConfig.dateFrom;
+        : blockConfig.dateTo || blockConfig.dateFrom;
 
     const hasBooked = hasBookedSlotsInRange(
       dateFrom,
@@ -182,11 +183,12 @@ export function ScheduleBuilder({
 
     const payload = {
       dateFrom,
-      dateTo: blockConfig.blockType === "specific" ? undefined : dateTo,
+      dateTo,
       daysOfWeek: blockConfig.daysOfWeek,
       partsOfDay: blockConfig.partsOfDay,
       reason: blockConfig.reason,
       notify: blockConfig.notify,
+      blockType: blockConfig.blockType,
     };
 
     if (hasBooked) {

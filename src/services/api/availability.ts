@@ -130,6 +130,7 @@ export async function blockRange(data: {
   partsOfDay: string[];
   reason: string;
   notify: boolean;
+  blockType?: string;
 }): Promise<{
   blocked: number;
   cancelledCount: number;

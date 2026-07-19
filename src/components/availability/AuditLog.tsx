@@ -40,28 +40,26 @@ function formatParts(parts?: string[] | null): string {
 }
 
 function describeEntry(entry: AuditLogEntry): string {
-  const hasRange = entry.dateTo && entry.dateTo !== entry.date;
   const dayStr = formatDayList(entry.daysOfWeek ?? []);
   const partStr = formatParts(entry.partsOfDay ?? []);
   const scope = entry.scope ?? "";
+  const dateTo = entry.dateTo ?? entry.date;
 
-  let description = "";
+  let label = "";
   if (entry.time) {
-    description = `Blocked at ${to12h(entry.time)} on ${formatDate(entry.date)}`;
-  } else if (scope === "recurring" || (dayStr && hasRange)) {
-    description = `Blocked ${formatDate(entry.date)} – ${formatDate(entry.dateTo!)}`;
-    if (dayStr) description += ` · ${dayStr}`;
-  } else if (hasRange) {
-    description = `Blocked ${formatDate(entry.date)} – ${formatDate(entry.dateTo!)}`;
+    label = `Blocked at ${to12h(entry.time)} on ${formatDate(entry.date)}`;
+  } else if (scope === "specific") {
+    label = `Blocked on ${formatDate(entry.date)}`;
+  } else if (scope === "recurring") {
+    label = `Blocked ${formatDate(entry.date)} – ${formatDate(dateTo)}`;
+    if (dayStr) label += ` · ${dayStr}`;
   } else {
-    description = `Blocked ${formatDate(entry.date)}`;
+    label = `Blocked ${formatDate(entry.date)} – ${formatDate(dateTo)}`;
   }
 
-  if (partStr) {
-    description += ` · ${partStr}`;
-  }
+  if (partStr) label += ` · ${partStr}`;
 
-  return description;
+  return label;
 }
 
 export function AuditLog({ entries, onDelete, onUnblock, isUnblocking }: AuditLogProps) {
