@@ -406,6 +406,7 @@ function EditLeaveDialog({
             <input
               type="date"
               value={dateFrom}
+              min={new Date().toISOString().slice(0, 10)}
               onChange={(e) => setDateFrom(e.target.value)}
               required
               className="w-full mt-1 px-3 py-2 rounded-md border border-input bg-transparent text-sm"
@@ -416,6 +417,7 @@ function EditLeaveDialog({
             <input
               type="date"
               value={dateTo}
+              min={new Date().toISOString().slice(0, 10)}
               onChange={(e) => setDateTo(e.target.value)}
               required
               className="w-full mt-1 px-3 py-2 rounded-md border border-input bg-transparent text-sm"

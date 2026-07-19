@@ -14,6 +14,7 @@ import { ConfirmModal } from "./ConfirmModal";
 import { config } from "process";
 
 const ALL_DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
+const TODAY = new Date().toISOString().slice(0, 10);
 // const DAY_PARTS: { key: DayPart; label: string; time: string }[] = [
 //   { key: "morning", label: "Morning", time: "6:00–12:00" },
 //   { key: "afternoon", label: "Afternoon", time: "12:00–17:00" },
@@ -410,6 +411,7 @@ function AvailMode({
           <input
             type="date"
             className="proto-input"
+            min={TODAY}
             value={config.dateFrom}
             onChange={(e) =>
               setConfig((prev) => ({ ...prev, dateFrom: e.target.value }))
@@ -419,6 +421,7 @@ function AvailMode({
           <input
             type="date"
             className="proto-input"
+            min={TODAY}
             value={config.dateTo ?? ""}
             onChange={(e) =>
               setConfig((prev) => ({
@@ -549,6 +552,7 @@ function BlockMode({
             type="date"
             className="proto-input"
             style={{ maxWidth: "240px" }}
+            min={TODAY}
             value={blockConfig.dateSpecific}
             onChange={(e) =>
               setBlockConfig((prev) => ({
@@ -568,6 +572,7 @@ function BlockMode({
             <input
               type="date"
               className="proto-input"
+              min={TODAY}
               value={blockConfig.dateFrom}
               onChange={(e) =>
                 setBlockConfig((prev) => ({ ...prev, dateFrom: e.target.value }))
@@ -577,6 +582,7 @@ function BlockMode({
             <input
               type="date"
               className="proto-input"
+              min={TODAY}
               value={blockConfig.dateTo ?? ""}
               onChange={(e) =>
                 setBlockConfig((prev) => ({
@@ -598,6 +604,7 @@ function BlockMode({
               <input
                 type="date"
                 className="proto-input"
+                min={TODAY}
                 value={blockConfig.dateFrom}
                 onChange={(e) =>
                   setBlockConfig((prev) => ({
@@ -610,6 +617,7 @@ function BlockMode({
               <input
                 type="date"
                 className="proto-input"
+                min={TODAY}
                 value={blockConfig.dateTo ?? ""}
                 onChange={(e) =>
                   setBlockConfig((prev) => ({

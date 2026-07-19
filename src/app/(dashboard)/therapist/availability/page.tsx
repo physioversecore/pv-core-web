@@ -66,24 +66,44 @@ export default function ManageAvailabilityPage() {
         </h1>
       </div>
 
-      <ScheduleBuilder
-        builderMode={av.builderMode}
-        setBuilderMode={av.setBuilderMode}
-        scheduleConfig={av.scheduleConfig}
-        setScheduleConfig={av.setScheduleConfig}
-        blockConfig={av.blockConfig}
-        setBlockConfig={av.setBlockConfig}
-        applyPreset={av.applyPreset}
-        workingDays={av.workingDays}
-        generateAvailability={av.generateAvailability}
-        isGenerating={av.isGenerating}
-        hasConfigChanged={av.hasConfigChanged}
-        blockRange={av.blockRange}
-        isBlocking={av.isBlocking}
-        blockRequest={av.blockRequest}
-        isRequestingBlock={av.isRequestingBlock}
-        hasBookedSlotsInRange={av.hasBookedSlotsInRange}
-      />
+      {/* Schedule builder + Audit log side by side (large screens only) */}
+      <div className="flex flex-col gap-6 lg:flex-row">
+        <div className="w-full lg:w-[70%]">
+          <ScheduleBuilder
+            builderMode={av.builderMode}
+            setBuilderMode={av.setBuilderMode}
+            scheduleConfig={av.scheduleConfig}
+            setScheduleConfig={av.setScheduleConfig}
+            blockConfig={av.blockConfig}
+            setBlockConfig={av.setBlockConfig}
+            applyPreset={av.applyPreset}
+            workingDays={av.workingDays}
+            generateAvailability={av.generateAvailability}
+            isGenerating={av.isGenerating}
+            hasConfigChanged={av.hasConfigChanged}
+            blockRange={av.blockRange}
+            isBlocking={av.isBlocking}
+            blockRequest={av.blockRequest}
+            isRequestingBlock={av.isRequestingBlock}
+            hasBookedSlotsInRange={av.hasBookedSlotsInRange}
+          />
+        </div>
+        <div className="hidden w-full lg:block lg:w-[30%]">
+          <div className="card-proto lg:sticky lg:top-6">
+            <h2>Recent blocks</h2>
+            <AuditLog
+              entries={av.auditLog}
+              total={av.auditTotal}
+              page={av.auditPage}
+              limit={av.auditLimit}
+              onPageChange={av.setAuditPage}
+              onDelete={av.deleteAuditEntry}
+              onUnblock={av.unblockTime}
+              isUnblocking={av.isUnblocking}
+            />
+          </div>
+        </div>
+      </div>
 
       {/* View tabs + date nav */}
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -168,19 +188,21 @@ export default function ManageAvailabilityPage() {
         />
       )}
 
-      {/* Audit log */}
-      <div className="card-proto">
-        <h2>Recent blocks</h2>
-        <AuditLog
-          entries={av.auditLog}
-          total={av.auditTotal}
-          page={av.auditPage}
-          limit={av.auditLimit}
-          onPageChange={av.setAuditPage}
-          onDelete={av.deleteAuditEntry}
-          onUnblock={av.unblockTime}
-          isUnblocking={av.isUnblocking}
-        />
+      {/* Audit log — small screens only (below calendar) */}
+      <div className="block lg:hidden">
+        <div className="card-proto">
+          <h2>Recent blocks</h2>
+          <AuditLog
+            entries={av.auditLog}
+            total={av.auditTotal}
+            page={av.auditPage}
+            limit={av.auditLimit}
+            onPageChange={av.setAuditPage}
+            onDelete={av.deleteAuditEntry}
+            onUnblock={av.unblockTime}
+            isUnblocking={av.isUnblocking}
+          />
+        </div>
       </div>
 
       {/* Block requests */}

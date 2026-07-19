@@ -43,11 +43,11 @@ export default function TSettings() {
         <div className="grid grid-cols-2 gap-3 mb-3">
           <div>
             <label className="text-xs font-medium text-text-light">{t("therapist_dashboard.from")}</label>
-            <input type="date" value={off.from} onChange={(e) => setOff({ ...off, from: e.target.value })} className="w-full mt-1 px-3 py-2 rounded-xl border border-border bg-white text-sm" />
+            <input type="date" value={off.from} min={new Date().toISOString().slice(0, 10)} onChange={(e) => setOff({ ...off, from: e.target.value })} className="w-full mt-1 px-3 py-2 rounded-xl border border-border bg-white text-sm" />
           </div>
           <div>
             <label className="text-xs font-medium text-text-light">{t("therapist_dashboard.to")}</label>
-            <input type="date" value={off.to} onChange={(e) => setOff({ ...off, to: e.target.value })} className="w-full mt-1 px-3 py-2 rounded-xl border border-border bg-white text-sm" />
+            <input type="date" value={off.to} min={new Date().toISOString().slice(0, 10)} onChange={(e) => setOff({ ...off, to: e.target.value })} className="w-full mt-1 px-3 py-2 rounded-xl border border-border bg-white text-sm" />
           </div>
         </div>
         <div className="mb-3">
