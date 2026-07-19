@@ -77,11 +77,16 @@ export interface AuditLogEntry {
   partsOfDay: string[];
 }
 
-export async function getAuditLog(): Promise<AuditLogEntry[]> {
+export interface PaginatedAuditLog {
+  entries: AuditLogEntry[];
+  total: number;
+}
+
+export async function getAuditLog(limit = 5, offset = 0): Promise<PaginatedAuditLog> {
   try {
-    return await api.get<AuditLogEntry[]>("/availability/audit-log");
+    return await api.get<PaginatedAuditLog>(`/availability/audit-log?limit=${limit}&offset=${offset}`);
   } catch {
-    return [];
+    return { entries: [], total: 0 };
   }
 }
 

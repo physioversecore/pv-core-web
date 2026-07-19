@@ -119,6 +119,8 @@ export function useManageAvailability(userId?: string | null) {
   const [cursor, setCursor] = useState(todayStr());
   const [builderMode, setBuilderMode] = useState<BuilderMode>("avail");
   const [lastAction, setLastAction] = useState<LastAction | null>(null);
+  const [auditPage, setAuditPage] = useState(0);
+  const AUDIT_LIMIT = 5;
 
   const [scheduleConfig, setScheduleConfig] = useState<ScheduleConfig>({
     startTime: "09:00",
@@ -168,10 +170,13 @@ export function useManageAvailability(userId?: string | null) {
     enabled: !!dateFrom && !!dateTo,
   });
 
-  const { data: auditLog = [] } = useQuery({
-    queryKey: ["availability", "audit-log"],
-    queryFn: getAuditLog,
+  const { data: auditData, isLoading: auditLoading } = useQuery({
+    queryKey: ["availability", "audit-log", auditPage, AUDIT_LIMIT],
+    queryFn: () => getAuditLog(AUDIT_LIMIT, auditPage * AUDIT_LIMIT),
   });
+
+  const auditLog = auditData?.entries ?? [];
+  const auditTotal = auditData?.total ?? 0;
 
   const { data: blockRequests = [] } = useQuery({
     queryKey: ["availability", "block-requests"],
@@ -345,6 +350,7 @@ export function useManageAvailability(userId?: string | null) {
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ["availability", "slots-range"] });
       queryClient.invalidateQueries({ queryKey: ["availability", "audit-log"] });
+      setAuditPage(0);
       const msg =
         res.cancelledCount > 0
           ? `Blocked — ${res.cancelledCount} booking(s) cancelled`
@@ -374,6 +380,7 @@ export function useManageAvailability(userId?: string | null) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["availability", "slots-range"] });
       queryClient.invalidateQueries({ queryKey: ["availability", "audit-log"] });
+      setAuditPage(0);
       toast.success("Time unblocked", { duration: 4500 });
     },
     onError: () => toast.error("Failed to unblock time"),
@@ -402,6 +409,9 @@ export function useManageAvailability(userId?: string | null) {
     mutationFn: deleteAuditEntry,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["availability", "audit-log"] });
+      if (auditLog.length === 1 && auditPage > 0) {
+        setAuditPage((p) => p - 1);
+      }
       toast.success("Entry removed");
     },
     onError: () => toast.error("Failed to remove entry"),
@@ -543,6 +553,10 @@ export function useManageAvailability(userId?: string | null) {
     blockedDates,
     blockedPartsByDate,
     auditLog,
+    auditTotal,
+    auditPage,
+    setAuditPage,
+    auditLimit: AUDIT_LIMIT,
     isLoading: slotsLoading,
     generateAvailability: generateMutation.mutateAsync,
     isGenerating: generateMutation.isPending,

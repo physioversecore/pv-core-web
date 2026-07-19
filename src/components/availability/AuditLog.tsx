@@ -1,12 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Undo2 } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { to12h } from "@/lib/format";
 import type { AuditLogEntry } from "@/services/api/availability";
 
 interface AuditLogProps {
   entries: AuditLogEntry[];
+  total: number;
+  page: number;
+  limit: number;
+  onPageChange: (page: number) => void;
   onDelete: (id: string) => void;
   onUnblock: (data: { date: string; time?: string }) => Promise<void>;
   isUnblocking: boolean;
@@ -62,9 +66,9 @@ function describeEntry(entry: AuditLogEntry): string {
   return label;
 }
 
-export function AuditLog({ entries, onDelete, onUnblock, isUnblocking }: AuditLogProps) {
-  const visible = entries.slice(0, 8);
+export function AuditLog({ entries, total, page, limit, onPageChange, onDelete, onUnblock, isUnblocking }: AuditLogProps) {
   const [undoingId, setUndoingId] = useState<string | null>(null);
+  const totalPages = Math.ceil(total / limit);
 
   const handleUndo = async (entry: AuditLogEntry) => {
     setUndoingId(entry.id);
@@ -76,7 +80,7 @@ export function AuditLog({ entries, onDelete, onUnblock, isUnblocking }: AuditLo
     }
   };
 
-  if (visible.length === 0) {
+  if (total === 0) {
     return (
       <p className="proto-preview-note">
         No time blocked yet — anything you block will show up here so you can undo it in one tap.
@@ -86,7 +90,7 @@ export function AuditLog({ entries, onDelete, onUnblock, isUnblocking }: AuditLo
 
   return (
     <div>
-      {visible.map((entry) => (
+      {entries.map((entry) => (
         <div key={entry.id} className="proto-audit-item">
             <div>
               <div className="font-medium text-[13px]">
@@ -105,6 +109,29 @@ export function AuditLog({ entries, onDelete, onUnblock, isUnblocking }: AuditLo
           </button>
         </div>
       ))}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between pt-2">
+          <span className="text-[12px] text-text-muted">
+            {page * limit + 1}–{Math.min((page + 1) * limit, total)} of {total}
+          </span>
+          <div className="flex items-center gap-1">
+            <button
+              className="proto-nav-btn"
+              disabled={page === 0}
+              onClick={() => onPageChange(page - 1)}
+            >
+              <ChevronLeft size={14} />
+            </button>
+            <button
+              className="proto-nav-btn"
+              disabled={page >= totalPages - 1}
+              onClick={() => onPageChange(page + 1)}
+            >
+              <ChevronRight size={14} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -173,6 +173,10 @@ export default function ManageAvailabilityPage() {
         <h2>Recent blocks</h2>
         <AuditLog
           entries={av.auditLog}
+          total={av.auditTotal}
+          page={av.auditPage}
+          limit={av.auditLimit}
+          onPageChange={av.setAuditPage}
           onDelete={av.deleteAuditEntry}
           onUnblock={av.unblockTime}
           isUnblocking={av.isUnblocking}
