@@ -6,6 +6,7 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { DatePicker, DateRangePicker } from "@/components/ui/date-picker";
 import { generateSessionBlocks } from "@/lib/availability-utils";
 import { to12h } from "@/lib/format";
 import type { ScheduleConfig, BlockConfig, BuilderMode } from "@/hooks/useManageAvailability";
@@ -407,30 +408,13 @@ function AvailMode({
       {/* Date range */}
       <div className="proto-field">
         <label>Applies to</label>
-        <div className="flex items-center gap-2">
-          <input
-            type="date"
-            className="proto-input"
-            min={TODAY}
-            value={config.dateFrom}
-            onChange={(e) =>
-              setConfig((prev) => ({ ...prev, dateFrom: e.target.value }))
-            }
-          />
-          <span className="text-text-light">to</span>
-          <input
-            type="date"
-            className="proto-input"
-            min={TODAY}
-            value={config.dateTo ?? ""}
-            onChange={(e) =>
-              setConfig((prev) => ({
-                ...prev,
-                dateTo: e.target.value || null,
-              }))
-            }
-          />
-        </div>
+        <DateRangePicker
+          dateFrom={config.dateFrom}
+          dateTo={config.dateTo}
+          onFromChange={(v) => setConfig((prev) => ({ ...prev, dateFrom: v }))}
+          onToChange={(v) => setConfig((prev) => ({ ...prev, dateTo: v || null }))}
+          min={TODAY}
+        />
         <div className="proto-presets">
           {PRESETS.map((p) => (
             <button
@@ -548,18 +532,11 @@ function BlockMode({
       {blockConfig.blockType === "specific" && (
         <div className="proto-field">
           <label>Pick a date to block</label>
-          <input
-            type="date"
-            className="proto-input"
-            style={{ maxWidth: "240px" }}
-            min={TODAY}
+          <DatePicker
             value={blockConfig.dateSpecific}
-            onChange={(e) =>
-              setBlockConfig((prev) => ({
-                ...prev,
-                dateSpecific: e.target.value,
-              }))
-            }
+            onChange={(v) => setBlockConfig((prev) => ({ ...prev, dateSpecific: v }))}
+            min={TODAY}
+            className="max-w-[240px]"
           />
         </div>
       )}
@@ -568,30 +545,13 @@ function BlockMode({
       {blockConfig.blockType === "range" && (
         <div className="proto-field">
           <label>Date range</label>
-          <div className="flex items-center gap-2">
-            <input
-              type="date"
-              className="proto-input"
-              min={TODAY}
-              value={blockConfig.dateFrom}
-              onChange={(e) =>
-                setBlockConfig((prev) => ({ ...prev, dateFrom: e.target.value }))
-              }
-            />
-            <span className="text-text-light">to</span>
-            <input
-              type="date"
-              className="proto-input"
-              min={TODAY}
-              value={blockConfig.dateTo ?? ""}
-              onChange={(e) =>
-                setBlockConfig((prev) => ({
-                  ...prev,
-                  dateTo: e.target.value || null,
-                }))
-              }
-            />
-          </div>
+          <DateRangePicker
+            dateFrom={blockConfig.dateFrom}
+            dateTo={blockConfig.dateTo}
+            onFromChange={(v) => setBlockConfig((prev) => ({ ...prev, dateFrom: v }))}
+            onToChange={(v) => setBlockConfig((prev) => ({ ...prev, dateTo: v || null }))}
+            min={TODAY}
+          />
         </div>
       )}
 
@@ -600,33 +560,13 @@ function BlockMode({
         <>
           <div className="proto-field">
             <label>Applies to</label>
-            <div className="flex items-center gap-2">
-              <input
-                type="date"
-                className="proto-input"
-                min={TODAY}
-                value={blockConfig.dateFrom}
-                onChange={(e) =>
-                  setBlockConfig((prev) => ({
-                    ...prev,
-                    dateFrom: e.target.value,
-                  }))
-                }
-              />
-              <span className="text-text-light">to</span>
-              <input
-                type="date"
-                className="proto-input"
-                min={TODAY}
-                value={blockConfig.dateTo ?? ""}
-                onChange={(e) =>
-                  setBlockConfig((prev) => ({
-                    ...prev,
-                    dateTo: e.target.value || null,
-                  }))
-                }
-              />
-            </div>
+            <DateRangePicker
+              dateFrom={blockConfig.dateFrom}
+              dateTo={blockConfig.dateTo}
+              onFromChange={(v) => setBlockConfig((prev) => ({ ...prev, dateFrom: v }))}
+              onToChange={(v) => setBlockConfig((prev) => ({ ...prev, dateTo: v || null }))}
+              min={TODAY}
+            />
           </div>
 
           {/* Days of week */}

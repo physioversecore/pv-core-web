@@ -7,6 +7,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { useTableSort } from "@/hooks/useTableSort";
 import { useAdminLeaves } from "@/hooks/useAdminLeaves";
 import { DashboardStat } from "@/components/dashboard/DashboardStat";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   DataTable,
   ActionMenu,
@@ -403,24 +404,20 @@ function EditLeaveDialog({
           </div>
           <div>
             <label className="text-xs font-mono text-text-light uppercase">Date From</label>
-            <input
-              type="date"
+            <DatePicker
               value={dateFrom}
+              onChange={setDateFrom}
               min={new Date().toISOString().slice(0, 10)}
-              onChange={(e) => setDateFrom(e.target.value)}
-              required
-              className="w-full mt-1 px-3 py-2 rounded-md border border-input bg-transparent text-sm"
+              className="mt-1"
             />
           </div>
           <div>
             <label className="text-xs font-mono text-text-light uppercase">Date To</label>
-            <input
-              type="date"
+            <DatePicker
               value={dateTo}
+              onChange={setDateTo}
               min={new Date().toISOString().slice(0, 10)}
-              onChange={(e) => setDateTo(e.target.value)}
-              required
-              className="w-full mt-1 px-3 py-2 rounded-md border border-input bg-transparent text-sm"
+              className="mt-1"
             />
           </div>
           <div>
