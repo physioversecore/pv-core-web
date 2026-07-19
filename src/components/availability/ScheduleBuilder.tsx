@@ -406,7 +406,7 @@ function AvailMode({
       </div>
 
       {/* Date range */}
-      <div className="proto-field">
+      <div className="proto-field" style={{ minWidth: 0, width: "40%" }}>
         <label>Applies to</label>
         <DateRangePicker
           dateFrom={config.dateFrom}
@@ -543,7 +543,7 @@ function BlockMode({
 
       {/* ── Date range ── */}
       {blockConfig.blockType === "range" && (
-        <div className="proto-field">
+        <div className="proto-field" style={{ minWidth: 0, width: "30%" }}>
           <label>Date range</label>
           <DateRangePicker
             dateFrom={blockConfig.dateFrom}
@@ -551,7 +551,6 @@ function BlockMode({
             onFromChange={(v) => setBlockConfig((prev) => ({ ...prev, dateFrom: v }))}
             onToChange={(v) => setBlockConfig((prev) => ({ ...prev, dateTo: v || null }))}
             min={TODAY}
-            className="w-full"
           />
         </div>
       )}
@@ -559,7 +558,7 @@ function BlockMode({
       {/* ── Recurring days ── */}
       {blockConfig.blockType === "recurring" && (
         <>
-          <div className="proto-field">
+          <div className="proto-field" style={{ minWidth: 0, width: "30%" }}>
             <label>Applies to</label>
             <DateRangePicker
               dateFrom={blockConfig.dateFrom}
@@ -567,7 +566,6 @@ function BlockMode({
               onFromChange={(v) => setBlockConfig((prev) => ({ ...prev, dateFrom: v }))}
               onToChange={(v) => setBlockConfig((prev) => ({ ...prev, dateTo: v || null }))}
               min={TODAY}
-              className="w-full"
             />
           </div>
 
