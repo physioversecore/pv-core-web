@@ -22,6 +22,9 @@ export interface WorkingHours {
   start: string;
   end: string;
   slotInterval: number;
+  sessionDuration: number;
+  breakDuration: number;
+  daysOfWeek: string[];
 }
 
 export interface SlotInfo {

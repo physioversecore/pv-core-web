@@ -7,7 +7,15 @@ export async function getWorkingHours(): Promise<WorkingHours> {
   try {
     return await api.get<WorkingHours>("/availability/working-hours");
   } catch (e) {
-    if (e instanceof AuthError) return { start: "09:00", end: "18:00", slotInterval: 60 };
+    if (e instanceof AuthError)
+      return {
+        start: "09:00",
+        end: "18:00",
+        slotInterval: 60,
+        sessionDuration: 60,
+        breakDuration: 0,
+        daysOfWeek: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+      };
     throw e;
   }
 }

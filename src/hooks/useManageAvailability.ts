@@ -124,7 +124,7 @@ export function useManageAvailability(userId?: string | null) {
     startTime: "09:00",
     endTime: "18:00",
     sessionDuration: 60,
-    breakDuration: 60,
+    breakDuration: 0,
     daysOfWeek: ["Mon", "Tue", "Wed", "Thu", "Fri"],
     dateFrom: todayStr(),
     dateTo: addDays(todayStr(), 27),
@@ -184,6 +184,12 @@ export function useManageAvailability(userId?: string | null) {
         ...prev,
         startTime: workingHours.start,
         endTime: workingHours.end,
+        sessionDuration: workingHours.sessionDuration ?? prev.sessionDuration,
+        breakDuration: workingHours.breakDuration ?? prev.breakDuration,
+        daysOfWeek:
+          workingHours.daysOfWeek && workingHours.daysOfWeek.length > 0
+            ? workingHours.daysOfWeek
+            : prev.daysOfWeek,
       }));
     }
   }, [workingHours]);
@@ -273,6 +279,7 @@ export function useManageAvailability(userId?: string | null) {
     mutationFn: generateAvailability,
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ["availability", "slots-range"] });
+      queryClient.invalidateQueries({ queryKey: ["availability", "working-hours"] });
       toast.success(`Availability updated — ${res.updated} slots changed`, {
         duration: 4500,
       });
@@ -464,11 +471,14 @@ export function useManageAvailability(userId?: string | null) {
     applyPreset,
     dateFrom,
     dateTo,
-    workingHours: workingHours ?? {
+    workingHours: workingHours ?? ({
       start: "09:00",
       end: "18:00",
       slotInterval: 60,
-    } as WorkingHours,
+      sessionDuration: 60,
+      breakDuration: 0,
+      daysOfWeek: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+    } as WorkingHours),
     workingDays,
     slots,
     slotsByDate,
