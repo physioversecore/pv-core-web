@@ -78,6 +78,7 @@ interface DateRangePickerProps {
   onFromChange: (date: string) => void;
   onToChange: (date: string) => void;
   min?: string;
+  placeholder?: string;
   className?: string;
 }
 
@@ -87,13 +88,57 @@ export function DateRangePicker({
   onFromChange,
   onToChange,
   min,
+  placeholder = "Pick a date range",
   className,
 }: DateRangePickerProps) {
+  const [open, setOpen] = React.useState(false);
+  const from = toDate(dateFrom);
+  const to = toDate(dateTo);
+  const minDate = toDate(min);
+
+  const range = from && to ? { from, to } : from ? { from } : undefined;
+
+  const handleSelect = (r: { from?: Date; to?: Date } | undefined) => {
+    if (r?.from) onFromChange(toDateString(r.from));
+    if (r?.to) onToChange(toDateString(r.to));
+    if (r?.from && r?.to) setOpen(false);
+  };
+
   return (
-    <div className={cn("flex items-center gap-2", className)}>
-      <DatePicker value={dateFrom} onChange={onFromChange} min={min} placeholder="From" className="flex-1" />
-      <span className="text-text-light text-sm">to</span>
-      <DatePicker value={dateTo} onChange={onToChange} min={min} placeholder="To" className="flex-1" />
-    </div>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className={cn(
+            "flex h-9 w-full items-center gap-2 rounded-xl border border-border bg-white px-3 py-2 text-sm text-left font-normal transition-colors hover:bg-accent/50 focus:outline-none focus:ring-2 focus:ring-primary/20",
+            !range && "text-text-light",
+            className,
+          )}
+        >
+          <CalendarIcon className="size-4 shrink-0 text-text-light" />
+          {range?.from ? (
+            range.to ? (
+              <>
+                {format(range.from, "MMM d, yyyy")} – {format(range.to, "MMM d, yyyy")}
+              </>
+            ) : (
+              format(range.from, "MMM d, yyyy")
+            )
+          ) : (
+            <span>{placeholder}</span>
+          )}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          mode="range"
+          defaultMonth={from}
+          selected={range}
+          onSelect={handleSelect}
+          numberOfMonths={2}
+          disabled={(date) => (minDate ? date < minDate : false)}
+        />
+      </PopoverContent>
+    </Popover>
   );
 }

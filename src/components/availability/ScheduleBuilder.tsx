@@ -551,6 +551,7 @@ function BlockMode({
             onFromChange={(v) => setBlockConfig((prev) => ({ ...prev, dateFrom: v }))}
             onToChange={(v) => setBlockConfig((prev) => ({ ...prev, dateTo: v || null }))}
             min={TODAY}
+            className="w-full"
           />
         </div>
       )}
@@ -566,6 +567,7 @@ function BlockMode({
               onFromChange={(v) => setBlockConfig((prev) => ({ ...prev, dateFrom: v }))}
               onToChange={(v) => setBlockConfig((prev) => ({ ...prev, dateTo: v || null }))}
               min={TODAY}
+              className="w-full"
             />
           </div>
 
