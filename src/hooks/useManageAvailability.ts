@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getMyTherapist } from "@/services/api/therapists";
@@ -119,6 +119,8 @@ export function useManageAvailability(userId?: string | null) {
   const [cursor, setCursor] = useState(todayStr());
   const [builderMode, setBuilderMode] = useState<BuilderMode>("avail");
   const [lastAction, setLastAction] = useState<LastAction | null>(null);
+  const [auditPage, setAuditPage] = useState(0);
+  const AUDIT_LIMIT = 5;
 
   const [scheduleConfig, setScheduleConfig] = useState<ScheduleConfig>({
     startTime: "09:00",
@@ -168,10 +170,13 @@ export function useManageAvailability(userId?: string | null) {
     enabled: !!dateFrom && !!dateTo,
   });
 
-  const { data: auditLog = [] } = useQuery({
-    queryKey: ["availability", "audit-log"],
-    queryFn: getAuditLog,
+  const { data: auditData, isLoading: auditLoading } = useQuery({
+    queryKey: ["availability", "audit-log", auditPage, AUDIT_LIMIT],
+    queryFn: () => getAuditLog(AUDIT_LIMIT, auditPage * AUDIT_LIMIT),
   });
+
+  const auditLog = auditData?.entries ?? [];
+  const auditTotal = auditData?.total ?? 0;
 
   const { data: blockRequests = [] } = useQuery({
     queryKey: ["availability", "block-requests"],
@@ -184,9 +189,56 @@ export function useManageAvailability(userId?: string | null) {
         ...prev,
         startTime: workingHours.start,
         endTime: workingHours.end,
+        sessionDuration: workingHours.sessionDuration ?? prev.sessionDuration,
+        breakDuration: workingHours.breakDuration ?? prev.breakDuration,
+        daysOfWeek:
+          workingHours.daysOfWeek && workingHours.daysOfWeek.length > 0
+            ? workingHours.daysOfWeek
+            : prev.daysOfWeek,
       }));
     }
   }, [workingHours]);
+
+  const lastSavedConfig = useRef<{
+    startTime: string;
+    endTime: string;
+    sessionDuration: number;
+    breakDuration: number;
+    daysOfWeek: string[];
+  } | null>(null);
+
+  useEffect(() => {
+    if (workingHours) {
+      lastSavedConfig.current = {
+        startTime: workingHours.start,
+        endTime: workingHours.end,
+        sessionDuration: workingHours.sessionDuration ?? 60,
+        breakDuration: workingHours.breakDuration ?? 0,
+        daysOfWeek: workingHours.daysOfWeek ?? [],
+      };
+    }
+  }, [workingHours]);
+
+  const hasConfigChanged = useMemo(() => {
+    if (!lastSavedConfig.current) return false;
+    const s = lastSavedConfig.current;
+    const sortedA = [...scheduleConfig.daysOfWeek].sort();
+    const sortedB = [...s.daysOfWeek].sort();
+    return (
+      s.startTime !== scheduleConfig.startTime ||
+      s.endTime !== scheduleConfig.endTime ||
+      s.sessionDuration !== scheduleConfig.sessionDuration ||
+      s.breakDuration !== scheduleConfig.breakDuration ||
+      sortedA.length !== sortedB.length ||
+      sortedA.some((d, i) => d !== sortedB[i])
+    );
+  }, [
+    scheduleConfig.startTime,
+    scheduleConfig.endTime,
+    scheduleConfig.sessionDuration,
+    scheduleConfig.breakDuration,
+    scheduleConfig.daysOfWeek,
+  ]);
 
   const slots: SlotInfo[] = slotsData?.slots ?? [];
 
@@ -273,6 +325,14 @@ export function useManageAvailability(userId?: string | null) {
     mutationFn: generateAvailability,
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ["availability", "slots-range"] });
+      queryClient.invalidateQueries({ queryKey: ["availability", "working-hours"] });
+      lastSavedConfig.current = {
+        startTime: scheduleConfig.startTime,
+        endTime: scheduleConfig.endTime,
+        sessionDuration: scheduleConfig.sessionDuration,
+        breakDuration: scheduleConfig.breakDuration,
+        daysOfWeek: [...scheduleConfig.daysOfWeek],
+      };
       toast.success(`Availability updated — ${res.updated} slots changed`, {
         duration: 4500,
       });
@@ -290,6 +350,7 @@ export function useManageAvailability(userId?: string | null) {
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ["availability", "slots-range"] });
       queryClient.invalidateQueries({ queryKey: ["availability", "audit-log"] });
+      setAuditPage(0);
       const msg =
         res.cancelledCount > 0
           ? `Blocked — ${res.cancelledCount} booking(s) cancelled`
@@ -300,6 +361,16 @@ export function useManageAvailability(userId?: string | null) {
         description: msg,
         undoFn: async () => {},
       });
+      setBlockConfig({
+        blockType: "specific",
+        dateSpecific: todayStr(),
+        dateFrom: todayStr(),
+        dateTo: addDays(todayStr(), 6),
+        daysOfWeek: [],
+        partsOfDay: [],
+        reason: "",
+        notify: false,
+      });
     },
     onError: () => toast.error("Failed to block time"),
   });
@@ -309,6 +380,7 @@ export function useManageAvailability(userId?: string | null) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["availability", "slots-range"] });
       queryClient.invalidateQueries({ queryKey: ["availability", "audit-log"] });
+      setAuditPage(0);
       toast.success("Time unblocked", { duration: 4500 });
     },
     onError: () => toast.error("Failed to unblock time"),
@@ -337,6 +409,9 @@ export function useManageAvailability(userId?: string | null) {
     mutationFn: deleteAuditEntry,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["availability", "audit-log"] });
+      if (auditLog.length === 1 && auditPage > 0) {
+        setAuditPage((p) => p - 1);
+      }
       toast.success("Entry removed");
     },
     onError: () => toast.error("Failed to remove entry"),
@@ -464,20 +539,28 @@ export function useManageAvailability(userId?: string | null) {
     applyPreset,
     dateFrom,
     dateTo,
-    workingHours: workingHours ?? {
+    workingHours: workingHours ?? ({
       start: "09:00",
       end: "18:00",
       slotInterval: 60,
-    } as WorkingHours,
+      sessionDuration: 60,
+      breakDuration: 60,
+      daysOfWeek: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+    } as WorkingHours),
     workingDays,
     slots,
     slotsByDate,
     blockedDates,
     blockedPartsByDate,
     auditLog,
+    auditTotal,
+    auditPage,
+    setAuditPage,
+    auditLimit: AUDIT_LIMIT,
     isLoading: slotsLoading,
     generateAvailability: generateMutation.mutateAsync,
     isGenerating: generateMutation.isPending,
+    hasConfigChanged,
     blockRange: blockMutation.mutateAsync,
     isBlocking: blockMutation.isPending,
     unblockTime: unblockMutation.mutateAsync,

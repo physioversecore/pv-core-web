@@ -6,6 +6,7 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { DatePicker, DateRangePicker } from "@/components/ui/date-picker";
 import { generateSessionBlocks } from "@/lib/availability-utils";
 import { to12h } from "@/lib/format";
 import type { ScheduleConfig, BlockConfig, BuilderMode } from "@/hooks/useManageAvailability";
@@ -14,6 +15,7 @@ import { ConfirmModal } from "./ConfirmModal";
 import { config } from "process";
 
 const ALL_DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
+const TODAY = new Date().toISOString().slice(0, 10);
 // const DAY_PARTS: { key: DayPart; label: string; time: string }[] = [
 //   { key: "morning", label: "Morning", time: "6:00–12:00" },
 //   { key: "afternoon", label: "Afternoon", time: "12:00–17:00" },
@@ -52,6 +54,7 @@ interface ScheduleBuilderProps {
     breakDuration: number;
   }) => Promise<{ updated: number }>;
   isGenerating: boolean;
+  hasConfigChanged: boolean;
   blockRange: (data: {
     dateFrom: string;
     dateTo?: string;
@@ -59,6 +62,7 @@ interface ScheduleBuilderProps {
     partsOfDay: string[];
     reason: string;
     notify: boolean;
+    blockType?: string;
   }) => Promise<{
     blocked: number;
     cancelledCount: number;
@@ -93,6 +97,7 @@ export function ScheduleBuilder({
   workingDays,
   generateAvailability,
   isGenerating,
+  hasConfigChanged,
   blockRange,
   isBlocking,
   blockRequest,
@@ -169,7 +174,7 @@ export function ScheduleBuilder({
     const dateTo =
       blockConfig.blockType === "specific"
         ? blockConfig.dateSpecific
-        : blockConfig.dateTo ?? blockConfig.dateFrom;
+        : blockConfig.dateTo || blockConfig.dateFrom;
 
     const hasBooked = hasBookedSlotsInRange(
       dateFrom,
@@ -180,11 +185,12 @@ export function ScheduleBuilder({
 
     const payload = {
       dateFrom,
-      dateTo: blockConfig.blockType === "specific" ? undefined : dateTo,
+      dateTo,
       daysOfWeek: blockConfig.daysOfWeek,
       partsOfDay: blockConfig.partsOfDay,
       reason: blockConfig.reason,
       notify: blockConfig.notify,
+      blockType: blockConfig.blockType,
     };
 
     if (hasBooked) {
@@ -218,9 +224,10 @@ export function ScheduleBuilder({
   );
 
   const canBlock =
-    blockConfig.blockType === "specific"
+    !!blockConfig.reason.trim() &&
+    (blockConfig.blockType === "specific"
       ? !!blockConfig.dateSpecific
-      : !!blockConfig.dateFrom;
+      : !!blockConfig.dateFrom);
 
   const isAvail = builderMode === "avail";
 
@@ -254,6 +261,7 @@ export function ScheduleBuilder({
           applyPreset={applyPreset}
           onGenerate={handleGenerate}
           isGenerating={isGenerating}
+          hasConfigChanged={hasConfigChanged}
         />
       ) : (
         <BlockMode
@@ -294,6 +302,7 @@ function AvailMode({
   applyPreset,
   onGenerate,
   isGenerating,
+  hasConfigChanged,
 }: {
   config: ScheduleConfig;
   setConfig: React.Dispatch<React.SetStateAction<ScheduleConfig>>;
@@ -303,6 +312,7 @@ function AvailMode({
   applyPreset: (p: "today" | "4weeks" | "month" | "ongoing") => void;
   onGenerate: () => void;
   isGenerating: boolean;
+  hasConfigChanged: boolean;
 }) {
   return (
     <>
@@ -364,7 +374,7 @@ function AvailMode({
             <SelectContent>
               {[30, 45, 60, 90, 120, 150, 180].map((m) => (
                 <SelectItem key={m} value={String(m)}>
-                  {m} min
+                  {m >= 60 ? `${m / 60}h` : `${m} min`}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -385,9 +395,9 @@ function AvailMode({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {[0, 5, 10, 15, 20, 30, 45, 60].map((m) => (
+              {[30, 45, 60, 90, 120, 150, 180].map((m) => (
                 <SelectItem key={m} value={String(m)}>
-                  {m} min
+                  {m >= 60 ? `${m / 60}h` : `${m} min`}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -396,30 +406,15 @@ function AvailMode({
       </div>
 
       {/* Date range */}
-      <div className="proto-field">
+      <div className="proto-field" style={{ minWidth: 0, width: "40%" }}>
         <label>Applies to</label>
-        <div className="flex items-center gap-2">
-          <input
-            type="date"
-            className="proto-input"
-            value={config.dateFrom}
-            onChange={(e) =>
-              setConfig((prev) => ({ ...prev, dateFrom: e.target.value }))
-            }
-          />
-          <span className="text-text-light">to</span>
-          <input
-            type="date"
-            className="proto-input"
-            value={config.dateTo ?? ""}
-            onChange={(e) =>
-              setConfig((prev) => ({
-                ...prev,
-                dateTo: e.target.value || null,
-              }))
-            }
-          />
-        </div>
+        <DateRangePicker
+          dateFrom={config.dateFrom}
+          dateTo={config.dateTo}
+          onFromChange={(v) => setConfig((prev) => ({ ...prev, dateFrom: v }))}
+          onToChange={(v) => setConfig((prev) => ({ ...prev, dateTo: v || null }))}
+          min={TODAY}
+        />
         <div className="proto-presets">
           {PRESETS.map((p) => (
             <button
@@ -465,7 +460,7 @@ function AvailMode({
               ))}
             </div>
             <p className="proto-preview-note">
-              {sessions.length} session(s) · {config.breakDuration} min break between
+              {sessions.length} session(s) · {config.breakDuration >= 60 ? `${config.breakDuration / 60}h` : `${config.breakDuration} min`} break between
             </p>
           </>
         )}
@@ -474,7 +469,7 @@ function AvailMode({
       {/* CTA */}
       <button
         onClick={onGenerate}
-        disabled={isGenerating || config.daysOfWeek.length === 0}
+        disabled={isGenerating || config.daysOfWeek.length === 0 || !hasConfigChanged}
         className="proto-cta build"
         style={{ marginTop: "8px" }}
       >
@@ -537,79 +532,41 @@ function BlockMode({
       {blockConfig.blockType === "specific" && (
         <div className="proto-field">
           <label>Pick a date to block</label>
-          <input
-            type="date"
-            className="proto-input"
+          <DatePicker
             value={blockConfig.dateSpecific}
-            onChange={(e) =>
-              setBlockConfig((prev) => ({
-                ...prev,
-                dateSpecific: e.target.value,
-              }))
-            }
+            onChange={(v) => setBlockConfig((prev) => ({ ...prev, dateSpecific: v }))}
+            min={TODAY}
+            className="max-w-[240px]"
           />
         </div>
       )}
 
       {/* ── Date range ── */}
       {blockConfig.blockType === "range" && (
-        <div className="proto-field">
+        <div className="proto-field" style={{ minWidth: 0, width: "30%" }}>
           <label>Date range</label>
-          <div className="flex items-center gap-2">
-            <input
-              type="date"
-              className="proto-input"
-              value={blockConfig.dateFrom}
-              onChange={(e) =>
-                setBlockConfig((prev) => ({ ...prev, dateFrom: e.target.value }))
-              }
-            />
-            <span className="text-text-light">to</span>
-            <input
-              type="date"
-              className="proto-input"
-              value={blockConfig.dateTo ?? ""}
-              onChange={(e) =>
-                setBlockConfig((prev) => ({
-                  ...prev,
-                  dateTo: e.target.value || null,
-                }))
-              }
-            />
-          </div>
+          <DateRangePicker
+            dateFrom={blockConfig.dateFrom}
+            dateTo={blockConfig.dateTo}
+            onFromChange={(v) => setBlockConfig((prev) => ({ ...prev, dateFrom: v }))}
+            onToChange={(v) => setBlockConfig((prev) => ({ ...prev, dateTo: v || null }))}
+            min={TODAY}
+          />
         </div>
       )}
 
       {/* ── Recurring days ── */}
       {blockConfig.blockType === "recurring" && (
         <>
-          <div className="proto-field">
+          <div className="proto-field" style={{ minWidth: 0, width: "30%" }}>
             <label>Applies to</label>
-            <div className="flex items-center gap-2">
-              <input
-                type="date"
-                className="proto-input"
-                value={blockConfig.dateFrom}
-                onChange={(e) =>
-                  setBlockConfig((prev) => ({
-                    ...prev,
-                    dateFrom: e.target.value,
-                  }))
-                }
-              />
-              <span className="text-text-light">to</span>
-              <input
-                type="date"
-                className="proto-input"
-                value={blockConfig.dateTo ?? ""}
-                onChange={(e) =>
-                  setBlockConfig((prev) => ({
-                    ...prev,
-                    dateTo: e.target.value || null,
-                  }))
-                }
-              />
-            </div>
+            <DateRangePicker
+              dateFrom={blockConfig.dateFrom}
+              dateTo={blockConfig.dateTo}
+              onFromChange={(v) => setBlockConfig((prev) => ({ ...prev, dateFrom: v }))}
+              onToChange={(v) => setBlockConfig((prev) => ({ ...prev, dateTo: v || null }))}
+              min={TODAY}
+            />
           </div>
 
           {/* Days of week */}
@@ -665,8 +622,9 @@ function BlockMode({
         <input
           type="text"
           className="proto-input"
-          style={{ maxWidth: "480px" }}
+          style={{ width: "100%", maxWidth: "640px" }}
           placeholder="e.g. Personal emergency, clinic closed"
+          required
           value={blockConfig.reason}
           onChange={(e) =>
             setBlockConfig((prev) => ({ ...prev, reason: e.target.value }))

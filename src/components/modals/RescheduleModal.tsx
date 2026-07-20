@@ -4,6 +4,7 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { toast } from "sonner";
 import { useLang } from "@/context/i18n";
+import { DatePicker } from "@/components/ui/date-picker";
 
 const TIMES = ["08:00", "10:00", "12:00", "14:00", "16:00", "18:00"];
 
@@ -51,12 +52,11 @@ export function RescheduleModal({
         <div className="space-y-4">
           <div>
             <label className="text-xs font-medium text-text-light">New date</label>
-            <input
-              type="date"
+            <DatePicker
               value={date}
-              onChange={(e) => setDate(e.target.value)}
+              onChange={setDate}
               min={new Date().toISOString().slice(0, 10)}
-              className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white"
+              className="mt-1"
             />
           </div>
 

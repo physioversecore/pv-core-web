@@ -7,7 +7,15 @@ export async function getWorkingHours(): Promise<WorkingHours> {
   try {
     return await api.get<WorkingHours>("/availability/working-hours");
   } catch (e) {
-    if (e instanceof AuthError) return { start: "09:00", end: "18:00", slotInterval: 60 };
+    if (e instanceof AuthError)
+      return {
+        start: "09:00",
+        end: "18:00",
+        slotInterval: 60,
+        sessionDuration: 60,
+        breakDuration: 60,
+        daysOfWeek: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+      };
     throw e;
   }
 }
@@ -62,14 +70,23 @@ export interface AuditLogEntry {
   slotKey: string | null;
   time: string | null;
   source: string;
+  scope: string;
   createdAt: string;
+  dateTo: string | null;
+  daysOfWeek: string[];
+  partsOfDay: string[];
 }
 
-export async function getAuditLog(): Promise<AuditLogEntry[]> {
+export interface PaginatedAuditLog {
+  entries: AuditLogEntry[];
+  total: number;
+}
+
+export async function getAuditLog(limit = 5, offset = 0): Promise<PaginatedAuditLog> {
   try {
-    return await api.get<AuditLogEntry[]>("/availability/audit-log");
+    return await api.get<PaginatedAuditLog>(`/availability/audit-log?limit=${limit}&offset=${offset}`);
   } catch {
-    return [];
+    return { entries: [], total: 0 };
   }
 }
 
@@ -118,6 +135,7 @@ export async function blockRange(data: {
   partsOfDay: string[];
   reason: string;
   notify: boolean;
+  blockType?: string;
 }): Promise<{
   blocked: number;
   cancelledCount: number;

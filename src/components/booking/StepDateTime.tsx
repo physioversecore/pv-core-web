@@ -1,7 +1,7 @@
 "use client";
 
-import { CalendarDays } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { DatePicker } from "@/components/ui/date-picker";
 import type { TimeSlot } from "./types";
 
 interface Props {
@@ -20,14 +20,11 @@ export function StepDateTime({ selectedDate, selectedTime, slots, onDateChange, 
     <div className="space-y-5">
       <div>
         <label className="text-sm font-semibold text-[#1E2A2E]">Select date</label>
-        <div className="relative mt-1.5">
-          <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-          <input
-            type="date"
+        <div className="mt-1.5">
+          <DatePicker
             value={selectedDate}
-            onChange={(e) => onDateChange(e.target.value)}
+            onChange={onDateChange}
             min={new Date().toISOString().slice(0, 10)}
-            className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3D2B]/20 focus:border-[#1F3D2B]"
           />
         </div>
       </div>

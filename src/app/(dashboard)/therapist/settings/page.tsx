@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useLang } from "@/context/i18n";
+import { DatePicker } from "@/components/ui/date-picker";
 
 const REASONS = ["Sickness", "Family emergency", "Personal", "Travel", "Other"];
 
@@ -43,11 +44,11 @@ export default function TSettings() {
         <div className="grid grid-cols-2 gap-3 mb-3">
           <div>
             <label className="text-xs font-medium text-text-light">{t("therapist_dashboard.from")}</label>
-            <input type="date" value={off.from} onChange={(e) => setOff({ ...off, from: e.target.value })} className="w-full mt-1 px-3 py-2 rounded-xl border border-border bg-white text-sm" />
+            <DatePicker value={off.from} onChange={(v) => setOff({ ...off, from: v })} min={new Date().toISOString().slice(0, 10)} className="mt-1" />
           </div>
           <div>
             <label className="text-xs font-medium text-text-light">{t("therapist_dashboard.to")}</label>
-            <input type="date" value={off.to} onChange={(e) => setOff({ ...off, to: e.target.value })} className="w-full mt-1 px-3 py-2 rounded-xl border border-border bg-white text-sm" />
+            <DatePicker value={off.to} onChange={(v) => setOff({ ...off, to: v })} min={new Date().toISOString().slice(0, 10)} className="mt-1" />
           </div>
         </div>
         <div className="mb-3">

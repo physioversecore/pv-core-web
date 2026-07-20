@@ -133,7 +133,7 @@ export function useTherapistSchedule(
 
   return {
     appointments,
-    workingHours: workingHours ?? { start: "08:00", end: "18:00", slotInterval: 60 } as WorkingHours,
+    workingHours: workingHours ?? ({ start: "08:00", end: "18:00", slotInterval: 60, sessionDuration: 60, breakDuration: 0, daysOfWeek: [] } as WorkingHours),
     isLoading: isLoading || whLoading || therapistLoading,
     requestReschedule: requestReschedule.mutateAsync,
     requestDecline: requestDecline.mutateAsync,
