@@ -60,6 +60,13 @@ interface ExistingSession {
   fee?: number;
 }
 
+function to12h(time: string): string {
+  const [h, m] = time.split(":").map(Number);
+  const suffix = h >= 12 ? "PM" : "AM";
+  const hour12 = h % 12 || 12;
+  return `${hour12}:${String(m).padStart(2, "0")} ${suffix}`;
+}
+
 const BILLING_COUNTRIES = [
   "Nepal",
   "United States",
@@ -317,8 +324,8 @@ function StepDateTime({ selectedDate, selectedTime, address, slots, slotsLoading
                       isPast && "bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed"
                     )}
                   >
-                    <span className="block leading-tight">{slot.time}</span>
-                    {isOpen && <span className="block text-[10px] font-normal opacity-60">to {endTime}</span>}
+                    <span className="block leading-tight">{to12h(slot.time)}</span>
+                    {isOpen && <span className="block text-[10px] font-normal opacity-60">to {to12h(endTime)}</span>}
                   </button>
                 );
               })
@@ -944,7 +951,7 @@ function StepConfirmation({ result, currencies, onDone, isEdit }: StepConfirmati
       <div className="bg-[#F0F0EE] rounded-xl p-4 text-left space-y-2 text-sm">
         <DetailRow label="Therapist" value={result.therapistName} />
         <DetailRow label="Date" value={result.date} />
-        <DetailRow label="Time" value={result.time} />
+        <DetailRow label="Time" value={to12h(result.time)} />
         <DetailRow label="Amount paid" value={`${symbol}${result.amount.toFixed(2)}`} />
         <DetailRow label="Payment method" value={result.paymentMethod} />
         <DetailRow label="Booking ref." value={result.reference} bold />
