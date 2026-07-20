@@ -22,6 +22,8 @@ const statusStyles: Record<string, string> = {
 export function SessionCard({ session, onCancel, onReschedule, onRate, onClick }: SessionCardProps) {
   const displayStatus = mapSessionStatus(session.status);
   const isUpcoming = session.status === "SCHEDULED" || session.status === "IN_PROGRESS";
+  const isPast = new Date(session.date) < new Date(new Date().toDateString());
+  const showActions = isUpcoming && !isPast;
 
   return (
     <div
@@ -48,7 +50,7 @@ export function SessionCard({ session, onCancel, onReschedule, onRate, onClick }
         </span>
       </div>
 
-      {isUpcoming && (
+      {showActions && (
         <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => onReschedule(session.id)}
@@ -60,7 +62,7 @@ export function SessionCard({ session, onCancel, onReschedule, onRate, onClick }
             onClick={() => onCancel(session.id)}
             className="inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-xl border border-danger text-danger text-xs font-semibold cursor-pointer hover:bg-danger hover:text-white transition-all flex-1"
           >
-            Cancel
+            Cancel Session
           </button>
         </div>
       )}
