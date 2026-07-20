@@ -45,9 +45,19 @@ export function SessionCard({ session, onCancel, onReschedule, onRate, onClick }
 
       <div className="flex items-center justify-between pt-3 border-t border-border">
         <span className="text-[13px] font-semibold text-text">{npr(session.fee)}</span>
-        <span className={`chip ${statusStyles[displayStatus] ?? ""}`}>
-          {displayStatus}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className={`chip ${statusStyles[displayStatus] ?? ""}`}>
+            {displayStatus}
+          </span>
+          {displayStatus === "Completed" && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onRate(session.id); }}
+              className="inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg border border-primary text-primary text-xs font-semibold cursor-pointer hover:bg-primary hover:text-white transition-all"
+            >
+              Rate
+            </button>
+          )}
+        </div>
       </div>
 
       {showActions && (
@@ -67,16 +77,6 @@ export function SessionCard({ session, onCancel, onReschedule, onRate, onClick }
         </div>
       )}
 
-      {displayStatus === "Completed" && (
-        <div onClick={(e) => e.stopPropagation()}>
-          <button
-            onClick={() => onRate(session.id)}
-            className="inline-flex items-center justify-center gap-1 px-2.5 py-1 rounded-lg border border-primary text-primary text-[11px] font-semibold cursor-pointer hover:bg-primary hover:text-white transition-all w-full"
-          >
-            Rate
-          </button>
-        </div>
-      )}
     </div>
   );
 }

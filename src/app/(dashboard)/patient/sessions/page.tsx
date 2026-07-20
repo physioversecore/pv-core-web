@@ -29,7 +29,7 @@ const PAGE_SIZE = 10;
 function SessionsContent() {
   const { t } = useLang();
   const [tab, setTab] = useState<(typeof TABS)[number]>("sessionsUpcoming");
-  const [view, setView] = useState<ViewMode>("list");
+  const [view, setView] = useState<ViewMode>("grid");
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -212,17 +212,19 @@ function SessionsContent() {
                 <SessionCard key={s.id} session={s} {...rowProps} />
               ))}
             </div>
-          ) : view === "compact" ? (
+          ) : (
             <div className="card-soft overflow-hidden">
               <SessionTable sessions={paged} {...rowProps} />
             </div>
-          ) : (
-            <div className="space-y-3">
-              {paged.map((s) => (
-                <SessionRow key={s.id} session={s} {...rowProps} />
-              ))}
-            </div>
-          )}
+          ) 
+          // : (
+          //   <div className="space-y-3">
+          //     {paged.map((s) => (
+          //       <SessionRow key={s.id} session={s} {...rowProps} />
+          //     ))}
+          //   </div>
+          // )
+          }
 
           {/* Pagination */}
           {totalPages > 1 && (
@@ -375,7 +377,7 @@ function SessionsContent() {
 export default function SessionsPage() {
   return (
     <ErrorBoundary>
-      <Suspense fallback={<SessionSkeleton view="list" />}>
+      <Suspense fallback={<SessionSkeleton view="grid" />}>
         <SessionsContent />
       </Suspense>
     </ErrorBoundary>

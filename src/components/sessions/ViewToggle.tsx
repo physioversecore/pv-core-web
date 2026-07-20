@@ -10,7 +10,7 @@ interface ViewToggleProps {
 }
 
 const views: { key: ViewMode; icon: typeof LayoutList; label: string }[] = [
-  { key: "list", icon: LayoutList, label: "List" },
+  // { key: "list", icon: LayoutList, label: "List" },
   { key: "grid", icon: LayoutGrid, label: "Grid" },
   { key: "compact", icon: Table2, label: "Compact" },
 ];
