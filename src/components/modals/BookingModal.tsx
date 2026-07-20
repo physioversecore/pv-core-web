@@ -7,7 +7,7 @@ import { X, CalendarDays, ChevronDown, ChevronLeft, ChevronRight, TriangleAlert,
 import { cn } from "@/utils/cn";
 import { Avatar } from "@/components/common/Avatar";
 import { useAuth } from "@/context/auth";
-import { createSession, updateSession } from "@/services/api/sessions";
+import { createSession, updateSession, processBooking } from "@/services/api/sessions";
 import { getTherapistSlots } from "@/services/api/therapists";
 import { getCurrencies, getPaymentMethods } from "@/services/api/settings";
 import type { Currency, PaymentMethod } from "@/services/api/settings";
@@ -85,9 +85,8 @@ const BILLING_COUNTRIES = [
 
 const STEPS = [
   { num: 1, label: "Date & time" },
-  { num: 2, label: "Currency" },
-  { num: 3, label: "Payment" },
-  { num: 4, label: "Confirm" },
+  { num: 2, label: "Payment" },
+  { num: 3, label: "Confirm" },
 ];
 
 function StepIndicator({ currentStep }: { currentStep: number }) {
@@ -365,192 +364,6 @@ function StepDateTime({ selectedDate, selectedTime, address, slots, slotsLoading
   );
 }
 
-// ─── StepCurrency ───────────────────────────────────────────────────────────
-
-interface StepCurrencyProps {
-  currencies: Currency[];
-  selectedCurrency: string;
-  basePrice: number;
-  onCurrencyChange: (code: string) => void;
-  onBack: () => void;
-  onContinue: () => void;
-}
-
-function StepCurrency({
-  currencies,
-  selectedCurrency,
-  basePrice,
-  onCurrencyChange,
-  onBack,
-  onContinue,
-}: StepCurrencyProps) {
-  const [open, setOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const [focusedIdx, setFocusedIdx] = useState(-1);
-
-  const selected = currencies.find((c) => c.code === selectedCurrency) ?? currencies[0];
-  const converted = basePrice * selected.rate;
-  const isNPR = selectedCurrency === "NPR";
-
-  const close = useCallback(() => {
-    setOpen(false);
-    setFocusedIdx(-1);
-  }, []);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        close();
-      }
-    }
-    function handleEscape(e: KeyboardEvent) {
-      if (e.key === "Escape") close();
-    }
-    if (open) {
-      document.addEventListener("mousedown", handleClickOutside);
-      document.addEventListener("keydown", handleEscape);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [open, close]);
-
-  function handleKeyDown(e: React.KeyboardEvent) {
-    if (!open) {
-      if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
-        e.preventDefault();
-        setOpen(true);
-        setFocusedIdx(0);
-      }
-      return;
-    }
-    switch (e.key) {
-      case "ArrowDown":
-        e.preventDefault();
-        setFocusedIdx((prev) => Math.min(prev + 1, currencies.length - 1));
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        setFocusedIdx((prev) => Math.max(prev - 1, 0));
-        break;
-      case "Enter":
-      case " ":
-        e.preventDefault();
-        if (focusedIdx >= 0) {
-          onCurrencyChange(currencies[focusedIdx].code);
-          close();
-        }
-        break;
-      case "Escape":
-        close();
-        break;
-    }
-  }
-
-  return (
-    <div className="space-y-5">
-      <div>
-        <h2 className="text-xl font-bold text-[#1E2A2E]">Select currency</h2>
-        <p className="text-sm text-gray-500 mt-1">Choose how you want to pay</p>
-        <button onClick={onBack} className="text-sm text-gray-500 hover:text-[#1F3D2B] mt-1 flex items-center gap-1">
-          ← Back
-        </button>
-      </div>
-
-      <div ref={dropdownRef} className="relative" onKeyDown={handleKeyDown}>
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          aria-haspopup="listbox"
-          aria-expanded={open}
-          className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3D2B]/20 focus:border-[#1F3D2B]"
-        >
-          <span className="flex items-center gap-2">
-            <span className="text-lg">{selected.flag}</span>
-            <span className="font-medium text-[#1E2A2E]">{selected.code}</span>
-            <span className="text-gray-400">— {selected.name}</span>
-          </span>
-          <ChevronDown
-            size={18}
-            className={cn("text-gray-400 transition-transform", open && "rotate-180")}
-          />
-        </button>
-
-        {open && (
-          <div
-            role="listbox"
-            tabIndex={-1}
-            className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-64 overflow-y-auto"
-          >
-            {currencies.map((c, i) => (
-              <button
-                key={c.code}
-                role="option"
-                aria-selected={c.code === selectedCurrency}
-                onClick={() => {
-                  onCurrencyChange(c.code);
-                  close();
-                }}
-                className={cn(
-                  "w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors",
-                  c.code === selectedCurrency && "bg-[#1F3D2B]/5",
-                  focusedIdx === i && "bg-gray-50"
-                )}
-              >
-                <span className="flex items-center gap-2">
-                  <span className="text-lg">{c.flag}</span>
-                  <span className="font-medium text-[#1E2A2E]">{c.code}</span>
-                  <span className="text-gray-400">— {c.name}</span>
-                </span>
-                {c.code === selectedCurrency && (
-                  <span className="text-[#1F3D2B] font-bold">✓</span>
-                )}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="bg-[#F0F0EE] rounded-xl p-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[10px] uppercase tracking-wider text-gray-500 font-medium">You will pay</p>
-            <p className="text-2xl font-bold text-[#1E2A2E] mt-0.5">
-              {selected.symbol}{converted.toFixed(2)}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-[10px] uppercase tracking-wider text-gray-500 font-medium">Base price</p>
-            <p className="text-sm font-semibold text-[#1E2A2E] mt-0.5">
-              Rs. {basePrice.toLocaleString("en-IN")}
-            </p>
-          </div>
-        </div>
-        <p className="text-xs text-gray-400 mt-2">
-          {isNPR
-            ? "Local currency — no conversion"
-            : `1 ${selectedCurrency} = ${selected.rate} NPR`}
-        </p>
-      </div>
-
-      <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl p-3">
-        <TriangleAlert size={16} className="text-amber-500 shrink-0 mt-0.5" />
-        <p className="text-xs text-amber-700">
-          Currency conversion is indicative. Final amount will be charged in your selected currency at the live rate on the day of booking.
-        </p>
-      </div>
-
-      <button
-        onClick={onContinue}
-        className="w-full py-3 rounded-xl font-semibold bg-[#1F3D2B] text-white hover:bg-[#1F3D2B]/90 flex items-center justify-center gap-2 transition-all"
-      >
-        Continue to payment method →
-      </button>
-    </div>
-  );
-}
-
 // ─── StepPayment ────────────────────────────────────────────────────────────
 
 interface StepPaymentProps {
@@ -561,6 +374,7 @@ interface StepPaymentProps {
   internationalPayments: PaymentMethod[];
   basePrice: number;
   onPaymentChange: (id: string) => void;
+  onCurrencyChange: (code: string) => void;
   onBack: () => void;
   onContinue: () => void;
   cardDetails: CardDetails;
@@ -586,6 +400,7 @@ function StepPayment({
   internationalPayments,
   basePrice,
   onPaymentChange,
+  onCurrencyChange,
   onBack,
   onContinue,
   cardDetails,
@@ -600,14 +415,19 @@ function StepPayment({
   const [paymentType, setPaymentType] = useState<"nepal" | "international" | null>(null);
   const [methodOpen, setMethodOpen] = useState(false);
   const [countryOpen, setCountryOpen] = useState(false);
+  const [currencyOpen, setCurrencyOpen] = useState(false);
+  const [currencyFocusedIdx, setCurrencyFocusedIdx] = useState(-1);
   const methodRef = useRef<HTMLDivElement>(null);
+  const currencyRef = useRef<HTMLDivElement>(null);
 
   const currency = currencies.find((c) => c.code === selectedCurrency) ?? currencies[0];
-  const rate = currency?.rate ?? 1;
-  const symbol = currency?.symbol ?? "Rs";
+  if (!currency) return null;
+  const rate = currency.rate;
+  const symbol = currency.symbol;
   const converted = basePrice * rate;
   const platformFee = converted * 0.05;
   const total = converted + platformFee;
+  const isNPR = selectedCurrency === "NPR";
 
   const selectedMethod = [...nepalPayments, ...internationalPayments].find(
     (m) => m.id === selectedPaymentMethod
@@ -628,6 +448,7 @@ function StepPayment({
           billingCountry.length > 0));
 
   const closeMethodDropdown = useCallback(() => setMethodOpen(false), []);
+  const closeCurrencyDropdown = useCallback(() => setCurrencyOpen(false), []);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -648,6 +469,57 @@ function StepPayment({
     };
   }, [methodOpen, closeMethodDropdown]);
 
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (currencyRef.current && !currencyRef.current.contains(e.target as Node)) {
+        closeCurrencyDropdown();
+      }
+    }
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === "Escape") closeCurrencyDropdown();
+    }
+    if (currencyOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleEscape);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [currencyOpen, closeCurrencyDropdown]);
+
+  function handleCurrencyKeyDown(e: React.KeyboardEvent) {
+    if (!currencyOpen) {
+      if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
+        e.preventDefault();
+        setCurrencyOpen(true);
+        setCurrencyFocusedIdx(0);
+      }
+      return;
+    }
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        setCurrencyFocusedIdx((prev) => Math.min(prev + 1, currencies.length - 1));
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setCurrencyFocusedIdx((prev) => Math.max(prev - 1, 0));
+        break;
+      case "Enter":
+      case " ":
+        e.preventDefault();
+        if (currencyFocusedIdx >= 0) {
+          onCurrencyChange(currencies[currencyFocusedIdx].code);
+          closeCurrencyDropdown();
+        }
+        break;
+      case "Escape":
+        closeCurrencyDropdown();
+        break;
+    }
+  }
+
   function updateCard(field: keyof CardDetails, value: string) {
     let formatted = value;
     if (field === "number") {
@@ -666,11 +538,87 @@ function StepPayment({
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-xl font-bold text-[#1E2A2E]">Payment method</h2>
-        <p className="text-sm text-gray-500 mt-1">Enter your payment details</p>
+        <h2 className="text-xl font-bold text-[#1E2A2E]">Payment</h2>
+        <p className="text-sm text-gray-500 mt-1">Select currency and payment method</p>
         <button onClick={onBack} className="text-sm text-gray-500 hover:text-[#1F3D2B] mt-1 flex items-center gap-1">
           ← Back
         </button>
+      </div>
+
+      <div ref={currencyRef} className="relative" onKeyDown={handleCurrencyKeyDown}>
+        <label className="text-sm font-medium text-[#1E2A2E] mb-1.5 block">Currency</label>
+        <button
+          type="button"
+          onClick={() => setCurrencyOpen((v) => !v)}
+          aria-haspopup="listbox"
+          aria-expanded={currencyOpen}
+          className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3D2B]/20 focus:border-[#1F3D2B]"
+        >
+          <span className="flex items-center gap-2">
+            <span className="text-lg">{currency.flag}</span>
+            <span className="font-medium text-[#1E2A2E]">{currency.code}</span>
+            <span className="text-gray-400">— {currency.name}</span>
+          </span>
+          <ChevronDown
+            size={18}
+            className={cn("text-gray-400 transition-transform", currencyOpen && "rotate-180")}
+          />
+        </button>
+        {currencyOpen && (
+          <div
+            role="listbox"
+            tabIndex={-1}
+            className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-64 overflow-y-auto"
+          >
+            {currencies.map((c, i) => (
+              <button
+                key={c.code}
+                role="option"
+                aria-selected={c.code === selectedCurrency}
+                onClick={() => {
+                  onCurrencyChange(c.code);
+                  closeCurrencyDropdown();
+                }}
+                className={cn(
+                  "w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors",
+                  c.code === selectedCurrency && "bg-[#1F3D2B]/5",
+                  currencyFocusedIdx === i && "bg-gray-50"
+                )}
+              >
+                <span className="flex items-center gap-2">
+                  <span className="text-lg">{c.flag}</span>
+                  <span className="font-medium text-[#1E2A2E]">{c.code}</span>
+                  <span className="text-gray-400">— {c.name}</span>
+                </span>
+                {c.code === selectedCurrency && (
+                  <span className="text-[#1F3D2B] font-bold">✓</span>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="bg-[#F0F0EE] rounded-xl p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-gray-500 font-medium">You will pay</p>
+            <p className="text-2xl font-bold text-[#1E2A2E] mt-0.5">
+              {symbol}{total.toFixed(2)}
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] uppercase tracking-wider text-gray-500 font-medium">Base price</p>
+            <p className="text-sm font-semibold text-[#1E2A2E] mt-0.5">
+              Rs. {basePrice.toLocaleString("en-IN")}
+            </p>
+          </div>
+        </div>
+        <p className="text-xs text-gray-400 mt-2">
+          {isNPR
+            ? "Local currency — no conversion"
+            : `1 ${selectedCurrency} = ${rate} NPR`}
+        </p>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -1112,18 +1060,29 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
 
   // Mutations
   const createMutation = useMutation({
-    mutationFn: () =>
-      createSession({
+    mutationFn: () => {
+      const detectedType = nepalPayments.some((m) => m.id === selectedPaymentMethod)
+        ? "nepal"
+        : "international";
+      return processBooking({
         therapistId: resolvedTherapist.id,
         date: `${selectedDate}T00:00:00`,
         time: selectedTime,
         type: "HOME_VISIT",
         address: address || user?.city || "",
-        fee: totalPrice,
-      }),
+        fee: displayPrice,
+        currency: selectedCurrency,
+        paymentMethod: selectedPaymentMethod,
+        paymentType: detectedType,
+        platformFee,
+        cardLast4: cardDetails.number.replace(/\s/g, "").slice(-4) || undefined,
+        walletMobile: esewaMobile || undefined,
+        billingCountry: billingCountry || undefined,
+      });
+    },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["therapist-slots"] });
-      const ref = data?.id || "BK-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+      const ref = data?.payment?.id || data?.session?.id || "BK-" + Math.random().toString(36).slice(2, 8).toUpperCase();
       setBookingResult({
         reference: ref,
         therapistName: resolvedTherapist.name,
@@ -1133,7 +1092,7 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
         currency: selectedCurrency,
         paymentMethod: getPaymentLabel(),
       });
-      setCurrentStep(4);
+      setCurrentStep(3);
     },
     onError: () => {
       toast.error("Booking failed. Please try again.");
@@ -1158,7 +1117,7 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
         currency: selectedCurrency,
         paymentMethod: getPaymentLabel(),
       });
-      setCurrentStep(4);
+      setCurrentStep(3);
     },
     onError: () => {
       toast.error("Failed to update booking. Please try again.");
@@ -1189,7 +1148,7 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
     }
   }, [isEdit, createMutation, updateMutation]);
 
-  const stepsWithSummary = currentStep >= 1 && currentStep <= 3;
+  const stepsWithSummary = currentStep >= 1 && currentStep <= 2;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -1210,7 +1169,7 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
           <StepIndicator currentStep={currentStep} />
         </div>
 
-        {currentStep < 4 && (
+        {currentStep < 3 && (
           <div className="px-5 pb-3">
             {stepsWithSummary && (
               <TherapistSummaryCard
@@ -1239,17 +1198,6 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
           )}
 
           {currentStep === 2 && (
-            <StepCurrency
-              currencies={currencies}
-              selectedCurrency={selectedCurrency}
-              basePrice={resolvedTherapist.price}
-              onCurrencyChange={setSelectedCurrency}
-              onBack={() => setCurrentStep(1)}
-              onContinue={() => setCurrentStep(3)}
-            />
-          )}
-
-          {currentStep === 3 && (
             <StepPayment
               selectedPaymentMethod={selectedPaymentMethod}
               selectedCurrency={selectedCurrency}
@@ -1258,7 +1206,8 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
               internationalPayments={internationalPayments}
               basePrice={resolvedTherapist.price}
               onPaymentChange={setSelectedPaymentMethod}
-              onBack={() => setCurrentStep(2)}
+              onCurrencyChange={setSelectedCurrency}
+              onBack={() => setCurrentStep(1)}
               onContinue={handleSubmit}
               cardDetails={cardDetails}
               onCardDetailsChange={setCardDetails}
@@ -1271,7 +1220,7 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
             />
           )}
 
-          {currentStep === 4 && bookingResult && (
+          {currentStep === 3 && bookingResult && (
             <StepConfirmation
               result={bookingResult}
               currencies={currencies}

@@ -78,3 +78,36 @@ export async function updateSession(
 export async function deleteSession(id: string) {
   return api.delete(`/sessions/${id}`);
 }
+
+export interface BookingPaymentPayload {
+  therapistId: string;
+  date: string;
+  time: string;
+  type?: string;
+  address: string;
+  fee: number;
+  notes?: string;
+  currency: string;
+  paymentMethod: string;
+  paymentType: string;
+  platformFee: number;
+  cardLast4?: string;
+  walletMobile?: string;
+  billingCountry?: string;
+}
+
+export interface BookingPaymentResult {
+  session: SessionData;
+  payment: {
+    id: string;
+    amount: number;
+    status: string;
+    method: string;
+    currency: string;
+    platformFee: number;
+  };
+}
+
+export async function processBooking(data: BookingPaymentPayload) {
+  return api.post<BookingPaymentResult>("/payments/process", data);
+}
