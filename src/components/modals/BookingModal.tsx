@@ -1,13 +1,16 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { X, CalendarDays, ChevronDown, TriangleAlert, Lock } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { X, CalendarDays, ChevronDown, ChevronLeft, ChevronRight, TriangleAlert, Lock } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { Avatar } from "@/components/common/Avatar";
 import { useAuth } from "@/context/auth";
 import { createSession, updateSession } from "@/services/api/sessions";
-import { getSlotsForRange } from "@/services/api/availability";
+import { getTherapistSlots } from "@/services/api/therapists";
+import { getCurrencies, getPaymentMethods } from "@/services/api/settings";
+import type { Currency, PaymentMethod } from "@/services/api/settings";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -23,23 +26,7 @@ interface BookingTherapist {
 
 interface TimeSlot {
   time: string;
-  booked: boolean;
-}
-
-interface CurrencyOption {
-  code: string;
-  name: string;
-  flag: string;
-  symbol: string;
-  rate: number;
-}
-
-interface PaymentMethod {
-  id: string;
-  label: string;
-  icon: string;
-  type: "nepal" | "international";
-  subtype?: string;
+  status: "open" | "booked" | "off" | "past";
 }
 
 interface BookingResult {
@@ -72,58 +59,6 @@ interface ExistingSession {
   status?: string;
   fee?: number;
 }
-
-// ─── Mock Data (fallback) ───────────────────────────────────────────────────
-
-const MOCK_THERAPIST: BookingTherapist = {
-  id: "th-001",
-  name: "Dr. Anjali Sharma",
-  specialty: "Sports & post-surgery rehabilitation",
-  price: 2000,
-  rating: 4.8,
-  reviews: 124,
-};
-
-const MOCK_TIME_SLOTS: TimeSlot[] = [
-  { time: "08:00", booked: true },
-  { time: "09:00", booked: false },
-  { time: "10:00", booked: false },
-  { time: "11:00", booked: true },
-  { time: "12:00", booked: false },
-  { time: "13:00", booked: false },
-  { time: "14:00", booked: true },
-  { time: "15:00", booked: false },
-  { time: "16:00", booked: false },
-];
-
-const CURRENCIES: CurrencyOption[] = [
-  { code: "NPR", name: "Nepalese Rupee", flag: "🇳🇵", symbol: "Rs.", rate: 1 },
-  { code: "USD", name: "US Dollar", flag: "🇺🇸", symbol: "$", rate: 0.0075 },
-  { code: "AUD", name: "Australian Dollar", flag: "🇦🇺", symbol: "A$", rate: 0.011 },
-  { code: "EUR", name: "Euro", flag: "🇪🇺", symbol: "€", rate: 0.0069 },
-  { code: "GBP", name: "British Pound", flag: "🇬🇧", symbol: "£", rate: 0.0059 },
-  { code: "CAD", name: "Canadian Dollar", flag: "🇨🇦", symbol: "C$", rate: 0.01 },
-  { code: "INR", name: "Indian Rupee", flag: "🇮🇳", symbol: "₹", rate: 0.63 },
-  { code: "SGD", name: "Singapore Dollar", flag: "🇸🇬", symbol: "S$", rate: 0.01 },
-  { code: "JPY", name: "Japanese Yen", flag: "🇯🇵", symbol: "¥", rate: 1.12 },
-  { code: "AED", name: "UAE Dirham", flag: "🇦🇪", symbol: "د.إ", rate: 0.028 },
-];
-
-const NEPAL_PAYMENTS: PaymentMethod[] = [
-  { id: "esewa", label: "eSewa", icon: "💳", type: "nepal", subtype: "Digital wallet" },
-  { id: "khalti", label: "Khalti", icon: "💳", type: "nepal", subtype: "Digital wallet" },
-  { id: "connectips", label: "ConnectIPS", icon: "🏦", type: "nepal", subtype: "Bank transfer" },
-  { id: "imepay", label: "IME Pay", icon: "💳", type: "nepal", subtype: "Digital wallet" },
-  { id: "fonepay", label: "FonePay", icon: "📱", type: "nepal", subtype: "QR/mobile" },
-  { id: "cash", label: "Cash", icon: "💵", type: "nepal", subtype: "Pay on visit" },
-];
-
-const INTERNATIONAL_PAYMENTS: PaymentMethod[] = [
-  { id: "card", label: "Card", icon: "💳", type: "international", subtype: "Credit/Debit" },
-  { id: "paypal", label: "PayPal", icon: "🅿️", type: "international", subtype: "Online wallet" },
-  { id: "googlepay", label: "Google Pay", icon: "📱", type: "international", subtype: "Mobile wallet" },
-  { id: "applepay", label: "Apple Pay", icon: "🍎", type: "international", subtype: "Mobile wallet" },
-];
 
 const BILLING_COUNTRIES = [
   "Nepal",
@@ -200,14 +135,16 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
 interface TherapistSummaryCardProps {
   therapist: BookingTherapist;
   selectedCurrency: string;
-  currencies: CurrencyOption[];
+  currencies: Currency[];
   compact?: boolean;
 }
 
 function TherapistSummaryCard({ therapist, selectedCurrency, currencies, compact }: TherapistSummaryCardProps) {
   const currency = currencies.find((c) => c.code === selectedCurrency) ?? currencies[0];
-  const convertedPrice = therapist.price * currency.rate;
-  const formattedPrice = `${currency.symbol}${convertedPrice.toFixed(2)}`;
+  const rate = currency?.rate ?? 1;
+  const symbol = currency?.symbol ?? "Rs";
+  const convertedPrice = therapist.price * rate;
+  const formattedPrice = `${symbol}${convertedPrice.toFixed(2)}`;
 
   if (compact) {
     return (
@@ -242,19 +179,71 @@ function TherapistSummaryCard({ therapist, selectedCurrency, currencies, compact
 
 // ─── StepDateTime ───────────────────────────────────────────────────────────
 
+function formatDateLabel(iso: string): string {
+  if (!iso) return "Pick a date";
+  const d = new Date(iso + "T00:00:00");
+  const today = new Date();
+  const isToday =
+    d.getFullYear() === today.getFullYear() &&
+    d.getMonth() === today.getMonth() &&
+    d.getDate() === today.getDate();
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const isTomorrow =
+    d.getFullYear() === tomorrow.getFullYear() &&
+    d.getMonth() === tomorrow.getMonth() &&
+    d.getDate() === tomorrow.getDate();
+  const formatted = d.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+  if (isToday) return `Today · ${formatted}`;
+  if (isTomorrow) return `Tomorrow · ${formatted}`;
+  return formatted;
+}
+
+function shiftDate(iso: string, days: number): string {
+  const d = new Date(iso + "T00:00:00");
+  d.setDate(d.getDate() + days);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 interface StepDateTimeProps {
   selectedDate: string;
   selectedTime: string;
+  address: string;
   slots: TimeSlot[];
   slotsLoading: boolean;
   onDateChange: (date: string) => void;
   onTimeChange: (time: string) => void;
+  onAddressChange: (address: string) => void;
   onContinue: () => void;
   onBack?: () => void;
 }
 
-function StepDateTime({ selectedDate, selectedTime, slots, slotsLoading, onDateChange, onTimeChange, onContinue, onBack }: StepDateTimeProps) {
-  const isValid = !!selectedDate && !!selectedTime;
+function StepDateTime({ selectedDate, selectedTime, address, slots, slotsLoading, onDateChange, onTimeChange, onAddressChange, onContinue, onBack }: StepDateTimeProps) {
+  const todayStr = localDateStr();
+  const canGoPrev = selectedDate > todayStr;
+  const hasOpenSlots = slots.some((s) => s.status === "open");
+  const isValid = !!selectedDate && !!selectedTime && !!address.trim();
+
+  function handlePrevDay() {
+    if (!canGoPrev) return;
+    const prev = shiftDate(selectedDate || todayStr, -1);
+    onDateChange(prev);
+    onTimeChange("");
+  }
+
+  function handleNextDay() {
+    const next = shiftDate(selectedDate || todayStr, 1);
+    onDateChange(next);
+    onTimeChange("");
+  }
 
   return (
     <div className="space-y-5">
@@ -265,15 +254,29 @@ function StepDateTime({ selectedDate, selectedTime, slots, slotsLoading, onDateC
           </button>
         )}
         <label className="text-sm font-semibold text-[#1E2A2E]">Select date</label>
-        <div className="relative mt-1.5">
-          <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => onDateChange(e.target.value)}
-            min={new Date().toISOString().slice(0, 10)}
-            className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3D2B]/20 focus:border-[#1F3D2B]"
-          />
+        <div className="flex items-center gap-2 mt-1.5">
+          <button
+            type="button"
+            onClick={handlePrevDay}
+            disabled={!canGoPrev}
+            className={cn(
+              "w-9 h-9 rounded-lg border bg-white flex items-center justify-center transition-colors shrink-0",
+              canGoPrev ? "border-gray-200 hover:bg-gray-50" : "border-gray-100 opacity-40 cursor-not-allowed"
+            )}
+          >
+            <ChevronLeft size={16} className="text-gray-500" />
+          </button>
+          <div className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-medium text-[#1E2A2E]">
+            <CalendarDays size={16} className="text-gray-400 shrink-0" />
+            <span className="truncate">{formatDateLabel(selectedDate)}</span>
+          </div>
+          <button
+            type="button"
+            onClick={handleNextDay}
+            className="w-9 h-9 rounded-lg border border-gray-200 bg-white flex items-center justify-center hover:bg-gray-50 transition-colors shrink-0"
+          >
+            <ChevronRight size={16} className="text-gray-500" />
+          </button>
         </div>
       </div>
 
@@ -289,28 +292,53 @@ function StepDateTime({ selectedDate, selectedTime, slots, slotsLoading, onDateC
           <div className="grid grid-cols-3 gap-2 mt-2">
             {slots.length === 0 && selectedDate ? (
               <p className="col-span-full text-sm text-gray-400 text-center py-4">
-                No available slots for this date
+                No slots available for this date
               </p>
             ) : (
-              slots.map((slot) => (
-                <button
-                  key={slot.time}
-                  disabled={slot.booked}
-                  onClick={() => onTimeChange(slot.time)}
-                  className={cn(
-                    "py-2.5 rounded-xl text-sm font-medium border transition-all",
-                    slot.booked && "bg-gray-100 text-gray-400 line-through cursor-not-allowed",
-                    !slot.booked && selectedTime === slot.time && "border-[#1F3D2B] bg-[#1F3D2B]/10 text-[#1F3D2B]",
-                    !slot.booked && selectedTime !== slot.time && "border-gray-200 bg-white text-[#1E2A2E] hover:border-[#1F3D2B]"
-                  )}
-                >
-                  {slot.time}
-                </button>
-              ))
+              slots.map((slot) => {
+                const isOpen = slot.status === "open";
+                const isBooked = slot.status === "booked";
+                const isOff = slot.status === "off";
+                const isPast = slot.status === "past";
+                const isSelected = selectedTime === slot.time;
+                const endTime = addMinutesToTime(slot.time, 60);
+
+                return (
+                  <button
+                    key={slot.time}
+                    disabled={!isOpen}
+                    onClick={() => isOpen && onTimeChange(slot.time)}
+                    className={cn(
+                      "py-2.5 rounded-xl text-sm font-medium border transition-all",
+                      isOpen && isSelected && "border-[#2F5D50] bg-[#2F5D50]/10 text-[#2F5D50] ring-1 ring-[#2F5D50]/30",
+                      isOpen && !isSelected && "border-[#2F5D50]/30 bg-[#2F5D50]/5 text-[#2F5D50] hover:bg-[#2F5D50]/10 hover:border-[#2F5D50]/50",
+                      isBooked && "bg-gray-100 text-gray-400 border-gray-200 line-through cursor-not-allowed",
+                      isOff && "bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed",
+                      isPast && "bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed"
+                    )}
+                  >
+                    <span className="block leading-tight">{slot.time}</span>
+                    {isOpen && <span className="block text-[10px] font-normal opacity-60">to {endTime}</span>}
+                  </button>
+                );
+              })
             )}
           </div>
         )}
-        <p className="text-xs text-gray-400 mt-2">Greyed slots are already booked.</p>
+        <p className="text-xs text-gray-400 mt-2">
+          <span className="text-[#2F5D50]">Green</span> = available · <span className="line-through">Grey</span> = booked · Light grey = off
+        </p>
+      </div>
+
+      <div>
+        <label className="text-sm font-semibold text-[#1E2A2E]">Session address</label>
+        <input
+          type="text"
+          value={address}
+          onChange={(e) => onAddressChange(e.target.value)}
+          placeholder="Enter your address for the session"
+          className="mt-1.5 w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-[#1E2A2E] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1F3D2B]/20 focus:border-[#1F3D2B]"
+        />
       </div>
 
       <button
@@ -333,7 +361,7 @@ function StepDateTime({ selectedDate, selectedTime, slots, slotsLoading, onDateC
 // ─── StepCurrency ───────────────────────────────────────────────────────────
 
 interface StepCurrencyProps {
-  currencies: CurrencyOption[];
+  currencies: Currency[];
   selectedCurrency: string;
   basePrice: number;
   onCurrencyChange: (code: string) => void;
@@ -521,7 +549,9 @@ function StepCurrency({
 interface StepPaymentProps {
   selectedPaymentMethod: string;
   selectedCurrency: string;
-  currencies: CurrencyOption[];
+  currencies: Currency[];
+  nepalPayments: PaymentMethod[];
+  internationalPayments: PaymentMethod[];
   basePrice: number;
   onPaymentChange: (id: string) => void;
   onBack: () => void;
@@ -545,6 +575,8 @@ function StepPayment({
   selectedPaymentMethod,
   selectedCurrency,
   currencies,
+  nepalPayments,
+  internationalPayments,
   basePrice,
   onPaymentChange,
   onBack,
@@ -564,15 +596,17 @@ function StepPayment({
   const methodRef = useRef<HTMLDivElement>(null);
 
   const currency = currencies.find((c) => c.code === selectedCurrency) ?? currencies[0];
-  const converted = basePrice * currency.rate;
+  const rate = currency?.rate ?? 1;
+  const symbol = currency?.symbol ?? "Rs";
+  const converted = basePrice * rate;
   const platformFee = converted * 0.05;
   const total = converted + platformFee;
 
-  const selectedMethod = [...NEPAL_PAYMENTS, ...INTERNATIONAL_PAYMENTS].find(
+  const selectedMethod = [...nepalPayments, ...internationalPayments].find(
     (m) => m.id === selectedPaymentMethod
   );
 
-  const nepalWalletMethods = NEPAL_PAYMENTS.filter((m) => m.subtype === "Digital wallet");
+  const nepalWalletMethods = nepalPayments.filter((m) => m.subtype === "Digital wallet");
   const isNepalWallet = nepalWalletMethods.some((m) => m.id === selectedPaymentMethod);
 
   const isValid =
@@ -678,7 +712,7 @@ function StepPayment({
           </button>
           {methodOpen && (
             <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
-              {(paymentType === "nepal" ? NEPAL_PAYMENTS : INTERNATIONAL_PAYMENTS).map((m) => (
+              {(paymentType === "nepal" ? nepalPayments : internationalPayments).map((m) => (
                 <button
                   key={m.id}
                   onClick={() => { onPaymentChange(m.id); setMethodOpen(false); }}
@@ -800,15 +834,15 @@ function StepPayment({
       <div className="bg-[#F0F0EE] rounded-xl p-4 space-y-2">
         <div className="flex justify-between text-sm">
           <span className="text-gray-500">Session fee</span>
-          <span className="font-medium text-[#1E2A2E]">{currency.symbol}{converted.toFixed(2)}</span>
+          <span className="font-medium text-[#1E2A2E]">{symbol}{converted.toFixed(2)}</span>
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-gray-500">Platform fee (5%)</span>
-          <span className="font-medium text-[#1E2A2E]">{currency.symbol}{platformFee.toFixed(2)}</span>
+          <span className="font-medium text-[#1E2A2E]">{symbol}{platformFee.toFixed(2)}</span>
         </div>
         <div className="flex justify-between text-sm font-bold border-t border-gray-300 pt-2">
           <span className="text-[#1E2A2E]">Total</span>
-          <span className="text-[#1E2A2E]">{currency.symbol}{total.toFixed(2)}</span>
+          <span className="text-[#1E2A2E]">{symbol}{total.toFixed(2)}</span>
         </div>
       </div>
 
@@ -844,7 +878,7 @@ function StepPayment({
 
 interface StepConfirmationProps {
   result: BookingResult;
-  currencies: CurrencyOption[];
+  currencies: Currency[];
   onDone: () => void;
   isEdit: boolean;
 }
@@ -858,6 +892,7 @@ function StepConfirmation({ result, currencies, onDone, isEdit }: StepConfirmati
   }, []);
 
   const currency = currencies.find((c) => c.code === result.currency) ?? currencies[0];
+  const symbol = currency?.symbol ?? "Rs";
 
   return (
     <div className="space-y-5 text-center">
@@ -895,7 +930,7 @@ function StepConfirmation({ result, currencies, onDone, isEdit }: StepConfirmati
         </div>
         <div className="text-right shrink-0">
           <div className="font-bold text-sm text-[#1E2A2E]">
-            {currency.symbol}{result.amount.toFixed(2)}
+            {symbol}{result.amount.toFixed(2)}
           </div>
         </div>
       </div>
@@ -910,7 +945,7 @@ function StepConfirmation({ result, currencies, onDone, isEdit }: StepConfirmati
         <DetailRow label="Therapist" value={result.therapistName} />
         <DetailRow label="Date" value={result.date} />
         <DetailRow label="Time" value={result.time} />
-        <DetailRow label="Amount paid" value={`${currency.symbol}${result.amount.toFixed(2)}`} />
+        <DetailRow label="Amount paid" value={`${symbol}${result.amount.toFixed(2)}`} />
         <DetailRow label="Payment method" value={result.paymentMethod} />
         <DetailRow label="Booking ref." value={result.reference} bold />
       </div>
@@ -942,15 +977,43 @@ function DetailRow({ label, value, bold }: { label: string; value: string; bold?
 
 // ─── Slot -> TimeSlot helper ───────────────────────────────────────────────
 
+function localDateStr(d: Date = new Date()): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 function buildTimeSlots(date: string, slotData?: { slots: { date: string; time: string; status: string }[] }): TimeSlot[] {
-  if (!slotData?.slots || slotData.slots.length === 0) return MOCK_TIME_SLOTS;
+  if (!slotData?.slots || slotData.slots.length === 0) return [];
+
+  const todayStr = localDateStr();
+  const isToday = date === todayStr;
+  const isPastDate = date < todayStr;
+
   return slotData.slots
     .filter((s) => s.date === date)
-    .map((s) => ({
-      time: s.time,
-      booked: s.status === "booked",
-    }))
+    .map((s) => {
+      if (isPastDate) return { time: s.time, status: "past" as const };
+      if (isToday) {
+        const [h, m] = s.time.split(":").map(Number);
+        const slotTime = new Date();
+        slotTime.setHours(h, m, 0, 0);
+        if (slotTime <= new Date()) return { time: s.time, status: "past" as const };
+      }
+      if (s.status === "booked") return { time: s.time, status: "booked" as const };
+      if (s.status === "off") return { time: s.time, status: "off" as const };
+      return { time: s.time, status: "open" as const };
+    })
     .sort((a, b) => a.time.localeCompare(b.time));
+}
+
+function addMinutesToTime(time: string, minutes: number): string {
+  const [h, m] = time.split(":").map(Number);
+  const totalMinutes = h * 60 + m + minutes;
+  const newH = Math.floor(totalMinutes / 60) % 24;
+  const newM = totalMinutes % 60;
+  return `${String(newH).padStart(2, "0")}:${String(newM).padStart(2, "0")}`;
 }
 
 // ─── Main BookingModal ──────────────────────────────────────────────────────
@@ -963,6 +1026,7 @@ interface BookingModalProps {
 
 function BookingModal({ onClose, therapist: propTherapist, session }: BookingModalProps) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const resolvedTherapist: BookingTherapist = session
     ? {
@@ -973,12 +1037,13 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
         rating: 0,
         reviews: 0,
       }
-    : propTherapist ?? MOCK_THERAPIST;
+    : propTherapist!;
 
   const isEdit = !!session;
 
   const [currentStep, setCurrentStep] = useState(1);
-  const [selectedDate, setSelectedDate] = useState(session?.date ?? "");
+  const todayStr = localDateStr();
+  const [selectedDate, setSelectedDate] = useState(session?.date ?? todayStr);
   const [selectedTime, setSelectedTime] = useState(session?.time ?? "");
   const [selectedCurrency, setSelectedCurrency] = useState("NPR");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
@@ -991,32 +1056,50 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
   });
   const [esewaMobile, setEsewaMobile] = useState("");
   const [billingCountry, setBillingCountry] = useState("");
+  const [address, setAddress] = useState(user?.city ?? "");
+
+  // Fetch currencies from API
+  const { data: currencies = [] } = useQuery({
+    queryKey: ["currencies"],
+    queryFn: getCurrencies,
+    staleTime: Infinity,
+  });
+
+  // Fetch payment methods from API
+  const { data: allPaymentMethods = [] } = useQuery({
+    queryKey: ["payment-methods"],
+    queryFn: getPaymentMethods,
+    staleTime: Infinity,
+  });
+
+  const nepalPayments = allPaymentMethods.filter((m) => m.type === "nepal");
+  const internationalPayments = allPaymentMethods.filter((m) => m.type === "international");
 
   // Fetch availability slots from API whenever date changes
-  const today = new Date().toISOString().slice(0, 10);
-  const queryDate = selectedDate || today;
+  const queryDate = selectedDate || todayStr;
 
   const { data: slotData, isLoading: slotsLoading } = useQuery({
-    queryKey: ["availability-slots", queryDate],
-    queryFn: () => getSlotsForRange(queryDate, queryDate),
-    enabled: !!selectedDate,
+    queryKey: ["therapist-slots", queryDate, resolvedTherapist.id],
+    queryFn: () => getTherapistSlots(resolvedTherapist.id, queryDate, queryDate),
+    enabled: !!selectedDate && !!resolvedTherapist.id,
     staleTime: 60_000,
   });
 
-  const timeSlots = selectedDate ? buildTimeSlots(selectedDate, slotData) : MOCK_TIME_SLOTS;
+  const timeSlots = selectedDate ? buildTimeSlots(selectedDate, slotData) : [];
 
-  // If editing, mark the session's own time as unbooked so user can keep it
+  // If editing, mark the session's own time as open so user can keep it
   useEffect(() => {
     if (isEdit && session?.time && timeSlots.length > 0) {
       const existing = timeSlots.find((s) => s.time === session.time);
-      if (existing?.booked) {
-        existing.booked = false;
+      if (existing && existing.status !== "open") {
+        existing.status = "open";
       }
     }
   }, [isEdit, session?.time, timeSlots]);
 
-  const currency = CURRENCIES.find((c) => c.code === selectedCurrency) ?? CURRENCIES[0];
-  const displayPrice = resolvedTherapist.price * currency.rate;
+  const currency = currencies.find((c) => c.code === selectedCurrency) ?? currencies[0];
+  const rate = currency?.rate ?? 1;
+  const displayPrice = resolvedTherapist.price * rate;
   const platformFee = displayPrice * 0.05;
   const totalPrice = displayPrice + platformFee;
 
@@ -1025,13 +1108,14 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
     mutationFn: () =>
       createSession({
         therapistId: resolvedTherapist.id,
-        date: selectedDate,
+        date: `${selectedDate}T00:00:00`,
         time: selectedTime,
-        type: "physiotherapy",
-        address: user?.city ?? "",
+        type: "HOME_VISIT",
+        address: address || user?.city || "",
         fee: totalPrice,
       }),
     onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["therapist-slots"] });
       const ref = data?.id || "BK-" + Math.random().toString(36).slice(2, 8).toUpperCase();
       setBookingResult({
         reference: ref,
@@ -1045,29 +1129,19 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
       setCurrentStep(4);
     },
     onError: () => {
-      // Fallback to mock booking on error
-      const ref = "BK-" + Math.random().toString(36).slice(2, 8).toUpperCase();
-      setBookingResult({
-        reference: ref,
-        therapistName: resolvedTherapist.name,
-        date: formatDisplayDate(selectedDate),
-        time: selectedTime,
-        amount: totalPrice,
-        currency: selectedCurrency,
-        paymentMethod: getPaymentLabel(),
-      });
-      setCurrentStep(4);
+      toast.error("Booking failed. Please try again.");
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: () =>
       updateSession(session!.id, {
-        date: selectedDate,
+        date: `${selectedDate}T00:00:00`,
         time: selectedTime,
         status: "Confirmed",
       }),
     onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["therapist-slots"] });
       setBookingResult({
         reference: session!.id,
         therapistName: resolvedTherapist.name,
@@ -1080,16 +1154,7 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
       setCurrentStep(4);
     },
     onError: () => {
-      setBookingResult({
-        reference: session!.id,
-        therapistName: resolvedTherapist.name,
-        date: formatDisplayDate(selectedDate),
-        time: selectedTime,
-        amount: totalPrice,
-        currency: selectedCurrency,
-        paymentMethod: getPaymentLabel(),
-      });
-      setCurrentStep(4);
+      toast.error("Failed to update booking. Please try again.");
     },
   });
 
@@ -1105,19 +1170,8 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
   };
 
   function getPaymentLabel(): string {
-    const map: Record<string, string> = {
-      esewa: "eSewa",
-      khalti: "Khalti",
-      connectips: "ConnectIPS",
-      imepay: "IME Pay",
-      fonepay: "FonePay",
-      cash: "Cash",
-      card: "Card",
-      paypal: "PayPal",
-      googlepay: "Google Pay",
-      applepay: "Apple Pay",
-    };
-    return map[selectedPaymentMethod] || selectedPaymentMethod;
+    const found = allPaymentMethods.find((m) => m.id === selectedPaymentMethod);
+    return found?.label || selectedPaymentMethod;
   }
 
   const handleSubmit = useCallback(() => {
@@ -1155,7 +1209,7 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
               <TherapistSummaryCard
                 therapist={resolvedTherapist}
                 selectedCurrency={selectedCurrency}
-                currencies={CURRENCIES}
+                currencies={currencies}
               />
             )}
           </div>
@@ -1166,10 +1220,12 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
             <StepDateTime
               selectedDate={selectedDate}
               selectedTime={selectedTime}
+              address={address}
               slots={timeSlots}
               slotsLoading={slotsLoading}
               onDateChange={setSelectedDate}
               onTimeChange={setSelectedTime}
+              onAddressChange={setAddress}
               onContinue={() => setCurrentStep(2)}
               onBack={onClose}
             />
@@ -1177,7 +1233,7 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
 
           {currentStep === 2 && (
             <StepCurrency
-              currencies={CURRENCIES}
+              currencies={currencies}
               selectedCurrency={selectedCurrency}
               basePrice={resolvedTherapist.price}
               onCurrencyChange={setSelectedCurrency}
@@ -1190,7 +1246,9 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
             <StepPayment
               selectedPaymentMethod={selectedPaymentMethod}
               selectedCurrency={selectedCurrency}
-              currencies={CURRENCIES}
+              currencies={currencies}
+              nepalPayments={nepalPayments}
+              internationalPayments={internationalPayments}
               basePrice={resolvedTherapist.price}
               onPaymentChange={setSelectedPaymentMethod}
               onBack={() => setCurrentStep(2)}
@@ -1209,7 +1267,7 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
           {currentStep === 4 && bookingResult && (
             <StepConfirmation
               result={bookingResult}
-              currencies={CURRENCIES}
+              currencies={currencies}
               onDone={onClose}
               isEdit={isEdit}
             />

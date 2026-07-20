@@ -154,10 +154,11 @@ export async function unblockTime(data: {
 export async function getSlotsForRange(
   fromDate: string,
   toDate: string,
+  therapistId?: string,
 ): Promise<SlotRangeData> {
-  return api.get<SlotRangeData>(
-    `/availability/slots?from_date=${fromDate}&to_date=${toDate}`,
-  );
+  const params = new URLSearchParams({ from_date: fromDate, to_date: toDate });
+  if (therapistId) params.set("therapist_id", therapistId);
+  return api.get<SlotRangeData>(`/availability/slots?${params.toString()}`);
 }
 
 export async function getWorkingDays(): Promise<string[]> {
