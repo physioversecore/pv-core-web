@@ -41,6 +41,8 @@ export function SessionTable({ sessions, onCancel, onReschedule, onRate, onClick
           {sessions.map((s) => {
             const displayStatus = mapSessionStatus(s.status);
             const isUpcoming = s.status === "SCHEDULED" || s.status === "IN_PROGRESS";
+            const isPast = new Date(s.date) < new Date(new Date().toDateString());
+            const showActions = isUpcoming && !isPast;
             return (
               <tr
                 key={s.id}
@@ -75,7 +77,7 @@ export function SessionTable({ sessions, onCancel, onReschedule, onRate, onClick
                   </span>
                 </td>
                 <td className="py-3.5 px-3 md:px-4 text-right">
-                  {isUpcoming && (
+                  {showActions && (
                     <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                       {/* Desktop: text buttons */}
                       <button
@@ -88,7 +90,7 @@ export function SessionTable({ sessions, onCancel, onReschedule, onRate, onClick
                         onClick={() => onCancel(s.id)}
                         className="hidden md:inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg border border-danger text-danger text-[11px] font-semibold cursor-pointer hover:bg-danger hover:text-white transition-all whitespace-nowrap"
                       >
-                        Cancel
+                        Cancel Session
                       </button>
                       {/* Mobile: icon-only buttons */}
                       <button

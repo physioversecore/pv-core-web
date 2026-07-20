@@ -29,7 +29,7 @@ const PAGE_SIZE = 10;
 function SessionsContent() {
   const { t } = useLang();
   const [tab, setTab] = useState<(typeof TABS)[number]>("sessionsUpcoming");
-  const [view, setView] = useState<ViewMode>("list");
+  const [view, setView] = useState<ViewMode>("grid");
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -111,10 +111,14 @@ function SessionsContent() {
     setCancelTarget(null);
   };
 
-  const handleRescheduleConfirm = (date: string, time: string) => {
+  const handleRescheduleConfirm = (newDate: string, newTime: string) => {
     if (!rescheduleTarget) return;
-    rescheduleSession({ id: rescheduleTarget.id, date: new Date(date).toISOString(), time });
-    setRescheduleTarget(null);
+    rescheduleSession(
+      { id: rescheduleTarget.id, newDate, newTime },
+      {
+        onSuccess: () => setRescheduleTarget(null),
+      },
+    );
   };
 
   const handleTabChange = (newTab: typeof TABS[number]) => {
@@ -203,22 +207,24 @@ function SessionsContent() {
       ) : (
         <>
           {view === "grid" ? (
-            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {paged.map((s) => (
                 <SessionCard key={s.id} session={s} {...rowProps} />
               ))}
             </div>
-          ) : view === "compact" ? (
+          ) : (
             <div className="card-soft overflow-hidden">
               <SessionTable sessions={paged} {...rowProps} />
             </div>
-          ) : (
-            <div className="space-y-3">
-              {paged.map((s) => (
-                <SessionRow key={s.id} session={s} {...rowProps} />
-              ))}
-            </div>
-          )}
+          ) 
+          // : (
+          //   <div className="space-y-3">
+          //     {paged.map((s) => (
+          //       <SessionRow key={s.id} session={s} {...rowProps} />
+          //     ))}
+          //   </div>
+          // )
+          }
 
           {/* Pagination */}
           {totalPages > 1 && (
@@ -284,7 +290,9 @@ function SessionsContent() {
       {/* Reschedule modal */}
       {rescheduleTarget && (
         <RescheduleModal
+          therapistId={rescheduleTarget.therapistId}
           therapistName={rescheduleTarget.therapistName || "Therapist"}
+          sessionId={rescheduleTarget.id}
           currentDate={rescheduleTarget.date}
           currentTime={rescheduleTarget.time}
           onConfirm={handleRescheduleConfirm}
@@ -369,7 +377,7 @@ function SessionsContent() {
 export default function SessionsPage() {
   return (
     <ErrorBoundary>
-      <Suspense fallback={<SessionSkeleton view="list" />}>
+      <Suspense fallback={<SessionSkeleton view="grid" />}>
         <SessionsContent />
       </Suspense>
     </ErrorBoundary>

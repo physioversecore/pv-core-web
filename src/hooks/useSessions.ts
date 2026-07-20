@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getSessions, getSession, updateSession, createSession } from "@/services/api/sessions";
+import { getSessions, getSession, updateSession, rescheduleSession } from "@/services/api/sessions";
 import { toast } from "sonner";
 import type { SessionData } from "@/services/api/sessions";
 
@@ -30,13 +30,19 @@ export function useSessions(options?: UseSessionsOptions) {
   });
 
   const rescheduleMutation = useMutation({
-    mutationFn: ({ id, date, time }: { id: string; date: string; time: string }) =>
-      updateSession(id, { date, time }),
+    mutationFn: ({ id, newDate, newTime }: { id: string; newDate: string; newTime: string }) =>
+      rescheduleSession(id, { newDate, newTime }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["therapist-slots"] });
       toast.success("Session rescheduled");
     },
-    onError: () => toast.error("Failed to reschedule session"),
+    onError: (err: Error) => {
+      const msg = err.message?.includes("409") || err.message?.includes("conflict")
+        ? "That slot was just booked — please choose another."
+        : "Failed to reschedule session";
+      toast.error(msg);
+    },
   });
 
   return {

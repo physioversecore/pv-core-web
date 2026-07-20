@@ -113,3 +113,39 @@ export async function getTherapistDashboard(): Promise<TherapistDashboardData> {
 export async function getMyTherapist(): Promise<TherapistData> {
   return api.get<TherapistData>("/therapists/me");
 }
+
+export interface TherapistSlotData {
+  date: string;
+  time: string;
+  status: string;
+  patientName?: string;
+  patientPhone?: string;
+  sessionType?: string;
+  fee?: number;
+  sessionId?: string;
+}
+
+export interface TherapistSlotRangeData {
+  slots: TherapistSlotData[];
+  blocks: {
+    id: string;
+    dateFrom: string;
+    dateTo: string;
+    daysOfWeek: string[];
+    partsOfDay: string[];
+    reason: string;
+    notify: boolean;
+    createdAt: string;
+  }[];
+}
+
+export async function getTherapistSlots(
+  therapistId: string,
+  fromDate: string,
+  toDate: string,
+): Promise<TherapistSlotRangeData> {
+  const params = new URLSearchParams({ from_date: fromDate, to_date: toDate });
+  return api.get<TherapistSlotRangeData>(
+    `/therapists/${therapistId}/slots?${params.toString()}`,
+  );
+}

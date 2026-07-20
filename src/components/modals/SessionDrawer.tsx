@@ -21,6 +21,8 @@ export function SessionDrawer({
 }: SessionDrawerProps) {
   const displayStatus = mapSessionStatus(session.status);
   const isUpcoming = session.status === "SCHEDULED" || session.status === "IN_PROGRESS";
+  const isPast = new Date(session.date) < new Date(new Date().toDateString());
+  const showActions = isUpcoming && !isPast;
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
@@ -91,17 +93,17 @@ export function SessionDrawer({
           </div>
 
           {/* Actions */}
-          {isUpcoming && (
+          {showActions && (
             <div className="flex flex-col gap-2 pt-2">
               <button
                 onClick={() => onReschedule(session.id)}
-                className="btn-secondary w-full"
+                className="btn-primary w-full"
               >
                 Reschedule session
               </button>
               <button
                 onClick={() => onCancel(session.id)}
-                className="btn-outline w-full !border-red/30 !text-red hover:!bg-red/5"
+                className=" inline-flex items-center justify-center gap-1 p-3 rounded-xl border border-danger text-danger font-semibold cursor-pointer hover:bg-danger hover:text-white transition: transform var(--transition-fast) box-shadow var(--transition-fast), background var(--transition-fast);"
               >
                 Cancel session
               </button>
