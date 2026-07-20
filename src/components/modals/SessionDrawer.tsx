@@ -95,13 +95,13 @@ export function SessionDrawer({
             <div className="flex flex-col gap-2 pt-2">
               <button
                 onClick={() => onReschedule(session.id)}
-                className="btn-secondary w-full"
+                className="btn-primary w-full"
               >
                 Reschedule session
               </button>
               <button
                 onClick={() => onCancel(session.id)}
-                className="btn-outline w-full !border-red/30 !text-red hover:!bg-red/5"
+                className="btn-outline-primary w-full !border-red/30 !text-red hover:!bg-red/5"
               >
                 Cancel session
               </button>

@@ -111,3 +111,10 @@ export interface BookingPaymentResult {
 export async function processBooking(data: BookingPaymentPayload) {
   return api.post<BookingPaymentResult>("/payments/process", data);
 }
+
+export async function rescheduleSession(
+  id: string,
+  data: { newDate: string; newTime: string },
+) {
+  return api.patch<SessionData>(`/sessions/${id}/reschedule`, data);
+}

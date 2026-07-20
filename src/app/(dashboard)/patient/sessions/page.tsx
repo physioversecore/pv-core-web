@@ -111,10 +111,14 @@ function SessionsContent() {
     setCancelTarget(null);
   };
 
-  const handleRescheduleConfirm = (date: string, time: string) => {
+  const handleRescheduleConfirm = (newDate: string, newTime: string) => {
     if (!rescheduleTarget) return;
-    rescheduleSession({ id: rescheduleTarget.id, date: new Date(date).toISOString(), time });
-    setRescheduleTarget(null);
+    rescheduleSession(
+      { id: rescheduleTarget.id, newDate, newTime },
+      {
+        onSuccess: () => setRescheduleTarget(null),
+      },
+    );
   };
 
   const handleTabChange = (newTab: typeof TABS[number]) => {
@@ -284,7 +288,9 @@ function SessionsContent() {
       {/* Reschedule modal */}
       {rescheduleTarget && (
         <RescheduleModal
+          therapistId={rescheduleTarget.therapistId}
           therapistName={rescheduleTarget.therapistName || "Therapist"}
+          sessionId={rescheduleTarget.id}
           currentDate={rescheduleTarget.date}
           currentTime={rescheduleTarget.time}
           onConfirm={handleRescheduleConfirm}
