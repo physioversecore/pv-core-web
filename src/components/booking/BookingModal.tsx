@@ -14,6 +14,7 @@ import {
   MOCK_TIME_SLOTS,
   MOCK_PATIENTS,
   MOCK_THERAPISTS_LIST,
+  CURRENCIES,
   NEPAL_PAYMENTS,
   INTERNATIONAL_PAYMENTS,
 } from "./mockData";
@@ -48,6 +49,9 @@ export default function BookingModal(props: Props) {
   const [selectedPatientId, setSelectedPatientId] = useState("");
   const [selectedTherapistId, setSelectedTherapistId] = useState("");
   const [selectedPaymentId, setSelectedPaymentId] = useState("");
+  const [cardDetails, setCardDetails] = useState({ number: "", expiry: "", cvv: "", name: "" });
+  const [esewaMobile, setEsewaMobile] = useState("");
+  const [billingCountry, setBillingCountry] = useState("");
 
   const therapist = mode === "patient" && "therapist" in props && props.therapist
     ? props.therapist
@@ -182,6 +186,15 @@ export default function BookingModal(props: Props) {
               onSelect={(p) => setSelectedPaymentId(p.id)}
               onBack={() => setCurrentStep(3)}
               onContinue={handleAdminConfirm}
+              therapist={therapist}
+              selectedCurrency="NPR"
+              currencies={CURRENCIES}
+              cardDetails={cardDetails}
+              onCardDetailsChange={setCardDetails}
+              esewaMobile={esewaMobile}
+              onEsewaMobileChange={setEsewaMobile}
+              billingCountry={billingCountry}
+              onBillingCountryChange={setBillingCountry}
             />
           )}
 
