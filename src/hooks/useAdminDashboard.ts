@@ -6,6 +6,10 @@ import {
   getAdminDashboardEarnings,
   getAdminRecentActivity,
   getAdminTherapists,
+  getAdminBookings,
+  getAdminPatients,
+  type AdminBookingData,
+  type AdminPatientData,
 } from "@/services/api/admin";
 
 const FALLBACK_STATS = {
@@ -98,6 +102,20 @@ export function useAdminDashboard() {
     placeholderData: (prev) => prev,
   });
 
+  const recentBookingsQuery = useQuery({
+    queryKey: ["admin-dashboard-recent-bookings"],
+    queryFn: () => getAdminBookings({ limit: 10, sortBy: "date", sortOrder: "desc" }),
+    staleTime: 30_000,
+    placeholderData: (prev) => prev,
+  });
+
+  const inactivePatientsQuery = useQuery({
+    queryKey: ["admin-dashboard-inactive-patients"],
+    queryFn: () => getAdminPatients({ limit: 10 }),
+    staleTime: 60_000,
+    placeholderData: (prev) => prev,
+  });
+
   const stats = normalizeStats(statsQuery.data);
   const earnings = normalizeEarnings(earningsQuery.data);
   const activity = normalizeActivity(activityQuery.data).map((a) => ({
@@ -105,14 +123,16 @@ export function useAdminDashboard() {
     timeAgo: timeAgo(a.timestamp),
   }));
   const pendingTherapists = pendingQuery.data?.items ?? [];
+  const recentBookings: AdminBookingData[] = recentBookingsQuery.data?.items ?? [];
 
   return {
     stats,
     earnings,
     activity,
     pendingTherapists,
+    recentBookings,
     isLoading: statsQuery.isLoading || earningsQuery.isLoading || activityQuery.isLoading || pendingQuery.isLoading,
     isRefetching: statsQuery.isRefetching || earningsQuery.isRefetching || activityQuery.isRefetching || pendingQuery.isRefetching,
-    refetch: () => Promise.all([statsQuery.refetch(), earningsQuery.refetch(), activityQuery.refetch(), pendingQuery.refetch()]),
+    refetch: () => Promise.all([statsQuery.refetch(), earningsQuery.refetch(), activityQuery.refetch(), pendingQuery.refetch(), recentBookingsQuery.refetch()]),
   };
 }

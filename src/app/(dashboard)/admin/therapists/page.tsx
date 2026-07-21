@@ -9,6 +9,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { useTableSort } from "@/hooks/useTableSort";
 import { useAdminTherapists } from "@/hooks/useAdminTherapists";
 import { RefreshButton } from "@/components/dashboard/RefreshButton";
+import { TherapistDetailSheet } from "@/components/modals/TherapistDetailSheet";
 import {
   DataTable,
   ActionMenu,
@@ -30,6 +31,7 @@ export default function AdminTherapists() {
   const [city, setCity] = useState("");
   const [page, setPage] = useState(1);
   const [editRow, setEditRow] = useState<AdminTherapistData | null>(null);
+  const [viewRow, setViewRow] = useState<AdminTherapistData | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AdminTherapistData | null>(null);
   const [showFilters, setShowFilters] = useState(false);
 
@@ -103,15 +105,10 @@ export default function AdminTherapists() {
   const handleEditSave = useCallback(
     async (data: Partial<AdminTherapistData>) => {
       if (!editRow) return;
-      try {
-        await updateTherapist(editRow.id, data);
-        toast.success(t("admin_dashboard.saved") ?? "Saved");
-        setEditRow(null);
-      } catch {
-        toast.error(t("common.tryAgain") ?? "Something went wrong");
-      }
+      await updateTherapist(editRow.id, data);
+      setEditRow(null);
     },
-    [editRow, updateTherapist, t],
+    [editRow, updateTherapist],
   );
 
   const exportCsv = useCallback(() => {
@@ -318,17 +315,24 @@ export default function AdminTherapists() {
           pageSize={pageSize}
           onPageChange={setPage}
           renderActions={renderActions}
+          onRowClick={(row) => setViewRow(row)}
           emptyMessage={t("common.noResults") ?? "No results found"}
         />
       </div>
 
-      {editRow && (
-        <EditTherapistDialog
-          therapist={editRow}
-          onClose={() => setEditRow(null)}
-          onSave={handleEditSave}
-        />
-      )}
+      <TherapistDetailSheet
+        therapist={editRow}
+        open={!!editRow}
+        onOpenChange={(open) => !open && setEditRow(null)}
+        mode="edit"
+        onSave={handleEditSave}
+      />
+
+      <TherapistDetailSheet
+        therapist={viewRow}
+        open={!!viewRow}
+        onOpenChange={(open) => !open && setViewRow(null)}
+      />
 
       <ConfirmDialog
         open={!!deleteTarget}
@@ -337,124 +341,6 @@ export default function AdminTherapists() {
         title={t("common.delete") ?? "Delete therapist"}
         description={`${t("common.confirm") ?? "Are you sure you want to delete"} ${deleteTarget?.name ?? ""}?`}
       />
-    </div>
-  );
-}
-
-function EditTherapistDialog({
-  therapist,
-  onClose,
-  onSave,
-}: {
-  therapist: AdminTherapistData;
-  onClose: () => void;
-  onSave: (data: Partial<AdminTherapistData>) => Promise<void>;
-}) {
-  const { t } = useLang();
-  const [name, setName] = useState(therapist.name);
-  const [city, setCity] = useState(therapist.city);
-  const [specialty, setSpecialty] = useState(therapist.specialty);
-  const [phone, setPhone] = useState(therapist.phone ?? "");
-  const [email, setEmail] = useState(therapist.email ?? "");
-  const [status, setStatus] = useState<AdminTherapistData["status"]>(therapist.status);
-  const [saving, setSaving] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      await onSave({
-        name,
-        city,
-        specialty,
-        phone,
-        email,
-        status,
-        isActive: status === "Verified",
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div
-        className="bg-background rounded-lg border shadow-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3 className="font-display text-lg mb-4">{t("admin_dashboard.edit") ?? "Edit Therapist"}</h3>
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <div>
-            <label className="text-xs font-mono text-text-light uppercase">{t("admin_dashboard.name") ?? "Name"}</label>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="w-full mt-1 px-3 py-2 rounded-md border border-input bg-transparent text-sm"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-mono text-text-light uppercase">{t("admin_dashboard.city") ?? "City"}</label>
-            <input
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              required
-              className="w-full mt-1 px-3 py-2 rounded-md border border-input bg-transparent text-sm"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-mono text-text-light uppercase">{t("admin_dashboard.specialty") ?? "Specialty"}</label>
-            <input
-              value={specialty}
-              onChange={(e) => setSpecialty(e.target.value)}
-              required
-              className="w-full mt-1 px-3 py-2 rounded-md border border-input bg-transparent text-sm"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-mono text-text-light uppercase">{t("admin_dashboard.phone") ?? "Phone"}</label>
-            <input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="w-full mt-1 px-3 py-2 rounded-md border border-input bg-transparent text-sm"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-mono text-text-light uppercase">{t("admin_dashboard.email") ?? "Email"}</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full mt-1 px-3 py-2 rounded-md border border-input bg-transparent text-sm"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-mono text-text-light uppercase">{t("admin_dashboard.status") ?? "Status"}</label>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value as AdminTherapistData["status"])}
-              className="w-full mt-1 px-3 py-2 rounded-md border border-input bg-transparent text-sm"
-            >
-              <option value="Verified">Verified</option>
-              <option value="Under review">Under review</option>
-              <option value="Suspended">Suspended</option>
-            </select>
-          </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <button type="button" onClick={onClose} className="btn-outline !py-1.5 !px-4 text-xs cursor-pointer">
-              {t("common.cancel") ?? "Cancel"}
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="chip !bg-secondary !text-white cursor-pointer disabled:opacity-50"
-            >
-              {saving ? t("common.loading") : (t("common.save") ?? "Save")}
-            </button>
-          </div>
-        </form>
-      </div>
     </div>
   );
 }

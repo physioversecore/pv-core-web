@@ -27,6 +27,11 @@ export interface AdminTherapistData {
   isActive: boolean;
   phone?: string;
   email?: string;
+  gender?: string;
+  price?: number;
+  experience?: number;
+  bio?: string;
+  mediaUrls?: string;
 }
 
 export interface AdminPaymentData {

@@ -9,6 +9,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { useTableSort } from "@/hooks/useTableSort";
 import { useAdminPatients } from "@/hooks/useAdminPatients";
 import { RefreshButton } from "@/components/dashboard/RefreshButton";
+import { PatientDetailSheet } from "@/components/modals/PatientDetailSheet";
 import {
   DataTable,
   ActionMenu,
@@ -31,6 +32,7 @@ export default function AdminPatients() {
   const [city, setCity] = useState("");
   const [page, setPage] = useState(1);
   const [editRow, setEditRow] = useState<AdminPatientData | null>(null);
+  const [viewRow, setViewRow] = useState<AdminPatientData | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AdminPatientData | null>(null);
   const [showFilters, setShowFilters] = useState(false);
 
@@ -296,17 +298,24 @@ export default function AdminPatients() {
           pageSize={pageSize}
           onPageChange={setPage}
           renderActions={renderActions}
+          onRowClick={(row) => setViewRow(row)}
           emptyMessage={t("common.noResults") ?? "No results found"}
         />
       </div>
 
-      {editRow && (
-        <EditPatientDialog
-          patient={editRow}
-          onClose={() => setEditRow(null)}
-          onSave={handleEditSave}
-        />
-      )}
+      <PatientDetailSheet
+        patient={viewRow}
+        open={!!viewRow}
+        onOpenChange={(open) => !open && setViewRow(null)}
+      />
+
+      <PatientDetailSheet
+        patient={editRow}
+        open={!!editRow}
+        onOpenChange={(open) => !open && setEditRow(null)}
+        mode="edit"
+        onSave={handleEditSave}
+      />
 
       <ConfirmDialog
         open={!!deleteTarget}
@@ -315,105 +324,6 @@ export default function AdminPatients() {
         title={t("common.delete") ?? "Delete patient"}
         description={`${t("common.confirm") ?? "Are you sure you want to delete"} ${deleteTarget?.name ?? ""}?`}
       />
-    </div>
-  );
-}
-
-function EditPatientDialog({
-  patient,
-  onClose,
-  onSave,
-}: {
-  patient: AdminPatientData;
-  onClose: () => void;
-  onSave: (data: Partial<AdminPatientData>) => Promise<void>;
-}) {
-  const { t } = useLang();
-  const [name, setName] = useState(patient.name);
-  const [city, setCity] = useState(patient.city);
-  const [phone, setPhone] = useState(patient.phone ?? "");
-  const [email, setEmail] = useState(patient.email ?? "");
-  const [isActive, setIsActive] = useState(patient.isActive);
-  const [saving, setSaving] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      await onSave({ name, city, phone, email, isActive });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div
-        className="bg-background rounded-lg border shadow-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3 className="font-display text-lg mb-4">{t("admin_dashboard.edit") ?? "Edit Patient"}</h3>
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <div>
-            <label className="text-xs font-mono text-text-light uppercase">{t("admin_dashboard.name") ?? "Name"}</label>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="w-full mt-1 px-3 py-2 rounded-md border border-input bg-transparent text-sm"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-mono text-text-light uppercase">{t("admin_dashboard.city") ?? "City"}</label>
-            <input
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              required
-              className="w-full mt-1 px-3 py-2 rounded-md border border-input bg-transparent text-sm"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-mono text-text-light uppercase">{t("admin_dashboard.phone") ?? "Phone"}</label>
-            <input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="w-full mt-1 px-3 py-2 rounded-md border border-input bg-transparent text-sm"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-mono text-text-light uppercase">{t("admin_dashboard.email") ?? "Email"}</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full mt-1 px-3 py-2 rounded-md border border-input bg-transparent text-sm"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-mono text-text-light uppercase">{t("admin_dashboard.status") ?? "Status"}</label>
-            <select
-              value={isActive ? "Active" : "Inactive"}
-              onChange={(e) => setIsActive(e.target.value === "Active")}
-              className="w-full mt-1 px-3 py-2 rounded-md border border-input bg-transparent text-sm"
-            >
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-            </select>
-          </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <button type="button" onClick={onClose} className="btn-outline !py-1.5 !px-4 text-xs cursor-pointer">
-              {t("common.cancel") ?? "Cancel"}
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="chip !bg-secondary !text-white cursor-pointer disabled:opacity-50"
-            >
-              {saving ? t("common.loading") : (t("common.save") ?? "Save")}
-            </button>
-          </div>
-        </form>
-      </div>
     </div>
   );
 }

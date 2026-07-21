@@ -40,6 +40,7 @@ interface DataTableProps<T> {
   renderActions?: (row: T) => ReactNode;
   emptyMessage?: string;
   rowClassName?: (row: T) => string | undefined;
+  onRowClick?: (row: T) => void;
 }
 
 export function DataTable<T extends { id: string }>({
@@ -58,6 +59,7 @@ export function DataTable<T extends { id: string }>({
   renderActions,
   emptyMessage,
   rowClassName,
+  onRowClick,
 }: DataTableProps<T>) {
   const { t } = useLang();
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -127,7 +129,11 @@ export function DataTable<T extends { id: string }>({
               <EmptyTableRow colSpan={columns.length + (renderActions ? 1 : 0)} message={emptyMessage ?? (t("common.noResults") ?? "No results found")} />
             ) : (
               data.map((row) => (
-                <tr key={row.id} className={`hover:bg-muted/30 transition-colors ${rowClassName?.(row) ?? ""}`}>
+                <tr
+                  key={row.id}
+                  className={`transition-colors ${onRowClick ? "cursor-pointer hover:bg-muted/50" : "hover:bg-muted/30"} ${rowClassName?.(row) ?? ""}`}
+                  onClick={onRowClick ? () => onRowClick(row) : undefined}
+                >
                   {columns.map((col) => (
                     <td key={col.key} className={`py-3 pr-3 ${col.className ?? ""}`}>
                       {col.render(row)}
