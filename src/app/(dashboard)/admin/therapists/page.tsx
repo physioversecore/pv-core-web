@@ -150,11 +150,13 @@ export default function AdminTherapists() {
       {
         key: "city",
         label: t("admin_dashboard.city") ?? "City",
+        sortable: true,
         render: (row) => <span className="text-text-light">{row.city}</span>,
       },
       {
         key: "specialty",
         label: t("admin_dashboard.specialty") ?? "Specialty",
+        sortable: true,
         render: (row) => <span className="text-text-light">{row.specialty}</span>,
       },
       {
@@ -173,6 +175,7 @@ export default function AdminTherapists() {
       {
         key: "sessions",
         label: t("admin_dashboard.sessions") ?? "Sessions",
+        sortable: true,
         render: (row) => <span className="font-mono text-xs">{row.sessions}</span>,
       },
       {
@@ -184,6 +187,7 @@ export default function AdminTherapists() {
       {
         key: "status",
         label: t("admin_dashboard.status") ?? "Status",
+        sortable: true,
         render: (row) => <StatusChip status={row.status} />,
       },
     ],

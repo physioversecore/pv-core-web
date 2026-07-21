@@ -66,6 +66,8 @@ export async function getAdminPatients(params?: AdminListParams & { therapistId?
   if (params?.search) sp.set("search", params.search);
   if (params?.dateFrom) sp.set("dateFrom", params.dateFrom);
   if (params?.dateTo) sp.set("dateTo", params.dateTo);
+  if (params?.status) sp.set("status", params.status);
+  if (params?.city) sp.set("city", params.city);
   if (params?.therapistId) sp.set("therapistId", params.therapistId);
   if (params?.sortBy) sp.set("sortBy", params.sortBy);
   if (params?.sortOrder) sp.set("sortOrder", params.sortOrder);

@@ -153,16 +153,19 @@ export default function AdminPatients() {
       {
         key: "city",
         label: t("admin_dashboard.city") ?? "City",
+        sortable: true,
         render: (row) => <span className="text-text-light">{row.city}</span>,
       },
       {
         key: "sessions",
         label: t("admin_dashboard.sessions") ?? "Sessions",
+        sortable: true,
         render: (row) => <span className="font-mono text-xs">{row.sessions}</span>,
       },
       {
         key: "therapist",
         label: t("admin_dashboard.therapist") ?? "Therapist",
+        sortable: true,
         render: (row) => <span className="text-text-light">{row.therapist}</span>,
       },
       {
@@ -174,6 +177,7 @@ export default function AdminPatients() {
       {
         key: "isActive",
         label: t("admin_dashboard.status") ?? "Status",
+        sortable: true,
         render: (row) => <StatusChip status={row.isActive ? "Active" : "Inactive"} />,
       },
     ],
