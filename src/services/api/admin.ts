@@ -226,6 +226,10 @@ export async function updateAdminComplaint(id: string, data: Partial<AdminCompla
   return api.put<AdminComplaintData>(`/admin/complaints/${id}`, data);
 }
 
+export async function deleteAdminComplaint(id: string) {
+  return api.delete(`/admin/complaints/${id}`);
+}
+
 export interface PatientComplaintPayload {
   patientId: string;
   patient: string;
@@ -648,6 +652,41 @@ export async function getAdminActivityLog(params?: AdminActivityLogListParams) {
   if (params?.dateFrom) sp.set("dateFrom", params.dateFrom);
   if (params?.dateTo) sp.set("dateTo", params.dateTo);
   return api.get<ListResponse<AdminActivityLogEntry>>(`/admin/activity-log?${sp.toString()}`);
+}
+
+// --- Admin Dashboard Overview ---
+export interface AdminDashboardStats {
+  totalTherapists: number;
+  totalPatients: number;
+  sessionsThisWeek: number;
+  pendingVerifications: number;
+}
+
+export async function getAdminDashboardStats() {
+  return api.get<AdminDashboardStats>("/admin/dashboard/stats");
+}
+
+export interface AdminEarningsData {
+  platformEarnings: number;
+  description: string;
+}
+
+export async function getAdminDashboardEarnings() {
+  return api.get<AdminEarningsData>("/admin/dashboard/earnings");
+}
+
+export interface AdminRecentActivity {
+  id: string;
+  patientName: string;
+  therapistName: string;
+  type: string;
+  timestamp: string;
+}
+
+export async function getAdminRecentActivity(limit?: number) {
+  const sp = new URLSearchParams();
+  if (limit) sp.set("limit", String(limit));
+  return api.get<AdminRecentActivity[]>(`/admin/dashboard/recent-activity?${sp.toString()}`);
 }
 
 // --- Analytics ---

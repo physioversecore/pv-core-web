@@ -30,17 +30,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      router.push("/");
+      router.replace(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
       return;
     }
-
     const expectedPrefix = ROLE_ROUTES[user.role];
     if (!pathname.startsWith(expectedPrefix)) {
-      router.push(expectedPrefix);
+      router.replace(expectedPrefix);
     }
   }, [loading, user, pathname, router]);
 
-  if (loading) return null;
+  if (loading || !user) return null;
 
   let nav: NavItem[] = adminNav;
   let role = "admin";
