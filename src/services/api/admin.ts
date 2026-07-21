@@ -100,7 +100,7 @@ export async function getAdminTherapists(params?: AdminListParams) {
   if (params?.sortBy) sp.set("sortBy", params.sortBy);
   if (params?.sortOrder) sp.set("sortOrder", params.sortOrder);
 
-  return api.get<ListResponse<AdminTherapistData>>(`/admin/therapists?${sp.toString()}`);
+  return api.get<ListResponse<AdminTherapistData>>(`/admin/therapists?${sp.toString()}.json()`);
 }
 
 export async function updateAdminTherapist(id: string, data: Partial<AdminTherapistData>) {

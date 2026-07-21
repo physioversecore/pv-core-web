@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SortableHeader } from "./SortableHeader";
 import { EmptyTableRow } from "@/components/dashboard/EmptyTableRow";
 import { useLang } from "@/context/i18n";
+import { AlertTriangle, RefreshCw } from "lucide-react";
 import type { SortDirection } from "@/hooks/useTableSort";
 import {
   Pagination,
@@ -28,6 +29,8 @@ interface DataTableProps<T> {
   data: T[];
   total: number;
   isLoading?: boolean;
+  error?: Error | null;
+  onRetry?: () => void;
   sortColumn: string;
   sortOrder: SortDirection;
   onSortToggle: (column: string) => void;
@@ -44,6 +47,8 @@ export function DataTable<T extends { id: string }>({
   data,
   total,
   isLoading,
+  error,
+  onRetry,
   sortColumn,
   sortOrder,
   onSortToggle,
@@ -69,6 +74,26 @@ export function DataTable<T extends { id: string }>({
             <Skeleton className="h-4 w-20" />
           </div>
         ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+        <AlertTriangle size={32} className="text-red-500" />
+        <p className="text-sm text-text-light max-w-sm">
+          {error.message || "Failed to load data. Please try again."}
+        </p>
+        {onRetry && (
+          <button
+            onClick={onRetry}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-secondary hover:underline cursor-pointer"
+          >
+            <RefreshCw size={13} />
+            {t("common.tryAgain") ?? "Try again"}
+          </button>
+        )}
       </div>
     );
   }

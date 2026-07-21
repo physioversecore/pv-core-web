@@ -37,7 +37,7 @@ export default function AdminPatients() {
   const { sort, toggleSort, sortBy, sortOrder } = useTableSort({ defaultColumn: "name" });
   const pageSize = 10;
 
-  const { items, total, isLoading, deletePatient, togglePatientStatus, updatePatient } = useAdminPatients({
+  const { items, total, isLoading, error, refetch, deletePatient, togglePatientStatus, updatePatient } = useAdminPatients({
     search: debouncedSearch,
     dateFrom,
     dateTo,
@@ -282,6 +282,8 @@ export default function AdminPatients() {
           data={items}
           total={total}
           isLoading={isLoading}
+          error={error}
+          onRetry={() => refetch()}
           sortColumn={sort.column}
           sortOrder={sort.direction}
           onSortToggle={(col) => {

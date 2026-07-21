@@ -36,7 +36,7 @@ export default function AdminTherapists() {
   const { sort, toggleSort, sortBy, sortOrder } = useTableSort({ defaultColumn: "name" });
   const pageSize = 10;
 
-  const { items, total, isLoading, deleteTherapist, toggleTherapistStatus, updateTherapist } = useAdminTherapists({
+  const { items, total, isLoading, error, refetch, deleteTherapist, toggleTherapistStatus, updateTherapist } = useAdminTherapists({
     search: debouncedSearch,
     specialty,
     status,
@@ -304,6 +304,8 @@ export default function AdminTherapists() {
           data={items}
           total={total}
           isLoading={isLoading}
+          error={error}
+          onRetry={() => refetch()}
           sortColumn={sort.column}
           sortOrder={sort.direction}
           onSortToggle={(col) => {
