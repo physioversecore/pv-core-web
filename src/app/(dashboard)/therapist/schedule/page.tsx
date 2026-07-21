@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { useTherapistSchedule } from "@/hooks/useTherapistSchedule";
+import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import ScheduleCalendar from "@/components/schedule/ScheduleCalendar";
 import type { ScheduleAppointment } from "@/hooks/useTherapistSchedule";
 
@@ -14,6 +15,8 @@ export default function TherapistSchedulePage() {
     appointments,
     workingHours,
     isLoading,
+    isRefetching,
+    refetch,
     requestReschedule,
     requestDecline,
     isRequesting,
@@ -35,11 +38,16 @@ export default function TherapistSchedulePage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <p className="eyebrow mb-1">Schedule</p>
-        <h1 className="text-[30px] font-display text-text font-semibold">
-          My schedule
-        </h1>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="eyebrow mb-1">Schedule</p>
+          <h1 className="text-[30px] font-display text-text font-semibold">
+            My schedule
+          </h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
+        </div>
       </div>
 
       <ScheduleCalendar

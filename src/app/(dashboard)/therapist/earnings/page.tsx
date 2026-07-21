@@ -9,6 +9,7 @@ import {
   useTherapistTransactions,
   useTherapistPayouts,
 } from "@/hooks/useTherapistEarnings";
+import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import {
   Pagination,
   PaginationContent,
@@ -269,9 +270,9 @@ export default function Earnings() {
   const txPagination = usePagination({ pageSize: 10 });
   const payoutPagination = usePagination({ pageSize: 10 });
 
-  const { isLoading: txLoading } =
+  const { isLoading: txLoading, isRefetching: txRefetching, refetch: refetchTx } =
     useTherapistTransactions({ pagination: txPagination, period });
-  const { isLoading: payoutLoading } =
+  const { isLoading: payoutLoading, isRefetching: payoutRefetching, refetch: refetchPayout } =
     useTherapistPayouts({ pagination: payoutPagination, period });
 
   useEffect(() => {
@@ -317,20 +318,26 @@ export default function Earnings() {
   const fee = Math.round(gross * 0.15);
   const net = gross - fee;
 
+  const isRefetching = txRefetching || payoutRefetching;
+  const handleRefresh = () => { refetchTx(); refetchPayout(); };
+
   return (
     <>
-      <div className="tabs-filter">
-        {TABS.map((tabKey) => (
-          <button
-            key={tabKey}
-            onClick={() => setTab(tabKey)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-              tab === tabKey ? "tab-active" : "text-text-light hover:text-text"
-            }`}
-          >
-            {t(`therapist_dashboard.${tabKey}`)}
-          </button>
-        ))}
+      <div className="flex items-center justify-between mb-4">
+        <div className="tabs-filter">
+          {TABS.map((tabKey) => (
+            <button
+              key={tabKey}
+              onClick={() => setTab(tabKey)}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                tab === tabKey ? "tab-active" : "text-text-light hover:text-text"
+              }`}
+            >
+              {t(`therapist_dashboard.${tabKey}`)}
+            </button>
+          ))}
+        </div>
+        <RefreshButton onRefresh={handleRefresh} isRefreshing={isRefetching} />
       </div>
 
       <div className="stats-grid">

@@ -7,6 +7,7 @@ import { AlertTriangle, Paperclip, X, CheckCircle2, FileText } from "lucide-reac
 import { useLang } from "@/context/i18n";
 import { useSessions } from "@/hooks/useSessions";
 import { useTherapistComplaints } from "@/hooks/useTherapistComplaints";
+import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import { StatusChip, type StatusType } from "@/components/tables/StatusChip";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
@@ -39,7 +40,7 @@ function ComplaintsContent() {
   const prefillBookingId = searchParams.get("bookingId") ?? "";
 
   const { sessions, isLoading: sessionsLoading } = useSessions();
-  const { items: myComplaints, submitComplaint, isSubmitting } = useTherapistComplaints(MOCK_THERAPIST_ID);
+  const { items: myComplaints, submitComplaint, isSubmitting, refetch, isRefetching } = useTherapistComplaints(MOCK_THERAPIST_ID);
 
   const [form, setForm] = useState({
     bookingId: prefillBookingId,
@@ -192,6 +193,9 @@ function ComplaintsContent() {
 
   return (
     <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
+      </div>
       <form onSubmit={handleSubmit} className="card-soft p-5">
         <p className="eyebrow mb-1">{t("therapist_complaints.fileComplaint")}</p>
         <h3 className="font-display text-lg mb-1">{t("therapist_complaints.reportIssue")}</h3>

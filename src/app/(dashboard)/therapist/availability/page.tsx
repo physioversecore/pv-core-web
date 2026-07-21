@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useManageAvailability } from "@/hooks/useManageAvailability";
+import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import { ScheduleBuilder } from "@/components/availability/ScheduleBuilder";
 import { DailyView } from "@/components/availability/DailyView";
 import { WeeklyView } from "@/components/availability/WeeklyView";
@@ -59,11 +60,14 @@ export default function ManageAvailabilityPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <p className="eyebrow mb-1">Schedule</p>
-        <h1 className="text-[30px] font-display text-text font-semibold">
-          Manage availability
-        </h1>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="eyebrow mb-1">Schedule</p>
+          <h1 className="text-[30px] font-display text-text font-semibold">
+            Manage availability
+          </h1>
+        </div>
+        <RefreshButton onRefresh={() => av.refetch()} isRefreshing={av.isRefetching} />
       </div>
 
       {/* Schedule builder + Audit log side by side (large screens only) */}

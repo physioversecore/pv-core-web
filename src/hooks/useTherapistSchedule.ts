@@ -90,7 +90,7 @@ export function useTherapistSchedule(
     queryFn: getWorkingHours,
   });
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isRefetching, refetch } = useQuery({
     queryKey: ["therapist-schedule", therapistId, startDate, endDate],
     queryFn: () =>
       getSessions({
@@ -135,6 +135,8 @@ export function useTherapistSchedule(
     appointments,
     workingHours: workingHours ?? ({ start: "08:00", end: "18:00", slotInterval: 60, sessionDuration: 60, breakDuration: 0, daysOfWeek: [] } as WorkingHours),
     isLoading: isLoading || whLoading || therapistLoading,
+    isRefetching,
+    refetch,
     requestReschedule: requestReschedule.mutateAsync,
     requestDecline: requestDecline.mutateAsync,
     isRequesting: requestReschedule.isPending || requestDecline.isPending,

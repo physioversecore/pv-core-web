@@ -5,6 +5,7 @@ import { Calendar, CalendarClock, AlertTriangle, CreditCard, Settings, CheckChec
 import { toast } from "sonner";
 import { useLang } from "@/context/i18n";
 import { useAdminNotifications } from "@/hooks/useAdminNotifications";
+import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import type { AdminNotificationData } from "@/services/api/admin";
 
 type CategoryFilter = "" | "booking" | "reschedule" | "complaint" | "payment" | "system";
@@ -23,7 +24,7 @@ export default function AdminNotifications() {
   const [page, setPage] = useState(1);
   const pageSize = 20;
 
-  const { items, total, unreadCount, isLoading, markRead, markAllRead } = useAdminNotifications({
+  const { items, total, unreadCount, isLoading, isRefetching, refetch, markRead, markAllRead } = useAdminNotifications({
     category,
     page,
     pageSize,
@@ -66,9 +67,12 @@ export default function AdminNotifications() {
             <h3 className="font-display text-xl">{t("notifications.title") ?? "Notifications"}</h3>
             <p className="text-sm text-text-light mt-1">{t("notifications.subtitle") ?? "Every cancellation, reschedule, payment and complaint, in one feed."}</p>
           </div>
-          <button onClick={handleMarkAllRead} className="btn-outline !py-2 !px-3 text-xs cursor-pointer">
-            <CheckCheck size={14} className="inline mr-1" /> {t("admin_dashboard.markAllRead") ?? "Mark all as read"}
-          </button>
+          <div className="flex items-center gap-2">
+            <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
+            <button onClick={handleMarkAllRead} className="btn-outline !py-2 !px-3 text-xs cursor-pointer">
+              <CheckCheck size={14} className="inline mr-1" /> {t("admin_dashboard.markAllRead") ?? "Mark all as read"}
+            </button>
+          </div>
         </div>
 
         <div className="tabs-filter mb-5">

@@ -71,6 +71,7 @@ export function useAdminPatients(params: UseAdminPatientsParams) {
     items: query.data?.items ?? [],
     total: query.data?.total ?? 0,
     isLoading: query.isLoading,
+    isRefetching: query.isRefetching,
     error: query.error as Error | null,
     refetch: query.refetch,
     deletePatient: useCallback((id: string) => deleteMutation.mutateAsync(id), [deleteMutation]),

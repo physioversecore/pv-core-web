@@ -15,6 +15,7 @@ import { SessionCard } from "@/components/sessions/SessionCard";
 import { SessionTable } from "@/components/sessions/SessionTable";
 import { SessionSkeleton } from "@/components/sessions/SessionSkeleton";
 import { useSessions, useSessionDetail } from "@/hooks/useSessions";
+import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import { useLang } from "@/context/i18n";
 import { getTherapists } from "@/services/api/therapists";
 import { mapSessionStatus } from "@/lib/format";
@@ -40,7 +41,7 @@ function SessionsContent() {
   const [rescheduleTarget, setRescheduleTarget] = useState<SessionData | null>(null);
   const [rateTarget, setRateTarget] = useState<SessionData | null>(null);
 
-  const { sessions, isLoading, cancelSession, isCancelling, rescheduleSession, isRescheduling } = useSessions();
+  const { sessions, isLoading, isRefetching, refetch, cancelSession, isCancelling, rescheduleSession, isRescheduling } = useSessions();
   const { data: therapistsData } = useQuery({
     queryKey: ["therapists"],
     queryFn: () => getTherapists(),
@@ -168,6 +169,7 @@ function SessionsContent() {
 
       {/* Toolbar */}
       <div className="flex items-center gap-3 mb-4 flex-wrap">
+        <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
         <div className="relative flex-1 min-w-[200px] max-w-xs">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" />
           <input

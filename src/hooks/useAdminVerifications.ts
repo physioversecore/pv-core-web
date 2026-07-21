@@ -86,6 +86,8 @@ export function useAdminVerifications(params: UseAdminVerificationsParams) {
     items,
     total,
     isLoading: query.isLoading,
+    isRefetching: query.isRefetching,
+    refetch: query.refetch,
     approveVerif: (id: string) => approveMutation.mutateAsync(id),
     rejectVerif: (id: string, note: string) => rejectMutation.mutateAsync({ id, note }),
     editVerif: useCallback(

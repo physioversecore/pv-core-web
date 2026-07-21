@@ -78,6 +78,7 @@ export function useAdminTherapists(params: UseAdminTherapistsParams) {
     items: query.data?.items ?? [],
     total: query.data?.total ?? 0,
     isLoading: query.isLoading,
+    isRefetching: query.isRefetching,
     error: query.error as Error | null,
     refetch: query.refetch,
     deleteTherapist,

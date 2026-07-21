@@ -79,6 +79,8 @@ export function useAdminIncidents(params: UseAdminIncidentsParams) {
     items,
     total,
     isLoading: query.isLoading,
+    isRefetching: query.isRefetching,
+    refetch: query.refetch,
     escalate: (id: string) => escalateMutation.mutateAsync(id),
     resolve: (id: string, outcome: string) => resolveMutation.mutateAsync({ id, outcome }),
   };

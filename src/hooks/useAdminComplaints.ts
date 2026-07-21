@@ -106,6 +106,8 @@ export function useAdminComplaints(params: UseAdminComplaintsParams) {
     items,
     total,
     isLoading: query.isLoading,
+    isRefetching: query.isRefetching,
+    refetch: query.refetch,
     updateComplaint: (id: string, data: Partial<AdminComplaintData>) =>
       updateMutation.mutateAsync({ id, data }),
     deleteComplaint: (id: string) => deleteMutation.mutateAsync(id),

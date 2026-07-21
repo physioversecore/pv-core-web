@@ -164,7 +164,7 @@ export function useManageAvailability(userId?: string | null) {
     queryFn: getWorkingDays,
   });
 
-  const { data: slotsData, isLoading: slotsLoading } = useQuery({
+  const { data: slotsData, isLoading: slotsLoading, refetch: refetchSlots, isRefetching: isRefetchingSlots } = useQuery({
     queryKey: ["availability", "slots-range", dateFrom, dateTo],
     queryFn: () => getSlotsForRange(dateFrom, dateTo),
     enabled: !!dateFrom && !!dateTo,
@@ -558,6 +558,8 @@ export function useManageAvailability(userId?: string | null) {
     setAuditPage,
     auditLimit: AUDIT_LIMIT,
     isLoading: slotsLoading,
+    refetch: refetchSlots,
+    isRefetching: isRefetchingSlots,
     generateAvailability: generateMutation.mutateAsync,
     isGenerating: generateMutation.isPending,
     hasConfigChanged,

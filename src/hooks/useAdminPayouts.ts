@@ -95,6 +95,8 @@ export function useAdminPayouts(params: UseAdminPayoutsParams) {
     items,
     total,
     isLoading: query.isLoading,
+    isRefetching: query.isRefetching,
+    refetch: query.refetch,
     deletePayout: useCallback((id: string) => deleteMutation.mutateAsync(id), [deleteMutation]),
     updatePayout: useCallback(
       (id: string, data: Partial<AdminPayoutData>) => updateMutation.mutateAsync({ id, data }),

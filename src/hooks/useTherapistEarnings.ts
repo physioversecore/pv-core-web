@@ -59,7 +59,7 @@ export function useTherapistTransactions({
   pagination,
   period,
 }: UseTherapistListOptions) {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isRefetching, refetch } = useQuery({
     queryKey: [
       "therapist-transactions",
       pagination.skip,
@@ -85,6 +85,8 @@ export function useTherapistTransactions({
     transactions: paged,
     total,
     isLoading,
+    isRefetching,
+    refetch,
   };
 }
 
@@ -92,7 +94,7 @@ export function useTherapistPayouts({
   pagination,
   period,
 }: UseTherapistListOptions) {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isRefetching, refetch } = useQuery({
     queryKey: [
       "therapist-payouts",
       pagination.skip,
@@ -118,5 +120,7 @@ export function useTherapistPayouts({
     payouts: paged,
     total,
     isLoading,
+    isRefetching,
+    refetch,
   };
 }

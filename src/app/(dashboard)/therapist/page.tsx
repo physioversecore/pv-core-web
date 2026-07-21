@@ -2,6 +2,7 @@
 
 import { Suspense } from "react";
 import { useTherapistDashboard } from "@/hooks/useTherapistDashboard";
+import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { StatsSkeleton, CardSkeleton, AppointmentsSkeleton } from "@/components/SuspenseFallback";
 import {
@@ -65,11 +66,14 @@ function ReferSection() {
 }
 
 export default function TherapistOverview() {
-  const { dashboard } = useTherapistDashboard();
+  const { dashboard, refetch, isRefetching } = useTherapistDashboard();
 
   return (
     <div>
-      <WelcomeHeader name={dashboard?.name} />
+      <div className="flex items-center justify-between">
+        <WelcomeHeader name={dashboard?.name} />
+        <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
+      </div>
       <StatsSection />
       <TodaySection />
       <UploadReport />

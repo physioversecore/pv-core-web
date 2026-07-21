@@ -89,6 +89,8 @@ export function useTherapistComplaints(therapistId: string) {
     items,
     total,
     isLoading: query.isLoading,
+    refetch: query.refetch,
+    isRefetching: query.isRefetching,
     submitComplaint,
     isSubmitting: submitMutation.isPending,
   };

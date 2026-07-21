@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useCart } from "@/context/cart";
 import { useLang } from "@/context/i18n";
+import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import { npr } from "@/utils/format";
 import { getProducts } from "@/services/api/products";
 import type { Product } from "@/types";
@@ -18,7 +19,7 @@ export default function Shop() {
   const { t } = useLang();
   const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("equipment");
 
-  const { data } = useQuery({
+  const { data, refetch, isRefetching } = useQuery({
     queryKey: ["products", tab],
     queryFn: () => getProducts(tab),
   });
@@ -36,10 +37,13 @@ export default function Shop() {
 
   return (
     <div>
-      <div className="flex gap-1 p-1 bg-surface rounded-full mb-6 w-fit">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex gap-1 p-1 bg-surface rounded-full w-fit">
         {TABS.map((tabItem) => (
           <button key={tabItem.id} onClick={() => setTab(tabItem.id)} className={`px-4 py-1.5 rounded-full text-sm font-medium ${tab === tabItem.id ? "bg-white text-secondary shadow-sm" : "text-text-light"}`}>{t(`patient_dashboard.${tabItem.key}`)}</button>
         ))}
+        </div>
+        <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
       </div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {items.map((p) => <ProductCard key={p.id} p={p} />)}

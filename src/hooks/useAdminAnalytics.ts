@@ -77,5 +77,7 @@ export function useAdminAnalytics(dateRange?: string) {
     cancellation: cancelQuery.data ?? SEED_CANCELLATION,
     revenue: revenueQuery.data ?? SEED_REVENUE,
     isLoading: statsQuery.isLoading || zoneQuery.isLoading || cancelQuery.isLoading || revenueQuery.isLoading,
+    isRefetching: statsQuery.isRefetching || zoneQuery.isRefetching || cancelQuery.isRefetching || revenueQuery.isRefetching,
+    refetch: () => Promise.all([statsQuery.refetch(), zoneQuery.refetch(), cancelQuery.refetch(), revenueQuery.refetch()]),
   };
 }

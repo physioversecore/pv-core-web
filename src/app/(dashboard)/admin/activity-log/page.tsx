@@ -6,6 +6,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { useTableSort } from "@/hooks/useTableSort";
 import { useAdminActivityLog } from "@/hooks/useAdminActivityLog";
 import { DataTable, FilterBar, type Column, type FilterConfig } from "@/components/tables";
+import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import { toast } from "sonner";
 import type { AdminActivityLogEntry } from "@/services/api/admin";
 
@@ -37,7 +38,7 @@ export default function ActivityLogPage() {
   const { sort, toggleSort, sortBy, sortOrder } = useTableSort({ defaultColumn: "timestamp", defaultDirection: "desc" });
   const pageSize = 15;
 
-  const { items, total, isLoading } = useAdminActivityLog({
+  const { items, total, isLoading, isRefetching, refetch } = useAdminActivityLog({
     search: debouncedSearch,
     adminId,
     actionType,
@@ -180,6 +181,7 @@ export default function ActivityLogPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
             <button
               onClick={() => setShowFilters(!showFilters)}
               className={`btn-outline !py-2 !px-3 text-xs cursor-pointer ${showFilters ? "!bg-secondary !text-white" : ""}`}

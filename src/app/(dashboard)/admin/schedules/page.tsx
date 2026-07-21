@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useLang } from "@/context/i18n";
 import { useTherapists } from "@/hooks/useTherapists";
 import { useTherapistSchedule } from "@/hooks/useTherapistSchedule";
+import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import ScheduleCalendar from "@/components/schedule/ScheduleCalendar";
 
 interface Booking { id: string; patient: string; therapist: string; when: string; location: string; status: "Confirmed" | "Pending" | "Completed" | "Cancelled"; }
@@ -40,7 +41,7 @@ function getCurrentWeekRange() {
 
 export default function AdminBookings() {
   const { t } = useLang();
-  const { therapists } = useTherapists();
+  const { therapists, isRefetching: therapistsRefetching, refetch: refetchTherapists } = useTherapists();
   const [selectedTherapistId, setSelectedTherapistId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"schedule" | "list">("schedule");
 
@@ -49,7 +50,7 @@ export default function AdminBookings() {
   const [filter, setFilter] = useState<(typeof STATUSES)[number]>("All statuses");
 
   const weekRange = useMemo(() => getCurrentWeekRange(), []);
-  const { appointments, workingHours, isLoading: scheduleLoading } = useTherapistSchedule(
+  const { appointments, workingHours, isLoading: scheduleLoading, isRefetching: scheduleRefetching, refetch: refetchSchedule } = useTherapistSchedule(
     selectedTherapistId,
     weekRange.start,
     weekRange.end,
@@ -76,6 +77,10 @@ export default function AdminBookings() {
         <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
           <h3 className="font-display text-xl">{t("admin_dashboard.allBookings")}</h3>
           <div className="flex items-center gap-2">
+            <RefreshButton
+              onRefresh={() => { refetchTherapists(); refetchSchedule(); }}
+              isRefreshing={therapistsRefetching || scheduleRefetching}
+            />
             <div className="flex items-center gap-1.5 bg-surface rounded-lg p-0.5">
               <button
                 onClick={() => setActiveTab("schedule")}

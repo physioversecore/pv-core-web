@@ -78,6 +78,8 @@ export function useAdminTeam() {
   return {
     items,
     isLoading: query.isLoading,
+    isRefetching: query.isRefetching,
+    refetch: query.refetch,
     inviteAdmin: useCallback(
       (data: { email: string; name: string; role: AdminRoleName }) => inviteMutation.mutateAsync(data),
       [inviteMutation],

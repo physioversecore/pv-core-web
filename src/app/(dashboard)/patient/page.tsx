@@ -4,8 +4,10 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { useLang } from "@/context/i18n";
+import { usePatientDashboard } from "@/hooks/usePatientDashboard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { StatsSkeleton, CardSkeleton, AppointmentsSkeleton } from "@/components/SuspenseFallback";
+import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import { WelcomeHeader, Statistics, UpcomingAppointments, RateTherapist, ReferFriend } from "./components";
 
 function StatsSection() {
@@ -31,10 +33,14 @@ function ReferSection() {
 export default function Overview() {
   const { t } = useLang();
   const { user } = useAuth();
+  const { refetch, isRefetching } = usePatientDashboard();
 
   return (
     <div>
-      <WelcomeHeader name={user!.name} />
+      <div className="flex items-center justify-between">
+        <WelcomeHeader name={user!.name} />
+        <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
+      </div>
       <StatsSection />
       <ErrorBoundary>
         <Suspense fallback={<AppointmentsSkeleton />}>

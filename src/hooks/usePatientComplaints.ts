@@ -97,6 +97,8 @@ export function usePatientComplaints(patientId: string) {
     items,
     total,
     isLoading: query.isLoading,
+    refetch: query.refetch,
+    isRefetching: query.isRefetching,
     submitComplaint,
     isSubmitting: submitMutation.isPending,
   };

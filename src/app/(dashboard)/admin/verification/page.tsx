@@ -18,6 +18,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { useTableSort } from "@/hooks/useTableSort";
 import { useAdminVerifications } from "@/hooks/useAdminVerifications";
 import { DashboardStat } from "@/components/dashboard/DashboardStat";
+import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import {
   DataTable,
   ActionMenu,
@@ -87,7 +88,7 @@ export default function VerificationPage() {
   });
   const pageSize = 10;
 
-  const { items, total, isLoading, approveVerif, rejectVerif, editVerif, deleteVerif } =
+  const { items, total, isLoading, isRefetching, refetch, approveVerif, rejectVerif, editVerif, deleteVerif } =
     useAdminVerifications({
       search: debouncedSearch,
       documentType,
@@ -402,12 +403,15 @@ export default function VerificationPage() {
 
   return (
     <div>
-      <div className="mb-5">
-        <h2 className="font-display text-xl">Therapist Verification</h2>
-        <p className="text-sm text-text-light mt-1">
-          License, ID, and certificate checks — no one takes a home visit
-          unverified.
-        </p>
+      <div className="flex items-center justify-between gap-3 flex-wrap mb-5">
+        <div>
+          <h2 className="font-display text-xl">Therapist Verification</h2>
+          <p className="text-sm text-text-light mt-1">
+            License, ID, and certificate checks — no one takes a home visit
+            unverified.
+          </p>
+        </div>
+        <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
       </div>
 
       <div className="stats-grid">

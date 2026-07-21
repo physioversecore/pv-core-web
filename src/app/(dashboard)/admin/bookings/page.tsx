@@ -15,6 +15,7 @@ import { useLang } from "@/context/i18n";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTableSort } from "@/hooks/useTableSort";
 import { useAdminBookings } from "@/hooks/useAdminBookings";
+import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import { FilterBar, StatusChip, type FilterConfig } from "@/components/tables";
 import BookingModal from "@/components/booking/BookingModal";
 import type { AdminBookingData, AdminBookingTrailEvent } from "@/services/api/admin";
@@ -83,7 +84,7 @@ export default function AdminBookingsPage() {
   const { sort, toggleSort, sortBy, sortOrder } = useTableSort({ defaultColumn: "date" });
   const pageSize = 20;
 
-  const { items: apiItems, total: apiTotal, isLoading } = useAdminBookings({
+  const { items: apiItems, total: apiTotal, isLoading, isRefetching, refetch } = useAdminBookings({
     search: debouncedSearch,
     status,
     dateFrom,
@@ -185,13 +186,16 @@ export default function AdminBookingsPage() {
               Cancellations and reschedules update the therapist&apos;s calendar instantly and notify both sides.
             </p>
           </div>
-          <button
-            onClick={() => setShowBookingModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#1F3D2B] text-white text-sm font-semibold hover:bg-[#1F3D2B]/90 transition-colors shrink-0"
-          >
-            <Plus size={16} />
-            Book Session
-          </button>
+          <div className="flex items-center gap-2">
+            <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
+            <button
+              onClick={() => setShowBookingModal(true)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#1F3D2B] text-white text-sm font-semibold hover:bg-[#1F3D2B]/90 transition-colors shrink-0"
+            >
+              <Plus size={16} />
+              Book Session
+            </button>
+          </div>
         </div>
 
         <FilterBar

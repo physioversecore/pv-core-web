@@ -29,5 +29,7 @@ export function useAdminPaymentStats() {
   return {
     stats,
     isLoading: query.isLoading,
+    isRefetching: query.isRefetching,
+    refetch: query.refetch,
   };
 }

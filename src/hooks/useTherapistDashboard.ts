@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getTherapistDashboard } from "@/services/api/therapists";
 
 export function useTherapistDashboard() {
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch, isRefetching } = useQuery({
     queryKey: ["therapist-dashboard"],
     queryFn: () => getTherapistDashboard(),
   });
@@ -13,5 +13,7 @@ export function useTherapistDashboard() {
     dashboard: data ?? null,
     isLoading,
     error,
+    refetch,
+    isRefetching,
   };
 }

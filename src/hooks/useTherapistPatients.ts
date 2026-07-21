@@ -35,7 +35,7 @@ export function useTherapistPatients({
   condition,
   lastVisit,
 }: UseTherapistPatientsOptions) {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: [
       "therapist-patients",
       pagination.skip,
@@ -88,5 +88,7 @@ export function useTherapistPatients({
     patients: apiPatients && apiPatients.length > 0 ? apiPatients : paged,
     total: apiTotal ?? filtered.length,
     isLoading,
+    refetch,
+    isRefetching,
   };
 }

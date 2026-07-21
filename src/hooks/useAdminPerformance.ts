@@ -54,6 +54,8 @@ export function useAdminPerformance(params: UseAdminPerformanceParams) {
     items,
     total,
     isLoading: query.isLoading,
+    isRefetching: query.isRefetching,
+    refetch: query.refetch,
   };
 }
 

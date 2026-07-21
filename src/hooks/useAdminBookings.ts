@@ -137,6 +137,8 @@ export function useAdminBookings(params: UseAdminBookingsParams) {
     items,
     total,
     isLoading: query.isLoading,
+    isRefetching: query.isRefetching,
+    refetch: query.refetch,
   };
 }
 

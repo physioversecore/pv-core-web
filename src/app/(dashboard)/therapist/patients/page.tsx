@@ -5,6 +5,7 @@ import { Avatar } from "@/components/Avatar";
 import { useLang } from "@/context/i18n";
 import { usePagination } from "@/hooks/usePagination";
 import { useTherapistPatients } from "@/hooks/useTherapistPatients";
+import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import {
   Pagination,
   PaginationContent,
@@ -62,7 +63,7 @@ export default function Patients() {
 
   const pagination = usePagination({ pageSize: 10 });
 
-  const { patients, total, isLoading } = useTherapistPatients({
+  const { patients, total, isLoading, refetch, isRefetching } = useTherapistPatients({
     pagination,
     search,
     condition: conditionFilter,
@@ -112,6 +113,9 @@ export default function Patients() {
 
   return (
     <>
+      <div className="flex items-center justify-between mb-4">
+        <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
+      </div>
       {/* ─── Search & Filters ─── */}
       <div className="card-soft p-4 mb-4 space-y-3">
         <div className="flex flex-col sm:flex-row gap-3">

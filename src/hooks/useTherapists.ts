@@ -6,7 +6,7 @@ import { getTherapists } from "@/services/api/therapists";
 import type { Therapist } from "@/types";
 
 export function useTherapists() {
-  const { data } = useQuery({
+  const { data, isRefetching, refetch } = useQuery({
     queryKey: ["therapists"],
     queryFn: () => getTherapists(),
   });
@@ -16,7 +16,7 @@ export function useTherapists() {
     gender: t.gender as "Male" | "Female",
   }));
 
-  return { therapists, total: data?.total ?? 0 };
+  return { therapists, total: data?.total ?? 0, isRefetching, refetch };
 }
 
 export function useFilteredTherapists(

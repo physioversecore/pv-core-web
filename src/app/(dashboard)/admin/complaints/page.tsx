@@ -8,6 +8,7 @@ import { useLang } from "@/context/i18n";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTableSort } from "@/hooks/useTableSort";
 import { useAdminComplaints } from "@/hooks/useAdminComplaints";
+import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import {
   DataTable,
   ActionMenu,
@@ -172,7 +173,7 @@ function ComplaintsTab({
   const { sort, toggleSort, sortBy, sortOrder } = useTableSort({ defaultColumn: "filed" });
   const pageSize = 10;
 
-  const { items, total, isLoading, updateComplaint } = useAdminComplaints({
+  const { items, total, isLoading, isRefetching, refetch, updateComplaint } = useAdminComplaints({
     type,
     search: debouncedSearch,
     status,
@@ -378,7 +379,8 @@ function ComplaintsTab({
 
   return (
     <div>
-      <div className="flex items-center justify-end mb-3">
+      <div className="flex items-center justify-between mb-3">
+        <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
         <button onClick={exportCsv} className="btn-outline !py-2 !px-3 text-xs cursor-pointer">
           <Download size={14} className="inline mr-1" /> {t("admin_dashboard.exportCsv") ?? "Export CSV"}
         </button>

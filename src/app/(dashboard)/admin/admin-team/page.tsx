@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useLang } from "@/context/i18n";
 import { useAdminTeam } from "@/hooks/useAdminTeam";
 import { StatusChip } from "@/components/tables";
+import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import { Avatar } from "@/components/Avatar";
 import type { AdminUserData, AdminRoleName } from "@/services/api/admin";
 
@@ -18,7 +19,7 @@ const PERMISSION_MATRIX: { permission: string; roles: AdminRoleName[] }[] = [
 
 export default function AdminTeamPage() {
   const { t } = useLang();
-  const { items, isLoading, inviteAdmin, updateRole, deactivate, reactivate } = useAdminTeam();
+  const { items, isLoading, isRefetching, refetch, inviteAdmin, updateRole, deactivate, reactivate } = useAdminTeam();
 
   const [showInvite, setShowInvite] = useState(false);
   const [editingAdmin, setEditingAdmin] = useState<AdminUserData | null>(null);
@@ -60,12 +61,15 @@ export default function AdminTeamPage() {
               Super Admins control who else can access this console, and what they can do.
             </p>
           </div>
-          <button
-            onClick={() => setShowInvite(true)}
-            className="btn-primary !py-2 !px-3 text-xs cursor-pointer"
-          >
-            <UserPlus size={14} className="inline mr-1" /> Invite admin
-          </button>
+          <div className="flex items-center gap-2">
+            <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
+            <button
+              onClick={() => setShowInvite(true)}
+              className="btn-primary !py-2 !px-3 text-xs cursor-pointer"
+            >
+              <UserPlus size={14} className="inline mr-1" /> Invite admin
+            </button>
+          </div>
         </div>
       </div>
 

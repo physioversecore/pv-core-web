@@ -8,6 +8,7 @@ import { useLang } from "@/context/i18n";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTableSort } from "@/hooks/useTableSort";
 import { useAdminPayments } from "@/hooks/useAdminPayments";
+import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import { useAdminPayouts } from "@/hooks/useAdminPayouts";
 import {
   DataTable,
@@ -44,6 +45,8 @@ export default function AdminPayments() {
     items: patientPayments,
     total: patientTotal,
     isLoading: patientLoading,
+    isRefetching,
+    refetch,
     deletePayment,
     updatePayment,
   } = useAdminPayments({
@@ -527,7 +530,10 @@ export default function AdminPayments() {
     <div className="space-y-6">
       {/* Patient Transactions */}
       <div className="card-soft p-5">
-        <h3 className="font-display text-xl mb-4">{t("admin_dashboard.patientTransactions") ?? "Patient Transactions"}</h3>
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <h3 className="font-display text-xl">{t("admin_dashboard.patientTransactions") ?? "Patient Transactions"}</h3>
+          <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
+        </div>
 
         <FilterBar
           filters={patientFilterConfig}

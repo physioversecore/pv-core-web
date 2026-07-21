@@ -112,5 +112,7 @@ export function useAdminDashboard() {
     activity,
     pendingTherapists,
     isLoading: statsQuery.isLoading || earningsQuery.isLoading || activityQuery.isLoading || pendingQuery.isLoading,
+    isRefetching: statsQuery.isRefetching || earningsQuery.isRefetching || activityQuery.isRefetching || pendingQuery.isRefetching,
+    refetch: () => Promise.all([statsQuery.refetch(), earningsQuery.refetch(), activityQuery.refetch(), pendingQuery.refetch()]),
   };
 }

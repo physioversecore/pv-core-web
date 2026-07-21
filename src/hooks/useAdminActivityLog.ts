@@ -50,7 +50,7 @@ export function useAdminActivityLog(params: UseAdminActivityLogParams) {
   const items = query.data?.items ?? seedFiltered;
   const total = query.data?.total ?? seedFiltered.length;
 
-  return { items, total, isLoading: query.isLoading };
+  return { items, total, isLoading: query.isLoading, isRefetching: query.isRefetching, refetch: query.refetch };
 }
 
 function useSeedFilter(

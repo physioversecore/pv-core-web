@@ -8,6 +8,7 @@ import { useLang } from "@/context/i18n";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTableSort } from "@/hooks/useTableSort";
 import { useAdminTherapists } from "@/hooks/useAdminTherapists";
+import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import {
   DataTable,
   ActionMenu,
@@ -36,7 +37,7 @@ export default function AdminTherapists() {
   const { sort, toggleSort, sortBy, sortOrder } = useTableSort({ defaultColumn: "name" });
   const pageSize = 10;
 
-  const { items, total, isLoading, error, refetch, deleteTherapist, toggleTherapistStatus, updateTherapist } = useAdminTherapists({
+  const { items, total, isLoading, isRefetching, error, refetch, deleteTherapist, toggleTherapistStatus, updateTherapist } = useAdminTherapists({
     search: debouncedSearch,
     specialty,
     status,
@@ -278,6 +279,7 @@ export default function AdminTherapists() {
         <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
           <h3 className="font-display text-xl">{t("admin_dashboard.allTherapists") ?? "All Therapists"}</h3>
           <div className="flex items-center gap-2">
+            <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
             <button
               onClick={() => setShowFilters(!showFilters)}
               className={`btn-outline !py-2 !px-3 text-xs cursor-pointer ${showFilters ? "!bg-secondary !text-white" : ""}`}

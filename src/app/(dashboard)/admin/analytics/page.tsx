@@ -5,6 +5,7 @@ import { Download } from "lucide-react";
 import Link from "next/link";
 import { useAdminAnalytics } from "@/hooks/useAdminAnalytics";
 import { DashboardStat } from "@/components/dashboard/DashboardStat";
+import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import {
   BarChart,
   Bar,
@@ -20,7 +21,7 @@ type DateRange = "this-month" | "last-3" | "last-6" | "custom";
 
 export default function AnalyticsPage() {
   const [dateRange, setDateRange] = useState<DateRange>("this-month");
-  const { stats, zones, cancellation, revenue, isLoading } = useAdminAnalytics(dateRange);
+  const { stats, zones, cancellation, revenue, isLoading, isRefetching, refetch } = useAdminAnalytics(dateRange);
 
   const exportReport = () => {
     toast.success("Report exported");
@@ -35,9 +36,12 @@ export default function AnalyticsPage() {
             The numbers behind the day-to-day — where to focus next.
           </p>
         </div>
-        <button onClick={exportReport} className="btn-outline !py-2 !px-3 text-xs cursor-pointer">
-          <Download size={14} className="inline mr-1" /> Export report
-        </button>
+        <div className="flex items-center gap-2">
+          <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
+          <button onClick={exportReport} className="btn-outline !py-2 !px-3 text-xs cursor-pointer">
+            <Download size={14} className="inline mr-1" /> Export report
+          </button>
+        </div>
       </div>
 
       <div className="tabs-filter mb-5">

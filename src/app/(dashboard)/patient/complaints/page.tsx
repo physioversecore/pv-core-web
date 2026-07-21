@@ -5,6 +5,7 @@ import { useSearchParams as useSearchParamsNav, useRouter } from "next/navigatio
 import { toast } from "sonner";
 import { AlertTriangle, Paperclip, X, CheckCircle2, FileText } from "lucide-react";
 import { useLang } from "@/context/i18n";
+import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import { useSessions } from "@/hooks/useSessions";
 import { usePatientComplaints } from "@/hooks/usePatientComplaints";
 import { StatusChip, type StatusType } from "@/components/tables/StatusChip";
@@ -38,7 +39,7 @@ function ComplaintsContent() {
   const prefillBookingId = searchParams.get("bookingId") ?? "";
 
   const { sessions, isLoading: sessionsLoading } = useSessions();
-  const { items: myComplaints, submitComplaint, isSubmitting } = usePatientComplaints(MOCK_PATIENT_ID);
+  const { items: myComplaints, submitComplaint, isSubmitting, refetch, isRefetching } = usePatientComplaints(MOCK_PATIENT_ID);
 
   const [form, setForm] = useState({
     bookingId: prefillBookingId,
@@ -192,8 +193,13 @@ function ComplaintsContent() {
   return (
     <div className="space-y-5">
       <form onSubmit={handleSubmit} className="card-soft p-5">
-        <p className="eyebrow mb-1">{t("patient_complaints.fileComplaint")}</p>
-        <h3 className="font-display text-lg mb-1">{t("patient_complaints.reportIssue")}</h3>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="eyebrow mb-1">{t("patient_complaints.fileComplaint")}</p>
+            <h3 className="font-display text-lg mb-1">{t("patient_complaints.reportIssue")}</h3>
+          </div>
+          <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
+        </div>
         <p className="text-sm text-text-light mb-4">{t("patient_complaints.reportDesc")}</p>
 
         <div className="grid sm:grid-cols-2 gap-3 mb-3">

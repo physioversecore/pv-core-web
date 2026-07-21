@@ -97,6 +97,8 @@ export function useAdminNotifications(params: UseAdminNotificationsParams) {
     total,
     unreadCount,
     isLoading: query.isLoading,
+    isRefetching: query.isRefetching,
+    refetch: query.refetch,
     markRead: useCallback((id: string) => markReadMutation.mutateAsync(id), [markReadMutation]),
     markAllRead: useCallback(() => markAllReadMutation.mutateAsync(), [markAllReadMutation]),
   };

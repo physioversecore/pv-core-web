@@ -97,6 +97,8 @@ export function useAdminPayments(params: UseAdminPaymentsParams) {
     items,
     total,
     isLoading: query.isLoading,
+    isRefetching: query.isRefetching,
+    refetch: query.refetch,
     deletePayment: useCallback((id: string) => deleteMutation.mutateAsync(id), [deleteMutation]),
     updatePayment: useCallback(
       (id: string, data: Partial<AdminPaymentData>) => updateMutation.mutateAsync({ id, data }),

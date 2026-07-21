@@ -13,7 +13,7 @@ interface UseSessionsOptions {
 export function useSessions(options?: UseSessionsOptions) {
   const queryClient = useQueryClient();
 
-  const { data: sessionsData, isLoading } = useQuery({
+  const { data: sessionsData, isLoading, isRefetching, refetch } = useQuery({
     queryKey: ["sessions", options?.skip, options?.limit],
     queryFn: () => getSessions({ skip: options?.skip, limit: options?.limit }),
   });
@@ -49,6 +49,8 @@ export function useSessions(options?: UseSessionsOptions) {
     sessions: sessionsData?.sessions ?? [],
     total: sessionsData?.total ?? 0,
     isLoading,
+    isRefetching,
+    refetch,
     cancelSession: cancelMutation.mutate,
     isCancelling: cancelMutation.isPending,
     rescheduleSession: rescheduleMutation.mutate,
