@@ -62,6 +62,10 @@ export async function getReports(patientId?: string): Promise<ReportData[]> {
   return api.get<ReportData[]>(`/reports${query}`);
 }
 
+export async function getPatientReports(): Promise<ReportData[]> {
+  return api.get<ReportData[]>("/reports");
+}
+
 export async function getTherapistReports(
   page: number = 1,
   limit: number = 6,
