@@ -140,7 +140,7 @@ export function DataTable<T extends { id: string }>({
                     </td>
                   ))}
                   {renderActions && (
-                    <td className="py-3 text-right">{renderActions(row)}</td>
+                    <td className="py-3 text-right" onClick={(e) => e.stopPropagation()}>{renderActions(row)}</td>
                   )}
                 </tr>
               ))
