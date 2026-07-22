@@ -26,7 +26,7 @@ import { X } from "lucide-react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const TABS = ["sessionsUpcoming", "sessionsPast", "sessionsCancelled"] as const;
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 15;
 
 function SessionsContent() {
   const { t } = useLang();

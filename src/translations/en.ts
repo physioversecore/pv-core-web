@@ -791,6 +791,7 @@ const en = {
     sessionsDone: "sessions done",
     upcomingSessions: "Upcoming sessions",
     booked: "booked",
+    viewAll: "View all",
     therapist: "Therapist",
     dateTime: "Date & time",
     type: "Type",

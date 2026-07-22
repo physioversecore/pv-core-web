@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useLang } from "@/context/i18n";
 import { useSessions } from "@/hooks/useSessions";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
@@ -9,15 +10,19 @@ import { RescheduleModal } from "@/components/modals/RescheduleModal";
 import { formatWhen, formatType } from "@/lib/format";
 import type { SessionData } from "@/services/api/sessions";
 
+const OVERVIEW_LIMIT = 5;
+
 export function UpcomingAppointments() {
   const { t } = useLang();
   const { sessions, cancelSession, isCancelling, rescheduleSession, isRescheduling } = useSessions();
   const [cancelTarget, setCancelTarget] = useState<SessionData | null>(null);
   const [rescheduleTarget, setRescheduleTarget] = useState<SessionData | null>(null);
 
-  const upcoming = sessions.filter(
+  const allUpcoming = sessions.filter(
     (s) => s.status === "SCHEDULED" || s.status === "IN_PROGRESS",
   );
+  const showViewAll = allUpcoming.length > OVERVIEW_LIMIT;
+  const upcoming = showViewAll ? allUpcoming.slice(0, OVERVIEW_LIMIT) : allUpcoming;
 
   const handleCancelConfirm = (reason?: string) => {
     if (!cancelTarget) return;
@@ -38,7 +43,7 @@ export function UpcomingAppointments() {
       <div className="card-soft p-5 mb-6">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-display text-lg">{t("patient_dashboard.upcomingSessions")}</h3>
-          <span className="chip">{upcoming.length} {t("patient_dashboard.booked")}</span>
+          <span className="chip">{allUpcoming.length} {t("patient_dashboard.booked")}</span>
         </div>
         {upcoming.length === 0 ? (
           <p className="text-sm text-text-light py-4">{t("patient_dashboard.noUpcomingSessions")}</p>
@@ -86,6 +91,16 @@ export function UpcomingAppointments() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+        {showViewAll && (
+          <div className="mt-3 text-center">
+            <Link
+              href="/patient/sessions"
+              className="text-sm font-medium text-secondary hover:underline"
+            >
+              {t("patient_dashboard.viewAll")} →
+            </Link>
           </div>
         )}
       </div>

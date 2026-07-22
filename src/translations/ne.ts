@@ -788,6 +788,7 @@ const ne = {
     sessionsDone: "सत्र सम्पन्न",
     upcomingSessions: "आगामी सत्रहरू",
     booked: "बुक गरियो",
+    viewAll: "सबै हेर्नुहोस्",
     therapist: "चिकित्सक",
     dateTime: "मिति र समय",
     type: "प्रकार",
