@@ -125,7 +125,7 @@ export interface AdminBookingData {
   originalTime: string;
   sessionType: string;
   status: AdminBookingStatus;
-  trail: AdminBookingTrailEvent[];
+  trail?: AdminBookingTrailEvent[];
   paymentStatus?: "Paid" | "Pending" | "Refunded";
   paymentMethod?: string;
   sessionNotes?: string;

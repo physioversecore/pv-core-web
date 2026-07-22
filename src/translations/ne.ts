@@ -1026,6 +1026,7 @@ const ne = {
     platformFeeDesc: "यस महिना (१५% प्लेटफर्म शुल्क)",
     recentBookings: "हालका बुकिङ्गहरू",
     date: "मिति",
+    sessionType: "सत्र प्रकार",
     noRecentBookings: "हालका बुकिङ्गहरू छैनन्",
     therapistVerified: "चिकित्सक प्रमाणित भयो",
     applicationRejected: "आवेदन अस्वीकार भयो",

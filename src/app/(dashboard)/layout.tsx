@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { DashboardShell } from "@/components/DashboardShell";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth";
 import { patientNav, therapistNav, adminNav } from "@/lib/nav";
 import type { NavItem } from "@/lib/nav";
 import { useLang, type TKey } from "@/context/i18n";
+import { useBookingBadge } from "@/context/booking-badge";
 
 const ROLE_ROUTES: Record<string, string> = {
   patient: "/patient",
@@ -26,6 +27,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading } = useAuth();
+  const { bookingCount } = useBookingBadge();
 
   useEffect(() => {
     if (loading) return;
@@ -39,8 +41,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [loading, user, pathname, router]);
 
-  if (loading || !user) return null;
-
   let nav: NavItem[] = adminNav;
   let role = "admin";
   for (const r of rolePrefixes) {
@@ -50,6 +50,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       break;
     }
   }
+
+  const navWithBadges = useMemo(() => {
+    if (role !== "admin") return nav;
+    return nav.map((item) => {
+      if (item.to === "/admin/bookings") {
+        return { ...item, badge: bookingCount > 0 ? bookingCount : undefined };
+      }
+      return item;
+    });
+  }, [role, nav, bookingCount]);
+
+  if (loading || !user) return null;
 
   const labelToKey: Record<string, string> = {
     "Overview": "nav.overview",
@@ -80,7 +92,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const showCart = role === "patient";
 
   return (
-    <DashboardShell title={title} nav={nav} showCart={showCart}>
+    <DashboardShell title={title} nav={navWithBadges} showCart={showCart}>
       <ErrorBoundary onError={(e) => console.error("[Dashboard Error]", e)}>
         {children}
       </ErrorBoundary>

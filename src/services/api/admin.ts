@@ -354,7 +354,7 @@ export interface AdminBookingData {
   originalTime: string;
   sessionType: string;
   status: "Confirmed" | "Cancelled" | "Rescheduled";
-  trail: AdminBookingTrailEvent[];
+  trail?: AdminBookingTrailEvent[];
   paymentStatus?: "Paid" | "Pending" | "Refunded";
   paymentMethod?: string;
   sessionNotes?: string;
@@ -376,6 +376,12 @@ export async function getAdminBookings(params?: AdminBookingListParams) {
   if (params?.sortOrder) sp.set("sortOrder", params.sortOrder);
 
   return api.get<ListResponse<AdminBookingData>>(`/admin/bookings?${sp.toString()}`);
+}
+
+export async function getNewBookingCount(since?: string) {
+  const sp = new URLSearchParams();
+  if (since) sp.set("since", since);
+  return api.get<{ count: number }>(`/admin/bookings/new-count?${sp.toString()}`);
 }
 
 // --- Admin Team ---
