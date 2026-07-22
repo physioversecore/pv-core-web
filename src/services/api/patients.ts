@@ -66,6 +66,6 @@ export async function getTherapistPatients(params?: {
     searchParams.set("lastVisit", params.lastVisit);
 
   return api.get<TherapistPatientListResponse>(
-    `/therapist/patients?${searchParams.toString()}`,
+    `/patients/my-patients?${searchParams.toString()}`,
   );
 }

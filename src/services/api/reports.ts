@@ -62,6 +62,10 @@ export async function getReports(patientId?: string): Promise<ReportData[]> {
   return api.get<ReportData[]>(`/reports${query}`);
 }
 
+export async function getPatientReports(): Promise<ReportData[]> {
+  return api.get<ReportData[]>("/reports");
+}
+
 export async function getTherapistReports(
   page: number = 1,
   limit: number = 6,
@@ -71,7 +75,8 @@ export async function getTherapistReports(
 }
 
 export async function getMyPatients(): Promise<PatientSummary[]> {
-  return api.get<PatientSummary[]>("/patients/my-patients");
+  const res = await api.get<{ patients: PatientSummary[]; total: number }>("/patients/my-patients");
+  return res.patients;
 }
 
 export async function deleteReport(reportId: string): Promise<void> {

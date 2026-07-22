@@ -209,6 +209,47 @@ export interface AdminComplaintData {
   bookingId?: string;
   notes?: string[];
   assignee?: string;
+  adminNotes?: string;
+}
+
+type ApiComplaint = {
+  id: string;
+  type: string;
+  complainantName: string;
+  complainantId: string;
+  againstName: string;
+  againstId: string;
+  category: string;
+  priority: string;
+  status: string;
+  description: string;
+  bookingId?: string;
+  evidenceUrls?: string;
+  preferredOutcome?: string;
+  assignee?: string;
+  adminNotes?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+function mapComplaintFromApi(c: ApiComplaint): AdminComplaintData {
+  return {
+    id: c.id,
+    type: c.type as "patient" | "therapist",
+    complainant: c.complainantName,
+    complainantId: c.complainantId,
+    against: c.againstName,
+    againstId: c.againstId,
+    category: c.category,
+    priority: c.priority as "Normal" | "Urgent",
+    status: c.status as AdminComplaintData["status"],
+    filed: c.createdAt,
+    description: c.description,
+    bookingId: c.bookingId,
+    notes: c.adminNotes ? c.adminNotes.split("\n") : [],
+    assignee: c.assignee,
+    adminNotes: c.adminNotes,
+  };
 }
 
 export interface AdminComplaintListParams extends AdminListParams {
@@ -226,11 +267,24 @@ export async function getAdminComplaints(params?: AdminComplaintListParams) {
   if (params?.sortBy) sp.set("sortBy", params.sortBy);
   if (params?.sortOrder) sp.set("sortOrder", params.sortOrder);
 
-  return api.get<ListResponse<AdminComplaintData>>(`/admin/complaints?${sp.toString()}`);
+  const res = await api.get<{ items: any[]; total: number }>(`/admin/complaints?${sp.toString()}`);
+  return {
+    ...res,
+    items: res.items.map(mapComplaintFromApi),
+  };
 }
 
 export async function updateAdminComplaint(id: string, data: Partial<AdminComplaintData>) {
-  return api.put<AdminComplaintData>(`/admin/complaints/${id}`, data);
+  const payload: Record<string, unknown> = {};
+  if (data.status !== undefined) payload.status = data.status;
+  if (data.priority !== undefined) payload.priority = data.priority;
+  if (data.category !== undefined) payload.category = data.category;
+  if (data.description !== undefined) payload.description = data.description;
+  if (data.assignee !== undefined) payload.assignee = data.assignee;
+  if (data.adminNotes !== undefined) payload.adminNotes = data.adminNotes;
+
+  const res = await api.put<ApiComplaint>(`/admin/complaints/${id}`, payload);
+  return mapComplaintFromApi(res);
 }
 
 export async function deleteAdminComplaint(id: string) {
@@ -251,18 +305,30 @@ export interface PatientComplaintPayload {
 }
 
 export async function submitPatientComplaint(data: PatientComplaintPayload) {
-  return api.post<AdminComplaintData>("/admin/complaints", {
-    ...data,
+  const res = await api.post<ApiComplaint>("/admin/complaints", {
     type: "patient",
-    status: "Open",
-    filed: new Date().toISOString(),
+    complainantId: data.patientId,
+    complainantName: data.patient,
+    againstId: data.therapistId,
+    againstName: data.therapist,
+    category: data.category,
+    priority: data.priority,
+    description: data.description,
+    bookingId: data.bookingId,
+    evidenceUrls: data.evidenceUrls?.join(","),
+    preferredOutcome: data.preferredOutcome,
   });
+  return mapComplaintFromApi(res);
 }
 
 export async function getPatientComplaints(patientId: string) {
-  return api.get<ListResponse<AdminComplaintData>>(
+  const res = await api.get<{ items: ApiComplaint[]; total: number }>(
     `/admin/complaints?type=patient&complainantId=${patientId}`
   );
+  return {
+    ...res,
+    items: res.items.map(mapComplaintFromApi),
+  };
 }
 
 export interface TherapistComplaintPayload {
@@ -279,18 +345,30 @@ export interface TherapistComplaintPayload {
 }
 
 export async function submitTherapistComplaint(data: TherapistComplaintPayload) {
-  return api.post<AdminComplaintData>("/admin/complaints", {
-    ...data,
+  const res = await api.post<ApiComplaint>("/admin/complaints", {
     type: "therapist",
-    status: "Open",
-    filed: new Date().toISOString(),
+    complainantId: data.therapistId,
+    complainantName: data.therapist,
+    againstId: data.patientId,
+    againstName: data.patient,
+    category: data.category,
+    priority: data.priority,
+    description: data.description,
+    bookingId: data.bookingId,
+    evidenceUrls: data.evidenceUrls?.join(","),
+    preferredOutcome: data.preferredOutcome,
   });
+  return mapComplaintFromApi(res);
 }
 
 export async function getTherapistComplaints(therapistId: string) {
-  return api.get<ListResponse<AdminComplaintData>>(
+  const res = await api.get<{ items: ApiComplaint[]; total: number }>(
     `/admin/complaints?type=therapist&complainantId=${therapistId}`
   );
+  return {
+    ...res,
+    items: res.items.map(mapComplaintFromApi),
+  };
 }
 
 // --- Notifications ---

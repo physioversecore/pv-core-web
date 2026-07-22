@@ -4,10 +4,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getTherapistsToRate, submitReview } from "@/services/api/reviews";
 import { toast } from "sonner";
 
-export function useTherapistsToRate() {
+export function useTherapistsToRate(limit?: number) {
   const query = useQuery({
-    queryKey: ["therapists-to-rate"],
-    queryFn: () => getTherapistsToRate(2),
+    queryKey: ["therapists-to-rate", limit],
+    queryFn: () => getTherapistsToRate(limit),
   });
 
   return {
@@ -27,6 +27,7 @@ export function useSubmitReview() {
       submitReview(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["therapists-to-rate"] });
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
       toast.success("Review submitted. Thank you!");
     },
     onError: (err: Error) => {
