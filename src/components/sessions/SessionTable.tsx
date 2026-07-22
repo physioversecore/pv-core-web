@@ -11,6 +11,7 @@ interface SessionTableProps {
   onReschedule: (id: string) => void;
   onRate: (id: string) => void;
   onClick: (id: string) => void;
+  rateableIds?: Set<string>;
 }
 
 const statusStyles: Record<string, string> = {
@@ -19,7 +20,7 @@ const statusStyles: Record<string, string> = {
   Cancelled: "!bg-danger !text-white",
 };
 
-export function SessionTable({ sessions, onCancel, onReschedule, onRate, onClick }: SessionTableProps) {
+export function SessionTable({ sessions, onCancel, onReschedule, onRate, onClick, rateableIds }: SessionTableProps) {
   if (sessions.length === 0) return null;
 
   return (
@@ -43,6 +44,7 @@ export function SessionTable({ sessions, onCancel, onReschedule, onRate, onClick
             const isUpcoming = s.status === "SCHEDULED" || s.status === "IN_PROGRESS";
             const isPast = new Date(s.date) < new Date(new Date().toDateString());
             const showActions = isUpcoming && !isPast;
+            const canRate = displayStatus === "Completed" && rateableIds?.has(s.id);
             return (
               <tr
                 key={s.id}
@@ -107,7 +109,7 @@ export function SessionTable({ sessions, onCancel, onReschedule, onRate, onClick
                       </button>
                     </div>
                   )}
-                  {displayStatus === "Completed" && (
+                  {canRate && (
                     <div className="flex items-center justify-end" onClick={(e) => e.stopPropagation()}>
                       <button
                         onClick={() => onRate(s.id)}

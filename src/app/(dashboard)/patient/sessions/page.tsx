@@ -15,6 +15,7 @@ import { SessionCard } from "@/components/sessions/SessionCard";
 import { SessionTable } from "@/components/sessions/SessionTable";
 import { SessionSkeleton } from "@/components/sessions/SessionSkeleton";
 import { useSessions, useSessionDetail } from "@/hooks/useSessions";
+import { useTherapistsToRate } from "@/hooks/useTherapistsToRate";
 import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import { useLang } from "@/context/i18n";
 import { getTherapists } from "@/services/api/therapists";
@@ -42,6 +43,7 @@ function SessionsContent() {
   const [rateTarget, setRateTarget] = useState<SessionData | null>(null);
 
   const { sessions, isLoading, isRefetching, refetch, cancelSession, isCancelling, rescheduleSession, isRescheduling } = useSessions();
+  const { therapistsToRate } = useTherapistsToRate();
   const { data: therapistsData } = useQuery({
     queryKey: ["therapists"],
     queryFn: () => getTherapists(),
@@ -91,6 +93,11 @@ function SessionsContent() {
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
 
+  const rateableIds = useMemo(
+    () => new Set(therapistsToRate.map((r) => r.sessionId)),
+    [therapistsToRate],
+  );
+
   const handleCancel = (id: string) => {
     const s = sessions.find((s) => s.id === id);
     if (s) setCancelTarget(s);
@@ -132,6 +139,7 @@ function SessionsContent() {
     onReschedule: handleReschedule,
     onRate: handleRate,
     onClick: setSelectedId,
+    rateableIds,
   };
 
   return (

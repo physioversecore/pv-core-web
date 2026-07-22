@@ -1028,6 +1028,7 @@ const ne = {
     recentBookings: "हालका बुकिङ्गहरू",
     date: "मिति",
     noRecentBookings: "हालका बुकिङ्गहरू छैनन्",
+    sessionType: "प्रकार",
     therapistVerified: "चिकित्सक प्रमाणित भयो",
     applicationRejected: "आवेदन अस्वीकार भयो",
     allTherapists: "सबै फिजियोथेरापिस्टहरू",

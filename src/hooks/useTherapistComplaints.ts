@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useCallback, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -9,24 +9,6 @@ import {
   type AdminComplaintData,
   type TherapistComplaintPayload,
 } from "@/services/api/admin";
-
-const SEED_THERAPIST_COMPLAINTS: AdminComplaintData[] = [
-  {
-    id: "CMT-018", type: "therapist", complainant: "Sujan Karki", complainantId: "t3",
-    against: "Hari Bahadur Rai", againstId: "p3", category: "Repeated no-shows",
-    priority: "Normal", status: "Under review", filed: "2026-07-12T07:00:00",
-    description: "Patient has missed 3 consecutive sessions without prior notice. Wasting therapist travel time.",
-    bookingId: "BKG-1035",
-    notes: ["Patient notified via SMS"],
-  },
-  {
-    id: "CMT-014", type: "therapist", complainant: "Anita Tamang", complainantId: "t2",
-    against: "Sita Gurung", againstId: "p4", category: "Safety concern at home",
-    priority: "Urgent", status: "Open", filed: "2026-07-09T11:30:00",
-    description: "Unsafe conditions observed at patient's home — loose flooring, no handrails. Risk of falls during session.",
-    bookingId: "BKG-1010",
-  },
-];
 
 const DUPLICATE_WINDOW_MS = 5 * 60 * 1000;
 
@@ -42,16 +24,14 @@ export function useTherapistComplaints(therapistId: string) {
     enabled: !!therapistId,
   });
 
-  const seedFiltered = SEED_THERAPIST_COMPLAINTS.filter(
-    (c) => c.complainantId === therapistId
-  );
-  const items = query.data?.items ?? seedFiltered;
-  const total = query.data?.total ?? seedFiltered.length;
+  const items = query.data?.items ?? [];
+  const total = query.data?.total ?? 0;
 
   const submitMutation = useMutation({
     mutationFn: (data: TherapistComplaintPayload) => submitTherapistComplaint(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY, therapistId] });
+      toast.success("Complaint submitted successfully");
     },
   });
 
