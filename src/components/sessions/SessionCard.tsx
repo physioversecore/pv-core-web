@@ -11,6 +11,7 @@ interface SessionCardProps {
   onReschedule: (id: string) => void;
   onRate: (id: string) => void;
   onClick: (id: string) => void;
+  rateableIds?: Set<string>;
 }
 
 const statusStyles: Record<string, string> = {
@@ -19,11 +20,12 @@ const statusStyles: Record<string, string> = {
   Cancelled: "!bg-danger !text-white",
 };
 
-export function SessionCard({ session, onCancel, onReschedule, onRate, onClick }: SessionCardProps) {
+export function SessionCard({ session, onCancel, onReschedule, onRate, onClick, rateableIds }: SessionCardProps) {
   const displayStatus = mapSessionStatus(session.status);
   const isUpcoming = session.status === "SCHEDULED" || session.status === "IN_PROGRESS";
   const isPast = new Date(session.date) < new Date(new Date().toDateString());
   const showActions = isUpcoming && !isPast;
+  const canRate = displayStatus === "Completed" && rateableIds?.has(session.id);
 
   return (
     <div
@@ -49,7 +51,7 @@ export function SessionCard({ session, onCancel, onReschedule, onRate, onClick }
           <span className={`chip ${statusStyles[displayStatus] ?? ""}`}>
             {displayStatus}
           </span>
-          {displayStatus === "Completed" && (
+          {canRate && (
             <button
               onClick={(e) => { e.stopPropagation(); onRate(session.id); }}
               className="inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg border border-primary text-primary text-xs font-semibold cursor-pointer hover:bg-primary hover:text-white transition-all"

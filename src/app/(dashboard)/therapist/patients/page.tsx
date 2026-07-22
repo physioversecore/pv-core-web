@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Avatar } from "@/components/Avatar";
 import { useLang } from "@/context/i18n";
 import { usePagination } from "@/hooks/usePagination";
@@ -15,15 +15,11 @@ import {
   PaginationNext,
   PaginationEllipsis,
 } from "@/components/ui/pagination";
-import { toast } from "sonner";
 import {
   Search,
   X,
-  Pencil,
-  Filter,
   Calendar,
   ChevronDown,
-  Save,
 } from "lucide-react";
 
 interface Patient {
@@ -51,11 +47,26 @@ const LAST_VISIT_OPTIONS = [
   { label: "Last 3 months", value: "90" },
 ] as const;
 
+function formatLastVisit(iso: string): string {
+  if (!iso) return "—";
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  } catch {
+    return iso;
+  }
+}
+
 export default function Patients() {
   const { t } = useLang();
   const [selected, setSelected] = useState<Patient | null>(null);
-  const [editing, setEditing] = useState<Patient | null>(null);
-  const [editForm, setEditForm] = useState<Patient | null>(null);
 
   const [search, setSearch] = useState("");
   const [conditionFilter, setConditionFilter] = useState("");
@@ -97,18 +108,6 @@ export default function Patients() {
     setConditionFilter("");
     setLastVisitFilter("all");
     pagination.reset();
-  }
-
-  function openEdit(p: Patient) {
-    setEditing(p);
-    setEditForm({ ...p });
-  }
-
-  function saveEdit() {
-    if (!editForm) return;
-    setEditing(null);
-    setEditForm(null);
-    toast.success("Patient details updated!");
   }
 
   return (
@@ -193,10 +192,10 @@ export default function Patients() {
           <thead className="text-left bg-surface/60 text-xs uppercase tracking-wider font-mono text-text-light">
             <tr>
               <th className="p-3">{t("therapist_dashboard.patientLabel")}</th>
+              <th className="p-3">Phone</th>
               <th className="p-3">{t("therapist_dashboard.condition")}</th>
               <th className="p-3">{t("therapist_dashboard.sessions")}</th>
               <th className="p-3">{t("therapist_dashboard.lastVisit")}</th>
-              <th className="p-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -210,16 +209,16 @@ export default function Patients() {
                     </div>
                   </td>
                   <td className="p-3">
+                    <div className="h-4 w-24 bg-surface rounded animate-pulse" />
+                  </td>
+                  <td className="p-3">
                     <div className="h-4 w-20 bg-surface rounded animate-pulse" />
                   </td>
                   <td className="p-3">
                     <div className="h-4 w-8 bg-surface rounded animate-pulse" />
                   </td>
                   <td className="p-3">
-                    <div className="h-4 w-20 bg-surface rounded animate-pulse" />
-                  </td>
-                  <td className="p-3 text-right">
-                    <div className="h-4 w-8 bg-surface rounded animate-pulse ml-auto" />
+                    <div className="h-4 w-32 bg-surface rounded animate-pulse" />
                   </td>
                 </tr>
               ))
@@ -234,22 +233,10 @@ export default function Patients() {
                     <Avatar name={p.name} size={32} />
                     <span className="font-medium">{p.name}</span>
                   </td>
-                  <td className="p-3 text-text-light">{p.condition}</td>
+                  <td className="p-3 text-text-light">{p.phone || "—"}</td>
+                  <td className="p-3 text-text-light">{p.condition || "—"}</td>
                   <td className="p-3">{p.sessions}</td>
-                  <td className="p-3 text-text-light">{p.last}</td>
-                  <td className="p-3 text-right">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openEdit(p);
-                      }}
-                      className="p-1.5 rounded-lg hover:bg-surface text-text-light hover:text-primary transition-colors"
-                      title="Edit patient"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                  </td>
+                  <td className="p-3 text-text-light">{formatLastVisit(p.last)}</td>
                 </tr>
               ))
             )}
@@ -357,16 +344,16 @@ export default function Patients() {
               <div>
                 <div className="font-display text-xl">{selected.name}</div>
                 <div className="text-xs text-text-light">
-                  {selected.condition}
+                  {selected.condition || "No condition recorded"}
                 </div>
               </div>
             </div>
+            <Row label="Phone" value={selected.phone || "—"} />
             <Row
               label={t("therapist_dashboard.totalSessions")}
               value={String(selected.sessions)}
             />
-            <Row label={t("therapist_dashboard.lastVisit")} value={selected.last} />
-            <Row label="Phone" value={selected.phone} />
+            <Row label={t("therapist_dashboard.lastVisit")} value={formatLastVisit(selected.last)} />
             <Row label="Notes" value={selected.notes || "—"} />
             <button
               onClick={() => setSelected(null)}
@@ -374,104 +361,6 @@ export default function Patients() {
             >
               {t("common.close")}
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* ─── Edit Patient Modal ─── */}
-      {editing && editForm && (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6">
-          <button
-            className="absolute inset-0 bg-text/50"
-            onClick={() => setEditing(null)}
-          />
-          <div className="relative w-full sm:max-w-lg bg-background rounded-t-3xl sm:rounded-3xl border border-border p-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="font-display text-lg font-semibold">
-                Edit Patient Details
-              </h3>
-              <button
-                type="button"
-                onClick={() => setEditing(null)}
-                className="p-1.5 rounded-lg hover:bg-surface text-text-light"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <EditField
-                label="Patient Name"
-                value={editForm.name}
-                onChange={(v) => setEditForm({ ...editForm, name: v })}
-              />
-              <EditField
-                label="Phone Number"
-                value={editForm.phone}
-                onChange={(v) => setEditForm({ ...editForm, phone: v })}
-              />
-              <div>
-                <label className="text-xs font-medium text-text-light">
-                  Condition
-                </label>
-                <select
-                  value={editForm.condition}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, condition: e.target.value })
-                  }
-                  className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                >
-                  {CONDITION_OPTIONS.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <EditField
-                label="Sessions"
-                type="number"
-                value={String(editForm.sessions)}
-                onChange={(v) =>
-                  setEditForm({ ...editForm, sessions: +v })
-                }
-              />
-              <EditField
-                label="Last Visit (YYYY-MM-DD)"
-                value={editForm.last}
-                onChange={(v) => setEditForm({ ...editForm, last: v })}
-              />
-              <div>
-                <label className="text-xs font-medium text-text-light">
-                  Notes
-                </label>
-                <textarea
-                  value={editForm.notes}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, notes: e.target.value })
-                  }
-                  rows={3}
-                  className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-6">
-              <button
-                type="button"
-                onClick={() => setEditing(null)}
-                className="btn-outline flex-1"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={saveEdit}
-                className="btn-secondary flex-1 flex items-center justify-center gap-2"
-              >
-                <Save className="w-4 h-4" /> Save Changes
-              </button>
-            </div>
           </div>
         </div>
       )}
@@ -484,30 +373,6 @@ function Row({ label, value }: { label: string; value: string }) {
     <div className="flex justify-between py-2 border-b border-border text-sm">
       <span className="text-text-light">{label}</span>
       <span className="font-medium">{value}</span>
-    </div>
-  );
-}
-
-function EditField({
-  label,
-  value,
-  onChange,
-  type = "text",
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  type?: string;
-}) {
-  return (
-    <div>
-      <label className="text-xs font-medium text-text-light">{label}</label>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-      />
     </div>
   );
 }

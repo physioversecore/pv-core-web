@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { FileText, Image as ImageIcon, Video, File } from "lucide-react";
 import {
   Dialog,
@@ -7,6 +8,12 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+
+function getAuthToken(): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(/sahayatri\.session=([^;]+)/);
+  return match ? match[1] : null;
+}
 
 const IMAGE_EXTS = ["jpg", "jpeg", "png", "gif", "webp"];
 const VIDEO_EXTS = ["mp4", "mov", "avi", "webm"];
@@ -25,6 +32,11 @@ function isVideoUrl(name: string) {
 
 function isPdfUrl(name: string) {
   return extOf(name) === "pdf";
+}
+
+function isDocUrl(name: string) {
+  const ext = extOf(name);
+  return ["doc", "docx"].includes(ext);
 }
 
 export function getFileIcon(name: string, size = 16) {
@@ -46,7 +58,7 @@ export function isPreviewableByName(name: string): boolean {
   return [
     "jpg", "jpeg", "png", "gif", "webp",
     "mp4", "mov", "avi", "webm",
-    "pdf",
+    "pdf", "doc", "docx",
   ].includes(ext);
 }
 
@@ -67,6 +79,14 @@ export function PreviewDialog({
   fileName,
   fileSize,
 }: PreviewDialogProps) {
+  const authSrc = useMemo(() => {
+    if (!src) return src;
+    const token = getAuthToken();
+    if (!token) return src;
+    const sep = src.includes("?") ? "&" : "?";
+    return `${src}${sep}token=${token}`;
+  }, [src]);
+
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-5xl w-[95vw] h-[90vh] p-0 gap-0 overflow-hidden rounded-2xl !flex !flex-col !justify-start">
@@ -95,28 +115,38 @@ export function PreviewDialog({
 
         <div className="flex-1 min-h-0 relative bg-black/5">
           <div className="absolute inset-0 flex items-center justify-center p-6">
-            {isImageUrl(fileName ?? title) && (
+            {authSrc && isImageUrl(fileName ?? title) && (
               <img
-                src={src}
+                src={authSrc}
                 alt={title}
                 className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg shadow-xl"
               />
             )}
-            {isVideoUrl(fileName ?? title) && (
+            {authSrc && isVideoUrl(fileName ?? title) && (
               <video
-                src={src}
+                src={authSrc}
                 controls
                 autoPlay
                 muted
                 className="w-full h-full max-w-full max-h-full rounded-lg shadow-xl"
               />
             )}
-            {isPdfUrl(fileName ?? title) && (
+            {authSrc && isPdfUrl(fileName ?? title) && (
               <iframe
-                src={src}
+                src={authSrc}
                 className="w-full h-full max-w-full max-h-full rounded-lg shadow-xl border-0"
                 title={title}
               />
+            )}
+            {authSrc && isDocUrl(fileName ?? title) && (
+              <iframe
+                src={authSrc}
+                className="w-full h-full max-w-full max-h-full rounded-lg shadow-xl border-0"
+                title={title}
+              />
+            )}
+            {!authSrc && (
+              <p className="text-sm text-text-light">Unable to load preview.</p>
             )}
           </div>
         </div>

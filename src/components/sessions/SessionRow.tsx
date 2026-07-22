@@ -11,6 +11,7 @@ interface SessionRowProps {
   onReschedule: (id: string) => void;
   onRate: (id: string) => void;
   onClick: (id: string) => void;
+  rateableIds?: Set<string>;
 }
 
 const statusStyles: Record<string, string> = {
@@ -19,11 +20,12 @@ const statusStyles: Record<string, string> = {
   Cancelled: "!bg-danger !text-white",
 };
 
-export function SessionRow({ session, onCancel, onReschedule, onRate, onClick }: SessionRowProps) {
+export function SessionRow({ session, onCancel, onReschedule, onRate, onClick, rateableIds }: SessionRowProps) {
   const displayStatus = mapSessionStatus(session.status);
   const isUpcoming = session.status === "SCHEDULED" || session.status === "IN_PROGRESS";
   const isPast = new Date(session.date) < new Date(new Date().toDateString());
   const showActions = isUpcoming && !isPast;
+  const canRate = displayStatus === "Completed" && rateableIds?.has(session.id);
 
   return (
     <div className="card-soft p-4 cursor-pointer hover:shadow-md transition" onClick={() => onClick(session.id)}>
@@ -65,7 +67,7 @@ export function SessionRow({ session, onCancel, onReschedule, onRate, onClick }:
             </div>
           )}
 
-          {displayStatus === "Completed" && (
+          {canRate && (
             <div className="mt-3 pt-3 border-t border-border" onClick={(e) => e.stopPropagation()}>
               <button
                 onClick={() => onRate(session.id)}
