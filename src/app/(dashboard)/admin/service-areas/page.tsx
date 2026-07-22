@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Plus, Pencil, Trash2, UserPlus, Filter } from "lucide-react";
 import { toast } from "sonner";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTableSort } from "@/hooks/useTableSort";
-import { useAdminServiceAreas, MOCK_THERAPISTS } from "@/hooks/useAdminServiceAreas";
+import { useAdminServiceAreas } from "@/hooks/useAdminServiceAreas";
+import { getAdminTherapists, type AdminTherapistData } from "@/services/api/admin";
 import { DashboardStat } from "@/components/dashboard/DashboardStat";
 import {
   DataTable,
@@ -179,32 +180,20 @@ export default function ServiceAreasPage() {
   const renderActions = useCallback(
     (row: AdminServiceAreaData) => (
       <div className="flex items-center justify-end gap-1">
-        {row.status === "Low coverage" ? (
-          <button
-            onClick={() => setAssignRow(row)}
-            className="chip !bg-secondary !text-white cursor-pointer !text-[0.6rem]"
-            title="Assign therapist"
-          >
-            <UserPlus size={12} className="inline mr-1" /> Assign
-          </button>
-        ) : (
-          <>
-            <button
-              onClick={() => setEditRow(row)}
-              className="p-1.5 rounded-lg hover:bg-surface text-text-light hover:text-secondary transition cursor-pointer"
-              title="Edit zone"
-            >
-              <Pencil size={15} />
-            </button>
-            <button
-              onClick={() => setAssignRow(row)}
-              className="p-1.5 rounded-lg hover:bg-surface text-text-light hover:text-secondary transition cursor-pointer"
-              title="Assign therapist"
-            >
-              <UserPlus size={15} />
-            </button>
-          </>
-        )}
+        <button
+          onClick={() => setEditRow(row)}
+          className="p-1.5 rounded-lg hover:bg-surface text-text-light hover:text-secondary transition cursor-pointer"
+          title="Edit zone"
+        >
+          <Pencil size={15} />
+        </button>
+        <button
+          onClick={() => setAssignRow(row)}
+          className="p-1.5 rounded-lg hover:bg-surface text-text-light hover:text-secondary transition cursor-pointer"
+          title="Assign therapist"
+        >
+          <UserPlus size={15} />
+        </button>
         <button
           onClick={() => setDeleteTarget(row)}
           className="p-1.5 rounded-lg hover:bg-surface text-text-light hover:text-destructive transition cursor-pointer"
@@ -304,7 +293,15 @@ export default function ServiceAreasPage() {
           onSubmit={handleEditSave}
         />
       )}
-      {detailRow && <ZoneDetail zone={detailRow} onClose={() => setDetailRow(null)} />}
+      {detailRow && (
+        <ZoneDetail
+          zone={detailRow}
+          onClose={() => setDetailRow(null)}
+          onEdit={(z) => { setDetailRow(null); setEditRow(z); }}
+          onAssign={(z) => { setDetailRow(null); setAssignRow(z); }}
+          onDelete={(z) => { setDetailRow(null); setDeleteTarget(z); }}
+        />
+      )}
       {assignRow && (
         <AssignTherapistDialog
           zone={assignRow}
@@ -404,14 +401,31 @@ function AssignTherapistDialog({
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [therapists, setTherapists] = useState<AdminTherapistData[]>([]);
+  const [isLoadingTherapists, setIsLoadingTherapists] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoadingTherapists(true);
+    getAdminTherapists({ limit: 100 })
+      .then((res) => {
+        if (!cancelled) setTherapists(res.items);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setIsLoadingTherapists(false);
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   const filtered = useMemo(() => {
-    if (!search) return MOCK_THERAPISTS;
+    const list = therapists.filter((t) => t.status === "Verified" && t.isActive);
+    if (!search) return list;
     const q = search.toLowerCase();
-    return MOCK_THERAPISTS.filter(
+    return list.filter(
       (t) => t.name.toLowerCase().includes(q) || t.specialty.toLowerCase().includes(q),
     );
-  }, [search]);
+  }, [therapists, search]);
 
   const handleConfirm = async () => {
     if (!selectedId) return;
@@ -443,7 +457,10 @@ function AssignTherapistDialog({
             />
           </div>
           <div className="space-y-2 max-h-60 overflow-y-auto">
-            {filtered.length === 0 && (
+            {isLoadingTherapists && (
+              <p className="text-sm text-text-light text-center py-4">Loading therapists…</p>
+            )}
+            {!isLoadingTherapists && filtered.length === 0 && (
               <p className="text-sm text-text-light text-center py-4">No therapists found</p>
             )}
             {filtered.map((t) => (
@@ -460,6 +477,9 @@ function AssignTherapistDialog({
                   <div>
                     <span className="text-sm font-medium">{t.name}</span>
                     <span className="text-xs text-text-light ml-2">{t.specialty}</span>
+                    {t.city && (
+                      <span className="text-xs text-text-light ml-2">· {t.city}</span>
+                    )}
                   </div>
                   {selectedId === t.id && (
                     <span className="w-2 h-2 rounded-full bg-secondary" />
@@ -484,7 +504,19 @@ function AssignTherapistDialog({
   );
 }
 
-function ZoneDetail({ zone, onClose }: { zone: AdminServiceAreaData; onClose: () => void }) {
+function ZoneDetail({
+  zone,
+  onClose,
+  onEdit,
+  onAssign,
+  onDelete,
+}: {
+  zone: AdminServiceAreaData;
+  onClose: () => void;
+  onEdit: (zone: AdminServiceAreaData) => void;
+  onAssign: (zone: AdminServiceAreaData) => void;
+  onDelete: (zone: AdminServiceAreaData) => void;
+}) {
   return (
     <Sheet open onOpenChange={(open) => !open && onClose()}>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
@@ -513,18 +545,25 @@ function ZoneDetail({ zone, onClose }: { zone: AdminServiceAreaData; onClose: ()
               <div className="stat-value">{zone.bookingsThisMonth}</div>
             </div>
           </div>
-          <div>
-            <span className="text-[0.65rem] uppercase font-mono text-text-light block mb-2">Recent bookings in this zone</span>
-            <div className="space-y-2">
-              <div className="text-sm bg-surface rounded-xl p-3 flex items-center justify-between">
-                <span>BKG-1042 — Hari Bahadur Rai</span>
-                <span className="font-mono text-xs text-text-light">Jul 12</span>
-              </div>
-              <div className="text-sm bg-surface rounded-xl p-3 flex items-center justify-between">
-                <span>BKG-1018 — Puja Maharjan</span>
-                <span className="font-mono text-xs text-text-light">Jul 10</span>
-              </div>
-            </div>
+          <div className="flex gap-2 pt-2">
+            <button
+              onClick={() => onEdit(zone)}
+              className="btn-primary !py-2 !px-4 text-xs cursor-pointer"
+            >
+              <Pencil size={14} className="inline mr-1" /> Edit zone
+            </button>
+            <button
+              onClick={() => onAssign(zone)}
+              className="btn-outline !py-2 !px-4 text-xs cursor-pointer"
+            >
+              <UserPlus size={14} className="inline mr-1" /> Assign therapist
+            </button>
+            <button
+              onClick={() => onDelete(zone)}
+              className="btn-outline !py-2 !px-4 text-xs cursor-pointer !text-destructive hover:!bg-destructive/10"
+            >
+              <Trash2 size={14} className="inline mr-1" /> Delete
+            </button>
           </div>
         </div>
       </SheetContent>
