@@ -123,15 +123,8 @@ export default function AdminBookingsPage() {
     (key: string, value: string) => {
       if (key === "search") setSearch(value);
       else if (key === "status") setStatus(value);
-      setPage(1);
-    },
-    [],
-  );
-
-  const handleRangeChange = useCallback(
-    (fromKey: string, fromValue: string, toKey: string, toValue: string) => {
-      if (fromKey === "dateFrom") setDateFrom(fromValue);
-      if (toKey === "dateTo") setDateTo(toValue);
+      else if (key === "dateFrom") setDateFrom(value);
+      else if (key === "dateTo") setDateTo(value);
       setPage(1);
     },
     [],
@@ -268,7 +261,6 @@ export default function AdminBookingsPage() {
           filters={filterConfig}
           values={filterValues}
           onChange={handleFilterChange}
-          onRangeChange={handleRangeChange}
           onClear={resetFilters}
         />
       )}

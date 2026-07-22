@@ -28,7 +28,6 @@ interface FilterBarProps {
   filters: FilterConfig[];
   values: Record<string, string>;
   onChange: (key: string, value: string) => void;
-  onRangeChange?: (fromKey: string, fromValue: string, toKey: string, toValue: string) => void;
   onClear: () => void;
   expandable?: boolean;
 }
@@ -37,12 +36,10 @@ function FilterControl({
   filter,
   values,
   onChange,
-  onRangeChange,
 }: {
   filter: FilterConfig;
   values: Record<string, string>;
   onChange: (key: string, value: string) => void;
-  onRangeChange?: (fromKey: string, fromValue: string, toKey: string, toValue: string) => void;
 }) {
   if (filter.type === "datetime") {
     const timeKey = `${filter.key}Time`;
@@ -114,18 +111,8 @@ function FilterControl({
         <DateRangePicker
           dateFrom={values[filter.fromKey ?? `${filter.key}From`] || null}
           dateTo={values[filter.toKey ?? `${filter.key}To`] || null}
-          onFromChange={(date) => {
-            const fromKey = filter.fromKey ?? `${filter.key}From`;
-            const toKey = filter.toKey ?? `${filter.key}To`;
-            if (onRangeChange) onRangeChange(fromKey, date, toKey, values[toKey] ?? "");
-            else onChange(fromKey, date);
-          }}
-          onToChange={(date) => {
-            const fromKey = filter.fromKey ?? `${filter.key}From`;
-            const toKey = filter.toKey ?? `${filter.key}To`;
-            if (onRangeChange) onRangeChange(fromKey, values[fromKey] ?? "", toKey, date);
-            else onChange(toKey, date);
-          }}
+          onFromChange={(date) => onChange(filter.fromKey ?? `${filter.key}From`, date)}
+          onToChange={(date) => onChange(filter.toKey ?? `${filter.key}To`, date)}
           className="w-64 rounded-full h-9 text-sm"
         />
       )}
@@ -133,7 +120,7 @@ function FilterControl({
   );
 }
 
-export function FilterBar({ filters, values, onChange, onRangeChange, onClear, expandable }: FilterBarProps) {
+export function FilterBar({ filters, values, onChange, onClear, expandable }: FilterBarProps) {
   const { t } = useLang();
   const [expanded, setExpanded] = useState(false);
   const hasActiveFilters = Object.values(values).some((v) => v !== "");
@@ -146,7 +133,7 @@ export function FilterBar({ filters, values, onChange, onRangeChange, onClear, e
       <div className="mb-4 space-y-3">
         <div className="flex flex-wrap items-end gap-3">
           {searchFilters.map((filter) => (
-            <FilterControl key={filter.key} filter={filter} values={values} onChange={onChange} onRangeChange={onRangeChange} />
+            <FilterControl key={filter.key} filter={filter} values={values} onChange={onChange} />
           ))}
 
           <div className="flex items-end gap-2">
@@ -177,7 +164,7 @@ export function FilterBar({ filters, values, onChange, onRangeChange, onClear, e
         {expanded && otherFilters.length > 0 && (
           <div className="flex flex-wrap items-end gap-3 pl-1">
             {otherFilters.map((filter) => (
-              <FilterControl key={filter.key} filter={filter} values={values} onChange={onChange} onRangeChange={onRangeChange} />
+              <FilterControl key={filter.key} filter={filter} values={values} onChange={onChange} />
             ))}
           </div>
         )}
@@ -188,7 +175,7 @@ export function FilterBar({ filters, values, onChange, onRangeChange, onClear, e
   return (
     <div className="flex flex-wrap items-end gap-3 mb-4">
       {filters.map((filter) => (
-        <FilterControl key={filter.key} filter={filter} values={values} onChange={onChange} onRangeChange={onRangeChange} />
+        <FilterControl key={filter.key} filter={filter} values={values} onChange={onChange} />
       ))}
 
       {hasActiveFilters && (
