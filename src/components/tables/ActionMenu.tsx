@@ -26,7 +26,10 @@ export function ActionMenu({ actions }: ActionMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted transition-colors cursor-pointer">
+        <button
+          className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted transition-colors cursor-pointer"
+          onClick={(e) => e.stopPropagation()}
+        >
           <MoreHorizontal size={16} className="text-text-light" />
         </button>
       </DropdownMenuTrigger>
