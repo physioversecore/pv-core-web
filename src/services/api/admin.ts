@@ -679,6 +679,22 @@ export async function removeFromTeam(id: string, reason: string) {
   return api.put<AdminPerformanceData>(`/admin/performance/${id}/remove`, { reason });
 }
 
+export async function getAdminPerformanceDetail(id: string) {
+  return api.get<AdminPerformanceData>(`/admin/performance/${id}`);
+}
+
+export async function updateAdminPerformance(id: string, data: Partial<AdminPerformanceData>) {
+  return api.put<AdminPerformanceData>(`/admin/performance/${id}`, data);
+}
+
+export async function resolveAdminPerformance(id: string) {
+  return api.put<AdminPerformanceData>(`/admin/performance/${id}/resolve`, {});
+}
+
+export async function deleteAdminPerformance(id: string) {
+  return api.delete(`/admin/performance/${id}`);
+}
+
 // --- Safety Incidents ---
 export interface AdminIncidentData {
   id: string;

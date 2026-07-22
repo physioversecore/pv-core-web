@@ -3,6 +3,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getAdminPerformance,
+  updateAdminPerformance,
+  resolveAdminPerformance,
+  deleteAdminPerformance,
+  scheduleReview,
+  removeFromTeam,
   type AdminPerformanceData,
 } from "@/services/api/admin";
 import type { SortDirection } from "@/hooks/useTableSort";
@@ -50,12 +55,50 @@ export function useAdminPerformance(params: UseAdminPerformanceParams) {
   const items = query.data?.items ?? seedFiltered;
   const total = query.data?.total ?? seedFiltered.length;
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<AdminPerformanceData> }) =>
+      updateAdminPerformance(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
+  });
+
+  const resolveMutation = useMutation({
+    mutationFn: (id: string) => resolveAdminPerformance(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteAdminPerformance(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
+  });
+
+  const scheduleReviewMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: { date: string; adminId: string; notes: string } }) =>
+      scheduleReview(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
+      removeFromTeam(id, reason),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
+  });
+
   return {
     items,
     total,
     isLoading: query.isLoading,
     isRefetching: query.isRefetching,
     refetch: query.refetch,
+    updatePerformance: (id: string, data: Partial<AdminPerformanceData>) =>
+      updateMutation.mutateAsync({ id, data }),
+    resolvePerformance: (id: string) =>
+      resolveMutation.mutateAsync(id),
+    deletePerformance: (id: string) =>
+      deleteMutation.mutateAsync(id),
+    scheduleReview: (id: string, data: { date: string; adminId: string; notes: string }) =>
+      scheduleReviewMutation.mutateAsync({ id, data }),
+    removeFromTeam: (id: string, reason: string) =>
+      removeMutation.mutateAsync({ id, reason }),
   };
 }
 
