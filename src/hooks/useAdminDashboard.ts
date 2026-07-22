@@ -9,26 +9,7 @@ import {
   getAdminBookings,
   getAdminPatients,
   type AdminBookingData,
-  type AdminPatientData,
 } from "@/services/api/admin";
-
-const FALLBACK_STATS = {
-  totalTherapists: 184,
-  totalPatients: 1247,
-  sessionsThisWeek: 312,
-  pendingVerifications: 3,
-};
-
-const FALLBACK_EARNINGS = {
-  platformEarnings: 542300,
-  description: "Platform fees collected this month",
-};
-
-const FALLBACK_ACTIVITY = [
-  { id: "a1", patientName: "Ramesh A.", therapistName: "Dr. Aarati S.", type: "booked", timestamp: new Date(Date.now() - 2 * 60 * 1000).toISOString() },
-  { id: "a2", patientName: "Sita L.", therapistName: "Dr. Bibek T.", type: "rescheduled", timestamp: new Date(Date.now() - 14 * 60 * 1000).toISOString() },
-  { id: "a3", patientName: "Hari P.", therapistName: "Dr. Rajesh S.", type: "cancelled", timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString() },
-];
 
 function timeAgo(timestamp: string): string {
   const diff = Date.now() - new Date(timestamp).getTime();
@@ -41,35 +22,57 @@ function timeAgo(timestamp: string): string {
   return `${days} day${days > 1 ? "s" : ""} ago`;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function normalizeStats(raw: any) {
-  if (!raw || typeof raw !== "object") return FALLBACK_STATS;
-  return {
-    totalTherapists: raw.totalTherapists ?? raw.total_therapists ?? FALLBACK_STATS.totalTherapists,
-    totalPatients: raw.totalPatients ?? raw.total_patients ?? FALLBACK_STATS.totalPatients,
-    sessionsThisWeek: raw.sessionsThisWeek ?? raw.sessions_this_week ?? FALLBACK_STATS.sessionsThisWeek,
-    pendingVerifications: raw.pendingVerifications ?? raw.pending_verifications ?? FALLBACK_STATS.pendingVerifications,
-  };
+export interface AdminDashboardStats {
+  totalTherapists: number;
+  totalPatients: number;
+  sessionsThisWeek: number;
+  pendingVerifications: number;
+}
+
+export interface AdminDashboardEarnings {
+  platformEarnings: number;
+  description: string;
+}
+
+export interface AdminDashboardActivity {
+  id: string;
+  patientName: string;
+  therapistName: string;
+  type: string;
+  timestamp: string;
+  timeAgo: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function normalizeEarnings(raw: any) {
-  if (!raw || typeof raw !== "object") return FALLBACK_EARNINGS;
-  return {
-    platformEarnings: raw.platformEarnings ?? raw.platform_earnings ?? FALLBACK_EARNINGS.platformEarnings,
-    description: raw.description ?? FALLBACK_EARNINGS.description,
-  };
+function normalizeStats(raw: any): AdminDashboardStats | null {
+  if (!raw || typeof raw !== "object") return null;
+  const totalTherapists = raw.totalTherapists ?? raw.total_therapists;
+  const totalPatients = raw.totalPatients ?? raw.total_patients;
+  const sessionsThisWeek = raw.sessionsThisWeek ?? raw.sessions_this_week;
+  const pendingVerifications = raw.pendingVerifications ?? raw.pending_verifications;
+  if (totalTherapists == null || totalPatients == null || sessionsThisWeek == null || pendingVerifications == null)
+    return null;
+  return { totalTherapists, totalPatients, sessionsThisWeek, pendingVerifications };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function normalizeActivity(raw: any): typeof FALLBACK_ACTIVITY {
-  if (!Array.isArray(raw)) return FALLBACK_ACTIVITY;
+function normalizeEarnings(raw: any): AdminDashboardEarnings | null {
+  if (!raw || typeof raw !== "object") return null;
+  const platformEarnings = raw.platformEarnings ?? raw.platform_earnings;
+  if (platformEarnings == null) return null;
+  return { platformEarnings, description: raw.description ?? "" };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function normalizeActivity(raw: any): AdminDashboardActivity[] {
+  if (!Array.isArray(raw)) return [];
   return raw.map((a) => ({
     id: a.id ?? "",
     patientName: a.patientName ?? a.patient_name ?? "",
     therapistName: a.therapistName ?? a.therapist_name ?? "",
     type: a.type ?? "booked",
     timestamp: a.timestamp ?? "",
+    timeAgo: timeAgo(a.timestamp ?? ""),
   }));
 }
 
@@ -78,50 +81,35 @@ export function useAdminDashboard() {
     queryKey: ["admin-dashboard-stats"],
     queryFn: getAdminDashboardStats,
     staleTime: 60_000,
-    placeholderData: (prev) => prev,
   });
 
   const earningsQuery = useQuery({
     queryKey: ["admin-dashboard-earnings"],
     queryFn: getAdminDashboardEarnings,
     staleTime: 60_000,
-    placeholderData: (prev) => prev,
   });
 
   const activityQuery = useQuery({
     queryKey: ["admin-dashboard-activity"],
     queryFn: () => getAdminRecentActivity(10),
     staleTime: 30_000,
-    placeholderData: (prev) => prev,
   });
 
   const pendingQuery = useQuery({
     queryKey: ["admin-dashboard-pending"],
     queryFn: () => getAdminTherapists({ status: "PENDING", limit: 5 }),
     staleTime: 60_000,
-    placeholderData: (prev) => prev,
   });
 
   const recentBookingsQuery = useQuery({
     queryKey: ["admin-dashboard-recent-bookings"],
     queryFn: () => getAdminBookings({ limit: 10, sortBy: "date", sortOrder: "desc" }),
     staleTime: 30_000,
-    placeholderData: (prev) => prev,
-  });
-
-  const inactivePatientsQuery = useQuery({
-    queryKey: ["admin-dashboard-inactive-patients"],
-    queryFn: () => getAdminPatients({ limit: 10 }),
-    staleTime: 60_000,
-    placeholderData: (prev) => prev,
   });
 
   const stats = normalizeStats(statsQuery.data);
   const earnings = normalizeEarnings(earningsQuery.data);
-  const activity = normalizeActivity(activityQuery.data).map((a) => ({
-    ...a,
-    timeAgo: timeAgo(a.timestamp),
-  }));
+  const activity = normalizeActivity(activityQuery.data);
   const pendingTherapists = pendingQuery.data?.items ?? [];
   const recentBookings: AdminBookingData[] = recentBookingsQuery.data?.items ?? [];
 
@@ -131,8 +119,21 @@ export function useAdminDashboard() {
     activity,
     pendingTherapists,
     recentBookings,
+    statsLoading: statsQuery.isLoading,
+    earningsLoading: earningsQuery.isLoading,
+    activityLoading: activityQuery.isLoading,
+    pendingLoading: pendingQuery.isLoading,
+    bookingsLoading: recentBookingsQuery.isLoading,
     isLoading: statsQuery.isLoading || earningsQuery.isLoading || activityQuery.isLoading || pendingQuery.isLoading,
-    isRefetching: statsQuery.isRefetching || earningsQuery.isRefetching || activityQuery.isRefetching || pendingQuery.isRefetching,
-    refetch: () => Promise.all([statsQuery.refetch(), earningsQuery.refetch(), activityQuery.refetch(), pendingQuery.refetch(), recentBookingsQuery.refetch()]),
+    isRefetching:
+      statsQuery.isRefetching || earningsQuery.isRefetching || activityQuery.isRefetching || pendingQuery.isRefetching,
+    refetch: () =>
+      Promise.all([
+        statsQuery.refetch(),
+        earningsQuery.refetch(),
+        activityQuery.refetch(),
+        pendingQuery.refetch(),
+        recentBookingsQuery.refetch(),
+      ]),
   };
 }

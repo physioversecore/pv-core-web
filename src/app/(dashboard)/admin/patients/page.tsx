@@ -31,8 +31,8 @@ export default function AdminPatients() {
   const [status, setStatus] = useState("");
   const [city, setCity] = useState("");
   const [page, setPage] = useState(1);
-  const [editRow, setEditRow] = useState<AdminPatientData | null>(null);
-  const [viewRow, setViewRow] = useState<AdminPatientData | null>(null);
+  const [sheetRow, setSheetRow] = useState<AdminPatientData | null>(null);
+  const [sheetMode, setSheetMode] = useState<"view" | "edit">("view");
   const [deleteTarget, setDeleteTarget] = useState<AdminPatientData | null>(null);
   const [showFilters, setShowFilters] = useState(false);
 
@@ -107,16 +107,16 @@ export default function AdminPatients() {
 
   const handleEditSave = useCallback(
     async (data: Partial<AdminPatientData>) => {
-      if (!editRow) return;
+      if (!sheetRow) return;
       try {
-        await updatePatient(editRow.id, data);
+        await updatePatient(sheetRow.id, data);
         toast.success(t("admin_dashboard.saved") ?? "Saved");
-        setEditRow(null);
+        setSheetRow(null);
       } catch {
         toast.error(t("common.tryAgain") ?? "Something went wrong");
       }
     },
-    [editRow, updatePatient, t],
+    [sheetRow, updatePatient, t],
   );
 
   const exportCsv = useCallback(() => {
@@ -194,7 +194,7 @@ export default function AdminPatients() {
           key: "edit",
           label: t("admin_dashboard.edit") ?? "Edit",
           icon: <Pencil size={14} />,
-          onClick: () => setEditRow(row),
+          onClick: () => { setSheetRow(row); setSheetMode("edit"); },
         },
         {
           key: "toggle",
@@ -298,23 +298,17 @@ export default function AdminPatients() {
           pageSize={pageSize}
           onPageChange={setPage}
           renderActions={renderActions}
-          onRowClick={(row) => setViewRow(row)}
+          onRowClick={(row) => { setSheetRow(row); setSheetMode("view"); }}
           emptyMessage={t("common.noResults") ?? "No results found"}
         />
       </div>
 
       <PatientDetailSheet
-        patient={viewRow}
-        open={!!viewRow}
-        onOpenChange={(open) => !open && setViewRow(null)}
-      />
-
-      <PatientDetailSheet
-        patient={editRow}
-        open={!!editRow}
-        onOpenChange={(open) => !open && setEditRow(null)}
-        mode="edit"
-        onSave={handleEditSave}
+        patient={sheetRow}
+        open={!!sheetRow}
+        onOpenChange={(open) => !open && setSheetRow(null)}
+        mode={sheetMode}
+        onSave={sheetMode === "edit" ? handleEditSave : undefined}
       />
 
       <ConfirmDialog

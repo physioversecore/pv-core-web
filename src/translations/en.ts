@@ -1031,7 +1031,7 @@ const en = {
     platformFeeDesc: "This month (15% platform fee)",
     recentBookings: "Recent bookings",
     date: "Date",
-    sessionType: "Type",
+    sessionType: "Session type",
     noRecentBookings: "No recent bookings",
     therapistVerified: "Therapist verified",
     applicationRejected: "Application rejected",

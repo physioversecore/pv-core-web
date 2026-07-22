@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 import { AuthProvider } from "@/context/auth";
 import { AuthModalProvider } from "@/context/auth-modal";
+import { BookingBadgeProvider } from "@/context/booking-badge";
 import { CartProvider } from "@/context/cart";
 import { LangProvider } from "@/context/i18n";
 import { DesignTokensProvider } from "@/context/design-tokens";
@@ -18,10 +19,12 @@ export function Providers({ children }: { children: ReactNode }) {
         <LangProvider>
           <AuthProvider>
             <CartProvider>
-              <AuthModalProvider>
-                {children}
-                <Toaster position="bottom-right" richColors closeButton />
-              </AuthModalProvider>
+              <BookingBadgeProvider>
+                <AuthModalProvider>
+                  {children}
+                  <Toaster position="bottom-right" richColors closeButton />
+                </AuthModalProvider>
+              </BookingBadgeProvider>
             </CartProvider>
           </AuthProvider>
         </LangProvider>
