@@ -145,10 +145,17 @@ export function RecentlyUploaded({ paginated = false }: RecentlyUploadedProps) {
 
           return (
             <div key={u.id} className="first:pt-0 last:pb-0">
-              <button
-                type="button"
+              <div
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setExpandedId(isExpanded ? null : u.id);
+                  }
+                }}
                 onClick={() => setExpandedId(isExpanded ? null : u.id)}
-                className="w-full flex items-center gap-3 py-3 text-left hover:bg-surface/30 rounded-lg transition -mx-1 px-1"
+                className="w-full flex items-center gap-3 py-3 text-left hover:bg-surface/30 rounded-lg transition -mx-1 px-1 cursor-pointer"
               >
                 <span
                   className={`w-8 h-8 rounded-lg grid place-items-center font-mono text-[10px] uppercase shrink-0 ${kindTint[kind]}`}
@@ -186,7 +193,7 @@ export function RecentlyUploaded({ paginated = false }: RecentlyUploadedProps) {
                 >
                   <Trash2 size={16} />
                 </button>
-              </button>
+              </div>
 
               {isExpanded && (
                 <div className="pb-4 pl-11 pr-1 space-y-3 animate-in slide-in-from-top-1 fade-in duration-150">
