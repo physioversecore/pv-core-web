@@ -798,6 +798,7 @@ const en = {
     confirmed: "Confirmed",
     pending: "Pending",
     cancel: "Cancel",
+    cancelSession: "Cancel Session",
     reschedule: "Reschedule",
     rateYourTherapist: "Rate your therapist",
     rateDesc: "Your rating appears directly on the therapist's public profile. Only patients with completed sessions can rate.",
