@@ -7,7 +7,9 @@ import {
   updateAdminTherapist,
   deleteAdminTherapist,
   toggleAdminTherapistStatus,
+  createAdminTherapist,
   type AdminTherapistData,
+  type AdminCreateTherapistPayload,
 } from "@/services/api/admin";
 import type { SortDirection } from "@/hooks/useTableSort";
 
@@ -74,6 +76,15 @@ export function useAdminTherapists(params: UseAdminTherapistsParams) {
     [queryClient],
   );
 
+  const createTherapist = useCallback(
+    async (data: AdminCreateTherapistPayload) => {
+      const result = await createAdminTherapist(data);
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+      return result;
+    },
+    [queryClient],
+  );
+
   return {
     items: query.data?.items ?? [],
     total: query.data?.total ?? 0,
@@ -84,5 +95,6 @@ export function useAdminTherapists(params: UseAdminTherapistsParams) {
     deleteTherapist,
     toggleTherapistStatus,
     updateTherapist,
+    createTherapist,
   };
 }

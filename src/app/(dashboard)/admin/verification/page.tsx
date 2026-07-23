@@ -12,11 +12,14 @@ import {
   SlidersHorizontal,
   Pencil,
   Trash2,
+  Plus,
+  UserPlus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTableSort } from "@/hooks/useTableSort";
 import { useAdminVerifications } from "@/hooks/useAdminVerifications";
+import { useAdminTherapists } from "@/hooks/useAdminTherapists";
 import { DashboardStat } from "@/components/dashboard/DashboardStat";
 import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import {
@@ -30,6 +33,8 @@ import {
   type ActionItem,
 } from "@/components/tables";
 import type { AdminVerificationData } from "@/services/api/admin";
+import type { CreateVerificationPayload } from "@/services/api/admin";
+import type { AdminCreateTherapistPayload } from "@/services/api/admin";
 import {
   Sheet,
   SheetContent,
@@ -78,6 +83,36 @@ export default function VerificationPage() {
   const [deleteTarget, setDeleteTarget] = useState<AdminVerificationData | null>(null);
   const [deleteSaving, setDeleteSaving] = useState(false);
 
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createForm, setCreateForm] = useState<CreateVerificationPayload>({
+    therapistId: "",
+    documentType: "Practice license",
+    expires: null,
+    severity: undefined,
+    reportedBy: "",
+    phone: "",
+  });
+  const [createSaving, setCreateSaving] = useState(false);
+
+  const [addTherapistOpen, setAddTherapistOpen] = useState(false);
+  const [addTherapistForm, setAddTherapistForm] = useState<AdminCreateTherapistPayload>({
+    name: "",
+    email: "",
+    password: "",
+    phone: "",
+    city: "",
+    specialty: "",
+    gender: "Male",
+    price: 0,
+    experience: 0,
+    bio: "",
+    citizenshipNumber: "",
+    panNumber: "",
+    medicalLicenseUrl: "",
+    certificateUrl: "",
+  });
+  const [addTherapistSaving, setAddTherapistSaving] = useState(false);
+
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
   const [severityFilter, setSeverityFilter] = useState("");
   const [reportedByFilter, setReportedByFilter] = useState("");
@@ -88,7 +123,7 @@ export default function VerificationPage() {
   });
   const pageSize = 10;
 
-  const { items, total, isLoading, isRefetching, refetch, approveVerif, rejectVerif, editVerif, deleteVerif } =
+  const { items, total, isLoading, isRefetching, refetch, approveVerif, rejectVerif, editVerif, deleteVerif, createVerif } =
     useAdminVerifications({
       search: debouncedSearch,
       documentType,
@@ -100,6 +135,17 @@ export default function VerificationPage() {
       page,
       pageSize,
     });
+
+  const { createTherapist } = useAdminTherapists({
+    search: "",
+    specialty: "",
+    status: "",
+    city: "",
+    sortBy: "",
+    sortOrder: "desc",
+    page: 1,
+    pageSize: 1,
+  });
 
   const itemsWithOverrides = useMemo(
     () =>
@@ -210,6 +256,86 @@ export default function VerificationPage() {
       setDeleteSaving(false);
     }
   }, [deleteTarget, deleteVerif]);
+
+  const handleCreateSubmit = useCallback(async () => {
+    if (!createForm.therapistId) {
+      toast.error("Therapist ID is required");
+      return;
+    }
+    setCreateSaving(true);
+    try {
+      await createVerif({
+        therapistId: createForm.therapistId,
+        documentType: createForm.documentType,
+        expires: createForm.expires || null,
+        severity: createForm.severity || undefined,
+        reportedBy: createForm.reportedBy || undefined,
+        phone: createForm.phone || undefined,
+      });
+      toast.success("Verification record created");
+      setCreateOpen(false);
+      setCreateForm({
+        therapistId: "",
+        documentType: "Practice license",
+        expires: null,
+        severity: undefined,
+        reportedBy: "",
+        phone: "",
+      });
+    } catch {
+      toast.error("Failed to create verification");
+    } finally {
+      setCreateSaving(false);
+    }
+  }, [createForm, createVerif]);
+
+  const handleAddTherapistSubmit = useCallback(async () => {
+    if (!addTherapistForm.name || !addTherapistForm.email || !addTherapistForm.password) {
+      toast.error("Name, email, and password are required");
+      return;
+    }
+    setAddTherapistSaving(true);
+    try {
+      await createTherapist({
+        name: addTherapistForm.name,
+        email: addTherapistForm.email,
+        password: addTherapistForm.password,
+        phone: addTherapistForm.phone || undefined,
+        city: addTherapistForm.city,
+        specialty: addTherapistForm.specialty,
+        gender: addTherapistForm.gender,
+        price: addTherapistForm.price,
+        experience: addTherapistForm.experience,
+        bio: addTherapistForm.bio || undefined,
+        citizenshipNumber: addTherapistForm.citizenshipNumber || undefined,
+        panNumber: addTherapistForm.panNumber || undefined,
+        medicalLicenseUrl: addTherapistForm.medicalLicenseUrl || undefined,
+        certificateUrl: addTherapistForm.certificateUrl || undefined,
+      });
+      toast.success(`Therapist ${addTherapistForm.name} added successfully`);
+      setAddTherapistOpen(false);
+      setAddTherapistForm({
+        name: "",
+        email: "",
+        password: "",
+        phone: "",
+        city: "",
+        specialty: "",
+        gender: "Male",
+        price: 0,
+        experience: 0,
+        bio: "",
+        citizenshipNumber: "",
+        panNumber: "",
+        medicalLicenseUrl: "",
+        certificateUrl: "",
+      });
+    } catch {
+      toast.error("Failed to add therapist");
+    } finally {
+      setAddTherapistSaving(false);
+    }
+  }, [addTherapistForm, createTherapist]);
 
   const columns: Column<AdminVerificationData>[] = useMemo(
     () => [
@@ -411,7 +537,23 @@ export default function VerificationPage() {
             unverified.
           </p>
         </div>
-        <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => setAddTherapistOpen(true)}
+            className="chip !bg-primary !text-white cursor-pointer"
+          >
+            <UserPlus size={14} className="inline mr-1" />
+            Add Therapist
+          </button>
+          <button
+            onClick={() => setCreateOpen(true)}
+            className="chip !bg-secondary !text-white cursor-pointer"
+          >
+            <Plus size={14} className="inline mr-1" />
+            Add Verification
+          </button>
+          <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
+        </div>
       </div>
 
       <div className="stats-grid">
@@ -619,6 +761,26 @@ export default function VerificationPage() {
         title="Delete this verification?"
         description={`Permanently delete the verification record for <strong>${deleteTarget?.therapist ?? ""}</strong> (${deleteTarget?.documentType ?? ""})? This action cannot be undone.`}
       />
+
+      {addTherapistOpen && (
+        <AddTherapistDrawer
+          form={addTherapistForm}
+          onFormChange={setAddTherapistForm}
+          onClose={() => setAddTherapistOpen(false)}
+          onSave={handleAddTherapistSubmit}
+          saving={addTherapistSaving}
+        />
+      )}
+
+      {createOpen && (
+        <CreateVerificationDrawer
+          form={createForm}
+          onFormChange={setCreateForm}
+          onClose={() => setCreateOpen(false)}
+          onSave={handleCreateSubmit}
+          saving={createSaving}
+        />
+      )}
     </div>
   );
 }
@@ -900,4 +1062,384 @@ function formatDate(dateStr: string): string {
     day: "numeric",
     year: "numeric",
   });
+}
+
+function CreateVerificationDrawer({
+  form,
+  onFormChange,
+  onClose,
+  onSave,
+  saving,
+}: {
+  form: CreateVerificationPayload;
+  onFormChange: (f: CreateVerificationPayload) => void;
+  onClose: () => void;
+  onSave: () => void;
+  saving: boolean;
+}) {
+  return (
+    <Sheet open onOpenChange={(open) => !open && onClose()}>
+      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle className="font-display">Add Verification</SheetTitle>
+          <SheetDescription>
+            Create a new verification record for a therapist
+          </SheetDescription>
+        </SheetHeader>
+        <div className="mt-6 space-y-5">
+          <div>
+            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+              Therapist ID <span className="text-destructive">*</span>
+            </label>
+            <Input
+              value={form.therapistId}
+              onChange={(e) => onFormChange({ ...form, therapistId: e.target.value })}
+              className="h-9 w-full rounded-full border-border text-sm"
+              placeholder="Enter therapist ID"
+            />
+          </div>
+
+          <div>
+            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+              Document Type
+            </label>
+            <Select
+              value={form.documentType}
+              onValueChange={(v) => onFormChange({ ...form, documentType: v as CreateVerificationPayload["documentType"] })}
+            >
+              <SelectTrigger className="h-9 w-full rounded-full border-border text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Practice license">Practice license</SelectItem>
+                <SelectItem value="Government ID">Government ID</SelectItem>
+                <SelectItem value="Certification">Certification</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+              Severity
+            </label>
+            <Select
+              value={form.severity ?? ""}
+              onValueChange={(v) => onFormChange({ ...form, severity: (v || undefined) as CreateVerificationPayload["severity"] })}
+            >
+              <SelectTrigger className="h-9 w-full rounded-full border-border text-sm">
+                <SelectValue placeholder="None" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Low">Low</SelectItem>
+                <SelectItem value="Medium">Medium</SelectItem>
+                <SelectItem value="High">High</SelectItem>
+                <SelectItem value="Critical">Critical</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+              Expiry Date
+            </label>
+            <Input
+              type="date"
+              value={form.expires ?? ""}
+              onChange={(e) => onFormChange({ ...form, expires: e.target.value || null })}
+              className="h-9 w-full rounded-full border-border text-sm"
+            />
+          </div>
+
+          <div>
+            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+              Reported By
+            </label>
+            <Input
+              value={form.reportedBy ?? ""}
+              onChange={(e) => onFormChange({ ...form, reportedBy: e.target.value || undefined })}
+              className="h-9 w-full rounded-full border-border text-sm"
+              placeholder="e.g. System, Admin, Patient"
+            />
+          </div>
+
+          <div>
+            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+              Phone
+            </label>
+            <Input
+              value={form.phone ?? ""}
+              onChange={(e) => onFormChange({ ...form, phone: e.target.value || undefined })}
+              className="h-9 w-full rounded-full border-border text-sm"
+              placeholder="+977-98XXXXXXXX"
+            />
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <button
+              onClick={onSave}
+              disabled={saving || !form.therapistId}
+              className="chip !bg-success !text-white cursor-pointer disabled:opacity-50"
+            >
+              <Check size={12} className="inline mr-1" />
+              {saving ? "Creating…" : "Create Verification"}
+            </button>
+            <button
+              onClick={onClose}
+              className="chip cursor-pointer"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function AddTherapistDrawer({
+  form,
+  onFormChange,
+  onClose,
+  onSave,
+  saving,
+}: {
+  form: AdminCreateTherapistPayload;
+  onFormChange: (f: AdminCreateTherapistPayload) => void;
+  onClose: () => void;
+  onSave: () => void;
+  saving: boolean;
+}) {
+  const updateField = (field: keyof AdminCreateTherapistPayload, value: string | number) => {
+    onFormChange({ ...form, [field]: value });
+  };
+
+  return (
+    <Sheet open onOpenChange={(open) => !open && onClose()}>
+      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle className="font-display">Add New Therapist</SheetTitle>
+          <SheetDescription>
+            Create a new therapist account with all required verification details
+          </SheetDescription>
+        </SheetHeader>
+        <div className="mt-6 space-y-5">
+          <div>
+            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+              Full Name <span className="text-destructive">*</span>
+            </label>
+            <Input
+              value={form.name}
+              onChange={(e) => updateField("name", e.target.value)}
+              className="h-9 w-full rounded-full border-border text-sm"
+              placeholder="e.g. Bikash Thapa"
+            />
+          </div>
+
+          <div>
+            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+              Email Address <span className="text-destructive">*</span>
+            </label>
+            <Input
+              type="email"
+              value={form.email}
+              onChange={(e) => updateField("email", e.target.value)}
+              className="h-9 w-full rounded-full border-border text-sm"
+              placeholder="e.g. bikash@example.com"
+            />
+          </div>
+
+          <div>
+            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+              Password <span className="text-destructive">*</span>
+            </label>
+            <Input
+              type="password"
+              value={form.password}
+              onChange={(e) => updateField("password", e.target.value)}
+              className="h-9 w-full rounded-full border-border text-sm"
+              placeholder="Minimum 6 characters"
+            />
+          </div>
+
+          <div>
+            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+              Phone Number
+            </label>
+            <Input
+              value={form.phone ?? ""}
+              onChange={(e) => updateField("phone", e.target.value)}
+              className="h-9 w-full rounded-full border-border text-sm"
+              placeholder="+977-98XXXXXXXX"
+            />
+          </div>
+
+          <div>
+            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+              City / Address <span className="text-destructive">*</span>
+            </label>
+            <Input
+              value={form.city}
+              onChange={(e) => updateField("city", e.target.value)}
+              className="h-9 w-full rounded-full border-border text-sm"
+              placeholder="e.g. Kathmandu"
+            />
+          </div>
+
+          <div>
+            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+              Specialist <span className="text-destructive">*</span>
+            </label>
+            <Select
+              value={form.specialty}
+              onValueChange={(v) => updateField("specialty", v)}
+            >
+              <SelectTrigger className="h-9 w-full rounded-full border-border text-sm">
+                <SelectValue placeholder="Select specialty" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Orthopedic">Orthopedic</SelectItem>
+                <SelectItem value="Neurological">Neurological</SelectItem>
+                <SelectItem value="Pediatric">Pediatric</SelectItem>
+                <SelectItem value="Geriatric">Geriatric</SelectItem>
+                <SelectItem value="Sports">Sports</SelectItem>
+                <SelectItem value="Cardiopulmonary">Cardiopulmonary</SelectItem>
+                <SelectItem value="Musculoskeletal">Musculoskeletal</SelectItem>
+                <SelectItem value="General">General</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+                Gender <span className="text-destructive">*</span>
+              </label>
+              <Select
+                value={form.gender}
+                onValueChange={(v) => updateField("gender", v)}
+              >
+                <SelectTrigger className="h-9 w-full rounded-full border-border text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Male">Male</SelectItem>
+                  <SelectItem value="Female">Female</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+                Year of Experience <span className="text-destructive">*</span>
+              </label>
+              <Input
+                type="number"
+                min={0}
+                value={form.experience || ""}
+                onChange={(e) => updateField("experience", parseInt(e.target.value) || 0)}
+                className="h-9 w-full rounded-full border-border text-sm"
+                placeholder="e.g. 5"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+              Price per Session (NPR) <span className="text-destructive">*</span>
+            </label>
+            <Input
+              type="number"
+              min={0}
+              value={form.price || ""}
+              onChange={(e) => updateField("price", parseFloat(e.target.value) || 0)}
+              className="h-9 w-full rounded-full border-border text-sm"
+              placeholder="e.g. 1500"
+            />
+          </div>
+
+          <div>
+            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+              Bio
+            </label>
+            <textarea
+              value={form.bio ?? ""}
+              onChange={(e) => updateField("bio", e.target.value)}
+              className="w-full px-3 py-2 rounded-xl border border-border bg-background text-sm min-h-[60px]"
+              placeholder="Short professional bio..."
+            />
+          </div>
+
+          <div className="border-t border-border pt-4">
+            <p className="text-xs font-medium text-text mb-3">Verification Documents</p>
+          </div>
+
+          <div>
+            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+              Citizenship Number
+            </label>
+            <Input
+              value={form.citizenshipNumber ?? ""}
+              onChange={(e) => updateField("citizenshipNumber", e.target.value)}
+              className="h-9 w-full rounded-full border-border text-sm"
+              placeholder="e.g. 12-34-56-78901"
+            />
+          </div>
+
+          <div>
+            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+              PAN Number
+            </label>
+            <Input
+              value={form.panNumber ?? ""}
+              onChange={(e) => updateField("panNumber", e.target.value)}
+              className="h-9 w-full rounded-full border-border text-sm"
+              placeholder="e.g. 123456789"
+            />
+          </div>
+
+          <div>
+            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+              Medical License URL
+            </label>
+            <Input
+              value={form.medicalLicenseUrl ?? ""}
+              onChange={(e) => updateField("medicalLicenseUrl", e.target.value)}
+              className="h-9 w-full rounded-full border-border text-sm"
+              placeholder="Link to medical license document"
+            />
+          </div>
+
+          <div>
+            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+              Certificate URL
+            </label>
+            <Input
+              value={form.certificateUrl ?? ""}
+              onChange={(e) => updateField("certificateUrl", e.target.value)}
+              className="h-9 w-full rounded-full border-border text-sm"
+              placeholder="Link to certificate document"
+            />
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <button
+              onClick={onSave}
+              disabled={saving || !form.name || !form.email || !form.password}
+              className="chip !bg-success !text-white cursor-pointer disabled:opacity-50"
+            >
+              <Check size={12} className="inline mr-1" />
+              {saving ? "Creating…" : "Create Therapist"}
+            </button>
+            <button
+              onClick={onClose}
+              className="chip cursor-pointer"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
 }

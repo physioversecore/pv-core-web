@@ -62,6 +62,7 @@ export interface NavItem {
 export type ComplaintPriority = "Normal" | "Urgent";
 export type ComplaintStatus = "Open" | "Under review" | "Resolved" | "Dismissed";
 export type ComplaintType = "patient" | "therapist";
+export type CaseSource = "PATIENT_SUBMITTED" | "THERAPIST_SUBMITTED" | "ADMIN_MANUAL";
 
 export interface Complaint {
   id: string;
@@ -77,6 +78,8 @@ export interface Complaint {
   description: string;
   bookingId?: string;
   notes?: string[];
+  source?: CaseSource;
+  refundId?: string;
 }
 
 export type NotificationCategory = "booking" | "reschedule" | "complaint" | "payment" | "system";
