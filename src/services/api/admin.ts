@@ -120,6 +120,43 @@ export async function toggleAdminTherapistStatus(id: string, status: AdminTherap
   return api.put<AdminTherapistData>(`/admin/therapists/${id}`, { status });
 }
 
+export interface AdminCreateTherapistPayload {
+  name: string;
+  email: string;
+  password: string;
+  phone?: string;
+  city: string;
+  specialty: string;
+  gender: string;
+  price: number;
+  experience: number;
+  bio?: string;
+  citizenshipNumber?: string;
+  panNumber?: string;
+  medicalLicenseUrl?: string;
+  certificateUrl?: string;
+}
+
+export interface AdminTherapistCreatedResponse {
+  id: string;
+  userId: string;
+  name: string;
+  email: string;
+  phone?: string;
+  city: string;
+  specialty: string;
+  gender: string;
+  price: number;
+  experience: number;
+  bio: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function createAdminTherapist(data: AdminCreateTherapistPayload) {
+  return api.post<AdminTherapistCreatedResponse>("/admin/therapists", data);
+}
+
 export async function getAdminPayments(params?: AdminListParams & { patientId?: string; therapistId?: string }) {
   const sp = new URLSearchParams();
   if (params?.skip) sp.set("skip", String(params.skip));
@@ -638,6 +675,19 @@ export async function deleteAdminVerification(id: string) {
   return api.delete(`/admin/verifications/${id}`);
 }
 
+export interface CreateVerificationPayload {
+  therapistId: string;
+  documentType: "Practice license" | "Government ID" | "Certification";
+  expires?: string | null;
+  severity?: "Low" | "Medium" | "High" | "Critical";
+  reportedBy?: string;
+  phone?: string;
+}
+
+export async function createAdminVerification(data: CreateVerificationPayload) {
+  return api.post<AdminVerificationData>("/admin/verifications", data);
+}
+
 // --- Therapist Performance ---
 export interface AdminPerformanceData {
   id: string;
@@ -677,6 +727,22 @@ export async function placeOnProbation(id: string, data: { note: string; reviewB
 
 export async function removeFromTeam(id: string, reason: string) {
   return api.put<AdminPerformanceData>(`/admin/performance/${id}/remove`, { reason });
+}
+
+export async function getAdminPerformanceDetail(id: string) {
+  return api.get<AdminPerformanceData>(`/admin/performance/${id}`);
+}
+
+export async function updateAdminPerformance(id: string, data: Partial<AdminPerformanceData>) {
+  return api.put<AdminPerformanceData>(`/admin/performance/${id}`, data);
+}
+
+export async function resolveAdminPerformance(id: string) {
+  return api.put<AdminPerformanceData>(`/admin/performance/${id}/resolve`, {});
+}
+
+export async function deleteAdminPerformance(id: string) {
+  return api.delete(`/admin/performance/${id}`);
 }
 
 // --- Safety Incidents ---
@@ -836,6 +902,8 @@ export async function getRevenueTrend(months?: number) {
 export type RefundReason = "No-show" | "Double charge" | "Service quality" | "Cancellation";
 export type RefundStatus = "Pending" | "Approved" | "Denied";
 
+export type CaseSource = "PATIENT_SUBMITTED" | "THERAPIST_SUBMITTED" | "ADMIN_MANUAL";
+
 export interface AdminRefundData {
   id: string;
   patient: string;
@@ -847,11 +915,48 @@ export interface AdminRefundData {
   filed: string;
   resolvedAt?: string;
   denyReason?: string;
+  assigneeId?: string;
+  source?: CaseSource;
+  complaintId?: string;
+  notes?: string;
 }
 
 export interface AdminRefundListParams extends AdminListParams {
   reason?: string;
   status?: string;
+}
+
+export interface AdminCreateRefundPayload {
+  patientId: string;
+  bookingId: string;
+  amount: number;
+  reason: RefundReason;
+}
+
+export interface ManualCasePayload {
+  patientId: string;
+  bookingId: string;
+  amount: number;
+  reason: RefundReason;
+  assigneeId?: string;
+  notes?: string;
+  alsoCreateDispute?: boolean;
+  disputeCategory?: string;
+  disputePriority?: string;
+  disputeDescription?: string;
+}
+
+export interface ManualCaseResponse {
+  refund: AdminRefundData;
+  complaint?: { id: string; type: string; status: string; category: string };
+}
+
+export async function createAdminRefund(data: AdminCreateRefundPayload) {
+  return api.post<AdminRefundData>("/admin/refunds", data);
+}
+
+export async function createManualCase(data: ManualCasePayload) {
+  return api.post<ManualCaseResponse>("/admin/refunds/manual-case", data);
 }
 
 export async function getAdminRefunds(params?: AdminRefundListParams) {
@@ -884,6 +989,14 @@ export async function deleteAdminRefund(id: string) {
   return api.delete(`/admin/refunds/${id}`);
 }
 
+export async function assignRefund(id: string, assigneeId: string) {
+  return api.put<AdminRefundData>(`/admin/refunds/${id}/assign`, { assigneeId });
+}
+
 export async function getAdminRefundStats() {
   return api.get<{ pending: number; refundedThisMonth: number; disputeRate: number; avgResolutionDays: number }>("/admin/refunds/stats");
+}
+
+export async function getAdminStaffList() {
+  return api.get<ListResponse<{ id: string; name: string; email: string }>>("/admin/users?role=ADMIN");
 }

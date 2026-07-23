@@ -8,7 +8,9 @@ import {
   rejectVerification,
   updateAdminVerification,
   deleteAdminVerification,
+  createAdminVerification,
   type AdminVerificationData,
+  type CreateVerificationPayload,
 } from "@/services/api/admin";
 import type { SortDirection } from "@/hooks/useTableSort";
 
@@ -82,6 +84,11 @@ export function useAdminVerifications(params: UseAdminVerificationsParams) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
   });
 
+  const createMutation = useMutation({
+    mutationFn: (data: CreateVerificationPayload) => createAdminVerification(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
+  });
+
   return {
     items,
     total,
@@ -95,6 +102,7 @@ export function useAdminVerifications(params: UseAdminVerificationsParams) {
       [updateMutation],
     ),
     deleteVerif: useCallback((id: string) => deleteMutation.mutateAsync(id), [deleteMutation]),
+    createVerif: useCallback((data: CreateVerificationPayload) => createMutation.mutateAsync(data), [createMutation]),
   };
 }
 

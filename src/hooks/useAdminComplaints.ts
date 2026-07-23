@@ -102,6 +102,12 @@ export function useAdminComplaints(params: UseAdminComplaintsParams) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
   });
 
+  const assignMutation = useMutation({
+    mutationFn: ({ id, assignee }: { id: string; assignee: string }) =>
+      updateAdminComplaint(id, { assignee, status: "Under review" }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
+  });
+
   return {
     items,
     total,
@@ -111,6 +117,8 @@ export function useAdminComplaints(params: UseAdminComplaintsParams) {
     updateComplaint: (id: string, data: Partial<AdminComplaintData>) =>
       updateMutation.mutateAsync({ id, data }),
     deleteComplaint: (id: string) => deleteMutation.mutateAsync(id),
+    assignComplaint: (id: string, assignee: string) =>
+      assignMutation.mutateAsync({ id, assignee }),
   };
 }
 

@@ -1,113 +1,37 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  getAdminRefunds,
+  approveRefund as apiApproveRefund,
+  denyRefund as apiDenyRefund,
+  createAdminRefund,
+  createManualCase,
+  updateAdminRefund,
+  deleteAdminRefund,
+  assignRefund as apiAssignRefund,
+  type AdminRefundData,
+  type AdminCreateRefundPayload,
+  type ManualCasePayload,
+  type RefundReason,
+  type RefundStatus,
+} from "@/services/api/admin";
 
-type RefundStatus = "Pending" | "Approved" | "Denied";
-type RefundReason = "No-show" | "Double charge" | "Service quality" | "Cancellation";
+export type { RefundReason, RefundStatus };
+export type RefundItem = AdminRefundData;
 
-export interface RefundItem {
-  id: string;
-  patient: string;
-  patientId: string;
-  bookingId: string;
-  amount: number;
-  reason: RefundReason;
-  status: RefundStatus;
-  filed: string;
-  resolvedAt?: string;
-  denyReason?: string;
+const QUERY_KEY = "admin-refunds";
+
+export function useCreateManualCase() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: ManualCasePayload) => createManualCase(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: ["admin-complaints"] });
+    },
+  });
 }
-
-const MOCK_REFUNDS: RefundItem[] = [
-  {
-    id: "REF-1001",
-    patient: "Sita Sharma",
-    patientId: "PAT-201",
-    bookingId: "BK-4501",
-    amount: 2500,
-    reason: "No-show",
-    status: "Pending",
-    filed: "2026-07-10",
-  },
-  {
-    id: "REF-1002",
-    patient: "Ram Thapa",
-    patientId: "PAT-108",
-    bookingId: "BK-4480",
-    amount: 1500,
-    reason: "Double charge",
-    status: "Pending",
-    filed: "2026-07-12",
-  },
-  {
-    id: "REF-1003",
-    patient: "Gita Gurung",
-    patientId: "PAT-305",
-    bookingId: "BK-4390",
-    amount: 3200,
-    reason: "Service quality",
-    status: "Approved",
-    filed: "2026-06-28",
-    resolvedAt: "2026-06-30",
-  },
-  {
-    id: "REF-1004",
-    patient: "Hari Bahadur",
-    patientId: "PAT-176",
-    bookingId: "BK-4215",
-    amount: 1000,
-    reason: "Cancellation",
-    status: "Denied",
-    filed: "2026-06-20",
-    resolvedAt: "2026-06-22",
-    denyReason: "Cancellation was within 24-hour window, no refund policy applies.",
-  },
-  {
-    id: "REF-1005",
-    patient: "Anita Magar",
-    patientId: "PAT-290",
-    bookingId: "BK-4520",
-    amount: 4500,
-    reason: "Double charge",
-    status: "Approved",
-    filed: "2026-07-01",
-    resolvedAt: "2026-07-03",
-  },
-  {
-    id: "REF-1006",
-    patient: "Binod Karki",
-    patientId: "PAT-142",
-    bookingId: "BK-4305",
-    amount: 2000,
-    reason: "No-show",
-    status: "Approved",
-    filed: "2026-06-25",
-    resolvedAt: "2026-06-27",
-  },
-  {
-    id: "REF-1007",
-    patient: "Sunita Rai",
-    patientId: "PAT-388",
-    bookingId: "BK-4555",
-    amount: 1800,
-    reason: "Service quality",
-    status: "Pending",
-    filed: "2026-07-14",
-  },
-  {
-    id: "REF-1008",
-    patient: "Deepak Shrestha",
-    patientId: "PAT-220",
-    bookingId: "BK-4190",
-    amount: 5000,
-    reason: "Cancellation",
-    status: "Approved",
-    filed: "2026-06-15",
-    resolvedAt: "2026-06-18",
-  },
-];
-
-const today = () => new Date().toISOString().split("T")[0];
 
 export function useAdminRefunds(params: {
   search: string;
@@ -120,95 +44,79 @@ export function useAdminRefunds(params: {
   page: number;
   pageSize: number;
 }) {
-  const [refunds, setRefunds] = useState<RefundItem[]>(MOCK_REFUNDS);
+  const queryClient = useQueryClient();
+  const skip = (params.page - 1) * params.pageSize;
 
-  const { filtered, total } = useMemo(() => {
-    let result = [...refunds];
+  const query = useQuery({
+    queryKey: [QUERY_KEY, {
+      search: params.search, reason: params.reason, status: params.status,
+      dateFrom: params.dateFrom, dateTo: params.dateTo,
+      sortBy: params.sortBy, sortOrder: params.sortOrder, skip, pageSize: params.pageSize,
+    }],
+    queryFn: () => getAdminRefunds({
+      skip,
+      limit: params.pageSize,
+      search: params.search || undefined,
+      reason: params.reason || undefined,
+      status: params.status || undefined,
+      dateFrom: params.dateFrom || undefined,
+      dateTo: params.dateTo || undefined,
+      sortBy: params.sortBy || undefined,
+      sortOrder: params.sortOrder,
+    }),
+    placeholderData: (prev) => prev,
+  });
 
-    if (params.search) {
-      const q = params.search.toLowerCase();
-      result = result.filter(
-        (r) =>
-          r.patient.toLowerCase().includes(q) ||
-          r.id.toLowerCase().includes(q) ||
-          r.bookingId.toLowerCase().includes(q),
-      );
-    }
+  const approveMutation = useMutation({
+    mutationFn: (id: string) => apiApproveRefund(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
+  });
 
-    if (params.reason) {
-      result = result.filter((r) => r.reason === params.reason);
-    }
+  const denyMutation = useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) => apiDenyRefund(id, reason),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
+  });
 
-    if (params.status) {
-      result = result.filter((r) => r.status === params.status);
-    }
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<AdminRefundData> }) => updateAdminRefund(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
+  });
 
-    if (params.dateFrom) {
-      result = result.filter((r) => r.filed >= params.dateFrom);
-    }
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteAdminRefund(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
+  });
 
-    if (params.dateTo) {
-      result = result.filter((r) => r.filed <= params.dateTo);
-    }
+  const createMutation = useMutation({
+    mutationFn: (data: AdminCreateRefundPayload) => createAdminRefund(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
+  });
 
-    const col = params.sortBy as keyof RefundItem;
-    result.sort((a, b) => {
-      const av = a[col] ?? "";
-      const bv = b[col] ?? "";
-      if (av < bv) return params.sortOrder === "asc" ? -1 : 1;
-      if (av > bv) return params.sortOrder === "asc" ? 1 : -1;
-      return 0;
-    });
-
-    const total = result.length;
-    const start = (params.page - 1) * params.pageSize;
-    result = result.slice(start, start + params.pageSize);
-
-    return { filtered: result, total };
-  }, [refunds, params]);
-
-  const approveRefund = useCallback(async (id: string) => {
-    await new Promise((r) => setTimeout(r, 400));
-    setRefunds((prev) =>
-      prev.map((r) =>
-        r.id === id ? { ...r, status: "Approved" as const, resolvedAt: today() } : r,
-      ),
-    );
-  }, []);
-
-  const denyRefund = useCallback(async (id: string, reason: string) => {
-    await new Promise((r) => setTimeout(r, 400));
-    setRefunds((prev) =>
-      prev.map((r) =>
-        r.id === id
-          ? { ...r, status: "Denied" as const, resolvedAt: today(), denyReason: reason }
-          : r,
-      ),
-    );
-  }, []);
-
-  const updateRefund = useCallback(
-    async (id: string, data: { amount?: number; reason?: RefundReason; status?: RefundStatus }) => {
-      await new Promise((r) => setTimeout(r, 400));
-      setRefunds((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, ...data } : r)),
-      );
+  const createManualCaseMutation = useMutation({
+    mutationFn: (data: ManualCasePayload) => createManualCase(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: ["admin-complaints"] });
     },
-    [],
-  );
+  });
 
-  const deleteRefund = useCallback(async (id: string) => {
-    await new Promise((r) => setTimeout(r, 400));
-    setRefunds((prev) => prev.filter((r) => r.id !== id));
-  }, []);
+  const assignMutation = useMutation({
+    mutationFn: ({ id, assigneeId }: { id: string; assigneeId: string }) => apiAssignRefund(id, assigneeId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
+  });
 
   return {
-    items: filtered,
-    total,
-    isLoading: false,
-    approveRefund,
-    denyRefund,
-    updateRefund,
-    deleteRefund,
+    items: query.data?.items ?? [],
+    total: query.data?.total ?? 0,
+    isLoading: query.isLoading,
+    isRefetching: query.isRefetching,
+    refetch: query.refetch,
+    createRefund: (data: AdminCreateRefundPayload) => createMutation.mutateAsync(data),
+    approveRefund: (id: string) => approveMutation.mutateAsync(id),
+    denyRefund: (id: string, reason: string) => denyMutation.mutateAsync({ id, reason }),
+    updateRefund: (id: string, data: Partial<AdminRefundData>) => updateMutation.mutateAsync({ id, data }),
+    deleteRefund: (id: string) => deleteMutation.mutateAsync(id),
+    createManualCase: (data: ManualCasePayload) => createManualCaseMutation.mutateAsync(data),
+    assignRefund: (id: string, assigneeId: string) => assignMutation.mutateAsync({ id, assigneeId }),
   };
 }

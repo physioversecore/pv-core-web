@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTableSort } from "@/hooks/useTableSort";
+import { useAdminPerformance } from "@/hooks/useAdminPerformance";
 import { DashboardStat } from "@/components/dashboard/DashboardStat";
 import {
   DataTable,
@@ -53,13 +54,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-const SEED: AdminPerformanceData[] = [
-  { id: "t1", name: "Rajesh Shrestha", avgRating: 4.8, sessions: 210, reviews: 142, trend: 0.1, linkedComplaints: 0, status: "Good standing" },
-  { id: "t2", name: "Anita Tamang", avgRating: 4.6, sessions: 180, reviews: 120, trend: 0.0, linkedComplaints: 1, status: "Good standing" },
-  { id: "t5", name: "Bikash Thapa", avgRating: 4.4, sessions: 64, reviews: 41, trend: -0.2, linkedComplaints: 0, status: "Needs review" },
-  { id: "t3", name: "Sujan Karki", avgRating: 4.2, sessions: 95, reviews: 77, trend: -0.3, linkedComplaints: 2, status: "Under probation" },
-];
-
 const EDIT_STATUSES = [
   "Good standing",
   "Needs review",
@@ -69,7 +63,6 @@ const EDIT_STATUSES = [
 ] as const;
 
 export default function PerformancePage() {
-  const [data, setData] = useState<AdminPerformanceData[]>(SEED);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [minRating, setMinRating] = useState("");
@@ -84,74 +77,89 @@ export default function PerformancePage() {
   const [editRow, setEditRow] = useState<AdminPerformanceData | null>(null);
   const [resolveRow, setResolveRow] = useState<AdminPerformanceData | null>(null);
   const [deleteRow, setDeleteRow] = useState<AdminPerformanceData | null>(null);
+  const [scheduleRow, setScheduleRow] = useState<AdminPerformanceData | null>(null);
 
-  const filteredData = useMemo(() => {
-    let result = [...data];
-    if (debouncedSearch) {
-      const q = debouncedSearch.toLowerCase();
-      result = result.filter((r) => r.name.toLowerCase().includes(q));
-    }
-    if (status) {
-      result = result.filter((r) => r.status === status);
-    }
-    if (minRating) {
-      const min = Number(minRating);
-      if (!isNaN(min)) result = result.filter((r) => r.avgRating >= min);
-    }
-    return result;
-  }, [data, debouncedSearch, status, minRating]);
-
-  const sortedData = useMemo(() => {
-    if (!sortBy) return filteredData;
-    return [...filteredData].sort((a, b) => {
-      const aVal = a[sortBy as keyof AdminPerformanceData] ?? "";
-      const bVal = b[sortBy as keyof AdminPerformanceData] ?? "";
-      const cmp = String(aVal).localeCompare(String(bVal), undefined, { numeric: true });
-      return sortOrder === "desc" ? -cmp : cmp;
-    });
-  }, [filteredData, sortBy, sortOrder]);
-
-  const totalPages = Math.max(1, Math.ceil(sortedData.length / pageSize));
-  const safePage = Math.min(page, totalPages);
-  const items = useMemo(
-    () => sortedData.slice((safePage - 1) * pageSize, safePage * pageSize),
-    [sortedData, safePage],
-  );
-  const total = sortedData.length;
+  const {
+    items,
+    total,
+    isLoading,
+    updatePerformance,
+    resolvePerformance,
+    deletePerformance,
+    scheduleReview,
+  } = useAdminPerformance({
+    search: debouncedSearch,
+    status,
+    minRating,
+    sortBy,
+    sortOrder,
+    page,
+    pageSize,
+  });
 
   const handleSaveEdit = useCallback(
-    (updated: AdminPerformanceData) => {
-      setData((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
-      setEditRow(null);
-      toast.success(`${updated.name}'s profile updated`);
+    async (updated: AdminPerformanceData) => {
+      try {
+        await updatePerformance(updated.id, {
+          name: updated.name,
+          avgRating: updated.avgRating,
+          sessions: updated.sessions,
+          reviews: updated.reviews,
+          trend: updated.trend,
+          linkedComplaints: updated.linkedComplaints,
+          status: updated.status,
+        });
+        setEditRow(null);
+        toast.success(`${updated.name}'s profile updated`);
+      } catch {
+        toast.error("Failed to update profile");
+      }
     },
-    [],
+    [updatePerformance],
   );
 
-  const handleResolve = useCallback((row: AdminPerformanceData) => {
-    setData((prev) =>
-      prev.map((r) =>
-        r.id === row.id ? { ...r, status: "Good standing" as const } : r,
-      ),
-    );
-    setResolveRow(null);
-    toast.success(`${row.name} marked as resolved`);
-  }, []);
+  const handleResolve = useCallback(
+    async (row: AdminPerformanceData) => {
+      try {
+        await resolvePerformance(row.id);
+        setResolveRow(null);
+        toast.success(`${row.name} marked as resolved`);
+      } catch {
+        toast.error("Failed to resolve therapist");
+      }
+    },
+    [resolvePerformance],
+  );
 
-  const handleDelete = useCallback((row: AdminPerformanceData) => {
-    setData((prev) => prev.filter((r) => r.id !== row.id));
-    setDeleteRow(null);
-    toast.success(`${row.name} removed from the team`, {
-      duration: 5000,
-      action: {
-        label: "Undo",
-        onClick: () => {
-          setData((prev) => [...prev, row]);
-          toast.success(`${row.name} restored`);
-        },
-      },
-    });
-  }, []);
+  const handleDelete = useCallback(
+    async (row: AdminPerformanceData) => {
+      try {
+        await deletePerformance(row.id);
+        setDeleteRow(null);
+        toast.success(`${row.name} removed from the team`);
+      } catch {
+        toast.error("Failed to remove therapist");
+      }
+    },
+    [deletePerformance],
+  );
+
+  const handleScheduleReview = useCallback(
+    async (row: AdminPerformanceData, date: string) => {
+      try {
+        await scheduleReview(row.id, {
+          date,
+          adminId: "current-admin",
+          notes: `Review scheduled for ${row.name}`,
+        });
+        setScheduleRow(null);
+        toast.success(`Review scheduled for ${row.name}`);
+      } catch {
+        toast.error("Failed to schedule review");
+      }
+    },
+    [scheduleReview],
+  );
 
   const resetFilters = useCallback(() => {
     setSearch("");
@@ -298,7 +306,7 @@ export default function PerformancePage() {
                 key: "schedule",
                 label: "Schedule review",
                 icon: <Calendar size={14} />,
-                onClick: () => toast.info(`Schedule review for ${row.name}`),
+                onClick: () => setScheduleRow(row),
               },
             ]
           : []),
@@ -372,11 +380,11 @@ export default function PerformancePage() {
           columns={columns}
           data={items}
           total={total}
-          isLoading={false}
+          isLoading={isLoading}
           sortColumn={sort.column}
           sortOrder={sort.direction}
           onSortToggle={(col) => { toggleSort(col); setPage(1); }}
-          page={safePage}
+          page={page}
           pageSize={pageSize}
           onPageChange={setPage}
           renderActions={renderActions}
@@ -408,6 +416,14 @@ export default function PerformancePage() {
           row={deleteRow}
           onConfirm={() => handleDelete(deleteRow)}
           onClose={() => setDeleteRow(null)}
+        />
+      )}
+
+      {scheduleRow && (
+        <ScheduleReviewModal
+          row={scheduleRow}
+          onConfirm={(date) => handleScheduleReview(scheduleRow, date)}
+          onClose={() => setScheduleRow(null)}
         />
       )}
     </div>
@@ -652,7 +668,52 @@ function DeleteConfirmModal({
   );
 }
 
-/* ── Detail Drawer (unchanged) ─────────────────────────────────── */
+/* ── Schedule Review Modal ─────────────────────────────────────── */
+
+function ScheduleReviewModal({
+  row,
+  onConfirm,
+  onClose,
+}: {
+  row: AdminPerformanceData;
+  onConfirm: (date: string) => void;
+  onClose: () => void;
+}) {
+  const [date, setDate] = useState("");
+
+  const inputClass =
+    "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20 transition";
+
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="font-display">Schedule review for {row.name}</DialogTitle>
+          <DialogDescription>Select a date for the performance review</DialogDescription>
+        </DialogHeader>
+        <div>
+          <label className="eyebrow mb-1 block">Review date</label>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className={inputClass}
+          />
+        </div>
+        <div className="flex justify-end gap-2 pt-2">
+          <Button variant="outline" size="sm" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button size="sm" onClick={() => date && onConfirm(date)} disabled={!date}>
+            Schedule
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ── Detail Drawer ─────────────────────────────────────────────── */
 
 function PerformanceDetailDrawer({ data, onClose }: { data: AdminPerformanceData; onClose: () => void }) {
   const ratingHistory = [

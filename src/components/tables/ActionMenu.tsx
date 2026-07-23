@@ -8,6 +8,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useLang } from "@/context/i18n";
 
 export interface ActionItem {
@@ -15,6 +21,7 @@ export interface ActionItem {
   label: string;
   icon?: React.ReactNode;
   variant?: "default" | "destructive";
+  tooltip?: string;
   onClick: () => void;
 }
 
@@ -24,30 +31,41 @@ interface ActionMenuProps {
 
 export function ActionMenu({ actions }: ActionMenuProps) {
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted transition-colors cursor-pointer"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <MoreHorizontal size={16} className="text-text-light" />
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-44">
-        {actions.map((action, i) => (
-          <div key={action.key}>
-            {i > 0 && actions[i - 1]?.variant !== action.variant && <DropdownMenuSeparator />}
-            <DropdownMenuItem
-              onClick={action.onClick}
-              className={action.variant === "destructive" ? "!text-destructive cursor-pointer" : "cursor-pointer"}
-            >
-              {action.icon}
-              {action.label}
-            </DropdownMenuItem>
-          </div>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <TooltipProvider delayDuration={300}>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted transition-colors cursor-pointer"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <MoreHorizontal size={16} className="text-text-light" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-44">
+          {actions.map((action, i) => (
+            <div key={action.key}>
+              {i > 0 && actions[i - 1]?.variant !== action.variant && <DropdownMenuSeparator />}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuItem
+                    onClick={action.onClick}
+                    className={action.variant === "destructive" ? "!text-destructive cursor-pointer" : "cursor-pointer"}
+                  >
+                    {action.icon}
+                    {action.label}
+                  </DropdownMenuItem>
+                </TooltipTrigger>
+                {action.tooltip && (
+                  <TooltipContent side="left">
+                    <p>{action.tooltip}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </div>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </TooltipProvider>
   );
 }
 

@@ -309,6 +309,7 @@ function ComplaintsTab({
           key: "assign",
           label: t("admin_dashboard.assign") ?? "Assign",
           icon: <UserPlus size={14} />,
+          tooltip: row.assignee ? `Assigned to: ${row.assignee}` : undefined,
           onClick: () => onAssign(row),
         },
         {
@@ -631,6 +632,18 @@ function ComplaintEditDialog({
             />
           </div>
 
+          {complaint.assignee && (
+            <div>
+              <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+                {t("admin_dashboard.assign") ?? "Assigned To"}
+              </label>
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border bg-muted text-sm">
+                <Avatar name={complaint.assignee} size={20} />
+                <span className="font-medium">{complaint.assignee}</span>
+              </div>
+            </div>
+          )}
+
           <div>
             <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
               {t("complaints.internalNotes") ?? "Add Note (optional)"}
@@ -743,6 +756,14 @@ function AssignDialog({
               <span className="text-text-light ml-2">→ {complaint.against}</span>
             </div>
           </div>
+
+          {complaint.assignee && (
+            <div className="flex items-center gap-2 bg-secondary/10 border border-secondary/20 rounded-xl px-3 py-2 text-sm">
+              <UserPlus size={14} className="text-secondary" />
+              <span className="text-text-light">Currently assigned:</span>
+              <span className="font-medium">{complaint.assignee}</span>
+            </div>
+          )}
 
           <div>
             <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">

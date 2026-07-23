@@ -2,14 +2,15 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { npr } from "@/lib/cart";
-import { Eye, CheckCircle, XCircle, ExternalLink, Pencil, Trash2 } from "lucide-react";
+import { Eye, CheckCircle, XCircle, ExternalLink, Pencil, Trash2, Plus, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { useLang } from "@/context/i18n";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTableSort } from "@/hooks/useTableSort";
 import { useAdminRefunds } from "@/hooks/useAdminRefunds";
-import { type RefundReason, type RefundStatus } from "@/services/api/admin";
+import { type RefundReason, type RefundStatus, type AdminCreateRefundPayload } from "@/services/api/admin";
 import { DashboardStat } from "@/components/dashboard";
+import { LogManualCaseModal } from "@/components/refunds/LogManualCaseModal";
 import {
   DataTable,
   ActionMenu,
@@ -28,6 +29,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export default function AdminRefunds() {
   const { t } = useLang();
@@ -47,6 +56,13 @@ export default function AdminRefunds() {
   const [denyTarget, setDenyTarget] = useState<RefundRow | null>(null);
   const [denyReason, setDenyReason] = useState("");
   const [denySaving, setDenySaving] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const [addForm, setAddForm] = useState({ patientId: "", bookingId: "", amount: "", reason: "" });
+  const [addSaving, setAddSaving] = useState(false);
+  const [manualCaseOpen, setManualCaseOpen] = useState(false);
+  const [assignRow, setAssignRow] = useState<RefundRow | null>(null);
+  const [assignee, setAssignee] = useState("");
+  const [assignSaving, setAssignSaving] = useState(false);
 
   const debouncedSearch = useDebounce(search);
   const sort = useTableSort({ defaultColumn: "filed" });
@@ -56,10 +72,12 @@ export default function AdminRefunds() {
     items,
     total,
     isLoading,
+    createRefund,
     approveRefund,
     denyRefund,
     updateRefund,
     deleteRefund,
+    assignRefund,
   } = useAdminRefunds({
     search: debouncedSearch,
     reason,
@@ -162,6 +180,41 @@ export default function AdminRefunds() {
     }
   }, [deleteTarget, deleteRefund, t]);
 
+  const handleAddSubmit = useCallback(async () => {
+    if (!addForm.patientId.trim() || !addForm.bookingId.trim() || !addForm.amount || !addForm.reason) return;
+    setAddSaving(true);
+    try {
+      await createRefund({
+        patientId: addForm.patientId.trim(),
+        bookingId: addForm.bookingId.trim(),
+        amount: Number(addForm.amount),
+        reason: addForm.reason as RefundReason,
+      });
+      toast.success("Refund created");
+      setAddOpen(false);
+      setAddForm({ patientId: "", bookingId: "", amount: "", reason: "" });
+    } catch {
+      toast.error(t("common.tryAgain") ?? "Something went wrong");
+    } finally {
+      setAddSaving(false);
+    }
+  }, [addForm, createRefund, t]);
+
+  const handleAssignSubmit = useCallback(async () => {
+    if (!assignRow || !assignee.trim()) return;
+    setAssignSaving(true);
+    try {
+      await assignRefund(assignRow.id, assignee.trim());
+      toast.success(`Refund ${assignRow.id} assigned`);
+      setAssignRow(null);
+      setAssignee("");
+    } catch {
+      toast.error("Failed to assign refund");
+    } finally {
+      setAssignSaving(false);
+    }
+  }, [assignRow, assignee, assignRefund]);
+
   const columns: Column<RefundRow>[] = useMemo(
     () => [
       {
@@ -208,6 +261,28 @@ export default function AdminRefunds() {
         render: (row) => <StatusChip status={row.status} />,
       },
       {
+        key: "assigneeId",
+        label: "Assignee",
+        render: (row) => (
+          <span className="text-text-light text-xs">
+            {row.assigneeId || <span className="text-text-light/50">Unassigned</span>}
+          </span>
+        ),
+      },
+      {
+        key: "source",
+        label: "Source",
+        render: (row) => (
+          <span className={`text-xs px-2 py-0.5 rounded-full ${
+            row.source === "ADMIN_MANUAL"
+              ? "bg-amber-100 text-amber-700"
+              : "bg-surface text-text-light"
+          }`}>
+            {row.source === "ADMIN_MANUAL" ? "Manual" : "Patient"}
+          </span>
+        ),
+      },
+      {
         key: "filed",
         label: "Filed",
         sortable: true,
@@ -219,7 +294,7 @@ export default function AdminRefunds() {
 
   const renderActions = useCallback(
     (row: RefundRow) => {
-      const actions: { key: string; label: string; icon: React.ReactNode; variant?: "default" | "destructive"; onClick: () => void }[] = [
+      const actions: { key: string; label: string; icon: React.ReactNode; variant?: "default" | "destructive"; tooltip?: string; onClick: () => void }[] = [
         {
           key: "preview",
           label: t("admin_dashboard.view") ?? "Preview",
@@ -231,6 +306,13 @@ export default function AdminRefunds() {
           label: t("admin_dashboard.edit") ?? "Edit",
           icon: <Pencil size={14} />,
           onClick: () => handleEditOpen(row),
+        },
+        {
+          key: "assign",
+          label: t("admin_dashboard.assign") ?? "Assign",
+          icon: <UserPlus size={14} />,
+          tooltip: row.assigneeId ? `Assigned to: ${row.assigneeId}` : undefined,
+          onClick: () => { setAssignRow(row); setAssignee(row.assigneeId ?? ""); },
         },
       ];
 
@@ -307,11 +389,31 @@ export default function AdminRefunds() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h2 className="font-display text-2xl">Refunds &amp; Disputes</h2>
-        <p className="text-sm text-text-light mt-1">
-          Money-back cases — separate from Complaints, since not every refund starts as one.
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="font-display text-2xl">Refunds &amp; Disputes</h2>
+          <p className="text-sm text-text-light mt-1">
+            Money-back cases — separate from Complaints, since not every refund starts as one.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setManualCaseOpen(true)}
+            className="chip !bg-amber-600 !text-white cursor-pointer flex items-center gap-1.5"
+          >
+            <Plus size={14} />
+            Log Manual Case
+          </button>
+          <button
+            type="button"
+            onClick={() => setAddOpen(true)}
+            className="chip !bg-secondary !text-white cursor-pointer flex items-center gap-1.5"
+          >
+            <Plus size={14} />
+            Add Refund
+          </button>
+        </div>
       </div>
 
       {/* Stat Cards */}
@@ -367,6 +469,10 @@ export default function AdminRefunds() {
                 { label: "Reason", value: viewRow.reason },
                 { label: "Status", value: viewRow.status },
                 { label: "Filed", value: viewRow.filed },
+                { label: "Source", value: viewRow.source === "ADMIN_MANUAL" ? "Manual (Admin)" : "Patient submitted" },
+                ...(viewRow.assigneeId ? [{ label: "Assignee", value: viewRow.assigneeId }] : []),
+                ...(viewRow.notes ? [{ label: "Notes", value: viewRow.notes }] : []),
+                ...(viewRow.complaintId ? [{ label: "Linked Complaint", value: viewRow.complaintId }] : []),
                 ...(viewRow.resolvedAt ? [{ label: "Resolved", value: viewRow.resolvedAt }] : []),
                 ...(viewRow.denyReason ? [{ label: "Deny reason", value: viewRow.denyReason }] : []),
               ].map((r) => (
@@ -499,6 +605,131 @@ export default function AdminRefunds() {
           </div>
         </div>
       )}
+
+      {/* Add Refund Dialog */}
+      {addOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setAddOpen(false)}>
+          <div className="bg-background rounded-lg border shadow-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-display text-lg mb-1">Add Refund</h3>
+            <p className="text-sm text-text-light mb-4">
+              Create a new refund or dispute case.
+            </p>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-mono text-text-light uppercase">Patient ID</label>
+                <Input
+                  value={addForm.patientId}
+                  onChange={(e) => setAddForm((f) => ({ ...f, patientId: e.target.value }))}
+                  placeholder="Enter patient ID"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-mono text-text-light uppercase">Booking ID</label>
+                <Input
+                  value={addForm.bookingId}
+                  onChange={(e) => setAddForm((f) => ({ ...f, bookingId: e.target.value }))}
+                  placeholder="Enter booking ID"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-mono text-text-light uppercase">Amount (NPR)</label>
+                <Input
+                  type="number"
+                  value={addForm.amount}
+                  onChange={(e) => setAddForm((f) => ({ ...f, amount: e.target.value }))}
+                  placeholder="0.00"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-mono text-text-light uppercase">Reason</label>
+                <Select value={addForm.reason} onValueChange={(v) => setAddForm((f) => ({ ...f, reason: v }))}>
+                  <SelectTrigger className="mt-1 h-9">
+                    <SelectValue placeholder="Select reason" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="No-show">No-show</SelectItem>
+                    <SelectItem value="Double charge">Double charge</SelectItem>
+                    <SelectItem value="Service quality">Service quality</SelectItem>
+                    <SelectItem value="Cancellation">Cancellation</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-4">
+              <button
+                type="button"
+                onClick={() => setAddOpen(false)}
+                className="btn-outline !py-1.5 !px-4 text-xs cursor-pointer"
+              >
+                {t("common.cancel") ?? "Cancel"}
+              </button>
+              <button
+                type="button"
+                disabled={!addForm.patientId.trim() || !addForm.bookingId.trim() || !addForm.amount || !addForm.reason || addSaving}
+                onClick={handleAddSubmit}
+                className="chip !bg-secondary !text-white cursor-pointer disabled:opacity-50"
+              >
+                {addSaving ? (t("common.loading") ?? "Loading...") : "Create Refund"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Assign Refund Dialog */}
+      {assignRow && (
+        <Dialog open onOpenChange={(open) => { if (!open) { setAssignRow(null); setAssignee(""); } }}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="font-display">{t("admin_dashboard.assign") ?? "Assign Refund"}</DialogTitle>
+              <DialogDescription>{assignRow.id} — {npr(assignRow.amount)}</DialogDescription>
+            </DialogHeader>
+
+            <div className="mt-4 space-y-4">
+              {assignRow.assigneeId && (
+                <div className="flex items-center gap-2 bg-secondary/10 border border-secondary/20 rounded-xl px-3 py-2 text-sm">
+                  <UserPlus size={14} className="text-secondary" />
+                  <span className="text-text-light">Currently assigned:</span>
+                  <span className="font-medium">{assignRow.assigneeId}</span>
+                </div>
+              )}
+
+              <div>
+                <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+                  Assign to
+                </label>
+                <Input
+                  value={assignee}
+                  onChange={(e) => setAssignee(e.target.value)}
+                  placeholder="Enter assignee name or ID"
+                />
+              </div>
+            </div>
+
+            <DialogFooter className="mt-2">
+              <button
+                onClick={() => { setAssignRow(null); setAssignee(""); }}
+                className="px-4 py-2 rounded-xl text-sm text-text-light hover:bg-muted transition cursor-pointer"
+              >
+                {t("common.cancel") ?? "Cancel"}
+              </button>
+              <button
+                onClick={handleAssignSubmit}
+                disabled={assignSaving || !assignee.trim()}
+                className="px-4 py-2 rounded-xl text-sm font-medium bg-secondary text-white hover:opacity-90 transition cursor-pointer disabled:opacity-50"
+              >
+                {assignSaving ? "Saving..." : "Assign"}
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Log Manual Case Modal */}
+      <LogManualCaseModal open={manualCaseOpen} onClose={() => setManualCaseOpen(false)} />
     </div>
   );
 }
@@ -514,4 +745,8 @@ type RefundRow = {
   filed: string;
   resolvedAt?: string;
   denyReason?: string;
+  assigneeId?: string;
+  source?: string;
+  complaintId?: string;
+  notes?: string;
 };
