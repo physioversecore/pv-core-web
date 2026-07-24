@@ -1,14 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { CITIES } from "@/lib/constants";
 import { toast } from "sonner";
 import { useLang } from "@/context/i18n";
+import { getPatientProfile, updatePatientProfile } from "@/services/api/profile";
 
 export default function Profile() {
   const { t } = useLang();
   const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     name: user?.name ?? "",
     phone: user?.phone ?? "",
@@ -19,7 +22,53 @@ export default function Profile() {
     notif: { email: true, sms: false },
   });
 
-  const save = (e: React.FormEvent) => { e.preventDefault(); toast.success(t("patient_dashboard.profileSaved")); };
+  useEffect(() => {
+    getPatientProfile()
+      .then((profile) => {
+        setForm({
+          name: profile.name,
+          phone: profile.phone,
+          city: profile.city,
+          address: profile.address ?? "",
+          history: profile.history ?? "",
+          gender: profile.gender,
+          notif: { email: profile.notifEmail, sms: profile.notifSms },
+        });
+      })
+      .catch((err) => {
+        if (err?.message !== "Patient profile not found") {
+          toast.error(err?.message ?? "Something went wrong");
+        }
+      })
+      .finally(() => setLoading(false));
+  }, [t]);
+
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await updatePatientProfile({
+        name: form.name,
+        phone: form.phone,
+        city: form.city,
+        address: form.address || undefined,
+        history: form.history || undefined,
+        gender: form.gender,
+        notifEmail: form.notif.email,
+        notifSms: form.notif.sms,
+      });
+      toast.success(t("patient_dashboard.profileSaved"));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Something went wrong";
+      toast.error(message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="p-6 text-text-light">{t("common.loading")}</div>;
+  }
 
   return (
     <div>
@@ -50,7 +99,9 @@ export default function Profile() {
             <label className="flex items-center gap-2"><input type="checkbox" checked={form.notif.sms} onChange={(e) => setForm({ ...form, notif: { ...form.notif, sms: e.target.checked } })} /> {t("patient_dashboard.sms")}</label>
           </div>
         </div>
-        <button type="submit" className="btn-secondary">{t("common.saveChanges")}</button>
+        <button type="submit" disabled={saving} className="btn-secondary disabled:opacity-50">
+          {saving ? t("common.submitting") : t("common.saveChanges")}
+        </button>
       </form>
     </div>
   );
