@@ -27,6 +27,21 @@ export interface PatientProfile {
   updatedAt: string;
 }
 
+export interface TherapistProfile {
+  id: string;
+  userId: string;
+  name: string;
+  email: string;
+  phone: string;
+  city: string;
+  specialty: string;
+  gender: string;
+  price: number;
+  experience: number;
+  bio: string;
+  mediaUrls?: string;
+}
+
 export interface Product {
   id: string;
   name: string;
