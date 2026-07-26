@@ -12,6 +12,36 @@ export interface Therapist {
   userId?: string;
 }
 
+export interface PatientProfile {
+  id: string;
+  userId: string;
+  name: string;
+  phone: string;
+  city: string;
+  address?: string;
+  history?: string;
+  gender: "Any" | "Male" | "Female";
+  notifEmail: boolean;
+  notifSms: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TherapistProfile {
+  id: string;
+  userId: string;
+  name: string;
+  email: string;
+  phone: string;
+  city: string;
+  specialty: string;
+  gender: string;
+  price: number;
+  experience: number;
+  bio: string;
+  mediaUrls?: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -55,6 +85,45 @@ export interface NavItem {
   to: string;
   label: string;
   icon: React.ReactNode;
+  badge?: number | string;
+  group?: string;
+}
+
+export type ComplaintPriority = "Normal" | "Urgent";
+export type ComplaintStatus = "Open" | "Under review" | "Resolved" | "Dismissed";
+export type ComplaintType = "patient" | "therapist";
+export type CaseSource = "PATIENT_SUBMITTED" | "THERAPIST_SUBMITTED" | "ADMIN_MANUAL";
+
+export interface Complaint {
+  id: string;
+  type: ComplaintType;
+  complainant: string;
+  complainantId: string;
+  against: string;
+  againstId: string;
+  category: string;
+  priority: ComplaintPriority;
+  status: ComplaintStatus;
+  filed: string;
+  description: string;
+  bookingId?: string;
+  notes?: string[];
+  source?: CaseSource;
+  refundId?: string;
+}
+
+export type NotificationCategory = "booking" | "reschedule" | "complaint" | "payment" | "system";
+
+export interface AppNotification {
+  id: string;
+  category: NotificationCategory;
+  message: string;
+  timestamp: string;
+  read: boolean;
+  actionLabel?: string;
+  actionHref?: string;
+  relatedEntityType?: string;
+  relatedEntityId?: string;
 }
 
 export type AuthMode = "login" | "signup";
@@ -63,3 +132,47 @@ export type BookingStatus = "Confirmed" | "Pending" | "Completed" | "Cancelled";
 export type PaymentStatus = "Paid" | "Pending" | "Refunded";
 export type TherapistStatus = "Verified" | "Under review" | "Suspended";
 export type UploadKind = "x-ray" | "note" | "video";
+
+// --- Admin Bookings ---
+export type AdminBookingStatus = "Confirmed" | "Cancelled" | "Rescheduled";
+
+export interface AdminBookingTrailEvent {
+  id: string;
+  type: "cancelled" | "rebooked" | "confirmed";
+  timestamp: string;
+  description: string;
+  dotColor: "danger" | "secondary";
+}
+
+export interface AdminBookingData {
+  id: string;
+  patient: string;
+  patientId: string;
+  patientPhone?: string;
+  patientEmail?: string;
+  therapist: string;
+  therapistId: string;
+  therapistPhone?: string;
+  therapistEmail?: string;
+  date: string;
+  originalTime: string;
+  sessionType: string;
+  status: AdminBookingStatus;
+  trail?: AdminBookingTrailEvent[];
+  paymentStatus?: "Paid" | "Pending" | "Refunded";
+  paymentMethod?: string;
+  sessionNotes?: string;
+}
+
+// --- Admin Team ---
+export type AdminRoleName = "Super Admin" | "Support Admin" | "Finance Admin";
+
+export interface AdminUserData {
+  id: string;
+  name: string;
+  email: string;
+  role: AdminRoleName;
+  isActive: boolean;
+  permissions: string[];
+  permissionSummary: string;
+}

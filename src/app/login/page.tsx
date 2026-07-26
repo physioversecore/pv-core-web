@@ -1,17 +1,36 @@
 "use client";
 
 import { FormEvent, useEffect, useState, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/context/auth";
 import { useLang } from "@/context/i18n";
 import { toast } from "sonner";
 
+const ROLE_HOME: Record<string, string> = {
+  patient: "/patient",
+  therapist: "/therapist",
+  admin: "/admin",
+};
+
+function resolveCallbackUrl(callbackUrl: string | null, role: string): string {
+  if (callbackUrl && callbackUrl.startsWith("/") && !callbackUrl.startsWith("//")) {
+    const allowedPrefixes = ["/patient", "/therapist", "/admin"];
+    if (allowedPrefixes.some((p) => callbackUrl === p || callbackUrl.startsWith(p + "/"))) {
+      const requiredRole = callbackUrl.startsWith("/patient") ? "patient" : callbackUrl.startsWith("/therapist") ? "therapist" : "admin";
+      if (role === requiredRole) return callbackUrl;
+    }
+  }
+  return ROLE_HOME[role] ?? "/";
+}
+
 export default function LoginPage() {
   const { t } = useLang();
   const { user, loading, login } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
@@ -22,9 +41,9 @@ export default function LoginPage() {
     if (redirected.current) return;
     if (!loading && user) {
       redirected.current = true;
-      router.replace(user.role === "patient" ? "/patient" : user.role === "therapist" ? "/therapist" : "/admin");
+      router.replace(resolveCallbackUrl(callbackUrl, user.role));
     }
-  }, [loading, user, router]);
+  }, [loading, user, router, callbackUrl]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -34,7 +53,7 @@ export default function LoginPage() {
       const u = await login(email, password, "patient");
       toast.success(t("auth.successWelcome") + ", " + u.name);
       redirected.current = true;
-      router.replace(u.role === "patient" ? "/patient" : u.role === "therapist" ? "/therapist" : "/admin");
+      router.replace(resolveCallbackUrl(callbackUrl, u.role));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("auth.errorLoginFailed"));
     } finally {

@@ -15,10 +15,12 @@ export function AuthModal({
   open,
   mode: initialMode,
   onClose,
+  onLoginSuccess,
 }: {
   open: boolean;
   mode: AuthMode;
   onClose: () => void;
+  onLoginSuccess?: (() => void) | null;
 }) {
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [signupRole, setSignupRole] = useState<SignupRole>(null);
@@ -39,8 +41,13 @@ export function AuthModal({
     try {
       const u = await login(form.email, form.password, "patient");
       toast.success(t("auth.successWelcome") + ", " + u.name);
+      if (onLoginSuccess) {
+        onLoginSuccess();
+      }
       onClose();
-      router.replace(u.role === "patient" ? "/patient" : u.role === "therapist" ? "/therapist" : "/admin");
+      if (!onLoginSuccess) {
+        router.replace(u.role === "patient" ? "/patient" : u.role === "therapist" ? "/therapist" : "/admin");
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : t("auth.errorLoginFailed"));
     }
@@ -78,8 +85,13 @@ export function AuthModal({
   };
 
   const onSuccessGo = (role: Role) => {
+    if (onLoginSuccess) {
+      onLoginSuccess();
+    }
     onClose();
-    router.replace(role === "patient" ? "/patient" : "/therapist");
+    if (!onLoginSuccess) {
+      router.replace(role === "patient" ? "/patient" : "/therapist");
+    }
   };
 
   return (

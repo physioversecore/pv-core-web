@@ -39,7 +39,14 @@ Thumbs.db
 #Agents
 AGENTS.md
 .agents/
+.opencode/
+.claude/
 skills-lock.json
 
 #Landing Page Design
 landing_redesigned.html
+
+certificates
+
+# TypeScript incremental build info
+*.tsbuildinfo

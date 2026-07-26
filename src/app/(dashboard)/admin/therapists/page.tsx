@@ -1,109 +1,340 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Avatar } from "@/components/Avatar";
-import { Search, Star, Download } from "lucide-react";
+import { Star, Download, Pencil, Trash2, ShieldCheck, ShieldOff, Filter } from "lucide-react";
 import { toast } from "sonner";
 import { useLang } from "@/context/i18n";
-
-interface Row { id: string; name: string; city: string; specialty: string; rating: number; sessions: number; status: "Verified" | "Under review" | "Suspended"; }
-const ROWS: Row[] = [
-  { id: "1", name: "Rajesh Shrestha", city: "Lalitpur", specialty: "Sports & post-surgery", rating: 4.9, sessions: 312, status: "Verified" },
-  { id: "2", name: "Anita Tamang", city: "Kathmandu", specialty: "Geriatric & neuro", rating: 4.8, sessions: 214, status: "Verified" },
-  { id: "3", name: "Sujan Karki", city: "Bhaktapur", specialty: "Musculoskeletal", rating: 4.7, sessions: 98, status: "Verified" },
-  { id: "4", name: "Priya Manandhar", city: "Pokhara", specialty: "Pediatric rehab", rating: 4.9, sessions: 187, status: "Verified" },
-  { id: "5", name: "Binod Khatri", city: "Lalitpur", specialty: "Sports injury", rating: 3.8, sessions: 22, status: "Under review" },
-];
+import { useDebounce } from "@/hooks/useDebounce";
+import { useTableSort } from "@/hooks/useTableSort";
+import { useAdminTherapists } from "@/hooks/useAdminTherapists";
+import { RefreshButton } from "@/components/dashboard/RefreshButton";
+import { TherapistDetailSheet } from "@/components/modals/TherapistDetailSheet";
+import {
+  DataTable,
+  ActionMenu,
+  ConfirmDialog,
+  FilterBar,
+  StatusChip,
+  type Column,
+  type FilterConfig,
+  type ActionItem,
+} from "@/components/tables";
+import type { AdminTherapistData } from "@/services/api/admin";
 
 export default function AdminTherapists() {
   const { t } = useLang();
-  const [q, setQ] = useState("");
-  const [data, setData] = useState(ROWS);
-  const rows = useMemo(() => data.filter((r) => [r.name, r.city, r.specialty].join(" ").toLowerCase().includes(q.toLowerCase())), [data, q]);
 
-  const toggle = (id: string) => {
-    setData((d) => d.map((r) => r.id !== id ? r : { ...r, status: r.status === "Under review" ? "Verified" : r.status === "Verified" ? "Suspended" : "Verified" }));
-    toast.success(t("admin_dashboard.statusUpdated"));
-  };
+  const [search, setSearch] = useState("");
+  const [specialty, setSpecialty] = useState("");
+  const [status, setStatus] = useState("");
+  const [city, setCity] = useState("");
+  const [page, setPage] = useState(1);
+  const [sheetRow, setSheetRow] = useState<AdminTherapistData | null>(null);
+  const [sheetMode, setSheetMode] = useState<"view" | "edit">("view");
+  const [deleteTarget, setDeleteTarget] = useState<AdminTherapistData | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
 
-  const exportCsv = () => {
-    const header = "Name,City,Specialty,Rating,Sessions,Status\n";
-    const body = data.map((r) => `${r.name},${r.city},${r.specialty},${r.rating},${r.sessions},${r.status}`).join("\n");
+  const debouncedSearch = useDebounce(search);
+  const { sort, toggleSort, sortBy, sortOrder } = useTableSort({ defaultColumn: "name" });
+  const pageSize = 10;
+
+  const { items, total, isLoading, isRefetching, error, refetch, deleteTherapist, toggleTherapistStatus, updateTherapist } = useAdminTherapists({
+    search: debouncedSearch,
+    specialty,
+    status,
+    city,
+    sortBy,
+    sortOrder,
+    page,
+    pageSize,
+  });
+
+  const resetFilters = useCallback(() => {
+    setSearch("");
+    setSpecialty("");
+    setStatus("");
+    setCity("");
+    setPage(1);
+  }, []);
+
+  const filterValues = useMemo(
+    () => ({ search, specialty, status, city }),
+    [search, specialty, status, city],
+  );
+
+  const handleFilterChange = useCallback(
+    (key: string, value: string) => {
+      if (key === "search") setSearch(value);
+      else if (key === "specialty") setSpecialty(value);
+      else if (key === "status") setStatus(value);
+      else if (key === "city") setCity(value);
+      setPage(1);
+    },
+    [],
+  );
+
+  const handleDelete = useCallback(async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteTherapist(deleteTarget.id);
+      toast.success(t("admin_dashboard.therapistDeleted") ?? "Therapist deleted");
+      setDeleteTarget(null);
+    } catch {
+      toast.error(t("common.tryAgain") ?? "Something went wrong");
+    }
+  }, [deleteTarget, deleteTherapist, t]);
+
+  const handleToggleStatus = useCallback(
+    async (row: AdminTherapistData) => {
+      const nextStatus: AdminTherapistData["status"] = row.isActive ? "Suspended" : "Verified";
+      try {
+        await toggleTherapistStatus(row.id, nextStatus);
+        toast.success(
+          row.isActive
+            ? (t("admin_dashboard.therapistDeactivated") ?? "Therapist deactivated")
+            : (t("admin_dashboard.therapistActivated") ?? "Therapist activated"),
+        );
+      } catch {
+        toast.error(t("common.tryAgain") ?? "Something went wrong");
+      }
+    },
+    [toggleTherapistStatus, t],
+  );
+
+  const handleEditSave = useCallback(
+    async (data: Partial<AdminTherapistData>) => {
+      if (!sheetRow) return;
+      await updateTherapist(sheetRow.id, data);
+      setSheetRow(null);
+    },
+    [sheetRow, updateTherapist],
+  );
+
+  const exportCsv = useCallback(() => {
+    const header = "Name,City,Specialty,Rating,Sessions,Status,Phone,Email\n";
+    const body = items
+      .map(
+        (r) =>
+          `${r.name},${r.city},${r.specialty},${r.rating},${r.sessions},${r.status},${r.phone ?? ""},${r.email ?? ""}`,
+      )
+      .join("\n");
     const blob = new Blob([header + body], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = "therapists.csv"; a.click(); URL.revokeObjectURL(url);
-    toast.success(t("admin_dashboard.exportedCsv"));
-  };
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "therapists.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(t("admin_dashboard.exportedCsv") ?? "Exported CSV");
+  }, [items, t]);
+
+  const columns: Column<AdminTherapistData>[] = useMemo(
+    () => [
+      {
+        key: "name",
+        label: t("admin_dashboard.name") ?? "Name",
+        sortable: true,
+        render: (row) => (
+          <div className="flex items-center gap-2">
+            <Avatar name={row.name} size={28} />
+            <div className="flex flex-col">
+              <span className="font-medium">{row.name}</span>
+              {row.email && <span className="text-xs text-text-light">{row.email}</span>}
+            </div>
+          </div>
+        ),
+      },
+      {
+        key: "city",
+        label: t("admin_dashboard.city") ?? "City",
+        sortable: true,
+        render: (row) => <span className="text-text-light">{row.city}</span>,
+      },
+      {
+        key: "specialty",
+        label: t("admin_dashboard.specialty") ?? "Specialty",
+        sortable: true,
+        render: (row) => <span className="text-text-light">{row.specialty}</span>,
+      },
+      {
+        key: "rating",
+        label: t("admin_dashboard.rating") ?? "Rating",
+        sortable: true,
+        render: (row) => (
+          <span className="inline-flex items-center gap-1 text-primary">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <Star key={n} size={11} className={n <= Math.round(row.rating) ? "fill-primary text-primary" : "text-border"} />
+            ))}
+            <span className="ml-1 text-text font-mono text-xs">{row.rating}</span>
+          </span>
+        ),
+      },
+      {
+        key: "sessions",
+        label: t("admin_dashboard.sessions") ?? "Sessions",
+        sortable: true,
+        render: (row) => <span className="font-mono text-xs">{row.sessions}</span>,
+      },
+      {
+        key: "joined",
+        label: t("admin_dashboard.joined") ?? "Joined",
+        sortable: true,
+        render: (row) => <span className="text-text-light text-xs">{row.joined}</span>,
+      },
+      {
+        key: "status",
+        label: t("admin_dashboard.status") ?? "Status",
+        sortable: true,
+        render: (row) => <StatusChip status={row.status} />,
+      },
+    ],
+    [t],
+  );
+
+  const renderActions = useCallback(
+    (row: AdminTherapistData) => {
+      const actions: ActionItem[] = [
+        {
+          key: "edit",
+          label: t("admin_dashboard.edit") ?? "Edit",
+          icon: <Pencil size={14} />,
+          onClick: () => { setSheetRow(row); setSheetMode("edit"); },
+        },
+        {
+          key: "toggle",
+          label: row.isActive
+            ? (t("admin_dashboard.deactivate") ?? "Deactivate")
+            : (t("admin_dashboard.activate") ?? "Activate"),
+          icon: row.isActive ? <ShieldOff size={14} /> : <ShieldCheck size={14} />,
+          onClick: () => handleToggleStatus(row),
+        },
+        {
+          key: "delete",
+          label: t("admin_dashboard.delete") ?? "Delete",
+          icon: <Trash2 size={14} />,
+          variant: "destructive",
+          onClick: () => setDeleteTarget(row),
+        },
+      ];
+      return <ActionMenu actions={actions} />;
+    },
+    [handleToggleStatus, t],
+  );
+
+  const filterConfig: FilterConfig[] = useMemo(
+    () => [
+      {
+        key: "search",
+        type: "search",
+        label: t("admin_dashboard.name") ?? "Name",
+        placeholder: t("admin_dashboard.searchTherapist") ?? "Search therapist...",
+      },
+      {
+        key: "specialty",
+        type: "select",
+        label: t("admin_dashboard.specialty") ?? "Specialty",
+        placeholder: t("admin_dashboard.allSpecialties") ?? "All specialties",
+        options: [
+          { value: "Sports & post-surgery", label: "Sports & post-surgery" },
+          { value: "Geriatric & neuro", label: "Geriatric & neuro" },
+          { value: "Musculoskeletal", label: "Musculoskeletal" },
+          { value: "Pediatric rehab", label: "Pediatric rehab" },
+          { value: "Sports injury", label: "Sports injury" },
+        ],
+      },
+      {
+        key: "status",
+        type: "select",
+        label: t("admin_dashboard.status") ?? "Status",
+        placeholder: t("admin_dashboard.allStatuses") ?? "All statuses",
+        options: [
+          { value: "Verified", label: "Verified" },
+          { value: "Under review", label: "Under review" },
+          { value: "Suspended", label: "Suspended" },
+        ],
+      },
+      {
+        key: "city",
+        type: "select",
+        label: t("admin_dashboard.city") ?? "City",
+        placeholder: t("admin_dashboard.allCities") ?? "All cities",
+        options: [
+          { value: "Kathmandu", label: "Kathmandu" },
+          { value: "Lalitpur", label: "Lalitpur" },
+          { value: "Bhaktapur", label: "Bhaktapur" },
+          { value: "Pokhara", label: "Pokhara" },
+        ],
+      },
+    ],
+    [t],
+  );
 
   return (
     <div>
       <div className="card-soft p-5">
         <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-          <h3 className="font-display text-xl">{t("admin_dashboard.allTherapists")}</h3>
+          <h3 className="font-display text-xl">{t("admin_dashboard.allTherapists") ?? "All Therapists"}</h3>
           <div className="flex items-center gap-2">
-            <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" />
-              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("admin_dashboard.searchTherapist")} className="pl-9 pr-3 py-2 rounded-full border border-border bg-background text-sm w-56" />
-            </div>
-            <button onClick={exportCsv} className="btn-outline !py-2 !px-3 text-xs"><Download size={14} /> {t("admin_dashboard.exportCsv")}</button>
+            <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`btn-outline !py-2 !px-3 text-xs cursor-pointer ${showFilters ? "!bg-secondary !text-white" : ""}`}
+            >
+              <Filter size={14} className="inline mr-1" /> Filter
+            </button>
+            <button onClick={exportCsv} className="btn-outline !py-2 !px-3 text-xs cursor-pointer">
+              <Download size={14} className="inline mr-1" /> {t("admin_dashboard.exportCsv") ?? "Export CSV"}
+            </button>
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-[0.65rem] uppercase font-mono text-text-light text-left border-b border-border">
-                <th className="py-2 pr-3">{t("admin_dashboard.name")}</th><th className="py-2 pr-3">{t("admin_dashboard.city")}</th><th className="py-2 pr-3">{t("admin_dashboard.specialty")}</th>
-                <th className="py-2 pr-3">{t("admin_dashboard.rating")}</th><th className="py-2 pr-3">{t("admin_dashboard.sessions")}</th><th className="py-2 pr-3">{t("admin_dashboard.status")}</th><th className="py-2">{t("admin_dashboard.actions")}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {rows.map((r) => (
-                <tr key={r.id}>
-                  <td className="py-3 pr-3">
-                    <div className="flex items-center gap-2">
-                      <Avatar name={r.name} size={28} />
-                      <span className="font-medium">{r.name}</span>
-                    </div>
-                  </td>
-                  <td className="py-3 pr-3 text-text-light">{r.city}</td>
-                  <td className="py-3 pr-3 text-text-light">{r.specialty}</td>
-                  <td className="py-3 pr-3">
-                    <span className="inline-flex items-center gap-1 text-primary">
-                      {[1, 2, 3, 4, 5].map((n) => <Star key={n} size={11} className={n <= Math.round(r.rating) ? "fill-primary text-primary" : "text-border"} />)}
-                      <span className="ml-1 text-text font-mono text-xs">{r.rating}</span>
-                    </span>
-                  </td>
-                  <td className="py-3 pr-3 font-mono text-xs">{r.sessions}</td>
-                  <td className="py-3 pr-3">
-                    <StatusChip status={r.status} />
-                  </td>
-                  <td className="py-3">
-                    {r.status === "Under review"
-                      ? <button onClick={() => toggle(r.id)} className="chip !bg-secondary !text-white cursor-pointer">{t("admin_dashboard.verify")}</button>
-                      : <button onClick={() => toggle(r.id)} className="chip !bg-destructive/15 !text-destructive cursor-pointer">{r.status === "Suspended" ? t("common.reinstate") : t("common.suspend")}</button>}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {showFilters && (
+          <FilterBar
+            filters={filterConfig}
+            values={filterValues}
+            onChange={handleFilterChange}
+            onClear={resetFilters}
+          />
+        )}
+
+        <DataTable
+          columns={columns}
+          data={items}
+          total={total}
+          isLoading={isLoading}
+          error={error}
+          onRetry={() => refetch()}
+          sortColumn={sort.column}
+          sortOrder={sort.direction}
+          onSortToggle={(col) => {
+            toggleSort(col);
+            setPage(1);
+          }}
+          page={page}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          renderActions={renderActions}
+          onRowClick={(row) => { setSheetRow(row); setSheetMode("view"); }}
+          emptyMessage={t("common.noResults") ?? "No results found"}
+        />
       </div>
+
+      <TherapistDetailSheet
+        therapist={sheetRow}
+        open={!!sheetRow}
+        onOpenChange={(open) => !open && setSheetRow(null)}
+        mode={sheetMode}
+        onSave={sheetMode === "edit" ? handleEditSave : undefined}
+      />
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        title={t("common.delete") ?? "Delete therapist"}
+        description={`${t("common.confirm") ?? "Are you sure you want to delete"} ${deleteTarget?.name ?? ""}?`}
+      />
     </div>
   );
-}
-
-function StatusChip({ status }: { status: Row["status"] }) {
-  const { t } = useLang();
-  const map = {
-    "Verified": "!bg-secondary/10 !text-secondary",
-    "Under review": "!bg-primary/15 !text-primary",
-    "Suspended": "!bg-destructive/10 !text-destructive",
-  } as const;
-  const label: Record<string, string> = {
-    "Verified": t("admin_dashboard.verified"),
-    "Under review": t("admin_dashboard.underReview"),
-    "Suspended": t("admin_dashboard.suspended"),
-  };
-  return <span className={`chip ${map[status]}`}>{label[status]}</span>;
 }
