@@ -12,6 +12,36 @@ export interface Therapist {
   userId?: string;
 }
 
+export interface PatientProfile {
+  id: string;
+  userId: string;
+  name: string;
+  phone: string;
+  city: string;
+  address?: string;
+  history?: string;
+  gender: "Any" | "Male" | "Female";
+  notifEmail: boolean;
+  notifSms: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TherapistProfile {
+  id: string;
+  userId: string;
+  name: string;
+  email: string;
+  phone: string;
+  city: string;
+  specialty: string;
+  gender: string;
+  price: number;
+  experience: number;
+  bio: string;
+  mediaUrls?: string;
+}
+
 export interface Product {
   id: string;
   name: string;

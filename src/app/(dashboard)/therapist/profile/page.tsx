@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { CITIES, SPECIALTIES } from "@/lib/constants";
 import { toast } from "sonner";
@@ -13,10 +13,10 @@ import {
   Download,
   Eye,
   CheckCircle2,
-  Loader2,
   X,
   RefreshCw,
 } from "lucide-react";
+import { getTherapistProfile, updateTherapistProfile } from "@/services/api/profile";
 
 const MAX_PHOTO_SIZE = 5 * 1024 * 1024;
 const ALLOWED_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -59,15 +59,18 @@ export default function TProfile() {
     other: null,
   });
 
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
   const [f, setF] = useState({
     name: user?.name ?? "",
     phone: user?.phone ?? "",
     bio: "",
     specialty: user?.specialty ?? "General",
     experience: 5,
-    fee: 1200,
-    hours: "09:00–18:00",
+    price: 1200,
     city: user?.city ?? "Kathmandu",
+    gender: "Male",
   });
 
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -84,6 +87,51 @@ export default function TProfile() {
     id: { file: null, preview: "", name: "", uploadedAt: "", status: "Pending Verification", progress: 0, error: "" },
     other: { file: null, preview: "", name: "", uploadedAt: "", status: "Pending Verification", progress: 0, error: "" },
   });
+
+  useEffect(() => {
+    getTherapistProfile()
+      .then((profile) => {
+        setF({
+          name: profile.name,
+          phone: profile.phone,
+          bio: profile.bio ?? "",
+          specialty: profile.specialty,
+          experience: profile.experience,
+          price: profile.price,
+          city: profile.city,
+          gender: profile.gender,
+        });
+      })
+      .catch((err) => {
+        if (err?.message !== "Therapist profile not found") {
+          toast.error(err?.message ?? "Something went wrong");
+        }
+      })
+      .finally(() => setLoading(false));
+  }, [t]);
+
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await updateTherapistProfile({
+        name: f.name,
+        phone: f.phone,
+        bio: f.bio || "",
+        specialty: f.specialty,
+        experience: f.experience,
+        price: f.price,
+        city: f.city,
+        gender: f.gender,
+      });
+      toast.success(t("therapist_dashboard.profileSaved"));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Something went wrong";
+      toast.error(message);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   function handlePhotoSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -220,14 +268,12 @@ export default function TProfile() {
     URL.revokeObjectURL(url);
   }
 
+  if (loading) {
+    return <div className="p-6 text-text-light">{t("common.loading")}</div>;
+  }
+
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        toast.success(t("therapist_dashboard.profileSaved"));
-      }}
-      className="card-soft p-6 max-w-2xl space-y-6"
-    >
+    <form onSubmit={save} className="card-soft p-6 max-w-2xl space-y-6">
       {/* ─── Photo Upload ─── */}
       <div className="space-y-2">
         <label className="text-xs font-medium text-text-light">
@@ -360,21 +406,16 @@ export default function TProfile() {
         <Field
           label={t("therapist_dashboard.feePerSession")}
           type="number"
-          value={String(f.fee)}
-          onChange={(v) => setF({ ...f, fee: +v })}
+          value={String(f.price)}
+          onChange={(v) => setF({ ...f, price: +v })}
         />
-        <Field
-          label={t("therapist_dashboard.availabilityHours")}
-          value={f.hours}
-          onChange={(v) => setF({ ...f, hours: v })}
+        <SelectField
+          label={t("therapist_dashboard.primaryCity")}
+          value={f.city}
+          onChange={(v) => setF({ ...f, city: v })}
+          options={[...CITIES]}
         />
       </div>
-      <SelectField
-        label={t("therapist_dashboard.primaryCity")}
-        value={f.city}
-        onChange={(v) => setF({ ...f, city: v })}
-        options={[...CITIES]}
-      />
 
       <div className="p-3 rounded-xl bg-surface/60 text-xs text-text-light">
         {t("therapist_dashboard.nmcLicense")}{" "}
@@ -516,8 +557,8 @@ export default function TProfile() {
         </div>
       </div>
 
-      <button type="submit" className="btn-secondary">
-        {t("common.saveChanges")}
+      <button type="submit" disabled={saving} className="btn-secondary disabled:opacity-50">
+        {saving ? t("common.submitting") : t("common.saveChanges")}
       </button>
     </form>
   );

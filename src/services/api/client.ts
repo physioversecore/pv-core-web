@@ -40,7 +40,7 @@ async function request<T = unknown>(
 
   if (!res.ok) {
     const body = await res.json().catch(() => null);
-    throw new Error(body?.detail ?? `API error ${res.status}: ${res.statusText}`);
+    throw new Error(body?.detail ?? body?.message ?? `API error ${res.status}: ${res.statusText}`);
   }
 
   if (res.status === 204) return undefined as T;
