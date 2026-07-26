@@ -2,7 +2,6 @@ import "server-only";
 import { getToken } from "./session";
 
 const BASE = process.env.BACKEND_URL || "http://localhost:8000";
-console.log('ttttttttttttttttgggggggggggggggggggggggjjjjjjjjjjjjjjjjjjjjjjjj')
 
 export class AuthError extends Error {
   constructor(message?: string) {
@@ -33,7 +32,6 @@ async function request<T = unknown>(
     headers,
     cache: "no-store",
   });
-  console.log(res,'resres')
 
   if (res.status === 401) {
     const body = await res.json().catch(() => null);
