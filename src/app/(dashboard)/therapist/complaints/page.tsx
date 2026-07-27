@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, Suspense } from "react";
+import { useState, useMemo, useCallback, useRef, Suspense } from "react";
 import { useSearchParams as useSearchParamsNav, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AlertTriangle, Paperclip, X, CheckCircle2, FileText } from "lucide-react";
@@ -41,6 +41,11 @@ function ComplaintsContent() {
 
   const { sessions, isLoading: sessionsLoading } = useSessions();
   const { items: myComplaints, submitComplaint, isSubmitting, refetch, isRefetching } = useTherapistComplaints(MOCK_THERAPIST_ID);
+
+  const [hasLoaded, setHasLoaded] = useState(false);
+  const handleRefresh = useCallback(() => {
+    refetch().then(() => setHasLoaded(true));
+  }, [refetch]);
 
   const [form, setForm] = useState({
     bookingId: prefillBookingId,
@@ -193,9 +198,6 @@ function ComplaintsContent() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
-      </div>
       <form onSubmit={handleSubmit} className="card-soft p-5">
         <p className="eyebrow mb-1">{t("therapist_complaints.fileComplaint")}</p>
         <h3 className="font-display text-lg mb-1">{t("therapist_complaints.reportIssue")}</h3>
@@ -348,10 +350,18 @@ function ComplaintsContent() {
       </form>
 
       <div className="card-soft p-5">
-        <p className="eyebrow mb-1">{t("therapist_complaints.myComplaints")}</p>
-        <h3 className="font-display text-lg mb-4">{t("therapist_complaints.myComplaintsTitle")}</h3>
-
-        {myComplaints.length === 0 ? (
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="eyebrow mb-1">{t("therapist_complaints.myComplaints")}</p>
+            <h3 className="font-display text-lg mb-4">{t("therapist_complaints.myComplaintsTitle")}</h3>
+          </div>
+          <div className="">
+            <RefreshButton onRefresh={handleRefresh} isRefreshing={isRefetching} />
+          </div>
+        </div>
+        {!hasLoaded ? (
+          <p className="text-sm text-text-light py-6 text-center">{t("therapist_complaints.clickRefresh")}</p>
+        ) : myComplaints.length === 0 ? (
           <p className="text-sm text-text-light py-6 text-center">{t("therapist_complaints.noComplaints")}</p>
         ) : (
           <div className="space-y-3">

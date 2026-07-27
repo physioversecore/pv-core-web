@@ -112,9 +112,6 @@ export default function Patients() {
 
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
-        <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
-      </div>
       {/* ─── Search & Filters ─── */}
       <div className="card-soft p-4 mb-4 space-y-3">
         <div className="flex flex-col sm:flex-row gap-3">
@@ -125,7 +122,7 @@ export default function Patients() {
               placeholder="Search by name, phone, or ID…"
               value={search}
               onChange={(e) => handleSearchChange(e.target.value)}
-              className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full pl-9 pr-3 py-2 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
             {search && (
               <button
@@ -142,7 +139,7 @@ export default function Patients() {
             <select
               value={conditionFilter}
               onChange={(e) => handleConditionChange(e.target.value)}
-              className="appearance-none pl-3 pr-8 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+              className="appearance-none pl-3 pr-8 py-2 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
             >
               <option value="">All Conditions</option>
               {CONDITION_OPTIONS.map((c) => (
@@ -158,7 +155,7 @@ export default function Patients() {
             <select
               value={lastVisitFilter}
               onChange={(e) => handleLastVisitChange(e.target.value)}
-              className="appearance-none pl-3 pr-8 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+              className="appearance-none pl-3 pr-8 py-2 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
             >
               {LAST_VISIT_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
@@ -167,6 +164,9 @@ export default function Patients() {
               ))}
             </select>
             <Calendar className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-light pointer-events-none" />
+          </div>
+          <div className="relative py-0.5">
+            <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
           </div>
         </div>
 

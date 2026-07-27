@@ -1,10 +1,18 @@
 # Architecture
 
+## System Overview
+
+The frontend is a Next.js 15 App Router application that communicates with a separate FastAPI backend (`pvc-api`). All backend calls flow through a server-only API layer — the backend URL and JWT tokens never reach the browser.
+
+```
+Browser → Next.js Server (Server Components / Server Actions) → FastAPI Backend → PostgreSQL
+```
+
 ## Auth & Redirect Flow
 
 ### Login
 1. User submits email + password on `/login` page or via AuthModal
-2. `login()` in `src/context/auth.tsx` calls `AuthService.login()` → FastAPI returns user + sets HTTP-only JWT cookie
+2. `login()` in `src/context/auth.tsx` calls `AuthService.login()` → FastAPI returns user + sets HTTP-only JWT cookie (`sahayatri.session`)
 3. On success, `handleSubmit` sets `redirected.current = true` (useRef guard), then calls `router.replace("/patient|/therapist|/admin")`
 4. The `useEffect` in the login page checks `!loading && user && !redirected.current` — if a logged-in user lands on `/login`, it redirects them. The ref prevents double-redirect after a submit.
 
@@ -32,13 +40,13 @@
 - Accepts `onError` callback for logging/reporting
 - Applied at **two levels**:
   - **Layout level**: `(dashboard)/layout.tsx` wraps all dashboard content — catches any uncaught render error in any dashboard page
-  - **Section level**: Each data-fetching section on `patient/page.tsx` (Statistics, ReferFriend, UpcomingAppointments) has its own `ErrorBoundary` — one section failing doesn't take down the whole page
+  - **Section level**: Each data-fetching section on dashboard pages has its own `ErrorBoundary` — one section failing doesn't take down the whole page
 
 ### Next.js `error.tsx` convention
 - `src/app/error.tsx` — root-level error boundary (catches errors in public pages)
 - `src/app/(dashboard)/error.tsx` — dashboard-scoped error boundary (catches errors before the layout-level ErrorBoundary)
 
-## Data Loading with Suspense
+## Data Loading
 
 ### Why not `useSuspenseQuery`
 The API layer uses server actions (`"use server"` in `src/services/api/`) to make HTTP requests. Server actions trigger Next.js router state updates during invocation, which conflicts with React's render phase when used inside `useSuspenseQuery`. Components use `useQuery` with manual `isLoading` handling instead.
@@ -54,8 +62,6 @@ export function Statistics() {
 }
 ```
 
-The `<Suspense>` wrappers at the section level are inert (children don't suspend) but kept for documentation and future compatibility — they'd activate if a child ever throws a promise.
-
 ### Error handling with ErrorBoundary
 ```
 <ErrorBoundary>
@@ -64,20 +70,8 @@ The `<Suspense>` wrappers at the section level are inert (children don't suspend
 ```
 Each data-fetching section has its own `ErrorBoundary` — one section failing doesn't take down the whole page.
 
-### Hooks
-- `usePatientDashboard()` — returns `{ dashboard, isLoading, error }`
-- `usePatientReferral()` — returns `{ referral, isLoading }`
-- Regular `useQuery` with manual `isLoading` handling in components
-
-### Skeleton Components (`src/components/SuspenseFallback.tsx`)
-- `StatsSkeleton` — 3-column grid of pulsing cards
-- `CardSkeleton` — single card with title/desc/button layout
-- `WelcomeSkeleton` — greeting line skeleton
-- `AppointmentsSkeleton` — list of appointment card skeletons
-- `DashboardPageSkeleton` — composed full-page skeleton (used in `loading.tsx`)
-
 ### Page-level loading
-- `(dashboard)/loading.tsx` renders `DashboardPageSkeleton` — shown automatically by Next.js during initial page navigation (before any data fetching begins)
+- `(dashboard)/loading.tsx` renders `DashboardPageSkeleton` — shown automatically by Next.js during initial page navigation
 
 ## Dashboard Layout
 
@@ -86,28 +80,70 @@ Each data-fetching section has its own `ErrorBoundary` — one section failing d
 - `DashboardShell` (`src/components/layout/DashboardShell.tsx`) — fixed sidebar + top header + scrollable main area
 - Sidebar is `fixed` at all breakpoints; only `<main>` scrolls (overflow-y-auto)
 
-### Title derivation
-- Nav items are matched against `pathname` to determine the current page title
-- Titles are translated via `useLang()` using a label→key mapping
+### Nav items
+- Defined in `src/constants/navigation.tsx` with role-based arrays (`patientNav`, `therapistNav`, `adminNav`)
+- Admin nav items use `group` field for sidebar section grouping (Operations, Finance, Trust & Safety, Insights, System)
+- Titles are derived from `usePathname()` and translated via `useLang()`
 
 ## Data Fetching Architecture
 
 ### API Service Layer (`src/services/api/`)
-- `client.ts` — base HTTP client with `Authorization: Bearer <token>` header
-- One file per domain: `auth.ts`, `patients.ts`, `sessions.ts`, `products.ts`, `therapists.ts`, `profile.ts`, `cart.ts`
+- `client.ts` — base HTTP client with `Authorization: Bearer <token>` header, imports `"server-only"`
+- 15 domain service files: `auth.ts`, `admin.ts`, `sessions.ts`, `therapists.ts`, `patients.ts`, `products.ts`, `cart.ts`, `availability.ts`, `earnings.ts`, `reports.ts`, `reviews.ts`, `settings.ts`, `profile.ts`, `session.ts` (cookie management)
 
-### Query Layer (`src/services/hooks/`)
-- TanStack Query v5 with `queryKey` per domain
+### Server Actions (`src/lib/actions/`)
+- Thin `"use server"` re-exports of service functions
+- 6 action files: `auth.ts`, `sessions.ts`, `cart.ts`, `products.ts`, `therapists.ts`, `profile.ts`
+- Called from client components via TanStack Query mutations
+
+### Query Layer (`src/hooks/`)
+- 41 TanStack Query hook files with `queryKey` per domain
 - `useQuery` for data fetching with manual `isLoading`/`error` handling
-- `useMutation` for writes (session cancel, cart updates)
+- `useMutation` for writes (session cancel, cart updates, etc.)
+
+### Decision Tree
+| Scenario | Approach |
+|---|---|
+| Page data (reads) | Server Components or Server Actions |
+| User mutations | Server Actions |
+| Webhooks/integrations | Route Handlers (`app/api/...`) |
+| Real-time (future) | Client fetch → own Route Handler (never raw backend) |
+
+## Provider Stack
+
+Defined in `src/app/providers.tsx`:
+
+```
+QueryClientProvider
+  └─ DesignTokensProvider     # Dynamic theme (localStorage + server sync)
+      └─ LangProvider          # Nepali/English toggle (localStorage)
+          └─ AuthProvider       # User state (server-driven via getSession)
+              └─ CartProvider   # Shopping cart (API-driven, optimistic updates)
+                  └─ BookingBadgeProvider  # Admin booking notification count
+                      └─ AuthModalProvider  # Login/signup modal state
+```
+
+## Styling
+
+- Tailwind CSS v4 with `@theme inline` for design tokens
+- CSS custom properties for runtime theming (admin can customize colors/fonts/radii)
+- `cn()` utility from `@/lib/utils` (re-exports `clsx` + `tailwind-merge`)
+- Custom utility classes: `btn-primary`, `btn-secondary`, `card-soft`, `chip`, `stat-value`, `badge-*`, `tabs-filter`, `table-header`, `table-cell`
+- Dark mode via `.dark` class on `<html>`
+
+## i18n
+
+- `LangProvider` context with `useLang()` hook
+- Two languages: English and Nepali
+- Translation files in `src/translations/` (~1300 lines each)
+- Deep key resolution: `t("nav.overview")` resolves nested objects
+- Preference stored in localStorage under `sahayatri.lang`
 
 ## Key Patterns
 
 ### Redirect safety
 ```typescript
-// Always guard useEffect redirects with a ref
 const redirected = useRef(false);
-
 useEffect(() => {
   if (redirected.current) return;
   if (!loading && user) {
@@ -131,3 +167,6 @@ const handleLogout = async () => {
   <DataComponent />
 </ErrorBoundary>
 ```
+
+### Reusable table pattern
+Use `DataTable` from `src/components/tables/` with `FilterBar`, `SortableHeader`, `StatusChip`, `ActionMenu`.

@@ -1009,6 +1009,7 @@ const en = {
     myComplaints: "My complaints",
     myComplaintsTitle: "Complaints you've filed",
     noComplaints: "You haven't filed any complaints yet.",
+    clickRefresh: "Click refresh to load your complaints.",
     against: "Against",
     resolutionNote: "Admin response",
   },
