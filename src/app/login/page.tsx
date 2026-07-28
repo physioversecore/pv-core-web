@@ -63,7 +63,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-sm">
+      <div className="w-full max-w-md">
         <Link href="/" className="flex items-center gap-2 justify-center mb-8">
           <span className="w-6 h-6 rounded-full bg-secondary inline-block" />
           <span className="font-display text-lg">{t("header.brand")}</span>
@@ -109,7 +109,7 @@ export default function LoginPage() {
 
           <p className="text-sm text-text-light text-center mt-5">
             {t("auth.dontHaveAccount")}{" "}
-            <Link href="/" className="text-secondary font-semibold hover:underline">{t("common.signUp")}</Link>
+            <Link href="/signup" className="text-secondary font-semibold hover:underline">{t("common.signUp")}</Link>
           </p>
         </div>
       </div>

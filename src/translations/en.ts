@@ -167,7 +167,7 @@ const en = {
     submitApplication: "Submit application",
     loginBtn: "Log in",
     signupBtn: "Sign up",
-    backBtn: "← Back",
+    backBtn: "Back",
     youAreAllSet: "You're all set",
     patientSuccessSub: "Your patient account is ready. Let's find you a therapist.",
     applicationReceived: "Application received",

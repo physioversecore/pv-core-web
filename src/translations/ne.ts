@@ -164,7 +164,7 @@ const ne = {
     submitApplication: "आवेदन पेश गर्नुहोस्",
     loginBtn: "लग इन गर्नुहोस्",
     signupBtn: "साइन अप गर्नुहोस्",
-    backBtn: "← पछाडि",
+    backBtn: "पछाडि",
     youAreAllSet: "सबै तयार छ",
     patientSuccessSub: "तपाईंको बिरामी खाता तयार छ। तपाईंको लागि चिकित्सक खोजौं।",
     applicationReceived: "आवेदन प्राप्त भयो",
