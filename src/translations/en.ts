@@ -188,6 +188,8 @@ const en = {
     otpSentTo: "We sent a 6-digit code to",
     verifyingCode: "Verifying code...",
     verifyAndContinue: "Verify & continue",
+    resendOtp: "Resend code",
+    resendOtpIn: "Resend in {seconds}s",
     errorInvalidOtp: "Please enter a 6-digit code",
     errorOtpFailed: "Invalid or expired code",
     successWelcome: "Welcome",

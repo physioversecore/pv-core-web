@@ -185,6 +185,8 @@ const ne = {
     otpSentTo: "हामीले ६-अंकको कोड पठाएका छौं",
     verifyingCode: "कोड जाँच गर्दै...",
     verifyAndContinue: "प्रमाणित गर्नुहोस् र अगाडि बढ्नुहोस्",
+    resendOtp: "कोड पुन: पठाउनुहोस्",
+    resendOtpIn: "{seconds} सेकेन्डमा पुन: पठाउनुहोस्",
     errorInvalidOtp: "कृपया ६-अंकको कोड प्रविष्ट गर्नुहोस्",
     errorOtpFailed: "कोड मान्य छैन वा म्याद सकिएको छ",
     successWelcome: "स्वागत छ",

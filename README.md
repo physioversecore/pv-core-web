@@ -56,9 +56,11 @@ The dev server binds to `physiocore.com` with experimental HTTPS. Add `127.0.0.1
 
 Auth is **API-driven** — JWT tokens stored in HTTP-only cookies (`sahayatri.session`).
 
-- **Login**: `/login` page — email + password, redirects by role
-- **Signup**: AuthModal (modal on public pages) — patient or therapist registration
+- **Login**: `/login` page — email + password, redirects by role. "Sign up" link navigates to `/signup`.
+- **Signup**: `/signup` page — role selection (patient/therapist) → form → OTP email verification → account creation. Supports `?role=therapist` query param for pre-selecting therapist role.
 - **Logout**: via sidebar in dashboard — always `await logout()` before redirect
+- **AuthModal**: Global modal (triggered by `openAuth()` from context) for login and signup from any page. Navbar "Log In" opens modal; "Sign Up" navigates to `/signup` page. "Book Now" opens modal with patient role pre-selected. "Apply to Join" opens modal with therapist role pre-selected.
+- **OTP Verification**: Signup requires email verification via 6-digit OTP code. Backend sends branded HTML email, validates code before allowing account creation.
 
 ## Dashboard Sections
 
@@ -78,6 +80,7 @@ src/
       patient/                  # Patient dashboard (10 sections)
       therapist/                # Therapist dashboard (10 sections)
     login/                      # Standalone login page
+    signup/                     # Standalone signup page (role selection → OTP → account creation)
     about/, app/, blog/, book/, contact/, faq/,
     find/, how-it-works/, services/, testimonials/, therapists/
     api/                        # Route handlers (webhooks only)
@@ -96,6 +99,7 @@ src/
     common/                     # Landing page shared components
     sections/                   # Landing page sections
     modals/                     # Global modals (Auth, Booking, Cart, etc.)
+    auth/                       # Shared auth components (SignupFlow)
     layout/                     # DashboardShell, PageShell, SiteHeader, SiteFooter
     ErrorBoundary.tsx           # Reusable error boundary
     SuspenseFallback.tsx        # Loading skeleton components
@@ -112,6 +116,7 @@ src/
     auth.ts, admin.ts, sessions.ts, therapists.ts,
     patients.ts, products.ts, cart.ts, availability.ts,
     earnings.ts, reports.ts, reviews.ts, settings.ts, profile.ts
+    # auth.ts includes: login, signup, logout, getSession, updateProfile, sendOtp, verifyOtp
   lib/
     actions/                    # Server Actions (auth, cart, products, profile, sessions, therapists)
     utils.ts                    # cn() helper (clsx + tailwind-merge)

@@ -41,7 +41,7 @@ export async function signup(data: {
 }
 
 export async function sendOtp(email: string, name: string) {
-  return api.post<{ message: string }>("/auth/send-otp", { email, name });
+  return api.post<{ message: string; resend_after: number }>("/auth/send-otp", { email, name });
 }
 
 export async function verifyOtp(email: string, code: string) {

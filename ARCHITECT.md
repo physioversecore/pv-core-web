@@ -1,5 +1,7 @@
 # Sahayatri Physio — Architecture
 
+> **⚠️ STALE** — This file describes an earlier localStorage/mock phase. The app now uses a real FastAPI backend via server-only API calls. Trust `ARCHITECTURE.md` instead.
+
 ## Overview
 Sahayatri Physio is a multi-role physiotherapy platform serving three user types:
 

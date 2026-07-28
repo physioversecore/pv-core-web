@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Stethoscope, HeartPulse, Loader2, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/context/auth";
@@ -21,17 +21,41 @@ export function SignupFlow({
 }) {
   const [signupRole, setSignupRole] = useState<SignupRole>(defaultSignupRole ?? null);
   const [form, setForm] = useState<Record<string, string>>({});
-  const [otpStep, setOtpStep] = useState<null | "sending" | "input" | "verifying">(null);
+  const [otpStep, setOtpStep] = useState<null | "input" | "verifying">(null);
   const [otpCode, setOtpCode] = useState("");
+  const [sending, setSending] = useState(false);
   const [showPw, setShowPw] = useState(false);
   const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [submitted, setSubmitted] = useState<null | "patient-ok" | "therapist-ok">(null);
+  const [resendAfter, setResendAfter] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const { signupPatient, signupTherapist } = useAuth();
   const router = useRouter();
   const { t } = useLang();
 
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
+
+  useEffect(() => {
+    if (otpStep === "input" && resendAfter > 0) {
+      timerRef.current = setInterval(() => {
+        setResendAfter((prev) => {
+          if (prev <= 1) {
+            if (timerRef.current) clearInterval(timerRef.current);
+            timerRef.current = null;
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [otpStep, resendAfter > 0]);
 
   const passwordValid = (pw: string) =>
     pw.length >= 8 && /[A-Z]/.test(pw) && /[a-z]/.test(pw) && /[0-9]/.test(pw) && /[^A-Za-z0-9]/.test(pw);
@@ -52,13 +76,15 @@ export function SignupFlow({
     if (form.password !== form.confirm) return toast.error(t("auth.errorPasswordsDontMatch"));
     if (!form.terms) return toast.error(t("auth.errorAcceptTerms"));
     const name = [form.first, form.middle, form.last].filter(Boolean).join(" ");
-    setOtpStep("sending");
+    setSending(true);
     try {
-      await sendOtp(form.email, name);
+      const res = await sendOtp(form.email, name);
+      setResendAfter(res.resend_after);
       setOtpStep("input");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : t("auth.errorSendOtpFailed"));
-      setOtpStep(null);
+    } finally {
+      setSending(false);
     }
   };
 
@@ -68,13 +94,15 @@ export function SignupFlow({
     if (form.password !== form.confirm) return toast.error(t("auth.errorPasswordsDontMatch"));
     if (!form.terms) return toast.error(t("auth.errorAcceptTerms"));
     const name = [form.first, form.middle, form.last].filter(Boolean).join(" ");
-    setOtpStep("sending");
+    setSending(true);
     try {
-      await sendOtp(form.email, name);
+      const res = await sendOtp(form.email, name);
+      setResendAfter(res.resend_after);
       setOtpStep("input");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : t("auth.errorSendOtpFailed"));
-      setOtpStep(null);
+    } finally {
+      setSending(false);
     }
   };
 
@@ -101,6 +129,19 @@ export function SignupFlow({
     onSuccess(role);
   };
 
+  const handleResendOtp = useCallback(async () => {
+    if (resendAfter > 0) return;
+    const name = [form.first, form.middle, form.last].filter(Boolean).join(" ");
+    try {
+      const res = await sendOtp(form.email, name);
+      setResendAfter(res.resend_after);
+      setOtpCode("");
+      toast.success(t("auth.otpSentTo"));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("auth.errorSendOtpFailed"));
+    }
+  }, [resendAfter, form.email, form.first, form.middle, form.last, t]);
+
   if (submitted === "patient-ok") {
     return (
       <div className="text-center py-6">
@@ -126,20 +167,14 @@ export function SignupFlow({
   if (otpStep) {
     return (
       <div className="space-y-4">
-        <button type="button" onClick={() => { setOtpStep(null); setOtpCode(""); }} className="text-xs text-secondary flex items-center gap-1 cursor-pointer">
+        <button type="button" onClick={() => { setOtpStep(null); setOtpCode(""); setResendAfter(0); if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; } }} className="text-xs text-secondary flex items-center gap-1 cursor-pointer">
           <ArrowLeft size={12} /> {t("auth.backBtn")}
         </button>
         <h2 className="text-2xl font-display">{t("auth.verifyYourEmail")}</h2>
         <p className="text-text-light text-sm">
-          {otpStep === "sending" && t("auth.sendingCode")}
           {otpStep === "input" && <>{t("auth.otpSentTo")} <span className="font-medium text-text">{form.email}</span></>}
           {otpStep === "verifying" && t("auth.verifyingCode")}
         </p>
-        {otpStep === "sending" && (
-          <div className="py-8 flex justify-center">
-            <Loader2 className="animate-spin text-secondary" size={32} />
-          </div>
-        )}
         {otpStep === "input" && (
           <div className="space-y-4">
             <input
@@ -157,6 +192,16 @@ export function SignupFlow({
               className="btn-secondary w-full disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {t("auth.verifyAndContinue")}
+            </button>
+            <button
+              type="button"
+              onClick={handleResendOtp}
+              disabled={resendAfter > 0 || sending}
+              className="w-full text-center text-sm text-secondary hover:underline disabled:text-text-light disabled:no-underline disabled:cursor-not-allowed"
+            >
+              {resendAfter > 0
+                ? t("auth.resendOtpIn").replace("{seconds}", String(resendAfter))
+                : t("auth.resendOtp")}
             </button>
           </div>
         )}
@@ -251,10 +296,13 @@ export function SignupFlow({
         </div>
         <PasswordRules password={form.password ?? ""} />
         <label className="flex gap-2 items-start text-xs text-text-light">
-          <input type="checkbox" onChange={(e) => set("terms", e.target.checked ? "1" : "")} className="mt-0.5" />
+          <input type="checkbox" checked={form.terms === "1"} onChange={(e) => set("terms", e.target.checked ? "1" : "")} className="mt-0.5" />
           {t("auth.labelTermsPatient")}
         </label>
-        <button type="submit" disabled={!patientReady} className="btn-secondary w-full disabled:opacity-40 disabled:cursor-not-allowed">{t("auth.createPatientAccount")}</button>
+        <button type="submit" disabled={!patientReady || sending} className="btn-secondary w-full disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+          {sending && <Loader2 className="animate-spin" size={16} />}
+          {sending ? t("auth.sendingCode") : t("auth.createPatientAccount")}
+        </button>
       </form>
     );
   }
@@ -320,10 +368,13 @@ export function SignupFlow({
       <UploadBox label={t("auth.labelUploadCert")} onFile={() => set("certFile", "uploaded")} uploaded={form.certFile === "uploaded"} />
 
       <label className="flex gap-2 items-start text-xs text-text-light">
-        <input type="checkbox" onChange={(e) => set("terms", e.target.checked ? "1" : "")} className="mt-0.5" />
+        <input type="checkbox" checked={form.terms === "1"} onChange={(e) => set("terms", e.target.checked ? "1" : "")} className="mt-0.5" />
         {t("auth.labelTermsTherapist")}
       </label>
-      <button type="submit" disabled={!therapistReady} className="btn-secondary w-full disabled:opacity-40 disabled:cursor-not-allowed">{t("auth.submitApplication")}</button>
+      <button type="submit" disabled={!therapistReady || sending} className="btn-secondary w-full disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+        {sending && <Loader2 className="animate-spin" size={16} />}
+        {sending ? t("auth.sendingCode") : t("auth.submitApplication")}
+      </button>
     </form>
   );
 }
