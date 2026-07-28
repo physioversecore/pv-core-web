@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useLang } from "@/context/i18n";
 import { Reveal } from "@/components/Reveal";
 import { TherapistCard } from "@/components/TherapistCard";
@@ -12,6 +13,7 @@ interface FindTherapistSectionProps {
   spec: string;
   gender: string;
   filtered: Therapist[];
+  hasMore?: boolean;
   onQChange: (v: string) => void;
   onCityChange: (v: string) => void;
   onSpecChange: (v: string) => void;
@@ -20,7 +22,7 @@ interface FindTherapistSectionProps {
 }
 
 export function FindTherapistSection({
-  q, city, spec, gender, filtered,
+  q, city, spec, gender, filtered, hasMore,
   onQChange, onCityChange, onSpecChange, onGenderChange,
   onBook,
 }: FindTherapistSectionProps) {
@@ -56,6 +58,16 @@ export function FindTherapistSection({
             <p className="text-text-light text-sm col-span-full">{t("find.noMatch")}</p>
           )}
         </div>
+
+        {hasMore && (
+          <Reveal>
+            <div className="mt-8 text-center">
+              <Link href="/find" className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-semibold border border-secondary text-secondary hover:bg-secondary hover:text-white transition">
+                {t("common.viewAll")} →
+              </Link>
+            </div>
+          </Reveal>
+        )}
       </div>
     </section>
   );

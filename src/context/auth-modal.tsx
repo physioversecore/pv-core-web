@@ -4,8 +4,10 @@ import { createContext, useContext, useState, useCallback, type ReactNode } from
 import { AuthModal } from "@/components/modals/AuthModal";
 import type { AuthMode } from "@/types";
 
+type SignupRole = "patient" | "therapist" | null;
+
 interface AuthModalCtx {
-  openAuth: (mode: AuthMode) => void;
+  openAuth: (mode: AuthMode, signupRole?: SignupRole) => void;
   closeAuth: () => void;
   onLoginSuccess: (() => void) | null;
   setOnLoginSuccess: (cb: (() => void) | null) => void;
@@ -15,11 +17,16 @@ const Ctx = createContext<AuthModalCtx | null>(null);
 
 export function AuthModalProvider({ children }: { children: ReactNode }) {
   const [mode, setMode] = useState<AuthMode | null>(null);
+  const [signupRole, setSignupRole] = useState<SignupRole>(null);
   const [loginSuccessCb, setLoginSuccessCb] = useState<(() => void) | null>(null);
 
-  const openAuth = (m: AuthMode) => setMode(m);
+  const openAuth = (m: AuthMode, role?: SignupRole) => {
+    setMode(m);
+    setSignupRole(role ?? null);
+  };
   const closeAuth = () => {
     setMode(null);
+    setSignupRole(null);
     setLoginSuccessCb(null);
   };
 
@@ -30,7 +37,7 @@ export function AuthModalProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider value={{ openAuth, closeAuth, onLoginSuccess: loginSuccessCb, setOnLoginSuccess }}>
       {children}
-      <AuthModal open={mode !== null} mode={mode ?? "login"} onClose={closeAuth} onLoginSuccess={loginSuccessCb} />
+      <AuthModal open={mode !== null} mode={mode ?? "login"} onClose={closeAuth} onLoginSuccess={loginSuccessCb} defaultSignupRole={signupRole} />
     </Ctx.Provider>
   );
 }

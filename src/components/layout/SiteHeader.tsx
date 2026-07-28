@@ -67,13 +67,19 @@ export function SiteHeader({ variant = "solid" }: { variant?: "hero" | "solid" }
             <button onClick={goDash} className="btn-secondary !py-2 !px-4 text-sm">{t("header.openDashboard")}</button>
           ) : (
             <>
+              <button
+                onClick={() => openAuth("signup")}
+                className={`hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition ${scrolled ? "border-secondary text-secondary hover:bg-secondary hover:text-white" : "border-white/60 text-white hover:bg-white/10"}`}
+              >
+                {t("header.signUp")}
+              </button>
               <Link
                 href="/login"
                 className={`hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition ${scrolled ? "border-secondary text-secondary hover:bg-secondary hover:text-white" : "border-white/60 text-white hover:bg-white/10"}`}
               >
                 {t("header.logIn")}
               </Link>
-              <button onClick={() => openAuth("signup")} className="btn-primary !py-2 !px-4 text-sm">{t("header.bookNow")}</button>
+              <button onClick={() => openAuth("signup", "patient")} className="btn-primary !py-2 !px-4 text-sm">{t("header.bookNow")}</button>
             </>
           )}
         </div>

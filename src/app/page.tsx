@@ -60,7 +60,8 @@ export default function Landing() {
       <FeaturedTherapists therapists={therapists.slice(0, 3)} onBook={handleBook} />
       <FindTherapistSection
         q={q} city={city} spec={spec} gender={gender}
-        filtered={filtered}
+        filtered={filtered.slice(0, 6)}
+        hasMore={filtered.length > 6}
         onQChange={setQ}
         onCityChange={setCity}
         onSpecChange={setSpec}

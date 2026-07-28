@@ -40,6 +40,14 @@ export async function signup(data: {
   return { ...res.user, role: res.user.role.toLowerCase() as UserData["role"] };
 }
 
+export async function sendOtp(email: string, name: string) {
+  return api.post<{ message: string }>("/auth/send-otp", { email, name });
+}
+
+export async function verifyOtp(email: string, code: string) {
+  return api.post<{ verified: boolean }>("/auth/verify-otp", { email, code });
+}
+
 export async function logout() {
   try {
     await api.post("/auth/logout");
