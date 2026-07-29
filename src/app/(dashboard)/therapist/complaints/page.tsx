@@ -10,6 +10,7 @@ import { useTherapistComplaints } from "@/hooks/useTherapistComplaints";
 import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import { StatusChip, type StatusType } from "@/components/tables/StatusChip";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { formatDate, to12h } from "@/lib/format";
 
 const CATEGORIES = [
   { value: "Patient no-show", labelKey: "therapist_complaints.catNoShow" },
@@ -72,7 +73,7 @@ function ComplaintsContent() {
       .slice(0, 20)
       .map((s) => ({
         id: s.id,
-        label: `${s.patientName ?? "Patient"} — ${s.date}, ${s.time}`,
+        label: `${s.patientName ?? "Patient"} — ${formatDate(s.date)}, ${to12h(s.time)}`,
         patientId: s.patientId,
         patientName: s.patientName ?? "",
       }));
@@ -197,7 +198,7 @@ function ComplaintsContent() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="lg:grid lg:grid-cols-2 lg:gap-5 space-y-5 lg:space-y-0 lg:items-start">
       <form onSubmit={handleSubmit} className="card-soft p-5">
         <p className="eyebrow mb-1">{t("therapist_complaints.fileComplaint")}</p>
         <h3 className="font-display text-lg mb-1">{t("therapist_complaints.reportIssue")}</h3>
