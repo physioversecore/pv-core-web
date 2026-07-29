@@ -136,6 +136,16 @@ export default function ForgotPasswordPage() {
     }
   }, [otp]);
 
+  const handleOtpPaste = useCallback((e: React.ClipboardEvent) => {
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (!pasted) return;
+    e.preventDefault();
+    setOtp(pasted.split(""));
+    const nextIndex = Math.min(pasted.length, 5);
+    const nextInput = document.getElementById(`otp-${nextIndex}`);
+    nextInput?.focus();
+  }, []);
+
   if (step === "success") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -226,7 +236,7 @@ export default function ForgotPasswordPage() {
               </p>
 
               <div className="space-y-4">
-                <div className="flex justify-center gap-2">
+                <div className="flex justify-center gap-2" onPaste={handleOtpPaste}>
                   {otp.map((digit, i) => (
                     <input
                       key={i}
@@ -237,6 +247,7 @@ export default function ForgotPasswordPage() {
                       value={digit}
                       onChange={(e) => handleOtpChange(i, e.target.value)}
                       onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                      onPaste={i === 0 ? (e) => { e.preventDefault(); const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6); if (pasted) { setOtp(pasted.split("")); const next = document.getElementById(`otp-${Math.min(pasted.length, 5)}`); next?.focus(); } } : undefined}
                       className="w-11 h-12 text-center text-lg font-mono font-bold rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   ))}
