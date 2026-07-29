@@ -162,9 +162,8 @@ function PageControls({
 
   return (
     <div className="flex items-center justify-between px-4 py-3 border-t border-border">
-      <span className="text-xs text-text-light">
-        Showing {pagination.skip + 1}–
-        {Math.min(pagination.skip + pagination.pageSize, total)} of {total}
+      <span className="text-xs text-text-light whitespace-nowrap">
+        Showing {pagination.skip + 1}–{Math.min(pagination.skip + pagination.pageSize, total)} of {total}
       </span>
       <Pagination>
         <PaginationContent>

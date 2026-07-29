@@ -16,10 +16,21 @@ import {
   PaginationEllipsis,
 } from "@/components/ui/pagination";
 import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+import {
   Search,
   X,
   Calendar,
   ChevronDown,
+  Phone,
+  Activity,
+  Clock,
+  FileText,
 } from "lucide-react";
 
 interface Patient {
@@ -256,11 +267,9 @@ export default function Patients() {
         {/* ─── Pagination ─── */}
         {total > 0 && (
           <div className="flex items-center justify-between px-4 py-3 border-t border-border">
-            <span className="text-xs text-text-light">
-              Showing {pagination.skip + 1}–
-              {Math.min(pagination.skip + pagination.pageSize, total)} of{" "}
-              {total}
-            </span>
+            <div className="text-xs text-text-light whitespace-nowrap">
+              Showing {pagination.skip + 1}–{Math.min(pagination.skip + pagination.pageSize, total)} of {total}
+            </div>
             <Pagination>
               <PaginationContent>
                 <PaginationItem>
@@ -331,48 +340,60 @@ export default function Patients() {
         )}
       </div>
 
-      {/* ─── Patient Detail Drawer ─── */}
-      {selected && (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-end p-0 sm:p-6">
-          <button
-            className="absolute inset-0 bg-text/50"
-            onClick={() => setSelected(null)}
-          />
-          <div className="relative w-full sm:max-w-md bg-background rounded-t-3xl sm:rounded-3xl border border-border p-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center gap-3 mb-4">
-              <Avatar name={selected.name} size={52} />
-              <div>
-                <div className="font-display text-xl">{selected.name}</div>
-                <div className="text-xs text-text-light">
-                  {selected.condition || "No condition recorded"}
-                </div>
+      {/* ─── Patient Detail Sheet ─── */}
+      <Sheet open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
+        <SheetContent side="right" className="w-full max-w-lg overflow-y-auto sm:max-w-xl">
+          <SheetHeader className="pb-4 border-b">
+            <div className="flex items-center gap-3">
+              <Avatar name={selected?.name ?? ""} size={56} />
+              <div className="flex-1 min-w-0">
+                <SheetTitle className="text-lg">{selected?.name}</SheetTitle>
+                <SheetDescription className="text-xs">
+                  {selected?.condition || "No condition recorded"}
+                </SheetDescription>
               </div>
             </div>
-            <Row label="Phone" value={selected.phone || "—"} />
-            <Row
-              label={t("therapist_dashboard.totalSessions")}
-              value={String(selected.sessions)}
-            />
-            <Row label={t("therapist_dashboard.lastVisit")} value={formatLastVisit(selected.last)} />
-            <Row label="Notes" value={selected.notes || "—"} />
-            <button
-              onClick={() => setSelected(null)}
-              className="btn-outline w-full mt-5"
-            >
-              {t("common.close")}
-            </button>
-          </div>
-        </div>
-      )}
+          </SheetHeader>
+
+          {selected && (
+            <div className="mt-5 space-y-5">
+              <Section title="Contact">
+                <InfoRow icon={<Phone size={14} />} label="Phone" value={selected.phone || "—"} />
+              </Section>
+              <Section title={t("therapist_dashboard.sessions")}>
+                <InfoRow icon={<Activity size={14} />} label={t("therapist_dashboard.totalSessions")} value={String(selected.sessions)} />
+              </Section>
+              <Section title="Activity">
+                <InfoRow icon={<Clock size={14} />} label={t("therapist_dashboard.lastVisit")} value={formatLastVisit(selected.last)} />
+              </Section>
+              <Section title="Notes">
+                <InfoRow icon={<FileText size={14} />} label="Notes" value={selected.notes || "—"} />
+              </Section>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </>
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="flex justify-between py-2 border-b border-border text-sm">
-      <span className="text-text-light">{label}</span>
-      <span className="font-medium">{value}</span>
+    <div>
+      <h4 className="text-xs font-mono uppercase tracking-wider text-text-light mb-3">
+        {title}
+      </h4>
+      <div className="space-y-2">{children}</div>
+    </div>
+  );
+}
+
+function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="flex items-center gap-2 text-sm">
+      <span className="text-text-light shrink-0">{icon}</span>
+      <span className="text-text-light min-w-[80px]">{label}</span>
+      <span className="font-medium ml-auto">{value}</span>
     </div>
   );
 }
