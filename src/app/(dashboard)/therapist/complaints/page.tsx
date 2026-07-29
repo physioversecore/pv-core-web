@@ -198,7 +198,7 @@ function ComplaintsContent() {
   }
 
   return (
-    <div className="lg:grid lg:grid-cols-2 lg:gap-5 space-y-5 lg:space-y-0 lg:items-start">
+    <div className="space-y-5">
       <form onSubmit={handleSubmit} className="card-soft p-5">
         <p className="eyebrow mb-1">{t("therapist_complaints.fileComplaint")}</p>
         <h3 className="font-display text-lg mb-1">{t("therapist_complaints.reportIssue")}</h3>

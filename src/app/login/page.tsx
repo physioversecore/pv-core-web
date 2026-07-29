@@ -99,7 +99,7 @@ export default function LoginPage() {
                 </button>
               </div>
               <div className="text-right mt-1">
-                <button type="button" className="text-xs text-secondary hover:underline">{t("common.forgotPassword")}</button>
+                <Link href="/forgot-password" className="text-xs text-secondary hover:underline">{t("common.forgotPassword")}</Link>
               </div>
             </div>
             <button type="submit" disabled={submitting} className="btn-secondary w-full disabled:opacity-60">

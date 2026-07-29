@@ -44,8 +44,16 @@ export async function sendOtp(email: string, name: string) {
   return api.post<{ message: string; resend_after: number }>("/auth/send-otp", { email, name });
 }
 
-export async function verifyOtp(email: string, code: string) {
-  return api.post<{ verified: boolean }>("/auth/verify-otp", { email, code });
+export async function forgotPassword(email: string, name: string) {
+  return api.post<{ message: string; resend_after: number }>("/auth/forgot-password", { email, name });
+}
+
+export async function resetPassword(email: string, code: string, new_password: string) {
+  return api.post<void>("/auth/reset-password", { email, code, new_password });
+}
+
+export async function verifyOtp(email: string, code: string, purpose = "signup") {
+  return api.post<{ verified: boolean }>("/auth/verify-otp", { email, code, purpose });
 }
 
 export async function logout() {
