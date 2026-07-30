@@ -382,7 +382,7 @@ const en = {
     eyebrow: "Our services",
     title: "Everything for your recovery.",
     subtitle: "Clinical rehab, home visits, and a curated shop for equipment, medicine, and recovery nutrition.",
-    clinicalEyebrow: "Clinical care",
+    clinicalEyebrow: "Care & Rehab",
     clinicalTitle: "Rehabilitation, tailored to your condition.",
     service1Title: "Sports Injury Rehab",
     service1Desc: "ACL, rotator cuff, sprain recovery with progressive strength work.",
