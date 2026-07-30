@@ -62,7 +62,7 @@ export function FindTherapistSection({
         {hasMore && (
           <Reveal>
             <div className="mt-8 text-center">
-              <Link href="/find" className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-semibold border border-secondary text-secondary hover:bg-secondary hover:text-white transition">
+              <Link href="/find-a-therapist" className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-semibold border border-secondary text-secondary hover:bg-secondary hover:text-white transition">
                 {t("common.viewAll")} →
               </Link>
             </div>

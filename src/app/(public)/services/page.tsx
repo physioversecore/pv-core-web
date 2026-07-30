@@ -91,7 +91,7 @@ export default function Services() {
           <h2 className="font-display text-3xl mb-4">{t("services.ctaTitle")}</h2>
           <p className="text-text-light mb-6">{t("services.ctaDesc")}</p>
           <div className="flex flex-wrap gap-3 justify-center">
-            <Link href="/find" className="btn-primary">{t("services.ctaFind")}</Link>
+            <Link href="/find-a-therapist" className="btn-primary">{t("services.ctaFind")}</Link>
             <Link href="/contact" className="inline-flex items-center gap-2 px-5 py-3 rounded-full font-semibold border border-secondary text-secondary hover:bg-secondary hover:text-white transition">{t("services.ctaContact")}</Link>
           </div>
         </div>

@@ -76,7 +76,7 @@ export default function About() {
           <p className="text-text-light mb-6">{t("about.ctaDesc")}</p>
           <div className="flex flex-wrap gap-3 justify-center">
             <Link href="/contact" className="btn-primary">{t("about.ctaContact")}</Link>
-            <Link href="/therapists" className="inline-flex items-center gap-2 px-5 py-3 rounded-full font-semibold border border-secondary text-secondary hover:bg-secondary hover:text-white transition">{t("about.ctaTherapists")}</Link>
+            <Link href="/find-a-therapist" className="inline-flex items-center gap-2 px-5 py-3 rounded-full font-semibold border border-secondary text-secondary hover:bg-secondary hover:text-white transition">{t("about.ctaTherapists")}</Link>
           </div>
         </div>
       </section>

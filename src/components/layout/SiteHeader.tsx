@@ -31,8 +31,7 @@ export function SiteHeader({ variant = "solid" }: { variant?: "hero" | "solid" }
     const map: Record<string, string> = {
       "/how-it-works": t("nav.howItWorks"),
       "/services": t("nav.services"),
-      "/therapists": t("nav.therapists"),
-      "/find": t("nav.findTherapist"),
+      "/find-a-therapist": t("nav.findTherapist"),
       "/app": t("nav.app"),
     };
     return map[to] ?? "";
