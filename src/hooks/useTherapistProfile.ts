@@ -3,9 +3,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getTherapistProfile,
-  updateTherapistFullProfile,
+  updateTherapistProfile,
 } from "@/services/api/profile";
-import type { TherapistProfileData } from "@/services/api/profile";
+import type { TherapistProfile } from "@/types";
 
 export function useTherapistProfile() {
   const queryClient = useQueryClient();
@@ -16,8 +16,8 @@ export function useTherapistProfile() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: Partial<TherapistProfileData>) =>
-      updateTherapistFullProfile(data),
+    mutationFn: (data: Partial<TherapistProfile>) =>
+      updateTherapistProfile(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["therapist-profile"] });
       queryClient.invalidateQueries({ queryKey: ["therapist-dashboard"] });

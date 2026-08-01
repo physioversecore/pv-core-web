@@ -58,6 +58,7 @@ Auth is **API-driven** — JWT tokens stored in HTTP-only cookies (`sahayatri.se
 
 - **Login**: `/login` page — email + password, redirects by role. "Sign up" link navigates to `/signup`.
 - **Signup**: `/signup` page — role selection (patient/therapist) → form → OTP email verification → account creation. Supports `?role=therapist` query param for pre-selecting therapist role.
+- **Therapist document upload**: Therapist signup requires uploading NMC license + certification (drag/drop or click, with live previews). Files upload via XHR to the public proxy `POST /api/uploads/therapist-application` before account creation; the returned URLs are stored as `Verification` records so admins can preview/download them in `/admin/verification`.
 - **Logout**: via sidebar in dashboard — always `await logout()` before redirect
 - **AuthModal**: Global modal (triggered by `openAuth()` from context) for login and signup from any page. Navbar "Log In" opens modal; "Sign Up" navigates to `/signup` page. "Book Now" opens modal with patient role pre-selected. "Apply to Join" opens modal with therapist role pre-selected.
 - **OTP Verification**: Signup requires email verification via 6-digit OTP code. Backend sends branded HTML email, validates code before allowing account creation.
@@ -99,7 +100,7 @@ src/
     common/                     # Landing page shared components
     sections/                   # Landing page sections
     modals/                     # Global modals (Auth, Booking, Cart, etc.)
-    auth/                       # Shared auth components (SignupFlow)
+    auth/                       # Shared auth components (SignupFlow, DocumentUploader)
     layout/                     # DashboardShell, PageShell, SiteHeader, SiteFooter
     ErrorBoundary.tsx           # Reusable error boundary
     SuspenseFallback.tsx        # Loading skeleton components

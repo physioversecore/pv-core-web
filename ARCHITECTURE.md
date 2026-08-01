@@ -19,13 +19,18 @@ Browser → Next.js Server (Server Components / Server Actions) → FastAPI Back
 ### Signup
 1. User navigates to `/signup` or clicks "Book Now"/"Apply to Join" (opens AuthModal with pre-selected role)
 2. Role selection screen: "I am a Patient" or "I am a Therapist" cards
-3. Fills form (name, email, phone, city/specialty, password with eye toggle, terms)
-4. On submit → `sendOtp(email, name)` → backend sends branded HTML email with 6-digit OTP
-5. OTP input screen → user enters 6-digit code → `verifyOtp(email, code)`
-6. On verification → `signupPatient()` or `signupTherapist()` → backend creates account → JWT cookie set
-7. Success screen → redirect to `/patient` or `/therapist`
+3. Patient fills form (name, email, phone, city, password with eye toggle, terms). Therapist additionally fills gender, NMC license #, experience, fee and uploads **NMC license + certification documents** via `DocumentUploader`
+4. Therapist documents upload immediately via XHR to the public proxy `POST /api/uploads/therapist-application` (session=`therapist-signup`) — WhatsApp-style previews, progress bars, retry. The returned relative URLs are held in `SignupFlow` state until the final submit
+5. On submit → `sendOtp(email, name)` → backend sends branded HTML email with 6-digit OTP
+6. OTP input screen → user enters 6-digit code → `verifyOtp(email, code)`
+7. On verification → `signupPatient()` or `signupTherapist()`. For therapists the payload includes `gender/license/experience/fee/documents`; the backend creates the `Therapist` profile + a `Verification` row per document (status `Pending review`) → JWT cookie set
+8. Success screen → redirect to `/patient` or `/therapist`
 
 **Shared component**: `SignupFlow` (`src/components/auth/SignupFlow.tsx`) is used by both `/signup` page and `AuthModal`. The page renders it inline; the modal wraps it with overlay/close button.
+
+**Document uploader**: `DocumentUploader` (`src/components/auth/DocumentUploader.tsx`) is a controlled component — parent owns the `UploadedDoc[]` state and passes a `Dispatch<SetStateAction<...>>` as `onChange`. It uses `XMLHttpRequest` for real upload progress (not `fetch`), accepts `.pdf/.jpg/.jpeg/.png/.gif/.webp/.doc/.docx` up to 10 MB, renders image thumbnails via `URL.createObjectURL`, and supports retry/remove. Signup is blocked until both document groups reach status `done`.
+
+**Admin verification**: uploaded documents are served to authenticated users via `GET /api/v1/uploads/applications/{session}/{filename}`, proxied by `src/app/api/v1/uploads/applications/[session]/[filename]/route.ts` (adds the bearer cookie). `/admin/verification` (`src/app/(dashboard)/admin/verification/page.tsx`) now renders a preview/download link in the Document column, a real image/file preview in the details dialog, and the same preview inside the Review drawer (`documentUrl`/`fileName`/`fileSize` come from `AdminVerificationData`).
 
 ### AuthModal
 - Global modal controlled by `AuthModalProvider` context (`openAuth(mode, signupRole?)`)
@@ -126,6 +131,7 @@ Each data-fetching section has its own `ErrorBoundary` — one section failing d
 | Page data (reads) | Server Components or Server Actions |
 | User mutations | Server Actions |
 | Webhooks/integrations | Route Handlers (`app/api/...`) |
+| File upload/download | Route Handler proxy — public `POST /api/uploads/therapist-application` (XHR from `DocumentUploader`), `POST /api/reports`, `GET /api/v1/uploads/applications/[session]/[filename]` (adds bearer cookie) |
 | Real-time (future) | Client fetch → own Route Handler (never raw backend) |
 
 ## Provider Stack

@@ -9,6 +9,7 @@ import { CITIES, SPECIALTIES } from "@/constants";
 import { useLang } from "@/context/i18n";
 import { toast } from "sonner";
 import { sendOtp, verifyOtp } from "@/services/api/auth";
+import { DocumentUploader, type UploadedDoc } from "@/components/auth/DocumentUploader";
 
 type SignupRole = "patient" | "therapist" | null;
 
@@ -21,6 +22,10 @@ export function SignupFlow({
 }) {
   const [signupRole, setSignupRole] = useState<SignupRole>(defaultSignupRole ?? null);
   const [form, setForm] = useState<Record<string, string>>({});
+  const [docs, setDocs] = useState<Record<string, UploadedDoc[]>>({
+    license: [],
+    cert: [],
+  });
   const [otpStep, setOtpStep] = useState<null | "input" | "verifying">(null);
   const [otpCode, setOtpCode] = useState("");
   const [sending, setSending] = useState(false);
@@ -35,6 +40,9 @@ export function SignupFlow({
   const { t } = useLang();
 
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
+
+  const docsReady = (list: UploadedDoc[]) =>
+    list.length > 0 && list.every((d) => d.status === "done");
 
   useEffect(() => {
     if (otpStep === "input" && resendAfter > 0) {
@@ -68,7 +76,8 @@ export function SignupFlow({
   const therapistReady =
     !!form.first && !!form.email && !!form.specialty && !!form.license &&
     !!form.password && !!form.confirm && form.password === form.confirm &&
-    passwordValid(form.password) && !!form.terms;
+    passwordValid(form.password) && !!form.terms &&
+    docsReady(docs.license) && docsReady(docs.cert);
 
   const handlePatientSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,6 +102,7 @@ export function SignupFlow({
     if (!form.first || !form.email || !form.specialty || !form.license || !form.password) return toast.error(t("auth.errorFillRequired"));
     if (form.password !== form.confirm) return toast.error(t("auth.errorPasswordsDontMatch"));
     if (!form.terms) return toast.error(t("auth.errorAcceptTerms"));
+    if (!docsReady(docs.license) || !docsReady(docs.cert)) return toast.error(t("auth.errorDocumentsRequired"));
     const name = [form.first, form.middle, form.last].filter(Boolean).join(" ");
     setSending(true);
     try {
@@ -116,7 +126,29 @@ export function SignupFlow({
         await signupPatient({ name, email: form.email, password: form.password, phone: form.phone, city: form.city });
         setSubmitted("patient-ok");
       } else {
-        await signupTherapist({ name, email: form.email, password: form.password, phone: form.phone, city: form.city, specialty: form.specialty });
+        const documents = ["license", "cert"].flatMap((key) =>
+          (docs[key] ?? [])
+            .filter((d) => d.status === "done" && d.url)
+            .map((d) => ({
+              documentType: key === "license" ? "NMC license" : "Certification",
+              url: d.url as string,
+              fileName: d.fileName ?? d.file.name,
+              fileSize: d.fileSize ?? d.file.size,
+            })),
+        );
+        await signupTherapist({
+          name,
+          email: form.email,
+          password: form.password,
+          phone: form.phone,
+          city: form.city,
+          specialty: form.specialty,
+          gender: form.gender,
+          license: form.license,
+          experience: form.exp ? Number(form.exp) : undefined,
+          fee: form.fee ? Number(form.fee) : undefined,
+          documents,
+        });
         setSubmitted("therapist-ok");
       }
     } catch (e) {
@@ -324,6 +356,10 @@ export function SignupFlow({
         <SelectField label={t("auth.labelCity")} value={form.city ?? ""} onChange={(v) => set("city", v)} options={CITIES as unknown as string[]} />
         <SelectField label={t("auth.labelSpecialty")} value={form.specialty ?? ""} onChange={(v) => set("specialty", v)} options={SPECIALTIES as unknown as string[]} />
       </div>
+      <div className="grid grid-cols-2 gap-3">
+        <SelectField label={t("auth.labelGender")} value={form.gender ?? ""} onChange={(v) => set("gender", v)} options={["Male", "Female", "Other"]} />
+        <Field label={t("auth.labelExperience")} type="number" value={form.exp ?? ""} onChange={(v) => set("exp", v)} placeholder={t("auth.placeholderExperience")} />
+      </div>
       <div>
         <label className="text-xs font-medium text-text-light">{t("auth.labelPassword")}</label>
         <div className="relative mt-1">
@@ -364,8 +400,22 @@ export function SignupFlow({
       </div>
       <Field label={t("auth.labelFee")} type="number" value={form.fee ?? ""} onChange={(v) => set("fee", v)} placeholder={t("auth.placeholderFee")} />
 
-      <UploadBox label={t("auth.labelUploadLicense")} onFile={() => set("licenseFile", "uploaded")} uploaded={form.licenseFile === "uploaded"} />
-      <UploadBox label={t("auth.labelUploadCert")} onFile={() => set("certFile", "uploaded")} uploaded={form.certFile === "uploaded"} />
+      <DocumentUploader
+        label={t("auth.labelUploadLicense")}
+        documentType="NMC license"
+        docs={docs.license}
+        onChange={(updater) => setDocs((prev) => ({ ...prev, license: typeof updater === "function" ? updater(prev.license) : updater }))}
+        required
+        maxFiles={3}
+      />
+      <DocumentUploader
+        label={t("auth.labelUploadCert")}
+        documentType="Certification"
+        docs={docs.cert}
+        onChange={(updater) => setDocs((prev) => ({ ...prev, cert: typeof updater === "function" ? updater(prev.cert) : updater }))}
+        required
+        maxFiles={3}
+      />
 
       <label className="flex gap-2 items-start text-xs text-text-light">
         <input type="checkbox" checked={form.terms === "1"} onChange={(e) => set("terms", e.target.checked ? "1" : "")} className="mt-0.5" />
@@ -408,15 +458,6 @@ function SelectField({ label, value, onChange, options }: { label: string; value
         {options.map((o) => <option key={o} value={o}>{o}</option>)}
       </select>
     </div>
-  );
-}
-
-function UploadBox({ label, onFile, uploaded }: { label: string; onFile: () => void; uploaded: boolean }) {
-  const { t } = useLang();
-  return (
-    <button type="button" onClick={onFile} className={`w-full p-3 rounded-xl border-2 border-dashed text-sm ${uploaded ? "border-secondary bg-surface text-secondary" : "border-border text-text-light hover:border-secondary"}`}>
-      {uploaded ? t("auth.documentUploaded") : `📎 ${label}`}
-    </button>
   );
 }
 

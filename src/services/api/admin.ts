@@ -632,6 +632,9 @@ export interface AdminVerificationData {
   severity?: "Low" | "Medium" | "High" | "Critical";
   reportedBy?: string;
   phone?: string;
+  documentUrl?: string;
+  fileName?: string;
+  fileSize?: number;
 }
 
 export interface AdminVerificationListParams extends AdminListParams {

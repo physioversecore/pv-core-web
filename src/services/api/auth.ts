@@ -26,7 +26,14 @@ export async function login(email: string, password: string, role: string) {
   return { ...data.user, role: data.user.role.toLowerCase() as UserData["role"] };
 }
 
-export async function signup(data: {
+export interface SignupDocument {
+  documentType: string;
+  url: string;
+  fileName?: string;
+  fileSize?: number;
+}
+
+export interface SignupTherapistData {
   name: string;
   email: string;
   password: string;
@@ -34,7 +41,15 @@ export async function signup(data: {
   city?: string;
   phone?: string;
   specialty?: string;
-}) {
+  gender?: string;
+  license?: string;
+  experience?: number;
+  fee?: number;
+  bio?: string;
+  documents?: SignupDocument[];
+}
+
+export async function signup(data: SignupTherapistData) {
   const res = await api.post<AuthResponse>("/auth/signup", data);
   await setToken(res.access_token);
   return { ...res.user, role: res.user.role.toLowerCase() as UserData["role"] };

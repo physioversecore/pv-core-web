@@ -14,6 +14,8 @@ import {
   Trash2,
   Plus,
   UserPlus,
+  FileText,
+  ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -349,7 +351,10 @@ export default function VerificationPage() {
         key: "documentType",
         label: "Document",
         render: (row) => (
-          <span className="text-text-light">{row.documentType}</span>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-text-light">{row.documentType}</span>
+            <DocumentPreview verification={row} compact />
+          </div>
         ),
       },
       {
@@ -785,6 +790,97 @@ export default function VerificationPage() {
   );
 }
 
+function isImageUrl(url: string): boolean {
+  return /\.(jpe?g|png|gif|webp)$/i.test(url);
+}
+
+function formatFileSize(bytes?: number): string {
+  if (bytes == null) return "";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function DocumentPreview({
+  verification,
+  compact,
+}: {
+  verification: AdminVerificationData;
+  compact?: boolean;
+}) {
+  const { documentUrl, fileName, fileSize } = verification;
+
+  if (compact) {
+    if (!documentUrl) return <span className="text-text-muted">—</span>;
+    return (
+      <a
+        href={documentUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={(e) => e.stopPropagation()}
+        className="inline-flex items-center gap-1 text-xs text-secondary hover:underline"
+      >
+        <FileText size={12} /> {fileName ?? "View"}
+      </a>
+    );
+  }
+
+  if (!documentUrl) {
+    return (
+      <div className="bg-surface rounded-xl p-6 text-center text-text-muted text-sm">
+        No document attached
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-surface rounded-xl p-3">
+      {isImageUrl(documentUrl) ? (
+        <a
+          href={documentUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block overflow-hidden rounded-lg border border-border bg-white"
+        >
+          <img
+            src={documentUrl}
+            alt={fileName ?? verification.documentType}
+            className="w-full max-h-[260px] object-contain"
+          />
+        </a>
+      ) : (
+        <a
+          href={documentUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex flex-col items-center justify-center gap-2 py-8 rounded-lg border border-dashed border-border bg-white text-text-light hover:text-secondary hover:border-secondary transition-colors"
+        >
+          <FileText size={32} className="text-secondary" />
+          <span className="text-sm font-medium break-all px-4 text-center">
+            {fileName ?? "Document"}
+          </span>
+          {fileSize != null && (
+            <span className="text-xs font-mono text-text-light">
+              {formatFileSize(fileSize)}
+            </span>
+          )}
+        </a>
+      )}
+      <div className="flex items-center justify-between gap-2 mt-2 text-xs text-text-light">
+        <span className="truncate">{fileName ?? verification.documentType}</span>
+        <a
+          href={documentUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 text-secondary hover:underline shrink-0"
+        >
+          <ExternalLink size={12} /> Open
+        </a>
+      </div>
+    </div>
+  );
+}
+
 function PreviewModal({
   verification,
   onClose,
@@ -852,9 +948,7 @@ function PreviewModal({
               </div>
             )}
           </div>
-          <div className="bg-surface rounded-xl p-6 text-center text-text-muted text-sm">
-            Document preview area
-          </div>
+          <DocumentPreview verification={verification} />
         </div>
       </DialogContent>
     </Dialog>
@@ -905,9 +999,7 @@ function ReviewDrawer({
               </span>
             </div>
           </div>
-          <div className="bg-surface rounded-xl p-8 text-center text-text-muted text-sm">
-            Document preview area
-          </div>
+          <DocumentPreview verification={verification} />
           <div>
             <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
               Rejection note (required on reject)

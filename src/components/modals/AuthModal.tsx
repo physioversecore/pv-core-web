@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { X, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/context/auth";
-import type { AuthMode } from "@/types";
+import type { AuthMode, Role } from "@/types";
 import { useLang } from "@/context/i18n";
 import { toast } from "sonner";
 import { SignupFlow } from "@/components/auth/SignupFlow";
@@ -66,13 +66,13 @@ export function AuthModal({
     }
   };
 
-  const handleSignupSuccess = (role: "patient" | "therapist") => {
+  const handleSignupSuccess = (role: Role) => {
     if (onLoginSuccess) {
       onLoginSuccess();
     }
     onClose();
     if (!onLoginSuccess) {
-      router.replace(role === "patient" ? "/patient" : "/therapist");
+      router.replace(role === "patient" ? "/patient" : role === "therapist" ? "/therapist" : "/admin");
     }
   };
 
