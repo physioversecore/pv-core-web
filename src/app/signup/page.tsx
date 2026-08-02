@@ -31,6 +31,11 @@ export default function SignupPage() {
 
   const handleSuccess = (role: Role) => {
     redirected.current = true;
+    // Therapists can't log in until the admin approves their application.
+    if (role === "therapist") {
+      router.replace("/login");
+      return;
+    }
     router.replace(ROLE_HOME[role] ?? "/");
   };
 

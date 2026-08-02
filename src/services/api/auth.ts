@@ -15,14 +15,16 @@ export interface UserData {
 }
 
 interface AuthResponse {
-  access_token: string;
+  access_token: string | null;
   token_type: string;
   user: UserData;
 }
 
 export async function login(email: string, password: string, role: string) {
   const data = await api.post<AuthResponse>("/auth/login", { email, password });
-  await setToken(data.access_token);
+  if (data.access_token) {
+    await setToken(data.access_token);
+  }
   return { ...data.user, role: data.user.role.toLowerCase() as UserData["role"] };
 }
 
@@ -51,7 +53,9 @@ export interface SignupTherapistData {
 
 export async function signup(data: SignupTherapistData) {
   const res = await api.post<AuthResponse>("/auth/signup", data);
-  await setToken(res.access_token);
+  if (res.access_token) {
+    await setToken(res.access_token);
+  }
   return { ...res.user, role: res.user.role.toLowerCase() as UserData["role"] };
 }
 

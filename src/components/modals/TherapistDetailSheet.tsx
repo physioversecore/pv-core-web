@@ -29,6 +29,7 @@ import {
   Camera,
   Save,
   X,
+  ExternalLink,
 } from "lucide-react";
 
 interface TherapistDetailSheetProps {
@@ -320,6 +321,62 @@ export function TherapistDetailSheet({
           )}
 
           <Section title={t("admin_dashboard.documentsMedia" as any) ?? "Documents & Media"}>
+            {(therapist.documents?.length ?? 0) > 0 && (
+              <div className="mb-4">
+                <p className="text-xs text-text-light mb-2">
+                  {t("admin_dashboard.applicationDocuments" as any) ?? "Application documents"}
+                </p>
+                <div className="space-y-2">
+                  {therapist.documents!.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="flex items-center justify-between gap-2 border border-border rounded-md p-2.5"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <FileText size={16} className="text-text-light shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-xs font-medium truncate">
+                            {doc.fileName ?? doc.documentType ?? "Document"}
+                          </p>
+                          <p className="text-[10px] text-text-light truncate">
+                            {doc.documentType}
+                            {doc.fileSize != null
+                              ? ` · ${formatFileSize(doc.fileSize)}`
+                              : ""}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {doc.status && (
+                          <Badge
+                            variant={
+                              doc.status === "Verified"
+                                ? "default"
+                                : doc.status === "Rejected"
+                                  ? "destructive"
+                                  : "secondary"
+                            }
+                          >
+                            {doc.status}
+                          </Badge>
+                        )}
+                        {doc.documentUrl && (
+                          <a
+                            href={doc.documentUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs text-secondary hover:underline"
+                          >
+                            <ExternalLink size={12} /> Open
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs text-text-light">
                 {mediaFiles.length} {t("admin_dashboard.fileCount" as any) ?? "file(s)"}
@@ -419,8 +476,14 @@ export function TherapistDetailSheet({
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
+function formatFileSize(bytes?: number): string {
+  if (bytes == null) return "";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {  return (
     <div>
       <h4 className="text-xs font-mono uppercase text-text-light mb-2">{title}</h4>
       <div className="space-y-2">{children}</div>

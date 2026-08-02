@@ -8,6 +8,7 @@ import type { AuthMode, Role } from "@/types";
 import { useLang } from "@/context/i18n";
 import { toast } from "sonner";
 import { SignupFlow } from "@/components/auth/SignupFlow";
+import { InlineError } from "@/components/common/InlineError";
 
 type SignupRole = "patient" | "therapist" | null;
 
@@ -28,6 +29,7 @@ export function AuthModal({
   const [signupRole, setSignupRole] = useState<SignupRole>(defaultSignupRole ?? null);
   const [showPw, setShowPw] = useState(false);
   const [form, setForm] = useState<Record<string, string>>({});
+  const [error, setError] = useState<string | null>(null);
 
   const { login } = useAuth();
   const router = useRouter();
@@ -37,6 +39,7 @@ export function AuthModal({
     if (open) {
       setMode(initialMode);
       setSignupRole(defaultSignupRole ?? null);
+      setError(null);
       document.body.style.overflow = "hidden";
     }
     return () => {
@@ -50,7 +53,11 @@ export function AuthModal({
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.email || !form.password) return toast.error(t("auth.errorEmailPassword"));
+    setError(null);
+    if (!form.email || !form.password) {
+      setError(t("auth.errorEmailPassword"));
+      return;
+    }
     try {
       const u = await login(form.email, form.password, "patient");
       toast.success(t("auth.successWelcome") + ", " + u.name);
@@ -62,7 +69,13 @@ export function AuthModal({
         router.replace(u.role === "patient" ? "/patient" : u.role === "therapist" ? "/therapist" : "/admin");
       }
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t("auth.errorLoginFailed"));
+      const status = (e as { status?: number } | null)?.status;
+      if (status === 403) {
+        const msg = e instanceof Error ? e.message : "";
+        setError(/not approved/i.test(msg) ? t("auth.loginRejected") : t("auth.loginUnderReview"));
+      } else {
+        setError(e instanceof Error ? e.message : t("auth.errorLoginFailed"));
+      }
     }
   };
 
@@ -72,7 +85,11 @@ export function AuthModal({
     }
     onClose();
     if (!onLoginSuccess) {
-      router.replace(role === "patient" ? "/patient" : role === "therapist" ? "/therapist" : "/admin");
+      if (role === "therapist") {
+        router.replace("/login");
+      } else {
+        router.replace("/patient");
+      }
     }
   };
 
@@ -97,7 +114,7 @@ export function AuthModal({
                 <input
                   type="email"
                   value={form.email ?? ""}
-                  onChange={(e) => set("email", e.target.value)}
+                  onChange={(e) => { set("email", e.target.value); setError(null); }}
                   placeholder={t("auth.placeholderEmail")}
                   className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white text-sm placeholder:text-[13px] placeholder:text-text-light/60 focus:outline-none focus:ring-2 focus:ring-primary"
                 />
@@ -108,7 +125,7 @@ export function AuthModal({
                   <input
                     type={showPw ? "text" : "password"}
                     value={form.password ?? ""}
-                    onChange={(e) => set("password", e.target.value)}
+                    onChange={(e) => { set("password", e.target.value); setError(null); }}
                     placeholder={t("auth.placeholderPassword")}
                     className="w-full px-3 py-2.5 pr-10 rounded-xl border border-border bg-white text-sm placeholder:text-[13px] placeholder:text-text-light/60 focus:outline-none focus:ring-2 focus:ring-primary"
                   />
@@ -120,6 +137,7 @@ export function AuthModal({
                   <button type="button" className="text-xs text-secondary hover:underline">{t("common.forgotPassword")}</button>
                 </div>
               </div>
+              <InlineError message={error} />
               <button type="submit" className="btn-secondary w-full">{t("auth.loginBtn")}</button>
             </form>
 

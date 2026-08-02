@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import * as AuthService from "@/services/api/auth";
 import type { SignupDocument } from "@/services/api/auth";
+import { signup as clientSignup } from "@/services/auth-flow";
 import type { Role } from "@/types";
 
 export interface User {
@@ -63,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signupPatient: AuthCtx["signupPatient"] = async (data) => {
     setLoading(true);
     try {
-      const u = await AuthService.signup({
+      const u = await clientSignup({
         name: data.name,
         email: data.email,
         password: data.password,
@@ -81,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signupTherapist: AuthCtx["signupTherapist"] = async (data) => {
     setLoading(true);
     try {
-      const u = await AuthService.signup({
+      const u = await clientSignup({
         name: data.name,
         email: data.email,
         password: data.password,
@@ -96,7 +97,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         bio: data.bio,
         documents: data.documents,
       });
-      setUser(u as User);
+      // Therapist applications require admin approval. The signup endpoint
+      // does not issue a token, so the therapist must not be signed in yet.
       return u as User;
     } finally {
       setLoading(false);

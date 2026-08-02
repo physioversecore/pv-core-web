@@ -150,20 +150,33 @@ export function DocumentUploader({
   }, []);
 
   const upload = useCallback(
-    async (file: File) => {
-      const id = uid();
-      const previewUrl = isImage(file) ? URL.createObjectURL(file) : undefined;
-      trackPreviewUrl(previewUrl);
+    async (file: File, existingId?: string) => {
+      const id = existingId ?? uid();
+      const isNew = !existingId;
 
-      const entry: UploadedDoc = {
-        id,
-        documentType,
-        file,
-        previewUrl,
-        status: "uploading",
-        progress: 0,
-      };
-      onChange((current) => [...current, entry]);
+      const previewUrl =
+        isNew && isImage(file) ? URL.createObjectURL(file) : undefined;
+      if (previewUrl) trackPreviewUrl(previewUrl);
+
+      onChange((current) =>
+        isNew
+          ? [
+              ...current,
+              {
+                id,
+                documentType,
+                file,
+                previewUrl,
+                status: "uploading",
+                progress: 0,
+              },
+            ]
+          : current.map((d) =>
+              d.id === id
+                ? { ...d, status: "uploading", progress: 0, error: undefined }
+                : d,
+            ),
+      );
 
       try {
         const result = await uploadDocument(file, (pct) => {
@@ -233,7 +246,7 @@ export function DocumentUploader({
   const retryDoc = useCallback(
     (id: string) => {
       const target = docs.find((d) => d.id === id);
-      if (target) void upload(target.file);
+      if (target) void upload(target.file, id);
     },
     [docs, upload],
   );

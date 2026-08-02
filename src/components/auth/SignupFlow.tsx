@@ -8,8 +8,9 @@ import type { Role } from "@/types";
 import { CITIES, SPECIALTIES } from "@/constants";
 import { useLang } from "@/context/i18n";
 import { toast } from "sonner";
-import { sendOtp, verifyOtp } from "@/services/api/auth";
+import { sendOtp, verifyOtp } from "@/services/auth-flow";
 import { DocumentUploader, type UploadedDoc } from "@/components/auth/DocumentUploader";
+import { InlineError } from "@/components/common/InlineError";
 
 type SignupRole = "patient" | "therapist" | null;
 
@@ -33,13 +34,14 @@ export function SignupFlow({
   const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [submitted, setSubmitted] = useState<null | "patient-ok" | "therapist-ok">(null);
   const [resendAfter, setResendAfter] = useState(0);
+  const [error, setError] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const { signupPatient, signupTherapist } = useAuth();
   const router = useRouter();
   const { t } = useLang();
 
-  const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const set = (k: string, v: string) => { setForm((f) => ({ ...f, [k]: v })); setError(null); };
 
   const docsReady = (list: UploadedDoc[]) =>
     list.length > 0 && list.every((d) => d.status === "done");
@@ -81,9 +83,10 @@ export function SignupFlow({
 
   const handlePatientSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.first || !form.email || !form.phone || !form.city || !form.password) return toast.error(t("auth.errorFillAll"));
-    if (form.password !== form.confirm) return toast.error(t("auth.errorPasswordsDontMatch"));
-    if (!form.terms) return toast.error(t("auth.errorAcceptTerms"));
+    setError(null);
+    if (!form.first || !form.email || !form.phone || !form.city || !form.password) return setError(t("auth.errorFillAll"));
+    if (form.password !== form.confirm) return setError(t("auth.errorPasswordsDontMatch"));
+    if (!form.terms) return setError(t("auth.errorAcceptTerms"));
     const name = [form.first, form.middle, form.last].filter(Boolean).join(" ");
     setSending(true);
     try {
@@ -91,7 +94,7 @@ export function SignupFlow({
       setResendAfter(res.resend_after);
       setOtpStep("input");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t("auth.errorSendOtpFailed"));
+      setError(e instanceof Error ? e.message : t("auth.errorSendOtpFailed"));
     } finally {
       setSending(false);
     }
@@ -99,10 +102,11 @@ export function SignupFlow({
 
   const handleTherapistSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.first || !form.email || !form.specialty || !form.license || !form.password) return toast.error(t("auth.errorFillRequired"));
-    if (form.password !== form.confirm) return toast.error(t("auth.errorPasswordsDontMatch"));
-    if (!form.terms) return toast.error(t("auth.errorAcceptTerms"));
-    if (!docsReady(docs.license) || !docsReady(docs.cert)) return toast.error(t("auth.errorDocumentsRequired"));
+    setError(null);
+    if (!form.first || !form.email || !form.specialty || !form.license || !form.password) return setError(t("auth.errorFillRequired"));
+    if (form.password !== form.confirm) return setError(t("auth.errorPasswordsDontMatch"));
+    if (!form.terms) return setError(t("auth.errorAcceptTerms"));
+    if (!docsReady(docs.license) || !docsReady(docs.cert)) return setError(t("auth.errorDocumentsRequired"));
     const name = [form.first, form.middle, form.last].filter(Boolean).join(" ");
     setSending(true);
     try {
@@ -110,18 +114,25 @@ export function SignupFlow({
       setResendAfter(res.resend_after);
       setOtpStep("input");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t("auth.errorSendOtpFailed"));
+      setError(e instanceof Error ? e.message : t("auth.errorSendOtpFailed"));
     } finally {
       setSending(false);
     }
   };
 
   const handleVerifyOtpAndSignup = async () => {
-    if (!otpCode || otpCode.length !== 6) return toast.error(t("auth.errorInvalidOtp"));
+    if (otpStep === "verifying") return;
+    setError(null);
+    if (!otpCode || otpCode.length !== 6) return setError(t("auth.errorInvalidOtp"));
     setOtpStep("verifying");
     const name = [form.first, form.middle, form.last].filter(Boolean).join(" ");
     try {
-      await verifyOtp(form.email, otpCode);
+      const verified = await verifyOtp(form.email, otpCode);
+      if (!verified.verified) {
+        setError(t("auth.errorOtpFailed"));
+        setOtpStep("input");
+        return;
+      }
       if (signupRole === "patient") {
         await signupPatient({ name, email: form.email, password: form.password, phone: form.phone, city: form.city });
         setSubmitted("patient-ok");
@@ -152,7 +163,14 @@ export function SignupFlow({
         setSubmitted("therapist-ok");
       }
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t("auth.errorOtpFailed"));
+      const status = (e as { status?: number } | null)?.status;
+      setError(
+        status === 409
+          ? t("auth.errorAlreadyRegistered")
+          : e instanceof Error
+            ? e.message
+            : t("auth.errorOtpFailed"),
+      );
       setOtpStep("input");
     }
   };
@@ -163,6 +181,7 @@ export function SignupFlow({
 
   const handleResendOtp = useCallback(async () => {
     if (resendAfter > 0) return;
+    setError(null);
     const name = [form.first, form.middle, form.last].filter(Boolean).join(" ");
     try {
       const res = await sendOtp(form.email, name);
@@ -170,7 +189,7 @@ export function SignupFlow({
       setOtpCode("");
       toast.success(t("auth.otpSentTo"));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t("auth.errorSendOtpFailed"));
+      setError(e instanceof Error ? e.message : t("auth.errorSendOtpFailed"));
     }
   }, [resendAfter, form.email, form.first, form.middle, form.last, t]);
 
@@ -191,7 +210,7 @@ export function SignupFlow({
         <div className="w-16 h-16 rounded-full bg-surface grid place-items-center mx-auto mb-4 text-3xl">✓</div>
         <h2 className="text-2xl font-display mb-2">{t("auth.applicationReceived")}</h2>
         <p className="text-text-light text-sm mb-6">{t("auth.therapistSuccessSub")}</p>
-        <button onClick={() => handleSuccessCta("therapist")} className="btn-secondary">{t("auth.openDashboard")}</button>
+        <button onClick={() => handleSuccessCta("therapist")} className="btn-secondary">{t("auth.goToLogin")}</button>
       </div>
     );
   }
@@ -199,7 +218,7 @@ export function SignupFlow({
   if (otpStep) {
     return (
       <div className="space-y-4">
-        <button type="button" onClick={() => { setOtpStep(null); setOtpCode(""); setResendAfter(0); if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; } }} className="text-xs text-secondary flex items-center gap-1 cursor-pointer">
+        <button type="button" onClick={() => { setOtpStep(null); setOtpCode(""); setResendAfter(0); setError(null); if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; } }} className="text-xs text-secondary flex items-center gap-1 cursor-pointer">
           <ArrowLeft size={12} /> {t("auth.backBtn")}
         </button>
         <h2 className="text-2xl font-display">{t("auth.verifyYourEmail")}</h2>
@@ -214,10 +233,11 @@ export function SignupFlow({
               inputMode="numeric"
               maxLength={6}
               value={otpCode}
-              onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+              onChange={(e) => { setOtpCode(e.target.value.replace(/\D/g, "")); setError(null); }}
               placeholder="000000"
               className="w-full px-4 py-3 text-center text-2xl tracking-[0.5em] font-mono rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary"
             />
+            <InlineError message={error} />
             <button
               onClick={handleVerifyOtpAndSignup}
               disabled={otpCode.length !== 6}
@@ -281,7 +301,7 @@ export function SignupFlow({
   if (signupRole === "patient") {
     return (
       <form onSubmit={handlePatientSignup} className="space-y-3">
-        <button type="button" onClick={() => setSignupRole(null)} className="text-xs text-secondary flex items-center gap-1 cursor-pointer">
+        <button type="button" onClick={() => { setSignupRole(null); setError(null); }} className="text-xs text-secondary flex items-center gap-1 cursor-pointer">
           <ArrowLeft size={12} /> {t("auth.backBtn")}
         </button>
         <h2 className="text-2xl font-display">{t("auth.patientSignup")}</h2>
@@ -331,6 +351,7 @@ export function SignupFlow({
           <input type="checkbox" checked={form.terms === "1"} onChange={(e) => set("terms", e.target.checked ? "1" : "")} className="mt-0.5" />
           {t("auth.labelTermsPatient")}
         </label>
+        <InlineError message={error} />
         <button type="submit" disabled={!patientReady || sending} className="btn-secondary w-full disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
           {sending && <Loader2 className="animate-spin" size={16} />}
           {sending ? t("auth.sendingCode") : t("auth.createPatientAccount")}
@@ -341,7 +362,7 @@ export function SignupFlow({
 
   return (
     <form onSubmit={handleTherapistSignup} className="space-y-3">
-      <button type="button" onClick={() => setSignupRole(null)} className="text-xs text-secondary flex items-center gap-1 cursor-pointer">
+      <button type="button" onClick={() => { setSignupRole(null); setError(null); }} className="text-xs text-secondary flex items-center gap-1 cursor-pointer">
         <ArrowLeft size={12} /> {t("auth.backBtn")}
       </button>
       <h2 className="text-2xl font-display">{t("auth.therapistApplication")}</h2>
@@ -421,6 +442,7 @@ export function SignupFlow({
         <input type="checkbox" checked={form.terms === "1"} onChange={(e) => set("terms", e.target.checked ? "1" : "")} className="mt-0.5" />
         {t("auth.labelTermsTherapist")}
       </label>
+      <InlineError message={error} />
       <button type="submit" disabled={!therapistReady || sending} className="btn-secondary w-full disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
         {sending && <Loader2 className="animate-spin" size={16} />}
         {sending ? t("auth.sendingCode") : t("auth.submitApplication")}

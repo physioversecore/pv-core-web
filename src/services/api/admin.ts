@@ -15,6 +15,15 @@ export interface AdminPatientData {
   email?: string;
 }
 
+export interface AdminTherapistDocument {
+  id: string;
+  documentType?: string;
+  documentUrl?: string;
+  fileName?: string;
+  fileSize?: number;
+  status?: string;
+}
+
 export interface AdminTherapistData {
   id: string;
   name: string;
@@ -32,6 +41,7 @@ export interface AdminTherapistData {
   experience?: number;
   bio?: string;
   mediaUrls?: string;
+  documents?: AdminTherapistDocument[];
 }
 
 export interface AdminPaymentData {

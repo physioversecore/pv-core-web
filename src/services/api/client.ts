@@ -4,10 +4,18 @@ import { getToken } from "./session";
 const BASE = process.env.BACKEND_URL || "http://localhost:8000";
 
 export class AuthError extends Error {
+  status: number;
   constructor(message?: string) {
     super(message ?? "Not authenticated");
     this.name = "AuthError";
+    this.status = 401;
   }
+}
+
+function apiError(message: string, status: number): Error {
+  const err = new Error(message);
+  (err as Error & { status: number }).status = status;
+  return err;
 }
 
 async function request<T = unknown>(
@@ -40,7 +48,10 @@ async function request<T = unknown>(
 
   if (!res.ok) {
     const body = await res.json().catch(() => null);
-    throw new Error(body?.detail ?? body?.message ?? `API error ${res.status}: ${res.statusText}`);
+    throw apiError(
+      body?.detail ?? body?.message ?? `API error ${res.status}: ${res.statusText}`,
+      res.status,
+    );
   }
 
   if (res.status === 204) return undefined as T;
