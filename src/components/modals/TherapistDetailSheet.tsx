@@ -8,12 +8,19 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Avatar } from "@/components/Avatar";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useLang } from "@/context/i18n";
 import { useAdminTherapists } from "@/hooks/useAdminTherapists";
-import type { AdminTherapistData } from "@/services/api/admin";
+import type { AdminTherapistData, AdminTherapistDocument } from "@/services/api/admin";
 import {
   Phone,
   Mail,
@@ -29,6 +36,7 @@ import {
   Camera,
   Save,
   X,
+  Eye,
   ExternalLink,
 } from "lucide-react";
 
@@ -61,6 +69,7 @@ export function TherapistDetailSheet({
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [viewerDoc, setViewerDoc] = useState<AdminTherapistDocument | null>(null);
 
   const [form, setForm] = useState({
     name: therapist?.name ?? "",
@@ -330,47 +339,65 @@ export function TherapistDetailSheet({
                   {therapist.documents!.map((doc) => (
                     <div
                       key={doc.id}
-                      className="flex items-center justify-between gap-2 border border-border rounded-md p-2.5"
+                      className="border border-border rounded-md p-2.5"
                     >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <FileText size={16} className="text-text-light shrink-0" />
-                        <div className="min-w-0">
-                          <p className="text-xs font-medium truncate">
-                            {doc.fileName ?? doc.documentType ?? "Document"}
-                          </p>
-                          <p className="text-[10px] text-text-light truncate">
-                            {doc.documentType}
-                            {doc.fileSize != null
-                              ? ` · ${formatFileSize(doc.fileSize)}`
-                              : ""}
-                          </p>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <FileText size={16} className="text-text-light shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-xs font-medium truncate">
+                              {doc.fileName ?? doc.documentType ?? "Document"}
+                            </p>
+                            <p className="text-[10px] text-text-light truncate">
+                              {doc.documentType}
+                              {doc.fileSize != null
+                                ? ` · ${formatFileSize(doc.fileSize)}`
+                                : ""}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {doc.status && (
+                            <Badge
+                              variant={
+                                doc.status === "Verified"
+                                  ? "default"
+                                  : doc.status === "Rejected"
+                                    ? "destructive"
+                                    : "secondary"
+                              }
+                            >
+                              {doc.status}
+                            </Badge>
+                          )}
+                          {doc.documentUrl && (
+                            <>
+                              <button
+                                onClick={() => setViewerDoc(doc)}
+                                className="inline-flex items-center gap-1 text-xs text-secondary hover:underline cursor-pointer"
+                              >
+                                <Eye size={12} /> View
+                              </button>
+                              <a
+                                href={doc.documentUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-xs text-text-light hover:text-secondary hover:underline"
+                              >
+                                <ExternalLink size={12} /> Open
+                              </a>
+                            </>
+                          )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        {doc.status && (
-                          <Badge
-                            variant={
-                              doc.status === "Verified"
-                                ? "default"
-                                : doc.status === "Rejected"
-                                  ? "destructive"
-                                  : "secondary"
-                            }
-                          >
-                            {doc.status}
-                          </Badge>
-                        )}
-                        {doc.documentUrl && (
-                          <a
-                            href={doc.documentUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-xs text-secondary hover:underline"
-                          >
-                            <ExternalLink size={12} /> Open
-                          </a>
-                        )}
-                      </div>
+                      {doc.note && (
+                        <div className="mt-2 rounded-md border border-red-200 bg-red-50 px-2.5 py-1.5">
+                          <p className="text-[10px] uppercase font-mono text-red-600">
+                            Rejection reason
+                          </p>
+                          <p className="text-xs text-text mt-0.5">{doc.note}</p>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -472,7 +499,77 @@ export function TherapistDetailSheet({
           )}
         </div>
       </SheetContent>
+
+      {viewerDoc && (
+        <DocumentViewer doc={viewerDoc} onClose={() => setViewerDoc(null)} />
+      )}
     </Sheet>
+  );
+}
+
+function isImageUrl(url: string): boolean {
+  const ext = url.split("?")[0].split(".").pop()?.toLowerCase();
+  return ["jpg", "jpeg", "png", "gif", "webp"].includes(ext || "");
+}
+
+function DocumentViewer({
+  doc,
+  onClose,
+}: {
+  doc: AdminTherapistDocument;
+  onClose: () => void;
+}) {
+  const url = doc.documentUrl;
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-3xl">
+        <DialogHeader>
+          <DialogTitle className="font-display">
+            {doc.fileName ?? doc.documentType ?? "Document"}
+          </DialogTitle>
+          <DialogDescription>{doc.documentType}</DialogDescription>
+        </DialogHeader>
+        <div className="mt-2 max-h-[70vh] overflow-auto rounded-lg border border-border bg-white">
+          {url ? (
+            isImageUrl(url) ? (
+              <img
+                src={url}
+                alt={doc.fileName ?? "Document"}
+                className="w-full object-contain"
+              />
+            ) : (
+              <iframe
+                src={url}
+                title={doc.fileName ?? "Document"}
+                className="w-full h-[65vh]"
+              />
+            )
+          ) : (
+            <p className="p-6 text-center text-sm text-text-light">
+              No preview available
+            </p>
+          )}
+        </div>
+        <div className="flex items-center justify-end gap-2">
+          {url && (
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-outline !py-1.5 !px-3 text-xs inline-flex items-center gap-1"
+            >
+              <ExternalLink size={12} /> Open in new tab
+            </a>
+          )}
+          <button
+            onClick={onClose}
+            className="btn-secondary !py-1.5 !px-3 text-xs cursor-pointer"
+          >
+            Close
+          </button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

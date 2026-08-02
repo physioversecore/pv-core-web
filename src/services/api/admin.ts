@@ -22,6 +22,7 @@ export interface AdminTherapistDocument {
   fileName?: string;
   fileSize?: number;
   status?: string;
+  note?: string;
 }
 
 export interface AdminTherapistData {
@@ -645,6 +646,7 @@ export interface AdminVerificationData {
   documentUrl?: string;
   fileName?: string;
   fileSize?: number;
+  note?: string;
 }
 
 export interface AdminVerificationListParams extends AdminListParams {

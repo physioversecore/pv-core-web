@@ -217,6 +217,30 @@ export default function VerificationPage() {
     setEscalateRow(null);
   }, [escalateRow]);
 
+  const handleReject = useCallback(
+    async (note: string) => {
+      if (!reviewRow) return;
+      try {
+        await rejectVerif(reviewRow.id, note);
+        setLocalOverrides((prev) => ({
+          ...prev,
+          [reviewRow.id]: {
+            ...prev[reviewRow.id],
+            status: "Rejected",
+            note,
+          },
+        }));
+        toast.success(
+          `${reviewRow.therapist} rejected and the therapist has been notified`,
+        );
+        setReviewRow(null);
+      } catch {
+        toast.error("Failed to reject verification");
+      }
+    },
+    [reviewRow, rejectVerif],
+  );
+
   const handleEditSave = useCallback(async () => {
     if (!editRow) return;
     setEditSaving(true);
@@ -745,6 +769,7 @@ export default function VerificationPage() {
             approveVerif(reviewRow.id);
             setReviewRow(null);
           }}
+          onReject={handleReject}
         />
       )}
 
@@ -948,6 +973,14 @@ function PreviewModal({
               </div>
             )}
           </div>
+          {verification.note && (
+            <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-3">
+              <p className="text-[0.65rem] uppercase font-mono text-destructive mb-1">
+                Rejection reason
+              </p>
+              <p className="text-sm text-text">{verification.note}</p>
+            </div>
+          )}
           <DocumentPreview verification={verification} />
         </div>
       </DialogContent>
@@ -959,12 +992,28 @@ function ReviewDrawer({
   verification,
   onClose,
   onApprove,
+  onReject,
 }: {
   verification: AdminVerificationData;
   onClose: () => void;
   onApprove: () => void;
+  onReject: (note: string) => void;
 }) {
   const [rejectNote, setRejectNote] = useState("");
+  const [rejecting, setRejecting] = useState(false);
+
+  const handleRejectClick = async () => {
+    if (!rejectNote.trim()) {
+      toast.error("Please provide a reason for rejection");
+      return;
+    }
+    setRejecting(true);
+    try {
+      await onReject(rejectNote.trim());
+    } finally {
+      setRejecting(false);
+    }
+  };
 
   return (
     <Sheet open onOpenChange={(open) => !open && onClose()}>
@@ -1002,13 +1051,13 @@ function ReviewDrawer({
           <DocumentPreview verification={verification} />
           <div>
             <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
-              Rejection note (required on reject)
+              Rejection reason <span className="text-destructive">*</span>
             </label>
             <textarea
               value={rejectNote}
               onChange={(e) => setRejectNote(e.target.value)}
               className="w-full px-3 py-2 rounded-xl border border-border bg-background text-sm min-h-[80px]"
-              placeholder="Reason for rejection…"
+              placeholder="Explain why this document is being rejected — the therapist will see this reason and receive it by email."
             />
           </div>
           <div className="flex gap-2">
@@ -1018,8 +1067,13 @@ function ReviewDrawer({
             >
               <Check size={12} className="inline mr-1" /> Approve
             </button>
-            <button className="chip !bg-destructive !text-white cursor-pointer">
-              <X size={12} className="inline mr-1" /> Reject
+            <button
+              onClick={handleRejectClick}
+              disabled={rejecting}
+              className="chip !bg-destructive !text-white cursor-pointer disabled:opacity-50"
+            >
+              <X size={12} className="inline mr-1" />
+              {rejecting ? "Rejecting…" : "Reject"}
             </button>
           </div>
         </div>

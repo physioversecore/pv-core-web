@@ -63,20 +63,42 @@ export function useAdminVerifications(params: UseAdminVerificationsParams) {
   const items = query.data?.items ?? seedFiltered;
   const total = query.data?.total ?? seedFiltered.length;
 
+  const patchItem = useCallback(
+    (updater: (item: AdminVerificationData) => AdminVerificationData) => {
+      queryClient.setQueriesData<{ items: AdminVerificationData[]; total: number }>(
+        { queryKey: [QUERY_KEY] },
+        (old) => {
+          if (!old?.items) return old;
+          return { ...old, items: old.items.map((item) => updater(item)) };
+        },
+      );
+    },
+    [queryClient],
+  );
+
   const approveMutation = useMutation({
     mutationFn: (id: string) => approveVerification(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
+    onSuccess: (updated) => {
+      patchItem((item) => (item.id === updated.id ? { ...item, ...updated } : item));
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+    },
   });
 
   const rejectMutation = useMutation({
     mutationFn: ({ id, note }: { id: string; note: string }) => rejectVerification(id, note),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
+    onSuccess: (updated) => {
+      patchItem((item) => (item.id === updated.id ? { ...item, ...updated } : item));
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+    },
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<AdminVerificationData> }) =>
       updateAdminVerification(id, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
+    onSuccess: (updated) => {
+      patchItem((item) => (item.id === updated.id ? { ...item, ...updated } : item));
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+    },
   });
 
   const deleteMutation = useMutation({
