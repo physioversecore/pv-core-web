@@ -215,12 +215,42 @@ export default function TProfile() {
   }
 
   function removePhoto() {
-    setPhotoPreview(null);
-    setPhotoFile(null);
-    setPhotoProgress(0);
-    setPhotoStatus("idle");
-    setPhotoError("");
-    if (photoInputRef.current) photoInputRef.current.value = "";
+    const therapistId = profile?.id ?? user?.id;
+    if (!therapistId) return;
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("DELETE", `/api/v1/uploads/therapists/${therapistId}/photo`);
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        setPhotoPreview(null);
+        setPhotoFile(null);
+        setPhotoProgress(0);
+        setPhotoStatus("idle");
+        setPhotoError("");
+        if (photoInputRef.current) photoInputRef.current.value = "";
+        setProfile((prev) => {
+          if (!prev) return prev;
+          const media = (prev.mediaUrls ?? "")
+            .split(",")
+            .map((s) => s.trim())
+            .filter(
+              (s) => s && !s.split("/").pop()?.split("?")[0].startsWith("photo-"),
+            );
+          return { ...prev, photo: undefined, mediaUrls: media.join(",") };
+        });
+        void refreshSession();
+        toast.success(t("therapist_dashboard.photoRemoved"));
+      } else {
+        toast.error(t("therapist_dashboard.uploadFailed"));
+      }
+    };
+
+    xhr.onerror = () => {
+      toast.error(t("therapist_dashboard.uploadFailed"));
+    };
+
+    xhr.send();
   }
 
   function handleDocSelect(e: React.ChangeEvent<HTMLInputElement>) {

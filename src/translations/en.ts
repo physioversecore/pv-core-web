@@ -755,6 +755,7 @@ const en = {
     photoUploaded: "Photo uploaded",
     savePhoto: "Save photo",
     photoUploadedSuccess: "Profile photo updated",
+    photoRemoved: "Profile photo removed",
     invalidPhotoType: "Only JPG, PNG, GIF or WebP images are supported",
     photoTooLarge: "Photo must be smaller than 10 MB",
     uploading: "Uploading…",

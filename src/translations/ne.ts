@@ -752,6 +752,7 @@ const ne = {
     photoUploaded: "तस्वीर अपलोड भयो",
     savePhoto: "तस्वीर सुरक्षित गर्नुहोस्",
     photoUploadedSuccess: "प्रोफाइल तस्वीर अद्यावधिक भयो",
+    photoRemoved: "प्रोफाइल तस्वीर हटाइयो",
     invalidPhotoType: "केवल JPG, PNG, GIF वा WebP छविहरू समर्थित छन्",
     photoTooLarge: "तस्वीर 10 MB भन्दा सानो हुनुपर्छ",
     uploading: "अपलोड हुँदै…",
