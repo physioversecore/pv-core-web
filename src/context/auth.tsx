@@ -15,6 +15,7 @@ export interface User {
   phone?: string;
   specialty?: string;
   status?: string;
+  photo?: string;
 }
 
 export interface TherapistSignupData extends Omit<User, "id" | "role" | "status"> {
@@ -35,6 +36,7 @@ interface AuthCtx {
   signupPatient: (data: Omit<User, "id" | "role" | "status"> & { password: string }) => Promise<User>;
   signupTherapist: (data: TherapistSignupData) => Promise<User>;
   logout: () => Promise<void>;
+  refreshSession: () => Promise<void>;
 }
 
 const Ctx = createContext<AuthCtx | null>(null);
@@ -110,8 +112,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
+  const refreshSession = async () => {
+    const session = await AuthService.getSession();
+    setUser(session as User | null);
+  };
+
   return (
-    <Ctx.Provider value={{ user, loading, login, signupPatient, signupTherapist, logout }}>
+    <Ctx.Provider value={{ user, loading, login, signupPatient, signupTherapist, logout, refreshSession }}>
       {children}
     </Ctx.Provider>
   );

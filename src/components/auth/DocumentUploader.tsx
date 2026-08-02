@@ -38,9 +38,9 @@ interface DocumentUploaderProps {
   maxFiles?: number;
 }
 
-const ACCEPT = ".pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.docx";
+const ACCEPT = ".pdf,.jpg,.jpeg,.png,.gif,.webp";
 const ALLOWED_EXTENSIONS = new Set([
-  "pdf", "jpg", "jpeg", "png", "gif", "webp", "doc", "docx",
+  "pdf", "jpg", "jpeg", "png", "gif", "webp",
 ]);
 const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
 

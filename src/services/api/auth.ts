@@ -12,6 +12,7 @@ export interface UserData {
   phone?: string;
   specialty?: string;
   status?: string;
+  photo?: string;
 }
 
 interface AuthResponse {

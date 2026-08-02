@@ -14,6 +14,7 @@ export interface TherapistData {
   experience: number;
   bio: string;
   userId?: string;
+  mediaUrls?: string;
 }
 
 interface TherapistListResponse {

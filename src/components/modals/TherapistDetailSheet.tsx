@@ -56,7 +56,7 @@ export function TherapistDetailSheet({
   onSave,
 }: TherapistDetailSheetProps) {
   const { t } = useLang();
-  const { toggleTherapistStatus } = useAdminTherapists({
+  const { approveTherapist, rejectTherapist } = useAdminTherapists({
     search: "",
     specialty: "",
     status: "",
@@ -70,6 +70,11 @@ export function TherapistDetailSheet({
   const [saving, setSaving] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [viewerDoc, setViewerDoc] = useState<AdminTherapistDocument | null>(null);
+  const [docs, setDocs] = useState<AdminTherapistDocument[]>(therapist?.documents ?? []);
+  const [docType, setDocType] = useState("Additional document");
+  const [rejectOpen, setRejectOpen] = useState(false);
+  const [rejectNote, setRejectNote] = useState("");
+  const [rejecting, setRejecting] = useState(false);
 
   const [form, setForm] = useState({
     name: therapist?.name ?? "",
@@ -87,6 +92,7 @@ export function TherapistDetailSheet({
   useEffect(() => {
     if (therapist) {
       setAvatarPreview(null);
+      setDocs(therapist.documents ?? []);
       setForm({
         name: therapist.name ?? "",
         email: therapist.email ?? "",
@@ -137,24 +143,32 @@ export function TherapistDetailSheet({
   const handleVerify = useCallback(async () => {
     if (!therapist) return;
     try {
-      await toggleTherapistStatus(therapist.id, "Verified");
-      toast.success(t("admin_dashboard.therapistVerified" as any) ?? "Therapist verified");
+      await approveTherapist(therapist.id);
+      toast.success(t("admin_dashboard.therapistVerified"));
       onOpenChange(false);
     } catch {
-      toast.error(t("common.tryAgain" as any) ?? "Something went wrong");
+      toast.error(t("common.tryAgain"));
     }
-  }, [therapist, toggleTherapistStatus, t, onOpenChange]);
+  }, [therapist, approveTherapist, t, onOpenChange]);
 
-  const handleReject = useCallback(async () => {
+  const confirmReject = useCallback(async () => {
     if (!therapist) return;
+    if (!rejectNote.trim()) {
+      toast.error(t("admin_dashboard.reasonRequired"));
+      return;
+    }
+    setRejecting(true);
     try {
-      await toggleTherapistStatus(therapist.id, "Suspended");
-      toast.success(t("admin_dashboard.applicationRejected" as any) ?? "Application rejected");
+      await rejectTherapist(therapist.id, rejectNote.trim());
+      toast.success(t("admin_dashboard.applicationRejected"));
+      setRejectOpen(false);
       onOpenChange(false);
     } catch {
-      toast.error(t("common.tryAgain" as any) ?? "Something went wrong");
+      toast.error(t("common.tryAgain"));
+    } finally {
+      setRejecting(false);
     }
-  }, [therapist, toggleTherapistStatus, t, onOpenChange]);
+  }, [therapist, rejectNote, rejectTherapist, t, onOpenChange]);
 
   const handleUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -162,21 +176,30 @@ export function TherapistDetailSheet({
     setUploading(true);
     try {
       const formData = new FormData();
+      formData.append("documentType", docType);
       for (const file of Array.from(files)) {
         formData.append("files", file);
       }
-      const res = await fetch(`/api/v1/uploads/therapists/${therapist.id}`, {
+      const res = await fetch(`/api/v1/uploads/therapists/${therapist.id}/documents`, {
         method: "POST",
         body: formData,
       });
-      if (!res.ok) throw new Error("Upload failed");
-      toast.success("Files uploaded");
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.detail ?? "Upload failed");
+      const uploaded: AdminTherapistDocument[] = data?.documents ?? [];
+      setDocs((prev) => [...uploaded, ...prev]);
+      toast.success(
+        uploaded.length > 1
+          ? t("admin_dashboard.documentsUploaded")
+          : t("admin_dashboard.documentUploaded"),
+      );
     } catch {
-      toast.error("Upload failed");
+      toast.error(t("admin_dashboard.uploadFailed"));
     } finally {
       setUploading(false);
+      e.target.value = "";
     }
-  }, [therapist]);
+  }, [therapist, docType, t]);
 
   const handleSave = useCallback(async () => {
     if (!therapist || !onSave) return;
@@ -195,10 +218,10 @@ export function TherapistDetailSheet({
         status: form.status,
         isActive: form.status === "Verified",
       });
-      toast.success(t("common.saved" as any) ?? "Saved");
+      toast.success(t("common.saved"));
       onOpenChange(false);
     } catch {
-      toast.error(t("common.tryAgain" as any) ?? "Something went wrong");
+      toast.error(t("common.tryAgain"));
     } finally {
       setSaving(false);
     }
@@ -214,7 +237,7 @@ export function TherapistDetailSheet({
         <SheetHeader className="pb-4 border-b">
           <div className="flex items-center gap-3">
             <div className="relative group">
-              <Avatar name={therapist.name} size={56} src={avatarPreview ?? undefined} />
+              <Avatar name={therapist.name} size={56} src={avatarPreview ?? therapist.mediaUrls?.split(",")[0]} />
               {isEdit && (
                 <label className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
                   <Camera size={16} className="text-white" />
@@ -243,73 +266,73 @@ export function TherapistDetailSheet({
         </SheetHeader>
 
         <div className="mt-5 space-y-5">
-          <Section title={t("admin_dashboard.personalInfo" as any) ?? "Personal Information"}>
+          <Section title={t("admin_dashboard.personalInfo")}>
             {isEdit ? (
               <>
-                <EditField label={t("admin_dashboard.name" as any) ?? "Name"} value={form.name} onChange={(v) => setField("name", v)} />
-                <EditField label={t("admin_dashboard.email" as any) ?? "Email"} value={form.email} onChange={(v) => setField("email", v)} type="email" />
-                <EditField label={t("admin_dashboard.phone" as any) ?? "Phone"} value={form.phone} onChange={(v) => setField("phone", v)} />
-                <EditField label={t("admin_dashboard.city" as any) ?? "City"} value={form.city} onChange={(v) => setField("city", v)} />
-                <EditField label={t("admin_dashboard.gender" as any) ?? "Gender"} value={form.gender} onChange={(v) => setField("gender", v)} />
+                <EditField label={t("admin_dashboard.name")} value={form.name} onChange={(v) => setField("name", v)} />
+                <EditField label={t("admin_dashboard.email")} value={form.email} onChange={(v) => setField("email", v)} type="email" />
+                <EditField label={t("admin_dashboard.phone")} value={form.phone} onChange={(v) => setField("phone", v)} />
+                <EditField label={t("admin_dashboard.city")} value={form.city} onChange={(v) => setField("city", v)} />
+                <EditField label={t("admin_dashboard.gender")} value={form.gender} onChange={(v) => setField("gender", v)} />
               </>
             ) : (
               <>
-                <InfoRow icon={<User size={14} />} label={t("admin_dashboard.name" as any) ?? "Name"} value={therapist.name} />
-                <InfoRow icon={<Mail size={14} />} label={t("admin_dashboard.email" as any) ?? "Email"} value={therapist.email ?? "—"} />
-                <InfoRow icon={<Phone size={14} />} label={t("admin_dashboard.phone" as any) ?? "Phone"} value={therapist.phone ?? "—"} />
-                <InfoRow icon={<MapPin size={14} />} label={t("admin_dashboard.city" as any) ?? "City"} value={therapist.city} />
-                <InfoRow icon={<User size={14} />} label={t("admin_dashboard.gender" as any) ?? "Gender"} value={therapist.gender ?? "—"} />
+                <InfoRow icon={<User size={14} />} label={t("admin_dashboard.name")} value={therapist.name} />
+                <InfoRow icon={<Mail size={14} />} label={t("admin_dashboard.email")} value={therapist.email ?? "—"} />
+                <InfoRow icon={<Phone size={14} />} label={t("admin_dashboard.phone")} value={therapist.phone ?? "—"} />
+                <InfoRow icon={<MapPin size={14} />} label={t("admin_dashboard.city")} value={therapist.city} />
+                <InfoRow icon={<User size={14} />} label={t("admin_dashboard.gender")} value={therapist.gender ?? "—"} />
               </>
             )}
           </Section>
 
-          <Section title={t("admin_dashboard.professionalInfo" as any) ?? "Professional Information"}>
+          <Section title={t("admin_dashboard.professionalInfo")}>
             {isEdit ? (
               <>
-                <EditField label={t("admin_dashboard.specialty" as any) ?? "Specialty"} value={form.specialty} onChange={(v) => setField("specialty", v)} />
-                <EditField label={t("admin_dashboard.experience" as any) ?? "Experience (yrs)"} value={form.experience} onChange={(v) => setField("experience", v)} type="number" />
-                <EditField label={t("admin_dashboard.price" as any) ?? "Price (Rs)"} value={form.price} onChange={(v) => setField("price", v)} type="number" />
-                <EditField label={t("admin_dashboard.status" as any) ?? "Status"} value={form.status} onChange={(v) => setField("status", v)} type="select" options={["Verified", "Under review", "Suspended"]} />
+                <EditField label={t("admin_dashboard.specialty")} value={form.specialty} onChange={(v) => setField("specialty", v)} />
+                <EditField label={t("admin_dashboard.experience")} value={form.experience} onChange={(v) => setField("experience", v)} type="number" />
+                <EditField label={t("admin_dashboard.price")} value={form.price} onChange={(v) => setField("price", v)} type="number" />
+                <EditField label={t("admin_dashboard.status")} value={form.status} onChange={(v) => setField("status", v)} type="select" options={["Verified", "Under review", "Suspended"]} />
               </>
             ) : (
               <>
-                <InfoRow icon={<Briefcase size={14} />} label={t("admin_dashboard.specialty" as any) ?? "Specialty"} value={therapist.specialty} />
+                <InfoRow icon={<Briefcase size={14} />} label={t("admin_dashboard.specialty")} value={therapist.specialty} />
                 <InfoRow
                   icon={<Briefcase size={14} />}
-                  label={t("admin_dashboard.experience" as any) ?? "Experience"}
+                  label={t("admin_dashboard.experience")}
                   value={therapist.experience != null ? `${therapist.experience} years` : "—"}
                 />
                 <InfoRow
                   icon={<DollarSign size={14} />}
-                  label={t("admin_dashboard.price" as any) ?? "Price"}
+                  label={t("admin_dashboard.price")}
                   value={therapist.price != null ? `Rs ${therapist.price.toLocaleString()}` : "—"}
                 />
-                <InfoRow icon={<Star size={14} />} label={t("admin_dashboard.rating" as any) ?? "Rating"} value={`${therapist.rating}`} />
-                <InfoRow icon={<FileText size={14} />} label={t("admin_dashboard.sessions" as any) ?? "Sessions"} value={`${therapist.sessions}`} />
+                <InfoRow icon={<Star size={14} />} label={t("admin_dashboard.rating")} value={`${therapist.rating}`} />
+                <InfoRow icon={<FileText size={14} />} label={t("admin_dashboard.sessions")} value={`${therapist.sessions}`} />
               </>
             )}
           </Section>
 
           {isEdit ? (
-            <Section title={t("admin_dashboard.bio" as any) ?? "Bio"}>
+            <Section title={t("admin_dashboard.bio")}>
               <textarea
                 value={form.bio}
                 onChange={(e) => setField("bio", e.target.value)}
                 rows={4}
                 className="w-full px-3 py-2 rounded-md border border-input bg-transparent text-sm resize-none"
-                placeholder="Therapist bio..."
+                placeholder={t("admin_dashboard.bioPlaceholder")}
               />
             </Section>
           ) : (
             therapist.bio && (
-              <Section title={t("admin_dashboard.bio" as any) ?? "Bio"}>
+              <Section title={t("admin_dashboard.bio")}>
                 <p className="text-sm text-text-light whitespace-pre-wrap">{therapist.bio}</p>
               </Section>
             )
           )}
 
           {!isEdit && (
-            <Section title={t("admin_dashboard.status" as any) ?? "Status"}>
+            <Section title={t("admin_dashboard.status")}>
               <div className="flex items-center gap-3">
                 <Badge
                   variant={
@@ -323,20 +346,20 @@ export function TherapistDetailSheet({
                   {therapist.status}
                 </Badge>
                 <span className="text-xs text-text-light">
-                  {t("admin_dashboard.joined" as any) ?? "Joined"}: {therapist.joined}
+                  {t("admin_dashboard.joined")}: {therapist.joined}
                 </span>
               </div>
             </Section>
           )}
 
-          <Section title={t("admin_dashboard.documentsMedia" as any) ?? "Documents & Media"}>
-            {(therapist.documents?.length ?? 0) > 0 && (
+          <Section title={t("admin_dashboard.documentsMedia")}>
+            {docs.length > 0 && (
               <div className="mb-4">
                 <p className="text-xs text-text-light mb-2">
-                  {t("admin_dashboard.applicationDocuments" as any) ?? "Application documents"}
+                  {t("admin_dashboard.applicationDocuments")}
                 </p>
                 <div className="space-y-2">
-                  {therapist.documents!.map((doc) => (
+                  {docs.map((doc) => (
                     <div
                       key={doc.id}
                       className="border border-border rounded-md p-2.5"
@@ -376,7 +399,7 @@ export function TherapistDetailSheet({
                                 onClick={() => setViewerDoc(doc)}
                                 className="inline-flex items-center gap-1 text-xs text-secondary hover:underline cursor-pointer"
                               >
-                                <Eye size={12} /> View
+                                <Eye size={12} /> {t("admin_dashboard.viewFile")}
                               </button>
                               <a
                                 href={doc.documentUrl}
@@ -384,7 +407,7 @@ export function TherapistDetailSheet({
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center gap-1 text-xs text-text-light hover:text-secondary hover:underline"
                               >
-                                <ExternalLink size={12} /> Open
+                                <ExternalLink size={12} /> {t("admin_dashboard.openFile")}
                               </a>
                             </>
                           )}
@@ -393,7 +416,7 @@ export function TherapistDetailSheet({
                       {doc.note && (
                         <div className="mt-2 rounded-md border border-red-200 bg-red-50 px-2.5 py-1.5">
                           <p className="text-[10px] uppercase font-mono text-red-600">
-                            Rejection reason
+                            {t("admin_dashboard.rejectionReason")}
                           </p>
                           <p className="text-xs text-text mt-0.5">{doc.note}</p>
                         </div>
@@ -404,26 +427,40 @@ export function TherapistDetailSheet({
               </div>
             )}
 
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
               <span className="text-xs text-text-light">
-                {mediaFiles.length} {t("admin_dashboard.fileCount" as any) ?? "file(s)"}
+                {docs.length} {t("admin_dashboard.docCount")}
               </span>
-              <label className="btn-outline !py-1 !px-3 text-xs cursor-pointer inline-flex items-center gap-1">
-                <Upload size={12} />
-                {uploading ? (t("admin_dashboard.uploading" as any) ?? "Uploading...") : (t("common.upload" as any) ?? "Upload")}
-                <input
-                  type="file"
-                  multiple
-                  className="hidden"
-                  onChange={handleUpload}
-                  disabled={uploading}
-                  accept="image/*,.pdf,.doc,.docx"
-                />
-              </label>
+              <div className="flex items-center gap-2">
+                <select
+                  value={docType}
+                  onChange={(e) => setDocType(e.target.value)}
+                  className="h-8 px-2 rounded-md border border-input bg-transparent text-xs"
+                  title={t("admin_dashboard.documentType")}
+                >
+                  <option value="NMC License">NMC License</option>
+                  <option value="Degree Certificate">Degree Certificate</option>
+                  <option value="ID Proof">ID Proof</option>
+                  <option value="Certification">Certification</option>
+                  <option value="Additional document">Additional document</option>
+                </select>
+                <label className="btn-outline !py-1 !px-3 text-xs cursor-pointer inline-flex items-center gap-1">
+                  <Upload size={12} />
+                  {uploading ? t("admin_dashboard.uploading") : t("common.upload")}
+                  <input
+                    type="file"
+                    multiple
+                    className="hidden"
+                    onChange={handleUpload}
+                    disabled={uploading}
+                    accept="image/*,.pdf"
+                  />
+                </label>
+              </div>
             </div>
             {mediaFiles.length === 0 ? (
               <p className="text-xs text-text-light py-4 text-center border border-dashed rounded-md">
-                {t("admin_dashboard.noFiles" as any) ?? "No files uploaded yet"}
+                {t("admin_dashboard.noFiles")}
               </p>
             ) : (
               <div className="grid grid-cols-2 gap-2">
@@ -450,7 +487,7 @@ export function TherapistDetailSheet({
                       className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 flex items-center justify-center"
                     >
                       <span className="text-white text-xs font-medium bg-black/60 px-2 py-1 rounded">
-                        View
+                        {t("admin_dashboard.viewFile")}
                       </span>
                     </a>
                   </div>
@@ -466,7 +503,7 @@ export function TherapistDetailSheet({
                 className="flex-1 btn-outline !py-2 text-xs inline-flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <X size={14} />
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 onClick={handleSave}
@@ -474,7 +511,7 @@ export function TherapistDetailSheet({
                 className="flex-1 btn-secondary !py-2 text-xs inline-flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
                 <Save size={14} />
-                {saving ? "Saving..." : "Save"}
+                {saving ? t("admin_dashboard.saving") : t("common.save")}
               </button>
             </div>
           ) : (
@@ -485,14 +522,14 @@ export function TherapistDetailSheet({
                   className="flex-1 btn-secondary !py-2 text-xs inline-flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <ShieldCheck size={14} />
-                  Verify
+                  {t("common.verify")}
                 </button>
                 <button
-                  onClick={handleReject}
+                  onClick={() => setRejectOpen(true)}
                   className="flex-1 btn-outline !py-2 text-xs inline-flex items-center justify-center gap-1.5 !text-red-500 !border-red-500 hover:!bg-red-500 hover:!text-white cursor-pointer"
                 >
                   <ShieldOff size={14} />
-                  Reject
+                  {t("admin_dashboard.reject")}
                 </button>
               </div>
             )
@@ -503,6 +540,47 @@ export function TherapistDetailSheet({
       {viewerDoc && (
         <DocumentViewer doc={viewerDoc} onClose={() => setViewerDoc(null)} />
       )}
+
+      <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display">
+              {t("admin_dashboard.rejectApplication")}
+            </DialogTitle>
+            <DialogDescription>
+              {t("admin_dashboard.rejectReasonHint")}
+            </DialogDescription>
+          </DialogHeader>
+          <textarea
+            value={rejectNote}
+            onChange={(e) => setRejectNote(e.target.value)}
+            rows={4}
+            autoFocus
+            placeholder={t("admin_dashboard.rejectReasonPlaceholder")}
+            className="w-full px-3 py-2 rounded-md border border-input bg-transparent text-sm resize-none"
+          />
+          {rejectNote.trim() && (
+            <p className="text-[10px] text-text-light -mt-2">
+              {t("admin_dashboard.reasonShared")}
+            </p>
+          )}
+          <div className="flex gap-2 justify-end">
+            <button
+              onClick={() => setRejectOpen(false)}
+              className="btn-outline !py-1.5 !px-3 text-xs cursor-pointer"
+            >
+              {t("common.cancel")}
+            </button>
+            <button
+              onClick={confirmReject}
+              disabled={rejecting || !rejectNote.trim()}
+              className="btn-outline !py-1.5 !px-3 text-xs !text-red-500 !border-red-500 hover:!bg-red-500 hover:!text-white cursor-pointer disabled:opacity-50"
+            >
+              {rejecting ? t("admin_dashboard.rejecting") : t("admin_dashboard.confirmReject")}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Sheet>
   );
 }
@@ -519,6 +597,7 @@ function DocumentViewer({
   doc: AdminTherapistDocument;
   onClose: () => void;
 }) {
+  const { t } = useLang();
   const url = doc.documentUrl;
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
@@ -546,7 +625,7 @@ function DocumentViewer({
             )
           ) : (
             <p className="p-6 text-center text-sm text-text-light">
-              No preview available
+              {t("admin_dashboard.noPreview")}
             </p>
           )}
         </div>
@@ -558,14 +637,14 @@ function DocumentViewer({
               rel="noopener noreferrer"
               className="btn-outline !py-1.5 !px-3 text-xs inline-flex items-center gap-1"
             >
-              <ExternalLink size={12} /> Open in new tab
+              <ExternalLink size={12} /> {t("admin_dashboard.openInNewTab")}
             </a>
           )}
           <button
             onClick={onClose}
             className="btn-secondary !py-1.5 !px-3 text-xs cursor-pointer"
           >
-            Close
+            {t("common.close")}
           </button>
         </div>
       </DialogContent>

@@ -14,9 +14,9 @@ import {
   Eye,
   CheckCircle2,
   X,
-  RefreshCw,
 } from "lucide-react";
 import { getTherapistProfile, updateTherapistProfile } from "@/services/api/profile";
+import type { TherapistProfile, TherapistProfileDocument } from "@/types";
 
 const MAX_PHOTO_SIZE = 5 * 1024 * 1024;
 const ALLOWED_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -29,35 +29,26 @@ const ALLOWED_DOC_TYPES = [
 ];
 
 const DOC_TYPES = [
-  { key: "nmc", label: "NMC License" },
-  { key: "degree", label: "Degree Certificate" },
-  { key: "id", label: "ID Proof" },
-  { key: "other", label: "Other Certification" },
-] as const;
+  "NMC License",
+  "Degree Certificate",
+  "ID Proof",
+  "Certification",
+  "Other",
+];
 
-type DocKey = (typeof DOC_TYPES)[number]["key"];
-
-interface DocEntry {
-  file: File | null;
-  preview: string;
-  name: string;
-  uploadedAt: string;
-  status: "Uploaded" | "Pending Verification";
-  progress: number;
-  error: string;
+function formatFileSize(bytes?: number): string {
+  if (bytes == null) return "";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export default function TProfile() {
   const { t } = useLang();
-  const { user } = useAuth();
+  const { user, refreshSession } = useAuth();
 
   const photoInputRef = useRef<HTMLInputElement>(null);
-  const docInputRefs = useRef<Record<DocKey, HTMLInputElement | null>>({
-    nmc: null,
-    degree: null,
-    id: null,
-    other: null,
-  });
+  const docInputRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -81,16 +72,18 @@ export default function TProfile() {
   >("idle");
   const [photoError, setPhotoError] = useState("");
 
-  const [documents, setDocuments] = useState<Record<DocKey, DocEntry>>({
-    nmc: { file: null, preview: "", name: "", uploadedAt: "", status: "Pending Verification", progress: 0, error: "" },
-    degree: { file: null, preview: "", name: "", uploadedAt: "", status: "Pending Verification", progress: 0, error: "" },
-    id: { file: null, preview: "", name: "", uploadedAt: "", status: "Pending Verification", progress: 0, error: "" },
-    other: { file: null, preview: "", name: "", uploadedAt: "", status: "Pending Verification", progress: 0, error: "" },
-  });
+  const [profile, setProfile] = useState<TherapistProfile | null>(null);
+  const [docs, setDocs] = useState<TherapistProfileDocument[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [docType, setDocType] = useState("NMC License");
 
   useEffect(() => {
     getTherapistProfile()
       .then((profile) => {
+        setProfile(profile);
+        setDocs(profile.documents ?? []);
+        setPhotoPreview(profile.photo ?? null);
         setF({
           name: profile.name,
           phone: profile.phone,
@@ -138,15 +131,15 @@ export default function TProfile() {
     if (!file) return;
 
     if (!ALLOWED_PHOTO_TYPES.includes(file.type)) {
-      setPhotoError("Only JPG, PNG, and WEBP are allowed.");
       setPhotoStatus("error");
-      toast.error("Invalid file type. Please select JPG, PNG, or WEBP.");
+      setPhotoError(t("therapist_dashboard.invalidPhotoType"));
+      toast.error(t("therapist_dashboard.invalidPhotoType"));
       return;
     }
     if (file.size > MAX_PHOTO_SIZE) {
-      setPhotoError("File exceeds 5 MB limit.");
       setPhotoStatus("error");
-      toast.error("File too large. Maximum size is 5 MB.");
+      setPhotoError(t("therapist_dashboard.photoTooLarge"));
+      toast.error(t("therapist_dashboard.photoTooLarge"));
       return;
     }
 
@@ -159,23 +152,66 @@ export default function TProfile() {
     reader.readAsDataURL(file);
   }
 
-  function simulatePhotoUpload() {
-    if (!photoFile) return;
+  function uploadPhoto() {
+    if (!photoFile || !user) return;
+    const therapistId = profile?.id ?? user.id;
+
     setPhotoStatus("uploading");
     setPhotoProgress(0);
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += Math.random() * 25 + 10;
-      if (progress >= 100) {
-        progress = 100;
-        clearInterval(interval);
-        setPhotoProgress(100);
-        setPhotoStatus("success");
-        toast.success("Profile photo uploaded successfully!");
-      } else {
-        setPhotoProgress(Math.round(progress));
+
+    const formData = new FormData();
+    formData.append("file", photoFile);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `/api/v1/uploads/therapists/${therapistId}/photo`);
+
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) {
+        setPhotoProgress(Math.round((e.loaded / e.total) * 100));
       }
-    }, 300);
+    };
+
+    xhr.onload = () => {
+      setPhotoProgress(0);
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const res = JSON.parse(xhr.responseText);
+          const url: string | undefined = res?.url;
+          if (url) {
+            setPhotoPreview(url);
+            setPhotoFile(null);
+            setPhotoStatus("success");
+            setProfile((prev) => {
+              if (!prev) return prev;
+              const media = [
+                url,
+                ...(prev.mediaUrls?.split(",").map((s) => s.trim()).filter(Boolean) ?? []),
+              ].join(",");
+              return { ...prev, photo: url, mediaUrls: media };
+            });
+            void refreshSession();
+            toast.success(t("therapist_dashboard.photoUploadedSuccess"));
+          } else {
+            setPhotoStatus("error");
+            setPhotoError(t("therapist_dashboard.uploadFailed"));
+          }
+        } catch {
+          setPhotoStatus("error");
+          setPhotoError(t("therapist_dashboard.uploadFailed"));
+        }
+      } else {
+        setPhotoStatus("error");
+        setPhotoError(t("therapist_dashboard.uploadFailed"));
+      }
+    };
+
+    xhr.onerror = () => {
+      setPhotoProgress(0);
+      setPhotoStatus("error");
+      setPhotoError(t("therapist_dashboard.uploadFailed"));
+    };
+
+    xhr.send(formData);
   }
 
   function removePhoto() {
@@ -187,85 +223,98 @@ export default function TProfile() {
     if (photoInputRef.current) photoInputRef.current.value = "";
   }
 
-  function handleDocSelect(key: DocKey, e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  function handleDocSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
+    e.target.value = "";
 
-    if (!ALLOWED_DOC_TYPES.includes(file.type)) {
-      toast.error("Only PDF, JPG, and PNG are allowed.");
-      return;
-    }
-    if (file.size > MAX_DOC_SIZE) {
-      toast.error("File too large. Maximum size is 5 MB.");
-      return;
-    }
-
-    const preview = file.type.startsWith("image/") ? URL.createObjectURL(file) : "";
-    const now = new Date().toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-
-    setDocuments((prev) => ({
-      ...prev,
-      [key]: {
-        file,
-        preview,
-        name: file.name,
-        uploadedAt: now,
-        status: "Pending Verification",
-        progress: 0,
-        error: "",
-      },
-    }));
-
-    simulateDocUpload(key);
-  }
-
-  function simulateDocUpload(key: DocKey) {
-    setDocuments((prev) => ({
-      ...prev,
-      [key]: { ...prev[key], progress: 0 },
-    }));
-
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += Math.random() * 20 + 10;
-      if (progress >= 100) {
-        progress = 100;
-        clearInterval(interval);
-        setDocuments((prev) => ({
-          ...prev,
-          [key]: { ...prev[key], progress: 100, status: "Uploaded" },
-        }));
-        toast.success(`${DOC_TYPES.find((d) => d.key === key)?.label} uploaded!`);
-      } else {
-        setDocuments((prev) => ({
-          ...prev,
-          [key]: { ...prev[key], progress: Math.round(progress) },
-        }));
+    for (const file of files) {
+      if (!ALLOWED_DOC_TYPES.includes(file.type)) {
+        toast.error(t("therapist_dashboard.invalidDocType"));
+        return;
       }
-    }, 300);
+      if (file.size > MAX_DOC_SIZE) {
+        toast.error(t("therapist_dashboard.docTooLarge"));
+        return;
+      }
+    }
+
+    uploadDocuments(files);
   }
 
-  function removeDoc(key: DocKey) {
-    setDocuments((prev) => ({
-      ...prev,
-      [key]: { file: null, preview: "", name: "", uploadedAt: "", status: "Pending Verification", progress: 0, error: "" },
-    }));
-    if (docInputRefs.current[key]) docInputRefs.current[key]!.value = "";
+  function uploadDocuments(files: File[]) {
+    const therapistId = profile?.id ?? user?.id;
+    if (!therapistId) return;
+
+    const formData = new FormData();
+    formData.append("documentType", docType);
+    for (const file of files) {
+      formData.append("files", file);
+    }
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `/api/v1/uploads/therapists/${therapistId}/documents`);
+
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) {
+        setUploadProgress(Math.round((e.loaded / e.total) * 100));
+      }
+    };
+
+    xhr.onload = () => {
+      setUploadProgress(0);
+      setUploading(false);
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const res = JSON.parse(xhr.responseText);
+          const uploaded: TherapistProfileDocument[] = res?.documents ?? [];
+          setDocs((prev) => [...uploaded, ...prev]);
+          toast.success(
+            uploaded.length > 1
+              ? t("therapist_dashboard.documentsUploaded")
+              : t("therapist_dashboard.documentUploaded"),
+          );
+        } catch {
+          toast.error(t("therapist_dashboard.uploadFailed"));
+        }
+      } else {
+        toast.error(t("therapist_dashboard.uploadFailed"));
+      }
+    };
+
+    xhr.onerror = () => {
+      setUploadProgress(0);
+      setUploading(false);
+      toast.error(t("therapist_dashboard.uploadFailed"));
+    };
+
+    setUploading(true);
+    setUploadProgress(0);
+    xhr.send(formData);
   }
 
-  function handleDocDownload(key: DocKey) {
-    const doc = documents[key];
-    if (!doc.file) return;
-    const url = URL.createObjectURL(doc.file);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = doc.name;
-    a.click();
-    URL.revokeObjectURL(url);
+  function getStatusColor(status?: string): string {
+    switch (status) {
+      case "Verified":
+        return "!bg-success/10 !text-success";
+      case "Rejected":
+        return "!bg-danger/10 !text-danger";
+      case "Pending review":
+      default:
+        return "!bg-warning/10 !text-warning";
+    }
+  }
+
+  function getStatusLabel(status?: string): string {
+    switch (status) {
+      case "Verified":
+        return t("therapist_dashboard.verified");
+      case "Rejected":
+        return t("therapist_dashboard.rejected");
+      case "Pending review":
+      default:
+        return t("therapist_dashboard.pendingReview");
+    }
   }
 
   if (loading) {
@@ -277,7 +326,7 @@ export default function TProfile() {
       {/* ─── Photo Upload ─── */}
       <div className="space-y-2">
         <label className="text-xs font-medium text-text-light">
-          Profile Photo
+          {t("therapist_dashboard.profilePhoto")}
         </label>
         <div className="flex items-center gap-4">
           <div className="relative group">
@@ -309,7 +358,7 @@ export default function TProfile() {
                 className="btn-outline !py-1.5 !px-3 text-xs flex items-center gap-1.5"
               >
                 <Upload className="w-3.5 h-3.5" />
-                {photoPreview ? "Replace Photo" : "Upload Photo"}
+                {photoPreview ? t("therapist_dashboard.replacePhoto") : t("therapist_dashboard.uploadPhoto")}
               </button>
               {photoPreview && (
                 <button
@@ -318,7 +367,7 @@ export default function TProfile() {
                   className="btn-outline !py-1.5 !px-3 text-xs flex items-center gap-1.5 !border-danger !text-danger hover:!bg-danger/10"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
-                  Remove
+                  {t("therapist_dashboard.removePhoto")}
                 </button>
               )}
             </div>
@@ -332,13 +381,13 @@ export default function TProfile() {
                   />
                 </div>
                 <span className="text-[10px] text-text-light mt-0.5 block">
-                  Uploading… {photoProgress}%
+                  {t("therapist_dashboard.uploading")} {photoProgress}%
                 </span>
               </div>
             )}
             {photoStatus === "success" && (
               <span className="text-[10px] text-success flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3" /> Uploaded successfully
+                <CheckCircle2 className="w-3 h-3" /> {t("therapist_dashboard.photoUploaded")}
               </span>
             )}
             {photoStatus === "error" && (
@@ -358,10 +407,10 @@ export default function TProfile() {
         {photoFile && photoStatus !== "success" && photoStatus !== "uploading" && (
           <button
             type="button"
-            onClick={simulatePhotoUpload}
+            onClick={uploadPhoto}
             className="btn-secondary !py-1.5 !px-4 text-xs mt-1"
           >
-            Save Photo
+            {t("therapist_dashboard.savePhoto")}
           </button>
         )}
       </div>
@@ -429,131 +478,122 @@ export default function TProfile() {
       <div className="space-y-3 pt-2 border-t border-border">
         <div>
           <h3 className="font-display text-base font-semibold text-text">
-            Upload Important Documents
+            {t("therapist_dashboard.verifiedDocuments")}
           </h3>
           <p className="text-xs text-text-light mt-0.5">
-            PDF, JPG, or PNG — max 5 MB per file
+            {t("therapist_dashboard.verifiedDocumentsHint")}
           </p>
         </div>
 
-        <div className="space-y-3">
-          {DOC_TYPES.map(({ key, label }) => {
-            const doc = documents[key];
-            const hasFile = !!doc.name;
-            return (
-              <div
-                key={key}
-                className="border border-border rounded-xl p-3 bg-white space-y-2"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-text">
-                    {label}
+        {/* Existing / uploaded documents */}
+        {docs.length === 0 ? (
+          <div className="border border-dashed border-border rounded-xl p-4 text-center">
+            <FileText className="w-6 h-6 text-text-light mx-auto" />
+            <p className="text-xs text-text-light mt-2">
+              {t("therapist_dashboard.noDocuments")}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {docs.map((doc) => (
+              <div key={doc.id} className="border border-border rounded-xl p-3 bg-white">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-surface grid place-items-center shrink-0">
+                    <FileText className="w-5 h-5 text-text-light" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium truncate">
+                      {doc.fileName ?? doc.documentType ?? "Document"}
+                    </p>
+                    <p className="text-[10px] text-text-light truncate">
+                      {doc.documentType}
+                      {doc.fileSize != null ? ` · ${formatFileSize(doc.fileSize)}` : ""}
+                    </p>
+                  </div>
+                  <span className={`chip text-[10px] ${getStatusColor(doc.status)}`}>
+                    {getStatusLabel(doc.status)}
                   </span>
-                  {hasFile && (
-                    <span
-                      className={`chip text-[10px] ${
-                        doc.status === "Uploaded"
-                          ? "!bg-success/10 !text-success"
-                          : "!bg-warning/10 !text-warning"
-                      }`}
-                    >
-                      {doc.status}
-                    </span>
-                  )}
-                </div>
-
-                {!hasFile ? (
-                  <button
-                    type="button"
-                    onClick={() => docInputRefs.current[key]?.click()}
-                    className="w-full border-2 border-dashed border-border rounded-lg py-3 flex flex-col items-center gap-1 text-text-light hover:border-primary/50 hover:text-primary transition-colors cursor-pointer"
-                  >
-                    <Upload className="w-4 h-4" />
-                    <span className="text-[11px]">Click to upload {label}</span>
-                  </button>
-                ) : (
-                  <div className="flex items-center gap-3">
-                    {doc.preview ? (
-                      <img
-                        src={doc.preview}
-                        alt={doc.name}
-                        className="w-10 h-10 rounded-lg object-cover border border-border shrink-0"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-lg bg-surface grid place-items-center shrink-0">
-                        <FileText className="w-5 h-5 text-text-light" />
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium truncate">{doc.name}</p>
-                      <p className="text-[10px] text-text-light">
-                        {doc.uploadedAt}
-                      </p>
-                      {doc.progress > 0 && doc.progress < 100 && (
-                        <div className="h-1 bg-surface rounded-full overflow-hidden mt-1">
-                          <div
-                            className="h-full bg-primary rounded-full transition-all duration-300"
-                            style={{ width: `${doc.progress}%` }}
-                          />
-                        </div>
-                      )}
-                    </div>
+                  {doc.documentUrl && (
                     <div className="flex items-center gap-1 shrink-0">
-                      {doc.preview && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const w = window.open();
-                            if (w) {
-                              w.document.write(
-                                `<img src="${doc.preview}" style="max-width:100%;height:auto;" />`
-                              );
-                            }
-                          }}
-                          className="p-1.5 rounded-lg hover:bg-surface text-text-light hover:text-primary transition-colors"
-                          title="View"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => handleDocDownload(key)}
+                      <a
+                        href={doc.documentUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="p-1.5 rounded-lg hover:bg-surface text-text-light hover:text-primary transition-colors"
-                        title="Download"
+                        title={t("common.view")}
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </a>
+                      <a
+                        href={doc.documentUrl}
+                        download
+                        className="p-1.5 rounded-lg hover:bg-surface text-text-light hover:text-primary transition-colors"
+                        title={t("common.download")}
                       >
                         <Download className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => docInputRefs.current[key]?.click()}
-                        className="p-1.5 rounded-lg hover:bg-surface text-text-light hover:text-secondary transition-colors"
-                        title="Replace"
-                      >
-                        <RefreshCw className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => removeDoc(key)}
-                        className="p-1.5 rounded-lg hover:bg-danger/10 text-text-light hover:text-danger transition-colors"
-                        title="Remove"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      </a>
                     </div>
+                  )}
+                </div>
+                {doc.status === "Rejected" && doc.note && (
+                  <div className="mt-2 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5">
+                    <p className="text-[10px] uppercase font-mono text-red-600">
+                      {t("therapist_dashboard.rejectionReason")}
+                    </p>
+                    <p className="text-xs text-text mt-0.5">{doc.note}</p>
                   </div>
                 )}
+              </div>
+            ))}
+          </div>
+        )}
 
-                <input
-                  ref={(el) => { docInputRefs.current[key] = el; }}
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={(e) => handleDocSelect(key, e)}
-                  className="hidden"
+        {/* Upload new document */}
+        <div className="border border-border rounded-xl p-3 bg-white space-y-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <select
+              value={docType}
+              onChange={(e) => setDocType(e.target.value)}
+              className="px-3 py-2 rounded-xl border border-border bg-white text-xs"
+            >
+              {DOC_TYPES.map((d) => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={() => docInputRef.current?.click()}
+              disabled={uploading}
+              className="btn-secondary !py-2 !px-4 text-xs flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+            >
+              <Upload className="w-3.5 h-3.5" />
+              {uploading ? t("therapist_dashboard.uploading") : t("therapist_dashboard.uploadDocument")}
+            </button>
+            <input
+              ref={docInputRef}
+              type="file"
+              multiple
+              accept=".pdf,.jpg,.jpeg,.png"
+              onChange={handleDocSelect}
+              className="hidden"
+            />
+          </div>
+          {uploading && (
+            <div className="w-full">
+              <div className="h-1.5 bg-surface rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary rounded-full transition-all duration-300"
+                  style={{ width: `${uploadProgress}%` }}
                 />
               </div>
-            );
-          })}
+              <span className="text-[10px] text-text-light mt-0.5 block">
+                {t("therapist_dashboard.uploading")} {uploadProgress}%
+              </span>
+            </div>
+          )}
+          <p className="text-[10px] text-text-light">
+            {t("therapist_dashboard.docsReviewHint")}
+          </p>
         </div>
       </div>
 
