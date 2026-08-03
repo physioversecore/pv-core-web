@@ -10,6 +10,7 @@ export interface Therapist {
   experience: number;
   bio: string;
   userId?: string;
+  mediaUrls?: string;
 }
 
 export interface PatientProfile {
@@ -27,6 +28,16 @@ export interface PatientProfile {
   updatedAt: string;
 }
 
+export interface TherapistProfileDocument {
+  id: string;
+  documentType?: string;
+  documentUrl?: string;
+  fileName?: string;
+  fileSize?: number;
+  status?: string;
+  note?: string;
+}
+
 export interface TherapistProfile {
   id: string;
   userId: string;
@@ -40,6 +51,8 @@ export interface TherapistProfile {
   experience: number;
   bio: string;
   mediaUrls?: string;
+  photo?: string;
+  documents?: TherapistProfileDocument[];
 }
 
 export interface Product {

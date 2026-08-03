@@ -14,6 +14,7 @@ export interface TherapistData {
   experience: number;
   bio: string;
   userId?: string;
+  mediaUrls?: string;
 }
 
 interface TherapistListResponse {
@@ -73,10 +74,18 @@ export interface TherapistDashboardData {
 export async function getTherapists(params?: {
   skip?: number;
   limit?: number;
+  search?: string;
+  city?: string;
+  specialty?: string;
+  gender?: string;
 }) {
   const searchParams = new URLSearchParams();
   if (params?.skip) searchParams.set("skip", String(params.skip));
   if (params?.limit) searchParams.set("limit", String(params.limit));
+  if (params?.search) searchParams.set("search", params.search);
+  if (params?.city) searchParams.set("city", params.city);
+  if (params?.specialty) searchParams.set("specialty", params.specialty);
+  if (params?.gender) searchParams.set("gender", params.gender);
 
   return api.get<TherapistListResponse>(
     `/therapists?${searchParams.toString()}`,

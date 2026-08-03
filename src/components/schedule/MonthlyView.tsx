@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { to12h } from "@/lib/format";
 import { isDateInPast } from "@/lib/availability-utils";
 import type { ScheduleAppointment, ScheduleAppointmentStatus } from "@/hooks/useTherapistSchedule";
 
@@ -185,7 +186,7 @@ export function MonthlyView({
                         <p className="font-semibold truncate">
                           {apt.patient.split(" ")[0]}
                         </p>
-                        <p className="opacity-70">{apt.time.slice(0, 5)}</p>
+                        <p className="opacity-70">{to12h(apt.time)}</p>
                       </div>
                     ))}
                     {rest.length > 0 && (

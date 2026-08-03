@@ -3,8 +3,6 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { BookingModal } from "@/components/BookingModal";
-import { SiteHeader } from "@/components/SiteHeader";
-import { SiteFooter } from "@/components/SiteFooter";
 import {
   HeroSection,
   PartnersMarquee,
@@ -50,8 +48,7 @@ export default function Landing() {
   );
 
   return (
-    <div className="min-h-screen bg-background text-text overflow-x-hidden">
-      <SiteHeader variant="hero" />
+    <div className="overflow-x-hidden">
       <HeroSection therapists={therapists} onBook={handleBook} />
       <PartnersMarquee />
       <ImpactStats />
@@ -60,7 +57,8 @@ export default function Landing() {
       <FeaturedTherapists therapists={therapists.slice(0, 3)} onBook={handleBook} />
       <FindTherapistSection
         q={q} city={city} spec={spec} gender={gender}
-        filtered={filtered}
+        filtered={filtered.slice(0, 6)}
+        hasMore={filtered.length > 6}
         onQChange={setQ}
         onCityChange={setCity}
         onSpecChange={setSpec}
@@ -69,7 +67,6 @@ export default function Landing() {
       />
       <AppDownloadSection />
       <TherapistCTA />
-      <SiteFooter />
       {booking && <BookingModal therapist={booking} onClose={closeBooking} />}
     </div>
   );

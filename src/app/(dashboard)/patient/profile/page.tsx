@@ -53,7 +53,7 @@ export default function Profile() {
         city: form.city,
         address: form.address || undefined,
         history: form.history || undefined,
-        gender: form.gender,
+        gender: form.gender as "Any" | "Male" | "Female",
         notifEmail: form.notif.email,
         notifSms: form.notif.sms,
       });
@@ -88,8 +88,8 @@ export default function Profile() {
         </div>
         <div>
           <label className="text-xs font-medium text-text-light">{t("patient_dashboard.preferredGender")}</label>
-          <select value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })} className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white">
-            <option>{t("patient_dashboard.any")}</option><option>{t("patient_dashboard.male")}</option><option>{t("patient_dashboard.female")}</option>
+          <select value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value as "Any" | "Male" | "Female" })} className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white">
+            <option value="Any">{t("patient_dashboard.any")}</option><option value="Male">{t("patient_dashboard.male")}</option><option value="Female">{t("patient_dashboard.female")}</option>
           </select>
         </div>
         <div>

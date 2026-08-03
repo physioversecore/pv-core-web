@@ -7,7 +7,6 @@ import { Reveal } from "@/components/Reveal";
 import { HeroStat } from "@/components/HeroStat";
 import { BookButton } from "@/components/BookButton";
 import { AppStoreBadge } from "@/components/AppStoreBadge";
-import { useAuthModal } from "@/lib/auth-modal";
 import { npr } from "@/lib/cart";
 import type { Therapist } from "@/lib/types";
 
@@ -18,7 +17,6 @@ interface HeroSectionProps {
 
 export function HeroSection({ therapists, onBook }: HeroSectionProps) {
   const { t } = useLang();
-  const { openAuth } = useAuthModal();
 
   return (
     <section id="top" className="relative min-h-screen overflow-hidden text-white bg-background-dark">
@@ -48,9 +46,6 @@ export function HeroSection({ therapists, onBook }: HeroSectionProps) {
           </p>
           <div className="flex flex-wrap gap-3 mb-6">
             <button onClick={() => onBook(therapists[0])} className="btn-primary">{t("landing.heroCta")}</button>
-            <button onClick={() => openAuth("signup")} className="inline-flex items-center gap-2 px-5 py-3 rounded-full font-semibold border border-white/40 text-white hover:bg-white/10 transition">
-              {t("common.becomeTherapist")}
-            </button>
           </div>
           <div className="flex flex-wrap gap-3 mb-10">
             <AppStoreBadge platform="google" variant="hero" />

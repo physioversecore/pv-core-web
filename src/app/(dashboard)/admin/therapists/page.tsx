@@ -137,7 +137,7 @@ export default function AdminTherapists() {
         sortable: true,
         render: (row) => (
           <div className="flex items-center gap-2">
-            <Avatar name={row.name} size={28} />
+            <Avatar name={row.name} size={28} src={row.mediaUrls?.split(",")[0]} />
             <div className="flex flex-col">
               <span className="font-medium">{row.name}</span>
               {row.email && <span className="text-xs text-text-light">{row.email}</span>}

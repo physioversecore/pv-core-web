@@ -79,7 +79,7 @@ export function DashboardShell({
         </nav>
         <div className="p-4 border-t border-text-inverse/10 shrink-0">
           <div className="flex items-center gap-3 mb-3">
-            <Avatar name={user?.name ?? "User"} size={36} />
+            <Avatar name={user?.name ?? "User"} size={36} src={user?.photo} />
             <div className="min-w-0">
               <div className="text-sm font-medium truncate">{user?.name ?? "Guest"}</div>
               <div className="text-xs text-text-inverse/60 capitalize">{user?.role}</div>

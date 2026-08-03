@@ -22,7 +22,7 @@ export function TherapistCTA() {
               <p className="text-[#D1E8DF]/85 max-w-xl">{t("landing.therapistCtaDesc")}</p>
             </div>
             <div className="relative md:justify-self-end">
-              <button onClick={() => openAuth("signup")} className="btn-primary text-base">{t("common.applyToJoin")} <ArrowRight size={16} /></button>
+              <button onClick={() => openAuth("signup", "therapist")} className="btn-primary text-base">{t("common.applyToJoin")} <ArrowRight size={16} /></button>
             </div>
           </div>
         </Reveal>

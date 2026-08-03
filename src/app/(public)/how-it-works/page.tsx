@@ -62,7 +62,7 @@ export default function HowItWorks() {
           <h2 className="font-display text-3xl mb-4">{t("howItWorks.ctaTitle")}</h2>
           <p className="text-text-light mb-6">{t("howItWorks.ctaDesc")}</p>
           <div className="flex flex-wrap gap-3 justify-center">
-            <Link href="/find" className="btn-primary">{t("howItWorks.ctaFind")}</Link>
+            <Link href="/find-a-therapist" className="btn-primary">{t("howItWorks.ctaFind")}</Link>
             <Link href="/services" className="inline-flex items-center gap-2 px-5 py-3 rounded-full font-semibold border border-secondary text-secondary hover:bg-secondary hover:text-white transition">{t("howItWorks.ctaServices")}</Link>
           </div>
         </div>

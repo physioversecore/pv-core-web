@@ -4,30 +4,34 @@ Nepal's home-visit physiotherapy platform connecting patients with verified phys
 
 ## Roles
 
-- **Patient** — Book home-visit sessions, buy/rent equipment & medicines, track recovery progress, view reports.
-- **Therapist** — Manage schedules, upload session reports, track earnings, refer colleagues.
-- **Admin** — Approve therapists, manage patients/users, oversee bookings and payments.
+- **Patient** — Book home-visit sessions, buy/rent equipment & medicines, track recovery progress, view reports, submit complaints.
+- **Therapist** — Manage schedules & availability, upload session reports, track earnings, refer colleagues, request time off.
+- **Admin** — Approve therapists, manage patients/users, oversee bookings, payments, refunds, complaints, service areas, verification, performance reviews, safety incidents, analytics, and platform settings.
 
 ## Tech Stack
 
 | Layer | Technology |
 |---|---|
-| Framework | Next.js 15 (App Router) |
-| Language | TypeScript |
+| Framework | Next.js 15 (App Router, standalone output) |
+| Language | TypeScript 5.8 (strict) |
+| React | React 19 |
 | Styling | Tailwind CSS v4 + CSS custom properties |
-| UI | shadcn/ui + lucide-react icons |
-| State | React Context (auth, cart), TanStack Query v5 |
+| UI | shadcn/ui (new-york style, 47 components) + Radix UI |
+| Icons | lucide-react |
+| State | React Context (6 providers), TanStack Query v5 |
+| Forms | react-hook-form + zod |
 | Charts | recharts |
 | Notifications | sonner |
+| Dates | date-fns |
 | Backend | FastAPI (separate), PostgreSQL, JWT cookie auth |
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 20+ (or Bun)
-- npm (or bun)
-- Backend API running at `localhost:8000` (see `pvc-api/` repo)
+- Node.js 20+
+- npm
+- Backend API running at `BACKEND_URL` (default `http://localhost:8000`, see `pvc-api/`)
 
 ### Install & Run
 
@@ -36,118 +40,111 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+The dev server binds to `physiocore.com` with experimental HTTPS. Add `127.0.0.1 physiocore.com` to `/etc/hosts` if DNS doesn't resolve locally.
 
 ### Commands
 
 | Command | Description |
 |---|---|
-| `npm run dev` | Start development server (hot reload) |
+| `npm run dev` | Development server (hot reload, HTTPS) |
 | `npm run build` | Production build (type-check + compile) |
-| `npm run start` | Start production server |
-| `npm run lint` | Run ESLint |
-| `npm run format` | Format with Prettier |
+| `npm run start` | Production server |
+| `npm run lint` | ESLint |
+| `npm run format` | Prettier auto-format |
 
 ## Auth
 
-Auth is **API-driven** — JWT tokens stored in HTTP-only cookies (not localStorage).
+Auth is **API-driven** — JWT tokens stored in HTTP-only cookies (`sahayatri.session`).
 
-- **Login**: `/login` page — email + password, redirects by role
-- **Signup**: AuthModal (modal on public pages) — patient or therapist registration
-- **Logout**: via sidebar in dashboard — always awaits the API call before redirect
+- **Login**: `/login` page — email + password, redirects by role. "Sign up" link navigates to `/signup`.
+- **Signup**: `/signup` page — role selection (patient/therapist) → form → OTP email verification → account creation. Supports `?role=therapist` query param for pre-selecting therapist role.
+- **Therapist document upload**: Therapist signup requires uploading NMC license + certification (drag/drop or click, with live previews). Files upload via XHR to the public proxy `POST /api/uploads/therapist-application` before account creation; the returned URLs are stored as `Verification` records so admins can review them in `/admin/verification`. Admins view documents in-app (`DocumentViewer` dialog — image/iframe preview + open in new tab), and rejection requires a reason (`note`) that persists, is shown in the therapist detail sheet, and is included in the rejection email. Approval fires an account-verified email.
+- **Logout**: via sidebar in dashboard — always `await logout()` before redirect
+- **AuthModal**: Global modal (triggered by `openAuth()` from context) for login and signup from any page. Navbar "Log In" opens modal; "Sign Up" navigates to `/signup` page. "Book Now" opens modal with patient role pre-selected. "Apply to Join" opens modal with therapist role pre-selected.
+- **OTP Verification**: Signup requires email verification via 6-digit OTP code. Backend sends branded HTML email, validates code before allowing account creation.
 
-## Architecture Highlights
+## Dashboard Sections
 
-### Error Handling
-- `ErrorBoundary` component wraps dashboard content at layout level and individual sections
-- Next.js convention `error.tsx` at root and dashboard route group
-- Each data section fails independently
-
-### Loading States
-- `loading.tsx` shows page skeleton during navigation
-- Data-fetching sections use `useSuspenseQuery` with `<Suspense fallback={<Skeleton />}>`
-- Skeleton components match real component layout for smooth transitions
-
-### Dashboard Layout
-- Role guard redirects wrong-role users to correct dashboard
-- Fixed sidebar; only main content scrolls
-- Sidebar nav derived from `usePathname()`
+| Role | Sections |
+|---|---|
+| **Admin** (20) | Overview, Therapists, Patients, Bookings, Schedules, Leave, Payments, Refunds, Complaints, Verification, Performance, Safety Incidents, Notifications, Analytics, Admin Team, Activity Log, Service Areas, Appearance, Settings |
+| **Patient** (10) | Overview, Sessions, Shop, Progress, Reports, Complaints, Profile, Help, Settings |
+| **Therapist** (10) | Overview, Schedule, Availability, Reports, Patients, Earnings, Complaints, Profile, Settings |
 
 ## Project Structure
 
 ```
 src/
-  app/                     # Next.js App Router
-    (dashboard)/           # Route group — authenticated pages
-      admin/               # Admin dashboard (6 pages)
-      patient/             # Patient dashboard (8 pages)
-      therapist/           # Therapist dashboard (7 pages)
-    login/                 # Standalone login page
-    about/, app/, blog/, contact/, faq/, find/,
-    how-it-works/, services/, testimonials/, therapists/
-    layout.tsx             # Root layout (fonts, providers)
-    providers.tsx          # Client providers (QueryClient, Auth, Cart, Lang, Toaster)
-    page.tsx               # Landing page
-    globals.css            # Tailwind v4 + theme
+  app/                          # Next.js App Router
+    (dashboard)/                # Route group — authenticated pages
+      admin/                    # Admin dashboard (20 sections)
+      patient/                  # Patient dashboard (10 sections)
+      therapist/                # Therapist dashboard (10 sections)
+    login/                      # Standalone login page
+    signup/                     # Standalone signup page (role selection → OTP → account creation)
+    about/, app/, blog/, book/, contact/, faq/,
+    find/, how-it-works/, services/, testimonials/, therapists/
+    api/                        # Route handlers (webhooks only)
+    layout.tsx                  # Root layout (fonts, providers)
+    providers.tsx               # Client providers wrapper
+    page.tsx                    # Landing page
+    globals.css                 # Tailwind v4 theme + custom utilities
   components/
-    ErrorBoundary.tsx      # Reusable error boundary
-    SuspenseFallback.tsx   # Loading skeleton components
-    SiteHeader.tsx         # Public header
-    SiteFooter.tsx         # Public footer
-    PageShell.tsx          # Public page wrapper
-    DashboardShell.tsx     # Sidebar + header layout
-    AuthModal.tsx          # Signup modal (login uses /login page)
-    CartDrawer.tsx         # Shopping cart slide-over
-    BookingModal.tsx       # Session booking
-    Avatar.tsx             # Initials avatar
-    TherapistCard.tsx      # Therapist listing card
-    Reveal.tsx             # Scroll animation + CountUp
-    ui/                    # shadcn/ui primitives
-    dashboard/             # Dashboard-specific components
-    common/                # Shared components
-    modals/                # Modal components
-    layout/                # Layout helpers
-    sections/              # Page sections
-  context/
-    auth.tsx               # Auth context (API-driven)
-    cart.tsx               # Cart context (API-driven)
-    i18n.tsx               # Nepali/English toggle
-  hooks/
-    usePatientDashboard.ts # + useSuspensePatientDashboard
-    usePatientReferral.ts  # + useSuspensePatientReferral
-    useSessions.ts         # Patient sessions
-    useProducts.ts         # Shop products
-    useTherapists.ts       # Therapist listing
-    useAuth.ts, useCart.ts, useAuthModal.ts, useBooking.ts
-    use-mobile.tsx         # Mobile detection
+    ui/                         # shadcn/ui primitives (47 components)
+    availability/               # Therapist availability management
+    booking/                    # Multi-step booking flow
+    schedule/                   # Schedule calendar views
+    sessions/                   # Session display components
+    tables/                     # Reusable data table (DataTable, FilterBar, etc.)
+    dashboard/                  # Dashboard widgets
+    common/                     # Landing page shared components
+    sections/                   # Landing page sections
+    modals/                     # Global modals (Auth, Booking, Cart, etc.)
+    auth/                       # Shared auth components (SignupFlow, DocumentUploader)
+    layout/                     # DashboardShell, PageShell, SiteHeader, SiteFooter
+    ErrorBoundary.tsx           # Reusable error boundary
+    SuspenseFallback.tsx        # Loading skeleton components
+  context/                      # React contexts (6 providers)
+    auth.tsx                    # Auth state + API calls
+    auth-modal.tsx              # Login/signup modal state
+    booking-badge.tsx           # Admin new-booking notification badge
+    cart.tsx                    # Shopping cart (API-driven)
+    design-tokens.tsx           # Dynamic theme customization
+    i18n.tsx                    # Nepali/English toggle
+  hooks/                        # TanStack Query hooks (41 files)
+  services/api/                 # Server-only API layer (15 files)
+    client.ts                   # Base HTTP client (server-only import)
+    auth.ts, admin.ts, sessions.ts, therapists.ts,
+    patients.ts, products.ts, cart.ts, availability.ts,
+    earnings.ts, reports.ts, reviews.ts, settings.ts, profile.ts
+    # auth.ts includes: login, signup, logout, getSession, updateProfile, sendOtp, verifyOtp
   lib/
-    auth.tsx, cart.tsx, i18n.tsx  # Re-exported contexts
-    nav.tsx                # Sidebar nav definitions
-    utils.ts               # cn() helper
-    types.ts               # Shared types
-    constants.ts           # Cities, specialties
-    error-capture.ts       # Error capture
-    error-page.ts          # Error page renderer
-  services/api/            # API service layer
-    client.ts, auth.ts, patients.ts, sessions.ts,
-    products.ts, therapists.ts, profile.ts, cart.ts
-  translations/            # en/ne translation files
+    actions/                    # Server Actions (auth, cart, products, profile, sessions, therapists)
+    utils.ts                    # cn() helper (clsx + tailwind-merge)
+    format.ts                   # Date/time/currency formatting
+    session.ts                  # Server-side cookie management
+    availability-utils.ts       # Availability helpers
+  constants/                    # Navigation, cities, specialties
+  translations/                 # en/ne translation files (~1300 lines each)
+  types/                        # Shared TypeScript types + design tokens
 ```
 
 ## Theme
 
-| Token | Value | Usage |
-|---|---|---|
-| `pine` | `#2F5D50` | Primary (buttons, links) |
-| `sage` | `#EEF1ED` | Muted backgrounds |
-| `amber` | `#E2962F` | Accent (ratings) |
-| `cream` | `#FBFBF8` | Page background |
-| `forest` | `#1E2A2E` | Text/foreground |
+| Token | CSS Variable | Value | Usage |
+|---|---|---|---|
+| Primary | `--color-primary` | `#E2962F` (amber) | Buttons, links, accents, CTAs |
+| Secondary | `--color-secondary` | `#2F5D50` (forest green) | Secondary actions, badges |
+| Background | `--color-background` | `#FBFBF8` (cream) | Page background |
+| Foreground | `--color-foreground` | `#1E2A2E` (dark) | Text |
+| Surface | `--color-surface` | `#EEF1ED` (sage) | Muted backgrounds |
 
-Fonts: Fraunces (headings), Inter (body), IBM Plex Mono (monospace).
+**Fonts**: Fraunces (serif, headings), Inter (body), IBM Plex Mono (mono, labels/dates).
+
+**Dynamic theming**: Admin can customize all colors, fonts, and border radius via the Appearance section. Tokens are persisted via the API and applied in real-time.
 
 ---
 
 ## Backend
 
-The frontend requires the `pvc-api` backend at `http://localhost:8000`. See the `pvc-api/` repository for setup instructions.
+The frontend requires the `pvc-api` backend. See the `pvc-api/` repository for setup instructions.

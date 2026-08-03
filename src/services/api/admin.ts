@@ -15,6 +15,16 @@ export interface AdminPatientData {
   email?: string;
 }
 
+export interface AdminTherapistDocument {
+  id: string;
+  documentType?: string;
+  documentUrl?: string;
+  fileName?: string;
+  fileSize?: number;
+  status?: string;
+  note?: string;
+}
+
 export interface AdminTherapistData {
   id: string;
   name: string;
@@ -32,6 +42,7 @@ export interface AdminTherapistData {
   experience?: number;
   bio?: string;
   mediaUrls?: string;
+  documents?: AdminTherapistDocument[];
 }
 
 export interface AdminPaymentData {
@@ -118,6 +129,14 @@ export async function deleteAdminTherapist(id: string) {
 
 export async function toggleAdminTherapistStatus(id: string, status: AdminTherapistData["status"]) {
   return api.put<AdminTherapistData>(`/admin/therapists/${id}`, { status });
+}
+
+export async function approveAdminTherapist(id: string) {
+  return api.put<AdminTherapistData>(`/admin/therapists/${id}/approve`);
+}
+
+export async function rejectAdminTherapist(id: string, note: string) {
+  return api.put<AdminTherapistData>(`/admin/therapists/${id}/reject`, { note });
 }
 
 export interface AdminCreateTherapistPayload {
@@ -632,6 +651,10 @@ export interface AdminVerificationData {
   severity?: "Low" | "Medium" | "High" | "Critical";
   reportedBy?: string;
   phone?: string;
+  documentUrl?: string;
+  fileName?: string;
+  fileSize?: number;
+  note?: string;
 }
 
 export interface AdminVerificationListParams extends AdminListParams {

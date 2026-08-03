@@ -1,19 +1,34 @@
 "use client";
 
 import { useLang } from "@/context/i18n";
-import { Activity, Brain, HeartPulse, Baby, Stethoscope, ShoppingBag, Pill, Apple, type LucideIcon } from "lucide-react";
+import { Activity, Brain, HeartPulse, Baby, Stethoscope, ShoppingBag, Pill, Apple, Bone, Dumbbell, type LucideIcon } from "lucide-react";
 import { Reveal } from "@/components/Reveal";
 import { PlusField } from "@/components/PlusField";
 import { ServiceCard } from "@/components/ServiceCard";
-import { rehabServices, otherServices } from "@/lib/landing-data";
-import type { ReactNode } from "react";
+import { useServices } from "@/hooks/useServices";
 
 const iconMap: Record<string, LucideIcon> = {
-  Activity, Brain, HeartPulse, Baby, Stethoscope, ShoppingBag, Pill, Apple,
+  Activity, Brain, HeartPulse, Baby, Stethoscope, ShoppingBag, Pill, Apple, Bone, Dumbbell,
 };
+
+function ServiceSkeleton() {
+  return (
+    <div className="rounded-2xl bg-white border border-border/60 p-6 animate-pulse">
+      <div className="w-11 h-11 rounded-xl bg-surface mb-3" />
+      <div className="h-4 bg-surface rounded w-2/3 mb-2" />
+      <div className="h-3 bg-surface rounded w-full" />
+    </div>
+  );
+}
 
 export function ServicesSection() {
   const { t } = useLang();
+  const { data, isLoading } = useServices();
+  const services = data?.services ?? [];
+
+  const clinicalServices = services.filter((s) => s.category === "CLINICAL");
+  const shopServices = services.filter((s) => s.category === "SHOP");
+
   return (
     <section id="services" className="py-20 relative bg-surface">
       <PlusField count={8} seed={7} />
@@ -22,23 +37,33 @@ export function ServicesSection() {
           <p className="eyebrow mb-3">{t("landing.servicesEyebrow")}</p>
           <h2 className="text-4xl font-display mb-12 max-w-2xl">{t("landing.servicesTitle")}</h2>
         </Reveal>
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
-          {rehabServices.map((s, i) => {
-            const Icon = iconMap[s.iconName];
-            return (
-              <Reveal key={s.title} delay={i * 100}>
-                <ServiceCard icon={<Icon />} title={s.title} desc={s.desc} />
-              </Reveal>
-            );
-          })}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {isLoading
+            ? Array.from({ length: 6 }).map((_, i) => <ServiceSkeleton key={i} />)
+            : clinicalServices.map((s, i) => {
+                const Icon = iconMap[s.iconName] || Activity;
+                return (
+                  <Reveal key={s.id} delay={i * 100}>
+                    <ServiceCard icon={<Icon />} title={s.name} desc={s.description} />
+                  </Reveal>
+                );
+              })}
         </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 mt-5">
-          {otherServices.map((s) => {
-            const Icon = iconMap[s.iconName];
-            return (
-              <ServiceCard key={s.title} icon={<Icon />} title={s.title} desc={s.desc} live={s.live} />
-            );
-          })}
+        <Reveal>
+          <p className="eyebrow mb-3 mt-10">{t("landing.otherServicesEyebrow")}</p>
+          <h2 className="text-3xl font-display mb-8 max-w-2xl">{t("landing.otherServicesTitle")}</h2>
+        </Reveal>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {isLoading
+            ? Array.from({ length: 4 }).map((_, i) => <ServiceSkeleton key={i} />)
+            : shopServices.map((s, i) => {
+                const Icon = iconMap[s.iconName] || Activity;
+                return (
+                  <Reveal key={s.id} delay={i * 100}>
+                    <ServiceCard icon={<Icon />} title={s.name} desc={s.description} live={s.category === "SHOP"} />
+                  </Reveal>
+                );
+              })}
         </div>
       </div>
     </section>

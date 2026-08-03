@@ -7,6 +7,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/context/auth";
 import { useLang } from "@/context/i18n";
 import { toast } from "sonner";
+import { InlineError } from "@/components/common/InlineError";
 
 const ROLE_HOME: Record<string, string> = {
   patient: "/patient",
@@ -35,6 +36,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const redirected = useRef(false);
 
   useEffect(() => {
@@ -47,7 +49,11 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return toast.error(t("auth.errorEmailPassword"));
+    setError(null);
+    if (!email || !password) {
+      setError(t("auth.errorEmailPassword"));
+      return;
+    }
     setSubmitting(true);
     try {
       const u = await login(email, password, "patient");
@@ -55,7 +61,13 @@ export default function LoginPage() {
       redirected.current = true;
       router.replace(resolveCallbackUrl(callbackUrl, u.role));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("auth.errorLoginFailed"));
+      const status = (err as { status?: number } | null)?.status;
+      if (status === 403) {
+        const msg = err instanceof Error ? err.message : "";
+        setError(/not approved/i.test(msg) ? t("auth.loginRejected") : t("auth.loginUnderReview"));
+      } else {
+        setError(err instanceof Error ? err.message : t("auth.errorLoginFailed"));
+      }
     } finally {
       setSubmitting(false);
     }
@@ -63,7 +75,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-sm">
+      <div className="w-full max-w-md">
         <Link href="/" className="flex items-center gap-2 justify-center mb-8">
           <span className="w-6 h-6 rounded-full bg-secondary inline-block" />
           <span className="font-display text-lg">{t("header.brand")}</span>
@@ -80,7 +92,7 @@ export default function LoginPage() {
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); setError(null); }}
                 placeholder={t("auth.placeholderEmail")}
                 className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary"
               />
@@ -91,7 +103,7 @@ export default function LoginPage() {
                 <input
                   type={showPw ? "text" : "password"}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => { setPassword(e.target.value); setError(null); }}
                   className="w-full px-3 py-2.5 pr-10 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary"
                 />
                 <button type="button" onClick={() => setShowPw((v) => !v)} className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-text-light">
@@ -99,9 +111,10 @@ export default function LoginPage() {
                 </button>
               </div>
               <div className="text-right mt-1">
-                <button type="button" className="text-xs text-secondary hover:underline">{t("common.forgotPassword")}</button>
+                <Link href="/forgot-password" className="text-xs text-secondary hover:underline">{t("common.forgotPassword")}</Link>
               </div>
             </div>
+            <InlineError message={error} />
             <button type="submit" disabled={submitting} className="btn-secondary w-full disabled:opacity-60">
               {submitting ? t("common.loading") : t("auth.loginBtn")}
             </button>
@@ -109,7 +122,7 @@ export default function LoginPage() {
 
           <p className="text-sm text-text-light text-center mt-5">
             {t("auth.dontHaveAccount")}{" "}
-            <Link href="/" className="text-secondary font-semibold hover:underline">{t("common.signUp")}</Link>
+            <Link href="/signup" className="text-secondary font-semibold hover:underline">{t("common.signUp")}</Link>
           </p>
         </div>
       </div>

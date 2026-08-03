@@ -7,6 +7,8 @@ import {
   updateAdminTherapist,
   deleteAdminTherapist,
   toggleAdminTherapistStatus,
+  approveAdminTherapist,
+  rejectAdminTherapist,
   createAdminTherapist,
   type AdminTherapistData,
   type AdminCreateTherapistPayload,
@@ -68,6 +70,24 @@ export function useAdminTherapists(params: UseAdminTherapistsParams) {
     [queryClient],
   );
 
+  const approveTherapist = useCallback(
+    async (id: string) => {
+      await approveAdminTherapist(id);
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: ["admin-dashboard-pending"] });
+    },
+    [queryClient],
+  );
+
+  const rejectTherapist = useCallback(
+    async (id: string, note: string) => {
+      await rejectAdminTherapist(id, note);
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: ["admin-dashboard-pending"] });
+    },
+    [queryClient],
+  );
+
   const updateTherapist = useCallback(
     async (id: string, data: Partial<AdminTherapistData>) => {
       await updateAdminTherapist(id, data);
@@ -94,6 +114,8 @@ export function useAdminTherapists(params: UseAdminTherapistsParams) {
     refetch: query.refetch,
     deleteTherapist,
     toggleTherapistStatus,
+    approveTherapist,
+    rejectTherapist,
     updateTherapist,
     createTherapist,
   };
