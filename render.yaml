@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: pvc-web
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: BACKEND_URL
+        sync: false
+      - key: NODE_ENV
+        value: production
