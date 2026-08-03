@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
-const BACKEND = process.env.BACKEND_URL || "http://localhost:8000";
+const BACKEND = (process.env.BACKEND_URL || "http://localhost:8000").replace(/\/+$/, "");
 const TOKEN_KEY = "sahayatri.session";
 
 export async function POST(

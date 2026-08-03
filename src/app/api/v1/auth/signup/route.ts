@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const BACKEND = process.env.BACKEND_URL || "http://localhost:8000";
+const BACKEND = (process.env.BACKEND_URL || "http://localhost:8000").replace(/\/+$/, "");
 const TOKEN_KEY = "sahayatri.session";
 
 export async function POST(request: NextRequest) {

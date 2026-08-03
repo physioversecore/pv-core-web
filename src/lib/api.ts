@@ -1,7 +1,7 @@
 import "server-only";
 import { getToken } from "./session";
 
-const BASE = process.env.BACKEND_URL || "http://localhost:8000";
+const BASE = (process.env.BACKEND_URL || "http://localhost:8000").replace(/\/+$/, "");
 
 export class AuthError extends Error {
   constructor(message?: string) {

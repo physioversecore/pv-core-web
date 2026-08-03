@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Search, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useLang } from "@/context/i18n";
 import { PageShell } from "@/components/PageShell";
 import { Reveal } from "@/components/Reveal";
 import { TherapistCard } from "@/components/TherapistCard";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { SectionError } from "@/components/SectionError";
+import { TherapistCardGridSkeleton } from "@/components/SuspenseFallback";
 import { AuthModal } from "@/components/AuthModal";
 import { BookingModal } from "@/components/BookingModal";
 import { useAuth } from "@/context/auth";
@@ -30,7 +33,7 @@ export default function FindPage() {
   const skip = (page - 1) * PAGE_SIZE;
   const hasFilters = q || city || spec || gender;
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["therapists", page, q, city, spec, gender],
     queryFn: () =>
       getTherapists({
@@ -119,16 +122,26 @@ export default function FindPage() {
             {isLoading ? t("common.loading") : `${total} ${t("find.therapistsFound")}`}
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {therapists.map((th, i) => (
-              <Reveal key={th.id} delay={(i % 6) * 60}>
-                <TherapistCard t={th} onBook={handleBook} />
-              </Reveal>
-            ))}
-            {!isLoading && therapists.length === 0 && (
-              <p className="text-text-light text-sm col-span-full">{t("find.noMatch")}</p>
-            )}
-          </div>
+          <ErrorBoundary fallback={<SectionError onRetry={() => refetch()} />}>
+            <Suspense fallback={<TherapistCardGridSkeleton count={9} />}>
+              {isError ? (
+                <SectionError onRetry={() => refetch()} />
+              ) : isLoading ? (
+                <TherapistCardGridSkeleton count={9} />
+              ) : (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {therapists.map((th, i) => (
+                    <Reveal key={th.id} delay={(i % 6) * 60}>
+                      <TherapistCard t={th} onBook={handleBook} />
+                    </Reveal>
+                  ))}
+                  {therapists.length === 0 && (
+                    <p className="text-text-light text-sm col-span-full">{t("find.noMatch")}</p>
+                  )}
+                </div>
+              )}
+            </Suspense>
+          </ErrorBoundary>
 
           {totalPages > 1 && (
             <Reveal>

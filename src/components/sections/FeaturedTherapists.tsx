@@ -4,11 +4,13 @@ import { useLang } from "@/context/i18n";
 import { Star } from "lucide-react";
 import { Reveal } from "@/components/Reveal";
 import { BookButton } from "@/components/BookButton";
+import { FeaturedTherapistsSkeleton } from "@/components/SuspenseFallback";
 import type { Therapist } from "@/lib/types";
 
 interface FeaturedTherapistsProps {
   therapists: Therapist[];
   onBook: (t: Therapist) => void;
+  loading?: boolean;
 }
 
 const GRADIENTS = [
@@ -17,7 +19,7 @@ const GRADIENTS = [
   "linear-gradient(135deg, #7A3535 0%, #C97070 100%)",
 ];
 
-export function FeaturedTherapists({ therapists, onBook }: FeaturedTherapistsProps) {
+export function FeaturedTherapists({ therapists, onBook, loading }: FeaturedTherapistsProps) {
   const { t } = useLang();
   return (
     <section id="therapists" className="relative py-24 overflow-hidden text-background bg-background-dark">
@@ -31,7 +33,10 @@ export function FeaturedTherapists({ therapists, onBook }: FeaturedTherapistsPro
           <h2 className="text-4xl font-display mb-12 max-w-2xl">{t("landing.featuredTherapistsTitle")}</h2>
         </Reveal>
         <div className="grid md:grid-cols-3 gap-6">
-{therapists.map((therapist, i) => {
+          {loading ? (
+            <div className="col-span-full"><FeaturedTherapistsSkeleton /></div>
+          ) : (
+            therapists.map((therapist, i) => {
   const initials = therapist.name.replace("Dr. ", "").split(" ").map((s) => s[0]).slice(0, 2).join("");
   return (
     <Reveal key={therapist.id} delay={i * 120}>
@@ -56,7 +61,7 @@ export function FeaturedTherapists({ therapists, onBook }: FeaturedTherapistsPro
       </div>
     </Reveal>
   );
-})}
+}))}
         </div>
       </div>
     </section>

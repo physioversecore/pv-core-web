@@ -7,15 +7,17 @@ import { Reveal } from "@/components/Reveal";
 import { HeroStat } from "@/components/HeroStat";
 import { BookButton } from "@/components/BookButton";
 import { AppStoreBadge } from "@/components/AppStoreBadge";
+import { HeroLiveSkeleton } from "@/components/SuspenseFallback";
 import { npr } from "@/lib/cart";
 import type { Therapist } from "@/lib/types";
 
 interface HeroSectionProps {
   therapists: Therapist[];
   onBook: (t: Therapist) => void;
+  loading?: boolean;
 }
 
-export function HeroSection({ therapists, onBook }: HeroSectionProps) {
+export function HeroSection({ therapists, onBook, loading }: HeroSectionProps) {
   const { t } = useLang();
 
   return (
@@ -45,7 +47,7 @@ export function HeroSection({ therapists, onBook }: HeroSectionProps) {
             {t("landing.heroDesc")}
           </p>
           <div className="flex flex-wrap gap-3 mb-6">
-            <button onClick={() => onBook(therapists[0])} className="btn-primary">{t("landing.heroCta")}</button>
+            <button onClick={() => therapists[0] && onBook(therapists[0])} className="btn-primary">{t("landing.heroCta")}</button>
           </div>
           <div className="flex flex-wrap gap-3 mb-10">
             <AppStoreBadge platform="google" variant="hero" />
@@ -66,22 +68,26 @@ export function HeroSection({ therapists, onBook }: HeroSectionProps) {
               <div className="text-xs text-white/60">{t("landing.heroRegion")}</div>
             </div>
             <div className="space-y-3">
-              {therapists.slice(0, 3).map((t) => (
-                <div key={t.id} className="flex items-center gap-3 p-3 rounded-xl border border-white/10" style={{ background: "rgba(255,255,255,0.06)" }}>
-                  <Avatar name={t.name} size={42} />
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm truncate text-white">{t.name}</div>
-                    <div className="text-xs text-white/60 truncate">{t.specialty}</div>
-                    <div className="flex items-center gap-1 text-xs text-white/60 mt-0.5">
-                      <Star size={11} className="fill-primary text-primary" /> {t.rating}
+              {loading ? (
+                <HeroLiveSkeleton />
+              ) : (
+                therapists.slice(0, 3).map((t) => (
+                  <div key={t.id} className="flex items-center gap-3 p-3 rounded-xl border border-white/10" style={{ background: "rgba(255,255,255,0.06)" }}>
+                    <Avatar name={t.name} size={42} />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm truncate text-white">{t.name}</div>
+                      <div className="text-xs text-white/60 truncate">{t.specialty}</div>
+                      <div className="flex items-center gap-1 text-xs text-white/60 mt-0.5">
+                        <Star size={11} className="fill-primary text-primary" /> {t.rating}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-sm font-semibold text-white">{npr(t.price)}</div>
+                      <BookButton onClick={() => onBook(t)} size="sm" className="mt-1" />
                     </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <div className="text-sm font-semibold text-white">{npr(t.price)}</div>
-                    <BookButton onClick={() => onBook(t)} size="sm" className="mt-1" />
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </Reveal>

@@ -5,6 +5,7 @@ import { Activity, Brain, HeartPulse, Baby, Stethoscope, ShoppingBag, Pill, Appl
 import { Reveal } from "@/components/Reveal";
 import { PlusField } from "@/components/PlusField";
 import { ServiceCard } from "@/components/ServiceCard";
+import { SectionError } from "@/components/SectionError";
 import { useServices } from "@/hooks/useServices";
 
 const iconMap: Record<string, LucideIcon> = {
@@ -23,7 +24,7 @@ function ServiceSkeleton() {
 
 export function ServicesSection() {
   const { t } = useLang();
-  const { data, isLoading } = useServices();
+  const { data, isLoading, isError, refetch } = useServices();
   const services = data?.services ?? [];
 
   const clinicalServices = services.filter((s) => s.category === "CLINICAL");
@@ -38,7 +39,9 @@ export function ServicesSection() {
           <h2 className="text-4xl font-display mb-12 max-w-2xl">{t("landing.servicesTitle")}</h2>
         </Reveal>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {isLoading
+          {isError ? (
+            <div className="col-span-full"><SectionError onRetry={() => refetch()} /></div>
+          ) : isLoading
             ? Array.from({ length: 6 }).map((_, i) => <ServiceSkeleton key={i} />)
             : clinicalServices.map((s, i) => {
                 const Icon = iconMap[s.iconName] || Activity;
@@ -54,7 +57,9 @@ export function ServicesSection() {
           <h2 className="text-3xl font-display mb-8 max-w-2xl">{t("landing.otherServicesTitle")}</h2>
         </Reveal>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {isLoading
+          {isError ? (
+            <div className="col-span-full"><SectionError onRetry={() => refetch()} /></div>
+          ) : isLoading
             ? Array.from({ length: 4 }).map((_, i) => <ServiceSkeleton key={i} />)
             : shopServices.map((s, i) => {
                 const Icon = iconMap[s.iconName] || Activity;

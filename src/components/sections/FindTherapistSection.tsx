@@ -5,6 +5,7 @@ import { useLang } from "@/context/i18n";
 import { Reveal } from "@/components/Reveal";
 import { TherapistCard } from "@/components/TherapistCard";
 import { TherapistFilters } from "@/components/TherapistFilters";
+import { TherapistCardGridSkeleton } from "@/components/SuspenseFallback";
 import type { Therapist } from "@/lib/types";
 
 interface FindTherapistSectionProps {
@@ -14,6 +15,7 @@ interface FindTherapistSectionProps {
   gender: string;
   filtered: Therapist[];
   hasMore?: boolean;
+  loading?: boolean;
   onQChange: (v: string) => void;
   onCityChange: (v: string) => void;
   onSpecChange: (v: string) => void;
@@ -22,7 +24,7 @@ interface FindTherapistSectionProps {
 }
 
 export function FindTherapistSection({
-  q, city, spec, gender, filtered, hasMore,
+  q, city, spec, gender, filtered, hasMore, loading,
   onQChange, onCityChange, onSpecChange, onGenderChange,
   onBook,
 }: FindTherapistSectionProps) {
@@ -48,16 +50,20 @@ export function FindTherapistSection({
           />
         </Reveal>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((t, i) => (
-            <Reveal key={t.id} delay={(i % 6) * 60}>
-              <TherapistCard t={t} onBook={onBook} />
-            </Reveal>
-          ))}
-          {filtered.length === 0 && (
-            <p className="text-text-light text-sm col-span-full">{t("find.noMatch")}</p>
-          )}
-        </div>
+        {loading ? (
+          <TherapistCardGridSkeleton count={6} />
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filtered.map((t, i) => (
+              <Reveal key={t.id} delay={(i % 6) * 60}>
+                <TherapistCard t={t} onBook={onBook} />
+              </Reveal>
+            ))}
+            {filtered.length === 0 && (
+              <p className="text-text-light text-sm col-span-full">{t("find.noMatch")}</p>
+            )}
+          </div>
+        )}
 
         {hasMore && (
           <Reveal>
