@@ -19,6 +19,11 @@ COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
 COPY --from=build /app/public ./public
 
+# Render (and Docker) set HOSTNAME to the container hostname; the Next.js
+# standalone server uses HOSTNAME as its bind host, so unset it so the server
+# binds to 0.0.0.0 — otherwise the load balancer can't reach the app and every
+# request 502s.
+ENV HOSTNAME="0.0.0.0"
+
 EXPOSE 3000
-# CMD ["sh", "-c", "echo PORT=$PORT && node server.js"]
-CMD ["sh", "-c", "node -e 'require(\"http\").createServer((_,r)=>r.end(\"ok\")).listen(process.env.PORT,\"0.0.0.0\")'"]
+CMD ["sh", "-c", "unset HOSTNAME && node server.js"]
