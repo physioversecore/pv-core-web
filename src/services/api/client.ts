@@ -1,7 +1,7 @@
 import "server-only";
 import { getToken } from "./session";
 
-const BASE = process.env.BACKEND_URL || "http://localhost:8000";
+const BASE = process.env.BACKEND_URL;
 
 export class AuthError extends Error {
   constructor(message?: string) {
@@ -10,10 +10,7 @@ export class AuthError extends Error {
   }
 }
 
-async function request<T = unknown>(
-  path: string,
-  options: RequestInit = {},
-): Promise<T> {
+async function request<T = unknown>(path: string, options: RequestInit = {}): Promise<T> {
   const token = await getToken();
   const headers: Record<string, string> = {
     ...(options.headers as Record<string, string>),
@@ -26,8 +23,7 @@ async function request<T = unknown>(
   if (!(options.body instanceof FormData)) {
     headers["Content-Type"] = "application/json";
   }
-
-  const res = await fetch(`${BASE}/api/v1${path}`, {
+  const res = await fetch(`http://pv-core-api.onrender.com/api/v1${path}`, {
     ...options,
     headers,
     cache: "no-store",
@@ -56,8 +52,7 @@ export const api = {
     request<T>(path, { method: "PUT", body: body ? JSON.stringify(body) : undefined }),
   patch: <T>(path: string, body?: unknown) =>
     request<T>(path, { method: "PATCH", body: body ? JSON.stringify(body) : undefined }),
-  delete: <T>(path: string) =>
-    request<T>(path, { method: "DELETE" }),
+  delete: <T>(path: string) => request<T>(path, { method: "DELETE" }),
   upload: <T>(path: string, formData: FormData) =>
     request<T>(path, { method: "POST", body: formData }),
 };

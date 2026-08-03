@@ -53,7 +53,7 @@ export default function Profile() {
         city: form.city,
         address: form.address || undefined,
         history: form.history || undefined,
-        gender: form.gender,
+        gender: form.gender as "Male" | "Female" | "Any",
         notifEmail: form.notif.email,
         notifSms: form.notif.sms,
       });
