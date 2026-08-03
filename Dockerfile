@@ -20,4 +20,5 @@ COPY --from=build /app/.next/static ./.next/static
 COPY --from=build /app/public ./public
 
 EXPOSE 3000
-CMD ["sh", "-c", "echo PORT=$PORT && node server.js"]
+# CMD ["sh", "-c", "echo PORT=$PORT && node server.js"]
+CMD ["sh", "-c", "node -e 'require(\"http\").createServer((_,r)=>r.end(\"ok\")).listen(process.env.PORT,\"0.0.0.0\")'"]
