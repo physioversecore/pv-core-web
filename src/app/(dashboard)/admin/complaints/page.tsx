@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Avatar } from "@/components/Avatar";
 import { Download, Eye, Pencil, UserPlus, ArrowUpRight, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -20,14 +21,15 @@ import {
   type ActionItem,
 } from "@/components/tables";
 import type { AdminComplaintData } from "@/services/api/admin";
+import { getSession } from "@/services/api/sessions";
+import { formatDate, to12h, formatType, npr } from "@/lib/format";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import {
   Select,
   SelectContent,
@@ -37,6 +39,25 @@ import {
 } from "@/components/ui/select";
 
 type TabKey = "patient" | "therapist";
+
+const COMPLAINT_CATEGORIES = [
+  "Late arrival",
+  "Unprofessional conduct",
+  "Billing dispute",
+  "Service quality",
+  "Safety concern",
+  "Safety concern at home",
+  "Patient no-show",
+  "Repeated no-shows",
+  "Late cancellation",
+  "Unsafe environment",
+  "Harassment or abuse",
+  "Other",
+] as const;
+
+const COMPLAINT_STATUSES = ["Open", "Under review", "Resolved", "Dismissed"] as const;
+
+const COMPLAINT_PRIORITIES = ["Normal", "Urgent"] as const;
 
 export default function AdminComplaints() {
   const { t } = useLang();
@@ -117,21 +138,21 @@ export default function AdminComplaints() {
       </div>
 
       {previewRow && (
-        <ComplaintPreviewDialog
+        <ComplaintPreviewSheet
           complaint={previewRow}
           onClose={() => setPreviewRow(null)}
         />
       )}
 
       {editRow && (
-        <ComplaintEditDialog
+        <ComplaintEditSheet
           complaint={editRow}
           onClose={() => setEditRow(null)}
         />
       )}
 
       {assignRow && (
-        <AssignDialog
+        <AssignSheet
           complaint={assignRow}
           onClose={() => setAssignRow(null)}
         />
@@ -141,8 +162,14 @@ export default function AdminComplaints() {
         open={!!deleteRow}
         onOpenChange={(open) => !open && setDeleteRow(null)}
         onConfirm={handleDelete}
-        title={t("common.delete") ?? "Delete complaint"}
-        description={`${t("common.confirm") ?? "Are you sure you want to delete this complaint?"} ${deleteRow?.description?.slice(0, 80) ?? ""}`}
+        title={t("complaints.deleteTitle") ?? "Delete complaint"}
+        description={
+          deleteRow
+            ? `${deleteRow.complainant} → ${deleteRow.against}<br/><br/>${
+                t("complaints.deletePermanent") ?? "This complaint will be permanently deleted. This action cannot be undone."
+              }`
+            : ""
+        }
       />
     </div>
   );
@@ -339,35 +366,34 @@ function ComplaintsTab({
         type: "select",
         label: t("admin_dashboard.status") ?? "Status",
         placeholder: t("admin_dashboard.allStatuses") ?? "All statuses",
-        options: [
-          { value: "Open", label: t("admin_dashboard.open") ?? "Open" },
-          { value: "Under review", label: t("admin_dashboard.underReview") ?? "Under review" },
-          { value: "Resolved", label: t("admin_dashboard.resolved") ?? "Resolved" },
-          { value: "Dismissed", label: t("admin_dashboard.dismissed") ?? "Dismissed" },
-        ],
+        options: COMPLAINT_STATUSES.map((s) => ({
+          value: s,
+          label:
+            s === "Open"
+              ? (t("admin_dashboard.open") ?? "Open")
+              : s === "Under review"
+                ? (t("admin_dashboard.underReview") ?? "Under review")
+                : s === "Resolved"
+                  ? (t("admin_dashboard.resolved") ?? "Resolved")
+                  : (t("admin_dashboard.dismissed") ?? "Dismissed"),
+        })),
       },
       {
         key: "priority",
         type: "select",
         label: t("admin_dashboard.priority") ?? "Priority",
         placeholder: "All priorities",
-        options: [
-          { value: "Normal", label: t("admin_dashboard.normal") ?? "Normal" },
-          { value: "Urgent", label: t("admin_dashboard.urgent") ?? "Urgent" },
-        ],
+        options: COMPLAINT_PRIORITIES.map((p) => ({
+          value: p,
+          label: p === "Normal" ? (t("admin_dashboard.normal") ?? "Normal") : (t("admin_dashboard.urgent") ?? "Urgent"),
+        })),
       },
       {
         key: "category",
         type: "select",
         label: t("admin_dashboard.category") ?? "Category",
         placeholder: "All categories",
-        options: [
-          { value: "Late arrival", label: "Late arrival" },
-          { value: "Unprofessional conduct", label: "Unprofessional conduct" },
-          { value: "Billing dispute", label: "Billing dispute" },
-          { value: "Repeated no-shows", label: "Repeated no-shows" },
-          { value: "Safety concern at home", label: "Safety concern at home" },
-        ],
+        options: COMPLAINT_CATEGORIES.map((c) => ({ value: c, label: c })),
       },
     ],
     [type, t],
@@ -411,7 +437,7 @@ function ComplaintsTab({
   );
 }
 
-function ComplaintPreviewDialog({
+function ComplaintPreviewSheet({
   complaint,
   onClose,
 }: {
@@ -419,21 +445,31 @@ function ComplaintPreviewDialog({
   onClose: () => void;
 }) {
   const { t } = useLang();
+  const { data: booking, isLoading: bookingLoading } = useQuery({
+    queryKey: ["session", complaint.bookingId],
+    queryFn: () => (complaint.bookingId ? getSession(complaint.bookingId) : null),
+    enabled: !!complaint.bookingId,
+  });
 
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="font-display">{t("complaints.complaintDetail") ?? "Complaint Detail"}</DialogTitle>
-          <DialogDescription>{complaint.id} · {complaint.category}</DialogDescription>
-        </DialogHeader>
-
-        <div className="mt-4 space-y-5">
-          <div className="flex items-center gap-3">
+    <Sheet open onOpenChange={(open) => !open && onClose()}>
+      <SheetContent className="w-full max-w-lg overflow-y-auto sm:max-w-xl">
+        <SheetHeader className="pb-4 border-b">
+          <div className="flex items-center gap-3 pr-8">
+            <div className="flex-1 min-w-0">
+              <SheetTitle className="text-lg font-display">{t("complaints.complaintDetail") ?? "Complaint Detail"}</SheetTitle>
+              <SheetDescription className="text-xs">
+                {complaint.category} · {formatDate(complaint.filed)}
+              </SheetDescription>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 pt-2">
             <StatusChip status={complaint.status} />
             <StatusChip status={complaint.priority} />
           </div>
+        </SheetHeader>
 
+        <div className="mt-5 space-y-5">
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="text-[0.65rem] uppercase font-mono text-text-light block mb-1">
@@ -460,7 +496,40 @@ function ComplaintPreviewDialog({
               <span className="text-[0.65rem] uppercase font-mono text-text-light block mb-1">
                 {t("complaints.linkedBooking") ?? "Linked Booking"}
               </span>
-              <span className="font-mono text-xs bg-surface px-2 py-1 rounded">{complaint.bookingId}</span>
+              {bookingLoading ? (
+                <span className="text-xs text-text-light">{t("complaints.loadingBooking") ?? "Loading booking…"}</span>
+              ) : booking ? (
+                <div className="bg-surface rounded-xl p-3 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[0.65rem] uppercase font-mono text-text-light">
+                      {t("complaints.bookingWhen") ?? "Date & Time"}
+                    </span>
+                    <span className="font-mono text-xs font-medium">
+                      {formatDate(booking.date)} · {to12h(booking.time)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[0.65rem] uppercase font-mono text-text-light">
+                      {t("complaints.bookingType") ?? "Booking type"}
+                    </span>
+                    <span className="font-mono text-xs font-medium">{formatType(booking.type)}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[0.65rem] uppercase font-mono text-text-light">
+                      {t("complaints.bookingFee") ?? "Fee"}
+                    </span>
+                    <span className="font-mono text-xs font-medium">{npr(booking.fee)}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[0.65rem] uppercase font-mono text-text-light">
+                      {t("complaints.bookingStatus") ?? "Status"}
+                    </span>
+                    <span className="font-mono text-xs font-medium">{formatType(booking.status)}</span>
+                  </div>
+                </div>
+              ) : (
+                <span className="text-xs text-text-light">{t("complaints.bookingNotFound") ?? "Booking details not available"}</span>
+              )}
             </div>
           )}
 
@@ -503,12 +572,12 @@ function ComplaintPreviewDialog({
             </div>
           )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
 
-function ComplaintEditDialog({
+function ComplaintEditSheet({
   complaint,
   onClose,
 }: {
@@ -558,14 +627,16 @@ function ComplaintEditDialog({
   };
 
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="font-display">{t("admin_dashboard.edit") ?? "Edit Complaint"}</DialogTitle>
-          <DialogDescription>{complaint.id}</DialogDescription>
-        </DialogHeader>
+    <Sheet open onOpenChange={(open) => !open && onClose()}>
+      <SheetContent className="w-full max-w-lg overflow-y-auto sm:max-w-xl">
+        <SheetHeader className="pb-4 border-b">
+          <SheetTitle className="text-lg font-display">{t("admin_dashboard.edit") ?? "Edit Complaint"}</SheetTitle>
+          <SheetDescription className="text-xs">
+            {complaint.category} · {formatDate(complaint.filed)}
+          </SheetDescription>
+        </SheetHeader>
 
-        <div className="mt-4 space-y-4">
+        <div className="mt-5 space-y-4">
           <div>
             <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
               {t("admin_dashboard.status") ?? "Status"}
@@ -607,11 +678,9 @@ function ComplaintEditDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Late arrival">Late arrival</SelectItem>
-                <SelectItem value="Unprofessional conduct">Unprofessional conduct</SelectItem>
-                <SelectItem value="Billing dispute">Billing dispute</SelectItem>
-                <SelectItem value="Repeated no-shows">Repeated no-shows</SelectItem>
-                <SelectItem value="Safety concern at home">Safety concern at home</SelectItem>
+                {COMPLAINT_CATEGORIES.map((c) => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -641,38 +710,45 @@ function ComplaintEditDialog({
 
           <div>
             <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
-              {t("complaints.internalNotes") ?? "Add Note (optional)"}
+              {t("complaints.internalNotes") ?? "Internal Notes"}
             </label>
+            {complaint.notes && complaint.notes.length > 0 && (
+              <div className="space-y-1.5 mb-2">
+                {complaint.notes.map((note, i) => (
+                  <p key={i} className="text-xs text-text-light bg-surface rounded-lg px-3 py-2">{note}</p>
+                ))}
+              </div>
+            )}
             <textarea
               value={noteVal}
               onChange={(e) => setNoteVal(e.target.value)}
-              placeholder="e.g. Follow-up scheduled with patient"
+              placeholder={t("complaints.addNote") ?? "Add a note…"}
               className="w-full px-3 py-2 rounded-xl border border-border bg-background text-sm min-h-[80px] resize-y"
             />
           </div>
         </div>
 
-        <DialogFooter className="mt-2">
+        <div className="flex gap-2 pt-4 pb-2">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-sm text-text-light hover:bg-muted transition cursor-pointer"
+            className="flex-1 btn-outline !py-2 text-xs inline-flex items-center justify-center gap-1.5 cursor-pointer"
           >
             {t("common.cancel") ?? "Cancel"}
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-4 py-2 rounded-xl text-sm font-medium bg-secondary text-white hover:opacity-90 transition cursor-pointer disabled:opacity-50"
+            className="flex-1 btn-secondary !py-2 text-xs inline-flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
           >
             {saving ? "Saving…" : (t("common.save") ?? "Save")}
           </button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
 
-function AssignDialog({
+function AssignSheet({
   complaint,
   onClose,
 }: {
@@ -736,14 +812,16 @@ function AssignDialog({
   };
 
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="font-display">{t("admin_dashboard.assign") ?? "Assign Complaint"}</DialogTitle>
-          <DialogDescription>{complaint.id} · {complaint.category}</DialogDescription>
-        </DialogHeader>
+    <Sheet open onOpenChange={(open) => !open && onClose()}>
+      <SheetContent className="w-full max-w-lg overflow-y-auto sm:max-w-xl">
+        <SheetHeader className="pb-4 border-b">
+          <SheetTitle className="text-lg font-display">{t("admin_dashboard.assign") ?? "Assign Complaint"}</SheetTitle>
+          <SheetDescription className="text-xs">
+            {complaint.category} · {formatDate(complaint.filed)}
+          </SheetDescription>
+        </SheetHeader>
 
-        <div className="mt-4 space-y-4">
+        <div className="mt-5 space-y-4">
           <div className="flex items-center gap-3 bg-surface rounded-xl p-3 text-sm">
             <Avatar name={complaint.complainant} size={28} />
             <div>
@@ -780,34 +858,41 @@ function AssignDialog({
 
           <div>
             <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
-              {t("complaints.internalNotes") ?? "Add Note (optional)"}
+              {t("complaints.internalNotes") ?? "Internal Notes"}
             </label>
+            {complaint.notes && complaint.notes.length > 0 && (
+              <div className="space-y-1.5 mb-2">
+                {complaint.notes.map((note, i) => (
+                  <p key={i} className="text-xs text-text-light bg-surface rounded-lg px-3 py-2">{note}</p>
+                ))}
+              </div>
+            )}
             <textarea
               value={noteVal}
               onChange={(e) => setNoteVal(e.target.value)}
-              placeholder="e.g. Assigned for priority review"
+              placeholder={t("complaints.addNote") ?? "Add a note…"}
               className="w-full px-3 py-2 rounded-xl border border-border bg-background text-sm min-h-[80px] resize-y"
             />
           </div>
         </div>
 
-        <DialogFooter className="mt-2">
+        <div className="flex gap-2 pt-4 pb-2">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-sm text-text-light hover:bg-muted transition cursor-pointer"
+            className="flex-1 btn-outline !py-2 text-xs inline-flex items-center justify-center gap-1.5 cursor-pointer"
           >
             {t("common.cancel") ?? "Cancel"}
           </button>
           <button
             onClick={handleAssign}
             disabled={saving || !assignee}
-            className="px-4 py-2 rounded-xl text-sm font-medium bg-secondary text-white hover:opacity-90 transition cursor-pointer disabled:opacity-50"
+            className="flex-1 btn-secondary !py-2 text-xs inline-flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
           >
             {saving ? "Saving…" : "Assign"}
           </button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
 

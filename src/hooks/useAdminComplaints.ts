@@ -14,7 +14,7 @@ const SEED_PATIENT: AdminComplaintData[] = [
     id: "CMP-041", type: "patient", complainant: "Nabin Khadka", complainantId: "p1",
     against: "Rajesh Shrestha", againstId: "t1", category: "Late arrival",
     priority: "Normal", status: "Open", filed: "2026-07-12T10:30:00",
-    description: "Therapist arrived 40 minutes late to the scheduled home visit session. No prior通知 was given.",
+    description: "Therapist arrived 40 minutes late to the scheduled home visit session. No prior notice was given.",
     bookingId: "BKG-1042",
   },
   {
@@ -78,6 +78,9 @@ export function useAdminComplaints(params: UseAdminComplaintsParams) {
       getAdminComplaints({
         type,
         search: search || undefined,
+        status: status || undefined,
+        priority: priority || undefined,
+        category: category || undefined,
         sortBy: sortBy || undefined,
         sortOrder,
         skip,

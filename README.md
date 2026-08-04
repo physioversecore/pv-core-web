@@ -4,9 +4,9 @@ Nepal's home-visit physiotherapy platform connecting patients with verified phys
 
 ## Roles
 
-- **Patient** — Book home-visit sessions, buy/rent equipment & medicines, track recovery progress, view reports, submit complaints.
-- **Therapist** — Manage schedules & availability, upload session reports, track earnings, refer colleagues, request time off.
-- **Admin** — Approve therapists, manage patients/users, oversee bookings, payments, refunds, complaints, service areas, verification, performance reviews, safety incidents, analytics, and platform settings.
+- **Patient** — Book home-visit sessions, buy/rent equipment & medicines, track recovery progress, view reports, submit complaints with evidence attachments.
+- **Therapist** — Manage schedules & availability, upload session reports, track earnings, refer colleagues, request time off, file complaints against patients with evidence attachments.
+- **Admin** — Approve therapists, manage patients/users, oversee bookings, payments, refunds, complaints, service areas, verification, performance reviews, safety incidents, analytics, and platform settings. Sidebar shows a live badge counting new complaints since the last visit.
 
 ## Tech Stack
 
@@ -18,7 +18,7 @@ Nepal's home-visit physiotherapy platform connecting patients with verified phys
 | Styling | Tailwind CSS v4 + CSS custom properties |
 | UI | shadcn/ui (new-york style, 47 components) + Radix UI |
 | Icons | lucide-react |
-| State | React Context (6 providers), TanStack Query v5 |
+| State | React Context (7 providers), TanStack Query v5 |
 | Forms | react-hook-form + zod |
 | Charts | recharts |
 | Notifications | sonner |
@@ -84,7 +84,11 @@ src/
     signup/                     # Standalone signup page (role selection → OTP → account creation)
     about/, app/, blog/, book/, contact/, faq/,
     find/, how-it-works/, services/, testimonials/, therapists/
-    api/                        # Route handlers (webhooks only)
+    api/                        # Route handlers (upload proxies)
+    api/reports/route.ts        # POST — proxies FormData to backend /api/v1/reports
+    api/uploads/complaint-evidence/route.ts  # POST — public XHR proxy for complaint evidence (session keyed)
+    api/v1/uploads/evidence/[session]/[filename]/route.ts  # GET — serves complaint evidence, adds bearer cookie
+    api/v1/uploads/[patientId]/[filename]/route.ts         # GET — serves patient report files (token query param)
     layout.tsx                  # Root layout (fonts, providers)
     providers.tsx               # Client providers wrapper
     page.tsx                    # Landing page
@@ -104,10 +108,11 @@ src/
     layout/                     # DashboardShell, PageShell, SiteHeader, SiteFooter
     ErrorBoundary.tsx           # Reusable error boundary
     SuspenseFallback.tsx        # Loading skeleton components
-  context/                      # React contexts (6 providers)
+  context/                      # React contexts (7 providers)
     auth.tsx                    # Auth state + API calls
     auth-modal.tsx              # Login/signup modal state
     booking-badge.tsx           # Admin new-booking notification badge
+    complaint-badge.tsx         # Admin new-complaint notification badge
     cart.tsx                    # Shopping cart (API-driven)
     design-tokens.tsx           # Dynamic theme customization
     i18n.tsx                    # Nepali/English toggle

@@ -312,6 +312,8 @@ function mapComplaintFromApi(c: ApiComplaint): AdminComplaintData {
 
 export interface AdminComplaintListParams extends AdminListParams {
   type?: "patient" | "therapist";
+  priority?: string;
+  category?: string;
 }
 
 export async function getAdminComplaints(params?: AdminComplaintListParams) {
@@ -320,9 +322,14 @@ export async function getAdminComplaints(params?: AdminComplaintListParams) {
   if (params?.limit) sp.set("limit", String(params.limit));
   if (params?.search) sp.set("search", params.search);
   if (params?.type) sp.set("type", params.type);
+  if (params?.status) sp.set("status", params.status);
+  if (params?.priority) sp.set("priority", params.priority);
+  if (params?.category) sp.set("category", params.category);
   if (params?.dateFrom) sp.set("dateFrom", params.dateFrom);
   if (params?.dateTo) sp.set("dateTo", params.dateTo);
-  if (params?.sortBy) sp.set("sortBy", params.sortBy);
+  if (params?.sortBy) {
+    sp.set("sortBy", params.sortBy === "filed" ? "createdAt" : params.sortBy);
+  }
   if (params?.sortOrder) sp.set("sortOrder", params.sortOrder);
 
   const res = await api.get<{ items: any[]; total: number }>(`/admin/complaints?${sp.toString()}`);
@@ -340,6 +347,7 @@ export async function updateAdminComplaint(id: string, data: Partial<AdminCompla
   if (data.description !== undefined) payload.description = data.description;
   if (data.assignee !== undefined) payload.assignee = data.assignee;
   if (data.adminNotes !== undefined) payload.adminNotes = data.adminNotes;
+  if (data.notes !== undefined) payload.adminNotes = data.notes.join("\n");
 
   const res = await api.put<ApiComplaint>(`/admin/complaints/${id}`, payload);
   return mapComplaintFromApi(res);

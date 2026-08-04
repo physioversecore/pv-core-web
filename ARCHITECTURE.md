@@ -118,6 +118,7 @@ Each data-fetching section has its own `ErrorBoundary` — one section failing d
 - `client.ts` — base HTTP client with `Authorization: Bearer <token>` header, imports `"server-only"`
 - 15 domain service files: `auth.ts`, `admin.ts`, `sessions.ts`, `therapists.ts`, `patients.ts`, `products.ts`, `cart.ts`, `availability.ts`, `earnings.ts`, `reports.ts`, `reviews.ts`, `settings.ts`, `profile.ts`, `session.ts` (cookie management)
 - `auth.ts` includes: `login`, `signup`, `logout`, `getSession`, `updateProfile`, `sendOtp`, `verifyOtp`
+- `admin.ts` includes: `getNewBookingCount(since)`, `getNewComplaintCount(since)` (badge polls), `submitTherapistComplaint`, `submitPatientComplaint`
 
 ### Server Actions (`src/lib/actions/`)
 - Thin `"use server"` re-exports of service functions
@@ -135,7 +136,7 @@ Each data-fetching section has its own `ErrorBoundary` — one section failing d
 | Page data (reads) | Server Components or Server Actions |
 | User mutations | Server Actions |
 | Webhooks/integrations | Route Handlers (`app/api/...`) |
-| File upload/download | Route Handler proxy — public `POST /api/uploads/therapist-application` (XHR from `DocumentUploader`), `POST /api/reports`, `GET /api/v1/uploads/applications/[session]/[filename]` (adds bearer cookie) |
+| File upload/download | Route Handler proxy — public `POST /api/uploads/therapist-application` (XHR from `DocumentUploader`), `POST /api/reports`, `POST /api/uploads/complaint-evidence` (complaint evidence), `GET /api/v1/uploads/applications/[session]/[filename]` and `GET /api/v1/uploads/evidence/[session]/[filename]` (add bearer cookie) |
 | Real-time (future) | Client fetch → own Route Handler (never raw backend) |
 
 ## Provider Stack
@@ -148,9 +149,28 @@ QueryClientProvider
       └─ LangProvider          # Nepali/English toggle (localStorage)
           └─ AuthProvider       # User state (server-driven via getSession)
               └─ CartProvider   # Shopping cart (API-driven, optimistic updates)
-                  └─ BookingBadgeProvider  # Admin booking notification count
-                      └─ AuthModalProvider  # Login/signup modal state
+                  └─ BookingBadgeProvider   # Admin booking notification count
+                      └─ ComplaintBadgeProvider  # Admin complaint notification count
+                          └─ AuthModalProvider   # Login/signup modal state
 ```
+
+## Complaint Badge & Evidence
+
+### Admin new-complaint badge
+- `ComplaintBadgeProvider` (`src/context/complaint-badge.tsx`) is mounted at the root, mirrors `BookingBadgeProvider`.
+- For admins it polls `GET /admin/complaints/new-count?since=<ISO timestamp>` every 30s (TanStack Query `refetchInterval`).
+- `since` starts from `localStorage["admin_last_complaint_visit"]` (or login time on first visit) and is reset when the admin opens `/admin/complaints` (`resetComplaintCount()` in `(dashboard)/layout.tsx`).
+- The count is injected into the `/admin/complaints` nav item via `navWithBadges` in `(dashboard)/layout.tsx` and rendered by `DashboardShell` as an amber pill.
+
+### Complaint evidence uploads
+Patients and therapists attach up to 3 evidence files (photos/screenshots) when filing a complaint:
+1. Files upload via XHR/fetch to the public proxy `POST /api/uploads/complaint-evidence` (client-generated `session` key, e.g. `complaint-<ts>-<rand>`).
+2. The route handler proxies the FormData to the backend `POST /api/v1/uploads/complaint-evidence`, which stores files under `Upload/ComplaintEvidence/<session>/` and returns real URLs `/api/v1/uploads/evidence/<session>/<filename>`.
+3. URLs (with the original filename appended via `?name=`) are embedded in the complaint payload as `evidenceUrls`.
+4. Admins view evidence in-app — `GET /api/v1/uploads/evidence/[session]/[filename]` (frontend route handler) adds the bearer cookie, and `PreviewDialog` renders images/files.
+
+### Report file serving
+`GET /api/v1/uploads/[patientId]/[filename]` passes the JWT as a `token` query param (backend report serving is token-authenticated) instead of a bearer header.
 
 ## Styling
 

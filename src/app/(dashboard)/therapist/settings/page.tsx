@@ -31,13 +31,6 @@ export default function TSettings() {
 
   return (
     <div className="grid lg:grid-cols-2 gap-5">
-      <div className="card-soft p-5">
-        <p className="eyebrow mb-1">{t("therapist_dashboard.settingsProfile")}</p>
-        <h3 className="font-display text-lg mb-2">{t("therapist_dashboard.settingsEditProfile")}</h3>
-        <p className="text-sm text-text-light mb-3">{t("therapist_dashboard.settingsProfileDesc")}</p>
-        <Link href="/therapist/profile" className="btn-secondary !px-5 inline-block">{t("therapist_dashboard.openProfileEditor")}</Link>
-      </div>
-
       <form onSubmit={submitOff} className="card-soft p-5">
         <p className="eyebrow mb-1">{t("therapist_dashboard.emergencyDayOff")}</p>
         <h3 className="font-display text-lg mb-3">{t("therapist_dashboard.applyTimeOff")}</h3>
@@ -63,7 +56,7 @@ export default function TSettings() {
         <p className="text-xs text-text-light mt-2">{t("therapist_dashboard.affectedBookingsNote")}</p>
       </form>
 
-      <form onSubmit={submitRate} className="card-soft p-5 lg:col-span-2">
+      <form onSubmit={submitRate} className="card-soft p-5">
         <p className="eyebrow mb-1">{t("therapist_dashboard.sessionRateChange")}</p>
         <h3 className="font-display text-lg mb-3">{t("therapist_dashboard.requestNewRate")}</h3>
         <div className="grid sm:grid-cols-3 gap-3 mb-3">
@@ -84,7 +77,7 @@ export default function TSettings() {
         </div>
         <label className="text-xs font-medium text-text-light">{t("therapist_dashboard.justification")}</label>
         <textarea value={rate.reason} onChange={(e) => setRate({ ...rate, reason: e.target.value })} rows={3} placeholder={t("therapist_dashboard.justificationPlaceholder")} className="w-full mt-1 mb-3 px-3 py-2 rounded-xl border border-border bg-white text-sm" />
-        <button type="submit" className="btn-secondary !px-6">{t("therapist_dashboard.submitRateChange")}</button>
+        <button type="submit" className="btn-secondary px-6!">{t("therapist_dashboard.submitRateChange")}</button>
         <p className="text-xs text-text-light mt-2">{t("therapist_dashboard.rateChangeNote")}</p>
       </form>
 
@@ -93,7 +86,14 @@ export default function TSettings() {
         <Toggle label={t("therapist_dashboard.smsAlerts")} v={prefs.smsAlerts} on={(v) => setPrefs({ ...prefs, smsAlerts: v })} />
         <Toggle label={t("therapist_dashboard.dailyScheduleDigest")} v={prefs.newBookings} on={(v) => setPrefs({ ...prefs, newBookings: v })} />
         <Toggle label={t("therapist_dashboard.platformAnnouncements")} v={prefs.marketing} on={(v) => setPrefs({ ...prefs, marketing: v })} />
-        <button onClick={() => toast.success(t("common.savePreferences"))} className="btn-outline !py-1.5 !px-4 text-xs mt-2">{t("common.savePreferences")}</button>
+        <div className="flex justify-end mt-4">
+           <button
+             onClick={() => toast.success(t("common.savePreferences"))}
+             className="btn-secondary py-1.5! px-4! text-xs"
+           >
+             {t("common.savePreferences")}
+           </button>
+         </div>
       </div>
 
       <div className="card-soft p-5">
