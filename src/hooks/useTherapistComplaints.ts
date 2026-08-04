@@ -21,7 +21,6 @@ export function useTherapistComplaints(therapistId: string) {
   const query = useQuery({
     queryKey: [QUERY_KEY, therapistId],
     queryFn: () => getTherapistComplaints(therapistId),
-    enabled: false,
   });
 
   const items = query.data?.items ?? [];
@@ -30,8 +29,7 @@ export function useTherapistComplaints(therapistId: string) {
   const submitMutation = useMutation({
     mutationFn: (data: TherapistComplaintPayload) => submitTherapistComplaint(data),
     onSuccess: () => {
-      queryClient.refetchQueries({ queryKey: [QUERY_KEY, therapistId] });
-      toast.success("Complaint submitted successfully");
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY, therapistId] });
     },
   });
 

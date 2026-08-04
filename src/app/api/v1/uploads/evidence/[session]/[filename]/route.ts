@@ -6,20 +6,21 @@ const TOKEN_KEY = "sahayatri.session";
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ patientId: string; filename: string }> },
+  { params }: { params: Promise<{ session: string; filename: string }> },
 ) {
-  const { patientId, filename } = await params;
+  const { session, filename } = await params;
   const decodedFilename = decodeURIComponent(filename);
 
   const cookieStore = await cookies();
   const token = cookieStore.get(TOKEN_KEY)?.value;
 
-  const backendUrl = new URL(
-    `${BACKEND}/api/v1/uploads/${patientId}/${encodeURIComponent(decodedFilename)}`,
-  );
-  if (token) backendUrl.searchParams.set("token", token);
+  const headers: Record<string, string> = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  const res = await fetch(backendUrl.toString());
+  const res = await fetch(
+    `${BACKEND}/api/v1/uploads/evidence/${session}/${encodeURIComponent(decodedFilename)}`,
+    { headers },
+  );
 
   if (!res.ok) {
     return new NextResponse(null, { status: res.status });

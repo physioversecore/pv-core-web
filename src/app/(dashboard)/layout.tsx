@@ -9,6 +9,7 @@ import { patientNav, therapistNav, adminNav } from "@/lib/nav";
 import type { NavItem } from "@/lib/nav";
 import { useLang, type TKey } from "@/context/i18n";
 import { useBookingBadge } from "@/context/booking-badge";
+import { useComplaintBadge } from "@/context/complaint-badge";
 
 const ROLE_ROUTES: Record<string, string> = {
   patient: "/patient",
@@ -28,6 +29,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const { user, loading } = useAuth();
   const { bookingCount } = useBookingBadge();
+  const { complaintCount, resetComplaintCount } = useComplaintBadge();
 
   useEffect(() => {
     if (loading) return;
@@ -57,9 +59,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       if (item.to === "/admin/bookings") {
         return { ...item, badge: bookingCount > 0 ? bookingCount : undefined };
       }
+      if (item.to === "/admin/complaints") {
+        return { ...item, badge: complaintCount > 0 ? complaintCount : undefined };
+      }
       return item;
     });
-  }, [role, nav, bookingCount]);
+  }, [role, nav, bookingCount, complaintCount]);
+
+  useEffect(() => {
+    if (role === "admin" && pathname === "/admin/complaints") {
+      resetComplaintCount();
+    }
+  }, [role, pathname, resetComplaintCount]);
 
   if (loading || !user) return null;
 
