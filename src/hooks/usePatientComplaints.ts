@@ -31,7 +31,6 @@ export function usePatientComplaints(patientId: string) {
     mutationFn: (data: PatientComplaintPayload) => submitPatientComplaint(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY, patientId] });
-      toast.success("Complaint submitted successfully");
     },
   });
 

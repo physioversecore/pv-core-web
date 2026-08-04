@@ -263,6 +263,7 @@ export interface AdminComplaintData {
   filed: string;
   description: string;
   bookingId?: string;
+  evidenceUrls?: string[];
   notes?: string[];
   assignee?: string;
   adminNotes?: string;
@@ -302,6 +303,7 @@ function mapComplaintFromApi(c: ApiComplaint): AdminComplaintData {
     filed: c.createdAt,
     description: c.description,
     bookingId: c.bookingId,
+    evidenceUrls: c.evidenceUrls ? c.evidenceUrls.split(",").filter(Boolean) : [],
     notes: c.adminNotes ? c.adminNotes.split("\n") : [],
     assignee: c.assignee,
     adminNotes: c.adminNotes,
@@ -516,6 +518,12 @@ export async function getNewBookingCount(since?: string) {
   const sp = new URLSearchParams();
   if (since) sp.set("since", since);
   return api.get<{ count: number }>(`/admin/bookings/new-count?${sp.toString()}`);
+}
+
+export async function getNewComplaintCount(since?: string) {
+  const sp = new URLSearchParams();
+  if (since) sp.set("since", since);
+  return api.get<{ count: number }>(`/admin/complaints/new-count?${sp.toString()}`);
 }
 
 // --- Admin Team ---

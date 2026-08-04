@@ -142,7 +142,7 @@ export default function AdminComplaints() {
         onOpenChange={(open) => !open && setDeleteRow(null)}
         onConfirm={handleDelete}
         title={t("common.delete") ?? "Delete complaint"}
-        description={`${t("common.confirm") ?? "Are you sure you want to delete"} <strong>${deleteRow?.id ?? ""}</strong>? ${deleteRow?.description?.slice(0, 80) ?? ""}`}
+        description={`${t("common.confirm") ?? "Are you sure you want to delete this complaint?"} ${deleteRow?.description?.slice(0, 80) ?? ""}`}
       />
     </div>
   );
@@ -212,9 +212,9 @@ function ComplaintsTab({
   const exportCsv = useCallback(() => {
     const nameKey = type === "patient" ? "Complainant (Patient)" : "Complainant (Therapist)";
     const againstKey = type === "patient" ? "Against Therapist" : "Against Patient";
-    const header = `ID,${nameKey},${againstKey},Category,Priority,Status,Filed\n`;
+    const header = `${nameKey},${againstKey},Category,Priority,Status,Filed\n`;
     const body = items
-      .map((r) => `${r.id},${r.complainant},${r.against},${r.category},${r.priority},${r.status},${r.filed}`)
+      .map((r) => `${r.complainant},${r.against},${r.category},${r.priority},${r.status},${r.filed}`)
       .join("\n");
     const blob = new Blob([header + body], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -228,11 +228,6 @@ function ComplaintsTab({
 
   const columns: Column<AdminComplaintData>[] = useMemo(
     () => [
-      {
-        key: "id",
-        label: "ID",
-        render: (row) => <span className="font-mono text-xs">{row.id}</span>,
-      },
       {
         key: "complainant",
         label: type === "patient" ? (t("admin_dashboard.patient") ?? "Patient") : (t("admin_dashboard.therapist") ?? "Therapist"),
@@ -380,7 +375,7 @@ function ComplaintsTab({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-end gap-2 mb-3">
         <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
         <button onClick={exportCsv} className="btn-outline !py-2 !px-3 text-xs cursor-pointer">
           <Download size={14} className="inline mr-1" /> {t("admin_dashboard.exportCsv") ?? "Export CSV"}

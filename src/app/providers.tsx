@@ -5,6 +5,7 @@ import { useState, type ReactNode } from "react";
 import { AuthProvider } from "@/context/auth";
 import { AuthModalProvider } from "@/context/auth-modal";
 import { BookingBadgeProvider } from "@/context/booking-badge";
+import { ComplaintBadgeProvider } from "@/context/complaint-badge";
 import { CartProvider } from "@/context/cart";
 import { LangProvider } from "@/context/i18n";
 import { DesignTokensProvider } from "@/context/design-tokens";
@@ -20,10 +21,12 @@ export function Providers({ children }: { children: ReactNode }) {
           <AuthProvider>
             <CartProvider>
               <BookingBadgeProvider>
-                <AuthModalProvider>
-                  {children}
-                  <Toaster position="bottom-right" richColors closeButton />
-                </AuthModalProvider>
+                <ComplaintBadgeProvider>
+                  <AuthModalProvider>
+                    {children}
+                    <Toaster position="bottom-right" richColors closeButton />
+                  </AuthModalProvider>
+                </ComplaintBadgeProvider>
               </BookingBadgeProvider>
             </CartProvider>
           </AuthProvider>

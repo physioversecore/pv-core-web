@@ -1,15 +1,16 @@
 "use client";
 
-import { useState, useMemo, useCallback, Suspense } from "react";
+import { useState, useMemo, useCallback, useRef, Suspense } from "react";
 import { useSearchParams as useSearchParamsNav, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { AlertTriangle, Paperclip, X, CheckCircle2, FileText } from "lucide-react";
+import { AlertTriangle, Paperclip, X, FileText, ChevronDown, ChevronUp } from "lucide-react";
 import { useLang } from "@/context/i18n";
-import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import { useSessions } from "@/hooks/useSessions";
 import { usePatientComplaints } from "@/hooks/usePatientComplaints";
 import { StatusChip, type StatusType } from "@/components/tables/StatusChip";
+import { PreviewDialog, isPreviewableByName } from "@/components/PreviewDialog";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { formatDate, to12h } from "@/lib/format";
 
 const CATEGORIES = [
   { value: "Late arrival", labelKey: "patient_complaints.catLate" },
@@ -38,8 +39,8 @@ function ComplaintsContent() {
   const searchParams = useSearchParamsNav();
   const prefillBookingId = searchParams.get("bookingId") ?? "";
 
-  const { sessions, isLoading: sessionsLoading } = useSessions();
-  const { items: myComplaints, submitComplaint, isSubmitting, refetch, isRefetching } = usePatientComplaints(MOCK_PATIENT_ID);
+  const { sessions } = useSessions();
+  const { items: myComplaints, submitComplaint, isSubmitting, isLoading: complaintsLoading, isRefetching } = usePatientComplaints(MOCK_PATIENT_ID);
 
   const [form, setForm] = useState({
     bookingId: prefillBookingId,
@@ -49,7 +50,11 @@ function ComplaintsContent() {
     preferredOutcome: "",
   });
   const [files, setFiles] = useState<File[]>([]);
-  const [submitted, setSubmitted] = useState<{ id: string; category: string } | null>(null);
+  const [previewFile, setPreviewFile] = useState<File | null>(null);
+  const [previewAttachment, setPreviewAttachment] = useState<{ url: string; name: string } | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const submittingRef = useRef(false);
 
   const therapistsSeen = useMemo(() => {
     const map = new Map<string, { id: string; name: string }>();
@@ -66,11 +71,16 @@ function ComplaintsContent() {
       .slice(0, 20)
       .map((s) => ({
         id: s.id,
-        label: `${s.therapistName ?? "Therapist"} — ${s.date}, ${s.time}`,
+        label: `${s.therapistName ?? "Therapist"} — ${formatDate(s.date)}, ${to12h(s.time)}`,
         therapistId: s.therapistId,
         therapistName: s.therapistName ?? "",
       }));
   }, [sessions]);
+
+  const filteredBookings = useMemo(() => {
+    if (!form.therapistId) return [];
+    return recentBookings.filter((b) => b.therapistId === form.therapistId);
+  }, [recentBookings, form.therapistId]);
 
   const prefillTherapist = useMemo(() => {
     if (!form.bookingId) return null;
@@ -113,111 +123,83 @@ function ComplaintsContent() {
     async (e: React.FormEvent) => {
       e.preventDefault();
 
-      if (!form.category) {
-        toast.error(t("patient_complaints.errorCategory"));
-        return;
-      }
-      if (form.description.trim().length < 20) {
-        toast.error(t("patient_complaints.errorDescription"));
-        return;
-      }
-      if (!selectedTherapistId) {
-        toast.error(t("patient_complaints.errorTherapist"));
-        return;
-      }
+      if (submittingRef.current) return;
+      submittingRef.current = true;
+      setSubmitting(true);
 
-      const success = await submitComplaint({
-        patientId: MOCK_PATIENT_ID,
-        patient: MOCK_PATIENT_NAME,
-        therapistId: selectedTherapistId,
-        therapist: selectedTherapistName,
-        bookingId: form.bookingId || undefined,
-        category: form.category,
-        priority: autoPriority as "Normal" | "Urgent",
-        description: form.description.trim(),
-        evidenceUrls: files.map((f) => `/uploads/${f.name}`),
-        preferredOutcome: form.preferredOutcome || undefined,
-      });
+      try {
+        if (!form.category) {
+          toast.error(t("patient_complaints.errorCategory"));
+          return;
+        }
+        if (form.description.trim().length < 20) {
+          toast.error(t("patient_complaints.errorDescription"));
+          return;
+        }
+        if (!selectedTherapistId) {
+          toast.error(t("patient_complaints.errorTherapist"));
+          return;
+        }
 
-      if (success) {
-        const newId = `CMP-${String(100 + myComplaints.length + 1).padStart(3, "0")}`;
-        setSubmitted({ id: newId, category: form.category });
-        toast.success(t("patient_complaints.submitted"));
+        let evidenceUrls: string[] = [];
+        if (files.length > 0) {
+          const session = `complaint-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+          const formData = new FormData();
+          formData.append("session", session);
+          files.forEach((f) => formData.append("files", f));
+
+          try {
+            const res = await fetch("/api/uploads/complaint-evidence", {
+              method: "POST",
+              body: formData,
+            });
+            if (!res.ok) throw new Error("Upload failed");
+            const data = await res.json();
+            evidenceUrls = (data.urls ?? []).map((u: { url: string; fileName: string }) =>
+              `${u.url}?name=${encodeURIComponent(u.fileName)}`
+            );
+          } catch {
+            toast.error(t("patient_complaints.evidenceUploadError"));
+            return;
+          }
+        }
+
+        const success = await submitComplaint({
+          patientId: MOCK_PATIENT_ID,
+          patient: MOCK_PATIENT_NAME,
+          therapistId: selectedTherapistId,
+          therapist: selectedTherapistName,
+          bookingId: form.bookingId || undefined,
+          category: form.category,
+          priority: autoPriority as "Normal" | "Urgent",
+          description: form.description.trim(),
+          evidenceUrls,
+          preferredOutcome: form.preferredOutcome || undefined,
+        });
+
+        if (success) {
+          toast.success(t("patient_complaints.submitted"));
+          setForm({ bookingId: "", therapistId: "", category: "", description: "", preferredOutcome: "" });
+          setFiles([]);
+        }
+      } finally {
+        submittingRef.current = false;
+        setSubmitting(false);
       }
     },
-    [form, selectedTherapistId, selectedTherapistName, autoPriority, files, submitComplaint, myComplaints.length, t]
+    [form, selectedTherapistId, selectedTherapistName, autoPriority, files, submitComplaint, t]
   );
 
-  if (submitted) {
-    return (
-      <div className="max-w-lg mx-auto">
-        <div className="card-soft p-8 text-center">
-          <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-4">
-            <CheckCircle2 size={32} className="text-success" />
-          </div>
-          <h2 className="font-display text-2xl mb-2">{t("patient_complaints.confirmTitle")}</h2>
-          <p className="text-text-light text-sm mb-6">{t("patient_complaints.confirmDesc")}</p>
-          <div className="bg-surface rounded-xl p-4 mb-6 text-left space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-text-light">{t("patient_complaints.complaintId")}</span>
-              <span className="font-mono font-medium">{submitted.id}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-text-light">{t("patient_complaints.category")}</span>
-              <span>{submitted.category}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-text-light">{t("patient_complaints.expectedResponse")}</span>
-              <span>{t("patient_complaints.within48Hours")}</span>
-            </div>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <button
-              onClick={() => { setSubmitted(null); setForm({ bookingId: "", therapistId: "", category: "", description: "", preferredOutcome: "" }); setFiles([]); }}
-              className="btn-outline !px-5"
-            >
-              {t("patient_complaints.fileAnother")}
-            </button>
-            <button
-              onClick={() => router.push("/patient/settings")}
-              className="btn-secondary !px-5"
-            >
-              {t("patient_complaints.backToSettings")}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-5">
+    <div className="grid lg:grid-cols-2 gap-5 items-start">
       <form onSubmit={handleSubmit} className="card-soft p-5">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="eyebrow mb-1">{t("patient_complaints.fileComplaint")}</p>
-            <h3 className="font-display text-lg mb-1">{t("patient_complaints.reportIssue")}</h3>
-          </div>
-          <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
-        </div>
+        <p className="eyebrow mb-1">{t("patient_complaints.fileComplaint")}</p>
+        <h3 className="font-display text-lg mb-1">{t("patient_complaints.reportIssue")}</h3>
         <p className="text-sm text-text-light mb-4">{t("patient_complaints.reportDesc")}</p>
 
         <div className="grid sm:grid-cols-2 gap-3 mb-3">
           <div>
-            <label className="text-xs font-medium text-text-light">{t("patient_complaints.relatedBooking")}</label>
-            <select
-              value={form.bookingId}
-              onChange={(e) => handleBookingChange(e.target.value)}
-              className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white text-sm"
-            >
-              <option value="">{t("patient_complaints.generalBooking")}</option>
-              {recentBookings.map((b) => (
-                <option key={b.id} value={b.id}>{b.label}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="text-xs font-medium text-text-light">{t("patient_complaints.therapist")}</label>
+            <label className="text-xs font-medium text-text-light">{t("patient_complaints.therapist")} *</label>
             {prefillTherapist ? (
               <div className="mt-1 px-3 py-2.5 rounded-xl border border-border bg-surface/40 text-sm font-medium">
                 {prefillTherapist.name}
@@ -225,7 +207,14 @@ function ComplaintsContent() {
             ) : (
               <select
                 value={form.therapistId}
-                onChange={(e) => setForm((prev) => ({ ...prev, therapistId: e.target.value }))}
+                onChange={(e) => {
+                  const newTherapistId = e.target.value;
+                  setForm((prev) => ({
+                    ...prev,
+                    therapistId: newTherapistId,
+                    bookingId: prev.bookingId && newTherapistId ? prev.bookingId : "",
+                  }));
+                }}
                 className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white text-sm"
               >
                 <option value="">{t("patient_complaints.selectTherapist")}</option>
@@ -234,6 +223,20 @@ function ComplaintsContent() {
                 ))}
               </select>
             )}
+          </div>
+          <div>
+            <label className="text-xs font-medium text-text-light">{t("patient_complaints.relatedBooking")}</label>
+            <select
+              value={form.bookingId}
+              onChange={(e) => handleBookingChange(e.target.value)}
+              disabled={!form.therapistId}
+              className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <option value="">{form.therapistId ? t("patient_complaints.generalBooking") : "Select therapist first"}</option>
+              {filteredBookings.map((b) => (
+                <option key={b.id} value={b.id}>{b.label}</option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -256,14 +259,6 @@ function ComplaintsContent() {
             <AlertTriangle size={18} className="text-primary mt-0.5 shrink-0" />
             <div>
               <p className="text-sm font-medium mb-1">{t("patient_complaints.safetyRedirectTitle")}</p>
-              <p className="text-xs text-text-light mb-2">{t("patient_complaints.safetyRedirectDesc")}</p>
-              <button
-                type="button"
-                onClick={() => router.push("/admin/safety-incidents")}
-                className="text-xs font-medium text-secondary underline"
-              >
-                {t("patient_complaints.goToSafetyIncident")}
-              </button>
             </div>
           </div>
         )}
@@ -312,7 +307,13 @@ function ComplaintsContent() {
               {files.map((f, i) => (
                 <span key={i} className="inline-flex items-center gap-1.5 bg-surface rounded-lg px-2.5 py-1 text-xs">
                   <FileText size={12} className="text-text-light" />
-                  {f.name}
+                  {isPreviewableByName(f.name) ? (
+                    <button type="button" onClick={() => setPreviewFile(f)} className="hover:underline text-secondary">
+                      {f.name}
+                    </button>
+                  ) : (
+                    f.name
+                  )}
                   <button type="button" onClick={() => handleFileRemove(i)} className="text-text-muted hover:text-danger">
                     <X size={12} />
                   </button>
@@ -340,52 +341,128 @@ function ComplaintsContent() {
           <span className="text-xs text-text-light">{t("patient_complaints.identityNote")}</span>
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || submitting}
             className="btn-secondary !px-5 disabled:opacity-50"
           >
-            {isSubmitting ? t("patient_complaints.submitting") : t("patient_complaints.submitReport")}
+            {isSubmitting || submitting ? t("patient_complaints.submitting") : t("patient_complaints.submitReport")}
           </button>
         </div>
       </form>
 
       <div className="card-soft p-5">
-        <p className="eyebrow mb-1">{t("patient_complaints.myComplaints")}</p>
-        <h3 className="font-display text-lg mb-4">{t("patient_complaints.myComplaintsTitle")}</h3>
-
-        {myComplaints.length === 0 ? (
-          <p className="text-sm text-text-light py-6 text-center">{t("patient_complaints.noComplaints")}</p>
-        ) : (
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <p className="eyebrow mb-1">{t("patient_complaints.myComplaints")}</p>
+            <h3 className="font-display text-lg">{t("patient_complaints.myComplaintsTitle")}</h3>
+          </div>
+          {isRefetching && (
+            <span className="text-xs text-text-light">Refreshing...</span>
+          )}
+        </div>
+        {complaintsLoading ? (
           <div className="space-y-3">
-            {myComplaints.map((c) => (
-              <div key={c.id} className="border border-border rounded-xl p-4">
-                <div className="flex items-start justify-between gap-3 mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs text-text-light">{c.id}</span>
-                    <StatusChip status={c.status} />
-                    <StatusChip status={c.priority} />
-                  </div>
-                  <span className="text-xs text-text-muted font-mono whitespace-nowrap">
-                    {new Date(c.filed).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                  </span>
-                </div>
-                <p className="text-sm font-medium mb-1">
-                  {t("patient_complaints.against")} {c.against}
-                </p>
-                <p className="text-xs text-text-light mb-1">{c.category}</p>
-                <p className="text-sm text-text-light line-clamp-2">{c.description}</p>
-                {c.notes && c.notes.length > 0 && (
-                  <div className="mt-3 border-t border-border pt-2">
-                    <p className="text-xs font-medium text-text-light mb-1">{t("patient_complaints.resolutionNote")}</p>
-                    {c.notes.map((note, i) => (
-                      <p key={i} className="text-xs text-text-light bg-surface rounded-lg px-3 py-2 mt-1">{note}</p>
-                    ))}
-                  </div>
-                )}
+            {[1, 2].map((i) => (
+              <div key={i} className="border border-border rounded-xl p-4 animate-pulse">
+                <div className="h-4 bg-surface rounded w-1/3 mb-3" />
+                <div className="h-3 bg-surface rounded w-1/2 mb-2" />
+                <div className="h-3 bg-surface rounded w-2/3" />
               </div>
             ))}
           </div>
+        ) : myComplaints.length === 0 ? (
+          <p className="text-sm text-text-light py-6 text-center">{t("patient_complaints.noComplaints")}</p>
+        ) : (
+          <div className="space-y-2">
+            {myComplaints.map((c) => {
+              const isExpanded = expandedId === c.id;
+              return (
+                <div key={c.id} className="border border-border rounded-xl overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setExpandedId(isExpanded ? null : c.id)}
+                    className="w-full flex items-center gap-3 p-3 text-left hover:bg-surface/30 transition"
+                  >
+                    <div className="flex items-center gap-2 shrink-0">
+                      <StatusChip status={c.status} />
+                      <StatusChip status={c.priority} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm truncate block">
+                        <span className="font-medium">{t("patient_complaints.against")}</span>: {c.against}
+                      </span>
+                    </div>
+                    <span className="text-xs text-text-muted font-mono whitespace-nowrap shrink-0">
+                      {new Date(c.filed).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    </span>
+                    <span className="text-text-light shrink-0">
+                      {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                    </span>
+                  </button>
+
+                  {isExpanded && (
+                    <div className="px-4 pb-4 pt-1 space-y-2 border-t border-border/50 animate-in slide-in-from-top-1 fade-in duration-150">
+                      <p className="text-xs text-text-light">{c.category}</p>
+                      <p className="text-sm text-text-light">{c.description}</p>
+                      {c.evidenceUrls && c.evidenceUrls.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {c.evidenceUrls.map((entry, i) => {
+                            const [url, nameParam] = entry.split("?");
+                            const params = new URLSearchParams(nameParam ?? "");
+                            const storedName = params.get("name");
+                            const name = storedName ?? url.split("/").pop() ?? entry;
+                            const previewable = isPreviewableByName(name);
+                            return (
+                              <button
+                                key={i}
+                                type="button"
+                                onClick={() => previewable && setPreviewAttachment({ url, name })}
+                                disabled={!previewable}
+                                className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-[11px] font-medium transition
+                                  ${previewable
+                                    ? "border-border bg-surface/40 hover:bg-surface/70 cursor-pointer"
+                                    : "border-border bg-surface/20 opacity-60 cursor-default"
+                                  }`}
+                              >
+                                <FileText size={11} className="text-text-light" />
+                                <span className="truncate max-w-[140px]">{name}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                      {c.notes && c.notes.length > 0 && (
+                        <div className="mt-2 border-t border-border pt-2">
+                          <p className="text-[11px] font-medium text-text-light mb-1">{t("patient_complaints.resolutionNote")}</p>
+                          {c.notes.map((note, i) => (
+                            <p key={i} className="text-[11px] text-text-light bg-surface rounded-lg px-3 py-2 mt-1">{note}</p>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
+
+      <PreviewDialog
+        open={!!previewFile}
+        onClose={() => setPreviewFile(null)}
+        title={previewFile?.name ?? ""}
+        src={previewFile ? URL.createObjectURL(previewFile) : ""}
+        fileName={previewFile?.name}
+        fileSize={previewFile?.size}
+      />
+
+      <PreviewDialog
+        open={!!previewAttachment}
+        onClose={() => setPreviewAttachment(null)}
+        title={previewAttachment?.name ?? ""}
+        src={previewAttachment?.url ?? ""}
+        fileName={previewAttachment?.name}
+      />
     </div>
   );
 }
