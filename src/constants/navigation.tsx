@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import {
-  LayoutDashboard, Calendar, ShoppingBag, Activity, FileText, User, HelpCircle,
+  LayoutDashboard, Calendar, FileText, User, HelpCircle,
   Stethoscope, Upload, Users, Wallet, Settings, Shield, CreditCard,
   AlertTriangle, Bell, CalendarClock, UserCog, MapPin, ClipboardCheck,
   BadgeCheck, BarChart3, ShieldAlert, ScrollText, LineChart, RotateCcw, Palette,
@@ -33,8 +33,6 @@ export const RESOURCE_LINKS = [
 export const patientNav: NavItem[] = [
   { to: "/patient", label: "Overview", icon: <LayoutDashboard size={16} /> },
   { to: "/patient/sessions", label: "My Sessions", icon: <Calendar size={16} /> },
-  { to: "/patient/shop", label: "Shop", icon: <ShoppingBag size={16} /> },
-  { to: "/patient/progress", label: "Recovery Progress", icon: <Activity size={16} /> },
   { to: "/patient/reports", label: "Reports & Files", icon: <FileText size={16} /> },
   { to: "/patient/complaints", label: "Complaints & Feedback", icon: <MessageSquareWarning size={16} /> },
   { to: "/patient/profile", label: "My Profile", icon: <User size={16} /> },
