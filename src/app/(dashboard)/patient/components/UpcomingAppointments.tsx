@@ -7,7 +7,7 @@ import { useSessions } from "@/hooks/useSessions";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { CancelConfirmModal } from "@/components/modals/CancelConfirmModal";
 import { RescheduleModal } from "@/components/modals/RescheduleModal";
-import { formatWhen, formatType } from "@/lib/format";
+import { formatWhen, formatType, isPast } from "@/lib/format";
 import type { SessionData } from "@/services/api/sessions";
 
 const OVERVIEW_LIMIT = 5;
@@ -60,7 +60,9 @@ export function UpcomingAppointments() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {upcoming.map((u) => (
+                {upcoming.map((u) => {
+                  const past = isPast(u.date, u.time);
+                  return (
                   <tr key={u.id}>
                     <td className="py-3 pr-3 font-medium text-secondary">{u.therapistName || "Therapist"}</td>
                     <td className="py-3 pr-3 text-text-light">{formatWhen(u.date, u.time)}</td>
@@ -72,6 +74,11 @@ export function UpcomingAppointments() {
                       />
                     </td>
                     <td className="py-3 text-right">
+                      {past ? (
+                        <span className="text-[11px] font-medium text-text-light">
+                          {t("patient_dashboard.sessionsPast")}
+                        </span>
+                      ) : (
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => setRescheduleTarget(u)}
@@ -86,9 +93,11 @@ export function UpcomingAppointments() {
                           {t("patient_dashboard.cancelSession")}
                         </button>
                       </div>
+                      )}
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
