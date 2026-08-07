@@ -1,9 +1,9 @@
 "use client";
 
 import { SmartBadge } from "./SmartBadge";
-import { formatWhen, formatType, npr, mapSessionStatus, isPast } from "@/lib/format";
+import { formatWhen, formatType, npr, mapSessionStatus, isPast, isOverdueSession } from "@/lib/format";
 import type { SessionData } from "@/services/api/sessions";
-import { CheckCircle2, XCircle, RefreshCw, X, Clock, IndianRupee, Star } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle, RefreshCw, X, Clock, IndianRupee, Star } from "lucide-react";
 
 interface SessionTableProps {
   sessions: SessionData[];
@@ -18,12 +18,14 @@ const statusStyles: Record<string, string> = {
   Confirmed: "!bg-blue-600/75 !text-white",
   Completed: "!bg-amber/15 !text-amber",
   Cancelled: "!bg-danger !text-white",
+  Overdue: "!bg-danger/15 !text-danger",
 };
 
 const statusIconStyles: Record<string, string> = {
   Confirmed: "text-blue-600/75",
   Completed: "text-success",
   Cancelled: "text-danger",
+  Overdue: "text-danger",
 };
 
 export function SessionTable({ sessions, onCancel, onReschedule, onRate, onClick, rateableIds }: SessionTableProps) {
@@ -44,10 +46,10 @@ export function SessionTable({ sessions, onCancel, onReschedule, onRate, onClick
         </thead>
         <tbody className="divide-y divide-border">
           {sessions.map((s) => {
-            const displayStatus = mapSessionStatus(s.status);
             const isUpcoming = s.status === "SCHEDULED" || s.status === "IN_PROGRESS";
-            const isOverdue = isPast(s.date, s.time);
-            const showActions = isUpcoming && !isOverdue;
+            const isOverdue = isOverdueSession(s.status, s.date, s.time);
+            const displayStatus = isOverdue ? "Overdue" : mapSessionStatus(s.status);
+            const showActions = isUpcoming && !isPast(s.date, s.time);
             const canRate = displayStatus === "Completed" && rateableIds?.has(s.id);
             return (
               <tr
@@ -76,7 +78,7 @@ export function SessionTable({ sessions, onCancel, onReschedule, onRate, onClick
                 <td className="py-3.5 px-3 md:px-4 text-center md:text-left">
                   {/* Desktop: badge + chip */}
                   <span className="hidden md:inline-flex items-center gap-1.5 text-[10px]">
-                    <SmartBadge date={s.date} time={s.time} status={s.status} />
+                    {!isOverdue && <SmartBadge date={s.date} time={s.time} status={s.status} />}
                     <span className={`chip text-[10px] ${statusStyles[displayStatus] ?? ""}`}>
                       {displayStatus}
                     </span>
@@ -84,6 +86,7 @@ export function SessionTable({ sessions, onCancel, onReschedule, onRate, onClick
                   {/* Mobile: centered icon */}
                   <span className="md:hidden flex items-center justify-center">
                     {displayStatus === "Confirmed" && <CheckCircle2 size={20} className={statusIconStyles.Confirmed} />}
+                    {displayStatus === "Overdue" && <AlertTriangle size={20} className={statusIconStyles.Overdue} />}
                     {displayStatus === "Completed" && <CheckCircle2 size={20} className={statusIconStyles.Completed} />}
                     {displayStatus === "Cancelled" && <XCircle size={20} className={statusIconStyles.Cancelled} />}
                   </span>

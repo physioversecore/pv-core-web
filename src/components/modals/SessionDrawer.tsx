@@ -3,7 +3,7 @@
 import { X, Calendar, MapPin, Clock, CreditCard, FileText } from "lucide-react";
 import { Avatar } from "@/components/common/Avatar";
 import { SmartBadge } from "@/components/sessions/SmartBadge";
-import { formatDate, formatType, mapSessionStatus, npr } from "@/lib/format";
+import { formatDate, formatType, mapSessionStatus, npr, isPast, isOverdueSession } from "@/lib/format";
 import type { SessionData } from "@/services/api/sessions";
 
 interface SessionDrawerProps {
@@ -17,6 +17,7 @@ const statusStyles: Record<string, string> = {
   Confirmed: "!bg-success/15 !text-success",
   Completed: "!bg-amber/15 !text-amber",
   Cancelled: "!bg-danger !text-white",
+  Overdue: "!bg-danger/15 !text-danger",
 };
 
 export function SessionDrawer({
@@ -25,10 +26,10 @@ export function SessionDrawer({
   onCancel,
   onReschedule,
 }: SessionDrawerProps) {
-  const displayStatus = mapSessionStatus(session.status);
+  const isOverdue = isOverdueSession(session.status, session.date, session.time);
+  const displayStatus = isOverdue ? "Overdue" : mapSessionStatus(session.status);
   const isUpcoming = session.status === "SCHEDULED" || session.status === "IN_PROGRESS";
-  const isPast = new Date(session.date) < new Date(new Date().toDateString());
-  const showActions = isUpcoming && !isPast;
+  const showActions = isUpcoming && !isPast(session.date, session.time);
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
@@ -51,7 +52,7 @@ export function SessionDrawer({
               </div>
               <div className="text-sm text-text-light mt-0.5">{formatType(session.type)}</div>
               <div className="flex items-center gap-2 mt-2">
-                <SmartBadge date={session.date} time={session.time} status={session.status} />
+                {!isOverdue && <SmartBadge date={session.date} time={session.time} status={session.status} />}
                 <span className={`chip ${statusStyles[displayStatus] ?? ""}`}>
                   {displayStatus}
                 </span>

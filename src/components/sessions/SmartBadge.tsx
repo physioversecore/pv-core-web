@@ -20,6 +20,14 @@ export function SmartBadge({ date, time, status }: SmartBadgeProps) {
     );
   }
 
+  if (isPast(date, time)) {
+    return (
+      <span className="text-[10px] badge-danger">
+        Overdue
+      </span>
+    );
+  }
+
   if (isToday(date)) {
     const h = hoursUntil(date, time);
     return (
@@ -37,14 +45,6 @@ export function SmartBadge({ date, time, status }: SmartBadgeProps) {
     return (
       <span className="badge-success text-[10px]">
         Tomorrow
-      </span>
-    );
-  }
-
-  if (isPast(date, time)) {
-    return (
-      <span className="text-[10px] badge-danger">
-        Overdue
       </span>
     );
   }

@@ -1,7 +1,7 @@
 "use client";
 import { Avatar } from "@/components/common/Avatar";
 import { SmartBadge } from "./SmartBadge";
-import { formatWhen, formatType, mapSessionStatus, npr, isPast } from "@/lib/format";
+import { formatWhen, formatType, mapSessionStatus, npr, isPast, isOverdueSession } from "@/lib/format";
 import type { SessionData } from "@/services/api/sessions";
 import { Clock, RotateCcw, X, Star } from "lucide-react";
 
@@ -18,13 +18,14 @@ const statusStyles: Record<string, string> = {
   Confirmed: "!bg-success/15 !text-success",
   Completed: "!bg-amber/15 !text-amber",
   Cancelled: "!bg-danger !text-white",
+  Overdue: "!bg-danger/15 !text-danger",
 };
 
 export function SessionCard({ session, onCancel, onReschedule, onRate, onClick, rateableIds }: SessionCardProps) {
-  const displayStatus = mapSessionStatus(session.status);
   const isUpcoming = session.status === "SCHEDULED" || session.status === "IN_PROGRESS";
-  const isOverdue = isPast(session.date, session.time);
-  const showActions = isUpcoming && !isOverdue;
+  const isOverdue = isOverdueSession(session.status, session.date, session.time);
+  const displayStatus = isOverdue ? "Overdue" : mapSessionStatus(session.status);
+  const showActions = isUpcoming && !isPast(session.date, session.time);
   const canRate = displayStatus === "Completed" && rateableIds?.has(session.id);
 
   return (
@@ -42,7 +43,7 @@ export function SessionCard({ session, onCancel, onReschedule, onRate, onClick, 
             <span className="truncate">{formatType(session.type)}</span>
           </div>
         </div>
-        <SmartBadge date={session.date} time={session.time} status={session.status} />
+        {!isOverdue && <SmartBadge date={session.date} time={session.time} status={session.status} />}
       </div>
 
       <div className="flex items-center gap-1.5 text-xs text-text-light/90 bg-border/30 rounded-lg px-2.5 py-1.5 leading-relaxed">

@@ -73,6 +73,10 @@ export function isPast(date: string, time: string): boolean {
   return d < new Date();
 }
 
+export function isOverdueSession(status: string, date: string, time: string): boolean {
+  return status === "SCHEDULED" && isPast(date, time);
+}
+
 export function hoursUntil(date: string, time: string): number {
   const [h, m] = time.split(":").map(Number);
   const d = new Date(date);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Download, Eye, FileText, Image as ImageIcon, Video, File } from "lucide-react";
+import { Download, Eye, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { useLang } from "@/context/i18n";
 import { usePatientReports } from "@/hooks/usePatientReports";
@@ -40,6 +40,7 @@ function getAuthToken(): string | null {
 function withToken(url: string): string {
   const token = getAuthToken();
   if (!token) return url;
+  if (!url.startsWith("/")) return url;
   const sep = url.includes("?") ? "&" : "?";
   return `${url}${sep}token=${token}`;
 }
@@ -144,39 +145,58 @@ export default function Reports() {
               : [];
 
             return (
-              <div key={r.id} className="p-4 flex items-center gap-4">
-                <div className={`w-10 h-10 rounded-xl grid place-items-center shrink-0 ${files.length > 0 ? getFileTint(getOriginalName(files[0])) : "bg-surface text-secondary"}`}>
-                  {files.length > 0
-                    ? getFileIcon(getOriginalName(files[0]))
-                    : <FileText size={16} />}
-                </div>
+              <div key={r.id} className="p-4">
+                <div className="flex items-center gap-4">
+                  <div className={`w-10 h-10 rounded-xl grid place-items-center shrink-0 ${files.length > 0 ? getFileTint(getOriginalName(files[0])) : "bg-surface text-secondary"}`}>
+                    {files.length > 0
+                      ? getFileIcon(getOriginalName(files[0]))
+                      : <FileText size={16} />}
+                  </div>
 
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm truncate">{r.title}</div>
-                  <div className="text-xs text-text-light">
-                    {formatDate(r.createdAt)}
-                    {files.length > 0 && (
-                      <span className="ml-2">
-                        · {files.length} file{files.length > 1 ? "s" : ""}
-                      </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm truncate">{r.title}</div>
+                    <div className="text-xs text-text-light">
+                      {formatDate(r.createdAt)}
+                      {files.length > 0 && (
+                        <span className="ml-2">
+                          · {files.length} file{files.length > 1 ? "s" : ""}
+                        </span>
+                      )}
+                    </div>
+                    {r.content && (
+                      <p className="text-xs text-text-light mt-1 line-clamp-1">{r.content}</p>
                     )}
                   </div>
-                  {r.content && (
-                    <p className="text-xs text-text-light mt-1 line-clamp-1">{r.content}</p>
-                  )}
                 </div>
 
                 {files.length > 0 && (
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="mt-3 pl-14 space-y-1.5">
                     {files.map((url, i) => {
                       const name = getOriginalName(url);
                       const previewable = isPreviewableByName(name);
+                      const size = getFileSize(url);
                       return (
-                        <div key={i} className="flex items-center gap-1">
+                        <div
+                          key={i}
+                          className="flex items-center gap-2 py-1.5 px-2.5 rounded-lg bg-surface/40 border border-border"
+                        >
+                          <span className="w-6 h-6 rounded-md grid place-items-center shrink-0 bg-white text-secondary">
+                            {getFileIcon(name, 13)}
+                          </span>
+                          <span className="flex-1 min-w-0">
+                            <span className="block text-xs font-medium truncate" title={name}>
+                              {name}
+                            </span>
+                            {size > 0 && (
+                              <span className="text-[10px] text-text-light">
+                                {formatFileSize(size)}
+                              </span>
+                            )}
+                          </span>
                           {previewable && (
                             <button
                               onClick={() => openPreview(url)}
-                              className="p-1.5 rounded-lg hover:bg-surface text-text-light hover:text-secondary transition"
+                              className="p-1.5 rounded-lg hover:bg-white text-text-light hover:text-secondary transition shrink-0"
                               title="Preview"
                             >
                               <Eye size={14} />
@@ -184,7 +204,7 @@ export default function Reports() {
                           )}
                           <button
                             onClick={() => handleDownload(url)}
-                            className="btn-outline !py-1.5 !px-3 text-xs inline-flex items-center gap-1"
+                            className="btn-outline !py-1 !px-2.5 text-xs inline-flex items-center gap-1 shrink-0"
                           >
                             <Download size={12} />
                             {name.split(".").pop()?.toUpperCase() || "FILE"}
