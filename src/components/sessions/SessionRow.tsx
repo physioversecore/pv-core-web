@@ -2,7 +2,7 @@
 
 import { Avatar } from "@/components/common/Avatar";
 import { SmartBadge } from "./SmartBadge";
-import { formatWhen, formatType, npr, mapSessionStatus } from "@/lib/format";
+import { formatWhen, formatType, npr, mapSessionStatus, isPast } from "@/lib/format";
 import type { SessionData } from "@/services/api/sessions";
 
 interface SessionRowProps {
@@ -23,8 +23,8 @@ const statusStyles: Record<string, string> = {
 export function SessionRow({ session, onCancel, onReschedule, onRate, onClick, rateableIds }: SessionRowProps) {
   const displayStatus = mapSessionStatus(session.status);
   const isUpcoming = session.status === "SCHEDULED" || session.status === "IN_PROGRESS";
-  const isPast = new Date(session.date) < new Date(new Date().toDateString());
-  const showActions = isUpcoming && !isPast;
+  const isOverdue = isPast(session.date, session.time);
+  const showActions = isUpcoming && !isOverdue;
   const canRate = displayStatus === "Completed" && rateableIds?.has(session.id);
 
   return (

@@ -1082,6 +1082,8 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["therapist-slots"] });
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["patient-dashboard"] });
       const ref = data?.payment?.id || data?.session?.id || "BK-" + Math.random().toString(36).slice(2, 8).toUpperCase();
       setBookingResult({
         reference: ref,
@@ -1108,6 +1110,8 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
       }),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["therapist-slots"] });
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["patient-dashboard"] });
       setBookingResult({
         reference: session!.id,
         therapistName: resolvedTherapist.name,

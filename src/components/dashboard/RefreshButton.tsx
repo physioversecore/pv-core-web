@@ -10,14 +10,25 @@ interface RefreshButtonProps {
 
 export function RefreshButton({ onRefresh, isRefreshing, label }: RefreshButtonProps) {
   return (
+    <>
     <button
       onClick={onRefresh}
       disabled={isRefreshing}
-      className="btn-outline !py-2 !px-3 text-xs cursor-pointer disabled:opacity-50"
+      className="hidden md:block btn-outline !py-2 !px-3 text-xs cursor-pointer disabled:opacity-50"
       title={label ?? "Refresh"}
     >
       <RefreshCw size={14} className={`inline mr-1 ${isRefreshing ? "animate-spin" : ""}`} />
       {label ?? "Refresh"}
+      </button>
+      {/*Mobile devices only*/}
+    <button
+      onClick={onRefresh}
+      disabled={isRefreshing}
+      className="md:hidden btn-outline !py-2 !px-3 text-xs cursor-pointer disabled:opacity-50"
+      title={label ?? "Refresh"}
+    >
+      <RefreshCw size={14}/>
     </button>
+    </>
   );
 }
