@@ -8,23 +8,25 @@ import { impactStats } from "@/lib/landing-data";
 export function ImpactStats() {
   const { t } = useLang();
   return (
-    <section className="relative py-16 bg-background">
+    <section className="relative py-16 md:py-24 bg-moss grid-bg">
       <PlusField count={10} seed={3} />
-      <div className="relative max-w-7xl mx-auto px-5 lg:px-8 grid grid-cols-2 md:grid-cols-4">
-        {impactStats.map((s, i) => (
-          <Reveal key={i} delay={i * 80}>
-            <div className={`text-center py-4 ${i > 0 ? "md:border-l border-border" : ""}`}>
-              <div className="font-display text-4xl lg:text-5xl text-secondary">
-                {s.isRating
-                  ? <>4.8<span className="text-primary">★</span></>
-                  : <><CountUp to={s.value} /><span className="text-primary">{s.suffix}</span></>}
+      <div className="relative max-w-7xl mx-auto px-5 lg:px-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+          {impactStats.map((s, i) => (
+            <Reveal key={i} delay={i * 80}>
+              <div className="card-neo card-neo-hover p-8 md:p-10 text-center">
+                <div className="font-display font-extrabold text-4xl lg:text-5xl text-carbon">
+                  {s.isRating
+                    ? <>4.8<span className="text-olive">★</span></>
+                    : <><CountUp to={s.value} /><span className="text-olive">{s.suffix}</span></>}
+                </div>
+                <div className="label-ink text-text-light mt-3">
+                  {s.isRating ? t("landing.impactStatsRating") : s.label}
+                </div>
               </div>
-              <div className="text-xs text-text-light mt-2 font-mono uppercase tracking-widest">
-                {s.isRating ? t("landing.impactStatsRating") : s.label}
-              </div>
-            </div>
-          </Reveal>
-        ))}
+            </Reveal>
+          ))}
+        </div>
       </div>
     </section>
   );

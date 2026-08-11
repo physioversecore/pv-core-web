@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Avatar } from "@/components/Avatar";
 import { useLang } from "@/context/i18n";
 import { usePagination } from "@/hooks/usePagination";
+import { useDebounce } from "@/hooks/useDebounce";
 import { useTherapistPatients } from "@/hooks/useTherapistPatients";
 import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import {
@@ -85,9 +86,11 @@ export default function Patients() {
 
   const pagination = usePagination({ pageSize: 10 });
 
+  const debouncedSearch = useDebounce(search, 400);
+
   const { patients, total, isLoading, refetch, isRefetching } = useTherapistPatients({
     pagination,
-    search,
+    search: debouncedSearch,
     condition: conditionFilter,
     lastVisit: lastVisitFilter,
   });

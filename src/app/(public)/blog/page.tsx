@@ -27,12 +27,12 @@ export default function Blog() {
         <div className="max-w-7xl mx-auto px-5 lg:px-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {POSTS.map((p, i) => (
             <Reveal key={p.title} delay={(i % 3) * 100}>
-              <article className="card-soft overflow-hidden group hover:-translate-y-1 hover:shadow-[0_18px_38px_-18px_rgba(47,93,80,.45)] transition duration-300">
+              <article className="card-neo card-neo-hover overflow-hidden">
                 <div className="h-40 relative" style={{ background: p.accent }}>
-                  <span className="absolute top-3 left-3 chip !bg-white/90 !text-secondary">{p.tag}</span>
+                  <span className="absolute top-3 left-3 chip-volt">{p.tag}</span>
                 </div>
                 <div className="p-5">
-                  <div className="font-display text-lg mb-2 leading-snug">{p.title}</div>
+                  <div className="font-display font-bold text-lg mb-2 leading-snug">{p.title}</div>
                   <p className="text-text-light text-sm mb-3">{p.desc}</p>
                   <div className="flex items-center gap-1 text-xs text-text-light"><Clock size={12} /> {p.read}</div>
                 </div>

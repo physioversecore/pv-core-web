@@ -19,7 +19,9 @@ export function UpcomingAppointments() {
   const [rescheduleTarget, setRescheduleTarget] = useState<SessionData | null>(null);
 
   const allUpcoming = sessions.filter(
-    (s) => s.status === "SCHEDULED" || s.status === "IN_PROGRESS",
+    (s) =>
+      (s.status === "SCHEDULED" || s.status === "IN_PROGRESS") &&
+      !isPast(s.date, s.time),
   );
   const showViewAll = allUpcoming.length > OVERVIEW_LIMIT;
   const upcoming = showViewAll ? allUpcoming.slice(0, OVERVIEW_LIMIT) : allUpcoming;
@@ -60,9 +62,7 @@ export function UpcomingAppointments() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {upcoming.map((u) => {
-                  const past = isPast(u.date, u.time);
-                  return (
+                {upcoming.map((u) => (
                   <tr key={u.id}>
                     <td className="py-3 pr-3 font-medium text-secondary">{u.therapistName || "Therapist"}</td>
                     <td className="py-3 pr-3 text-text-light">{formatWhen(u.date, u.time)}</td>
@@ -74,11 +74,6 @@ export function UpcomingAppointments() {
                       />
                     </td>
                     <td className="py-3 text-right">
-                      {past ? (
-                        <span className="text-[11px] font-medium text-text-light">
-                          {t("patient_dashboard.sessionsPast")}
-                        </span>
-                      ) : (
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => setRescheduleTarget(u)}
@@ -93,11 +88,9 @@ export function UpcomingAppointments() {
                           {t("patient_dashboard.cancelSession")}
                         </button>
                       </div>
-                      )}
                     </td>
                   </tr>
-                  );
-                })}
+                ))}
               </tbody>
             </table>
           </div>

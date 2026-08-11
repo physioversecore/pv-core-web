@@ -21,7 +21,13 @@ export interface PatientProfile {
   city: string;
   address?: string;
   history?: string;
+  dob?: string;
+  age?: number;
   gender: "Any" | "Male" | "Female";
+  condition?: string;
+  emergencyName?: string;
+  emergencyRelation?: string;
+  emergencyPhone?: string;
   notifEmail: boolean;
   notifSms: boolean;
   createdAt: string;

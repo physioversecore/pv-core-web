@@ -13,9 +13,17 @@ export function SmartBadge({ date, time, status }: SmartBadgeProps) {
 
   if (status === "IN_PROGRESS") {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber/15 text-amber">
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] bg-amber/15 text-amber">
         <span className="w-1.5 h-1.5 rounded-full bg-amber animate-pulse" />
         In Progress
+      </span>
+    );
+  }
+
+  if (isPast(date, time)) {
+    return (
+      <span className="text-[10px] badge-danger">
+        Overdue
       </span>
     );
   }
@@ -23,28 +31,20 @@ export function SmartBadge({ date, time, status }: SmartBadgeProps) {
   if (isToday(date)) {
     const h = hoursUntil(date, time);
     return (
-      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${h <= 2 ? "bg-red/10 text-red" : "bg-amber/15 text-amber"}`}>
-        {h <= 2 ? (
-          <><span className="w-1.5 h-1.5 rounded-full bg-red animate-pulse" /> Due soon</>
-        ) : (
-          <>Today</>
+      <>
+        {h <= 2 && (
+          <span className={`badge-warning text-[10px] animate-pulse`}>
+            Due soon
+          </span>
         )}
-      </span>
+    </>
     );
   }
 
   if (isTomorrow(date)) {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+      <span className="badge-success text-[10px]">
         Tomorrow
-      </span>
-    );
-  }
-
-  if (isPast(date, time)) {
-    return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-border text-slate">
-        Overdue
       </span>
     );
   }

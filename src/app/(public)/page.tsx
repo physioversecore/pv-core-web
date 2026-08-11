@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { BookingModal } from "@/components/BookingModal";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { SectionError } from "@/components/SectionError";
-import { FeaturedTherapistsSkeleton, HeroLiveSkeleton, TherapistCardGridSkeleton } from "@/components/SuspenseFallback";
+import { HeroLiveSkeleton } from "@/components/SuspenseFallback";
 import {
   HeroSection,
   PartnersMarquee,
@@ -13,11 +13,10 @@ import {
   HowItWorksSection,
   ServicesSection,
   FeaturedTherapists,
-  FindTherapistSection,
-  AppDownloadSection,
   TherapistCTA,
 } from "@/components/sections";
 import { useBooking } from "@/hooks/useBooking";
+import { useDebounce } from "@/hooks/useDebounce";
 import type { Therapist } from "@/types";
 import { getTherapists } from "@/services/api/therapists";
 
@@ -26,7 +25,7 @@ export default function Landing() {
   const [city, setCity] = useState("");
   const [spec, setSpec] = useState("");
   const [gender, setGender] = useState("");
-  const { booking, book: handleBook, closeBooking } = useBooking();
+  const { booking, closeBooking } = useBooking();
 
   const { data: therapistsData, isLoading, isError, refetch } = useQuery({
     queryKey: ["therapists"],
@@ -38,16 +37,18 @@ export default function Landing() {
     gender: t.gender as "Male" | "Female",
   }));
 
+  const debouncedQ = useDebounce(q, 400);
+
   const filtered = useMemo(
     () =>
       therapists.filter(
         (t) =>
-          (!q || t.name.toLowerCase().includes(q.toLowerCase()) || t.specialty.toLowerCase().includes(q.toLowerCase())) &&
+          (!debouncedQ || t.name.toLowerCase().includes(debouncedQ.toLowerCase()) || t.specialty.toLowerCase().includes(debouncedQ.toLowerCase())) &&
           (!city || t.city === city) &&
           (!spec || t.specialty === spec) &&
           (!gender || t.gender === gender),
       ),
-    [q, city, spec, gender, therapists],
+    [debouncedQ, city, spec, gender, therapists],
   );
 
   return (
@@ -61,39 +62,34 @@ export default function Landing() {
       ) : (
         <ErrorBoundary fallback={<SectionError onRetry={() => refetch()} />}>
           <Suspense fallback={<HeroLiveSkeleton />}>
-            <HeroSection therapists={therapists} onBook={handleBook} loading={isLoading} />
-          </Suspense>
-        </ErrorBoundary>
-      )}
-      <PartnersMarquee />
-      <ImpactStats />
-      <HowItWorksSection />
-      <ServicesSection />
-      {isError ? null : (
-        <ErrorBoundary fallback={<SectionError onRetry={() => refetch()} />}>
-          <Suspense fallback={<FeaturedTherapistsSkeleton />}>
-            <FeaturedTherapists therapists={therapists.slice(0, 3)} onBook={handleBook} loading={isLoading} />
-          </Suspense>
-        </ErrorBoundary>
-      )}
-      {isError ? null : (
-        <ErrorBoundary fallback={<SectionError onRetry={() => refetch()} />}>
-          <Suspense fallback={<TherapistCardGridSkeleton count={6} />}>
-            <FindTherapistSection
-              q={q} city={city} spec={spec} gender={gender}
-              filtered={filtered.slice(0, 6)}
-              hasMore={filtered.length > 6}
+            <HeroSection
               loading={isLoading}
+              q={q}
+              city={city}
+              spec={spec}
+              gender={gender}
+              filtered={filtered}
               onQChange={setQ}
               onCityChange={setCity}
               onSpecChange={setSpec}
               onGenderChange={setGender}
-              onBook={handleBook}
             />
           </Suspense>
         </ErrorBoundary>
       )}
-      <AppDownloadSection />
+      <PartnersMarquee />
+      <HowItWorksSection />
+      {/*Service list section*/}
+      {/*<ServicesSection />*/}
+
+      {/*Featured therapist top tier list section*/}
+        {/*<ErrorBoundary fallback={<SectionError onRetry={() => refetch()} />}>
+          <Suspense fallback={<FeaturedTherapistsSkeleton />}>
+            <FeaturedTherapists therapists={therapists.slice(0, 3)} onBook={handleBook} loading={isLoading} />
+          </Suspense>
+        </ErrorBoundary>*/}
+
+      <ImpactStats />
       <TherapistCTA />
       {booking && <BookingModal therapist={booking} onClose={closeBooking} />}
     </div>

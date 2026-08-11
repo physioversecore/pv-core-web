@@ -1,11 +1,56 @@
 "use client";
 
+import { cloneElement, type ReactElement } from "react";
 import Link from "next/link";
 import { useLang } from "@/context/i18n";
 import { PageShell } from "@/components/PageShell";
 import { HowItWorksSteps } from "@/components/HowItWorksSteps";
 import { Reveal } from "@/components/Reveal";
-import { CalendarClock, CreditCard, Home, ShieldCheck, Star, ClipboardList } from "lucide-react";
+import { CalendarClock, CreditCard, Home, ShieldCheck, Star, ClipboardList, ArrowUpRight, type LucideProps } from "lucide-react";
+
+function GuaranteeCard({ icon, title, desc, index }: { icon: ReactElement<LucideProps>; title: string; desc: string; index: number }) {
+  const bigIcon = cloneElement(icon, { size: 40, strokeWidth: 2 });
+
+  if (index === 0) {
+    return (
+      <Reveal className="md:col-span-12">
+        <div className="card-neo card-neo-hover overflow-hidden flex flex-col md:flex-row h-full group">
+          <div className="md:w-1/2 p-6 md:p-10 flex flex-col justify-between order-2 md:order-1">
+            <div className="w-12 h-12 rounded-xl grid place-items-center text-carbon bg-volt border-2 border-carbon group-hover:scale-110 group-hover:rotate-6 transition duration-300">{icon}</div>
+            <div className="mt-8">
+              <h3 className="font-display font-extrabold uppercase text-2xl md:text-4xl tracking-tighter text-carbon mb-4">{title}</h3>
+              <p className="text-text-light text-sm leading-relaxed max-w-md">{desc}</p>
+            </div>
+          </div>
+          <div className="md:w-1/2 h-48 md:h-auto order-1 md:order-2 relative bg-mint grid-bg overflow-hidden">
+            <span aria-hidden className="absolute font-display font-extrabold uppercase leading-none text-carbon/10 select-none text-[7rem] md:text-[9rem] -right-3 -bottom-8">
+              0{index + 1}
+            </span>
+            <div className="absolute inset-0 grid place-items-center">
+              <div className="relative">
+                <div className="w-24 h-24 md:w-28 md:h-28 rounded-full bg-volt border-2 border-carbon grid place-items-center shadow-[6px_6px_0_var(--color-carbon)]">
+                  {bigIcon}
+                </div>
+                <span className="absolute -right-10 -top-2 w-7 h-7 rounded-full bg-paper-bright border-2 border-carbon shadow-[3px_3px_0_var(--color-carbon)]" />
+                <span className="absolute -left-9 bottom-2 w-5 h-5 rounded-full bg-carbon" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </Reveal>
+    );
+  }
+
+  return (
+    <Reveal className="md:col-span-6 lg:col-span-4" delay={index * 80}>
+      <div className="card-neo card-neo-hover p-6 h-full">
+        <div className="w-12 h-12 rounded-xl grid place-items-center mb-3 text-carbon bg-volt border-2 border-carbon">{icon}</div>
+        <div className="font-display font-bold text-lg mb-1">{title}</div>
+        <p className="text-text-light text-sm">{desc}</p>
+      </div>
+    </Reveal>
+  );
+}
 
 export default function HowItWorks() {
   const { t } = useLang();
@@ -31,40 +76,31 @@ export default function HowItWorks() {
       title={t("howItWorks.title")}
       subtitle={t("howItWorks.subtitle")}
     >
-      <section className="py-16">
+      <section className="py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-5 lg:px-8">
           <HowItWorksSteps steps={STEPS} />
         </div>
       </section>
 
-      <section className="py-16 bg-surface/60">
+      <section className="py-16 md:py-20 bg-moss grid-bg">
         <div className="max-w-7xl mx-auto px-5 lg:px-8">
           <Reveal>
-            <p className="eyebrow mb-3">{t("howItWorks.promiseEyebrow")}</p>
-            <h2 className="text-3xl font-display mb-10 max-w-2xl">{t("howItWorks.promiseTitle")}</h2>
+            <p className="label-ink mb-3 text-volt">{t("howItWorks.promiseEyebrow")}</p>
+            <h2 className="text-4xl md:text-5xl font-display font-extrabold uppercase text-paper-bright tracking-tighter mb-10 max-w-2xl">{t("howItWorks.promiseTitle")}</h2>
           </Reveal>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
             {GUARANTEES.map((g, i) => (
-              <Reveal key={g.title} delay={i * 80}>
-                <div className="card-soft p-6">
-                  <div className="w-11 h-11 rounded-xl grid place-items-center mb-3 text-secondary" style={{ background: "#D1E8DF" }}>{g.icon}</div>
-                  <div className="font-display text-lg mb-1">{g.title}</div>
-                  <p className="text-text-light text-sm">{g.desc}</p>
-                </div>
-              </Reveal>
+              <GuaranteeCard key={g.title} icon={g.icon} title={g.title} desc={g.desc} index={i} />
             ))}
           </div>
         </div>
       </section>
 
-      <section className="py-16">
+      <section className="py-16 md:py-20 bg-paper">
         <div className="max-w-4xl mx-auto px-5 lg:px-8 text-center">
-          <h2 className="font-display text-3xl mb-4">{t("howItWorks.ctaTitle")}</h2>
-          <p className="text-text-light mb-6">{t("howItWorks.ctaDesc")}</p>
-          <div className="flex flex-wrap gap-3 justify-center">
-            <Link href="/find-a-therapist" className="btn-primary">{t("howItWorks.ctaFind")}</Link>
-            <Link href="/services" className="inline-flex items-center gap-2 px-5 py-3 rounded-full font-semibold border border-secondary text-secondary hover:bg-secondary hover:text-white transition">{t("howItWorks.ctaServices")}</Link>
-          </div>
+          <h2 className="font-display font-extrabold text-4xl uppercase tracking-tighter mb-2">{t("howItWorks.ctaTitle")}</h2>
+          <p className="text-text-light mb-8">{t("howItWorks.ctaDesc")}</p>
+            <Link href="/find-a-therapist" className="btn-volt inline-flex item-center gap-1">{t("howItWorks.ctaFind")} <ArrowUpRight size={16}/> </Link>
         </div>
       </section>
     </PageShell>

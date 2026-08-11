@@ -131,3 +131,116 @@ export function FeaturedTherapistsSkeleton({ count = 3 }: { count?: number }) {
     </div>
   );
 }
+
+export function TherapistProfileSkeleton() {
+  const block = "bg-surface border-2 border-carbon rounded-xl animate-pulse";
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="lg:col-span-8 flex flex-col gap-6">
+        {/* Hero card skeleton */}
+        <div className="card-neo overflow-hidden md:flex md:items-stretch">
+          <div className="md:w-2/5 relative bg-volt border-b-2 md:border-b-0 md:border-r-2 border-carbon min-h-[280px] md:min-h-0 grid place-items-center">
+            <div className="w-36 h-36 md:w-44 md:h-44 rounded-2xl border-2 border-carbon bg-mint/70 animate-pulse" />
+            <div className="absolute bottom-4 left-4 h-6 w-28 bg-surface/70 border-2 border-carbon rounded-full animate-pulse" />
+          </div>
+          <div className="md:w-3/5 p-6 md:p-8 flex flex-col justify-between gap-6">
+            <div className="space-y-4">
+              <div className="flex flex-wrap gap-2">
+                <div className={`${block} h-7 w-28 rounded-full`} />
+                <div className={`${block} h-7 w-20 rounded-full`} />
+              </div>
+              <div className={`${block} h-9 md:h-10 w-3/4 !rounded-lg`} />
+              <div className={`${block} h-4 w-44`} />
+              <div className="h-0.5 w-full bg-carbon border border-carbon rounded animate-pulse" />
+              <div className="space-y-2 pt-1">
+                <div className={`${block} h-3.5 w-full`} />
+                <div className={`${block} h-3.5 w-11/12`} />
+                <div className={`${block} h-3.5 w-4/5`} />
+              </div>
+            </div>
+            <div className="flex items-center gap-6">
+              <div className="space-y-1">
+                <div className={`${block} h-9 w-14`} />
+                <div className={`${block} h-3 w-20`} />
+              </div>
+              <div className="h-14 border-2 border-carbon" />
+              <div className="space-y-1">
+                <div className={`${block} h-9 w-12`} />
+                <div className={`${block} h-3 w-24`} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bento cards skeleton */}
+        <div className="grid md:grid-cols-2 gap-6">
+          {[0, 1].map((i) => (
+            <div key={i} className="card-neo p-6 animate-pulse">
+              <div className="flex items-center gap-3 border-b-2 border-carbon pb-4 mb-6">
+                <div className="w-8 h-8 bg-surface border-2 border-carbon rounded" />
+                <div className="h-6 w-32 bg-surface border-2 border-carbon rounded" />
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-3 h-3 mt-1 bg-surface border-2 border-carbon shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3.5 w-2/3 bg-surface border-2 border-carbon rounded" />
+                    <div className="h-3 w-1/2 bg-surface border-2 border-carbon rounded" />
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-3 h-3 mt-1 bg-surface border-2 border-carbon shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3.5 w-1/2 bg-surface border-2 border-carbon rounded" />
+                    <div className="h-3 w-1/3 bg-surface border-2 border-carbon rounded" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Booking widget skeleton */}
+      <div className="lg:col-span-4 lg:sticky lg:top-24 h-fit">
+        <div className="card-neo p-6 flex flex-col gap-6 animate-pulse">
+          <div className="border-b-2 border-carbon pb-4 flex justify-between items-end">
+            <div className="h-6 w-32 bg-surface border-2 border-carbon rounded" />
+            <div className="h-6 w-16 bg-volt border-2 border-carbon rounded" />
+          </div>
+
+          <div className="h-11 bg-surface border-2 border-carbon rounded" />
+
+          <div>
+            <div className="grid grid-cols-7 gap-1.5 mb-1.5">
+              {Array.from({ length: 7 }).map((_, i) => (
+                <div key={i} className="h-2.5 mx-auto w-6 bg-surface border border-carbon rounded" />
+              ))}
+            </div>
+            <div className="grid grid-cols-7 gap-1.5">
+              {Array.from({ length: 35 }).map((_, i) => (
+                <div key={i} className="aspect-square bg-surface border-2 border-carbon rounded" />
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="h-3.5 w-28 bg-surface border border-carbon rounded" />
+              <div className="h-3 w-24 bg-surface border border-carbon rounded" />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-10 bg-surface border-2 border-carbon rounded-xl" />
+              ))}
+            </div>
+          </div>
+
+          <div className="h-12 w-full bg-carbon border-2 border-carbon rounded" />
+          <div className="h-3 w-2/3 mx-auto bg-surface border border-carbon rounded" />
+        </div>
+      </div>
+    </div>
+  );
+}

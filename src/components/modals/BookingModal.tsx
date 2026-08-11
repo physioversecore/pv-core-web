@@ -977,9 +977,11 @@ interface BookingModalProps {
   onClose: () => void;
   therapist?: BookingTherapist;
   session?: ExistingSession;
+  initialDate?: string;
+  initialTime?: string;
 }
 
-function BookingModal({ onClose, therapist: propTherapist, session }: BookingModalProps) {
+function BookingModal({ onClose, therapist: propTherapist, session, initialDate, initialTime }: BookingModalProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -998,8 +1000,8 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
 
   const [currentStep, setCurrentStep] = useState(1);
   const todayStr = localDateStr();
-  const [selectedDate, setSelectedDate] = useState(session?.date ?? todayStr);
-  const [selectedTime, setSelectedTime] = useState(session?.time ?? "");
+  const [selectedDate, setSelectedDate] = useState(session?.date ?? initialDate ?? todayStr);
+  const [selectedTime, setSelectedTime] = useState(session?.time ?? initialTime ?? "");
   const [selectedCurrency, setSelectedCurrency] = useState("NPR");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
   const [bookingResult, setBookingResult] = useState<BookingResult | null>(null);
@@ -1082,6 +1084,8 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["therapist-slots"] });
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["patient-dashboard"] });
       const ref = data?.payment?.id || data?.session?.id || "BK-" + Math.random().toString(36).slice(2, 8).toUpperCase();
       setBookingResult({
         reference: ref,
@@ -1108,6 +1112,8 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
       }),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["therapist-slots"] });
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["patient-dashboard"] });
       setBookingResult({
         reference: session!.id,
         therapistName: resolvedTherapist.name,

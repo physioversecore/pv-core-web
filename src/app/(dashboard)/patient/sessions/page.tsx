@@ -4,7 +4,6 @@ import { useState, useMemo, Suspense } from "react";
 import { Search, Plus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { TherapistCard } from "@/components/TherapistCard";
-import { BookingModal } from "@/components/BookingModal";
 import { SessionDrawer } from "@/components/modals/SessionDrawer";
 import { CancelConfirmModal } from "@/components/modals/CancelConfirmModal";
 import { RescheduleModal } from "@/components/modals/RescheduleModal";
@@ -15,28 +14,38 @@ import { SessionCard } from "@/components/sessions/SessionCard";
 import { SessionTable } from "@/components/sessions/SessionTable";
 import { SessionSkeleton } from "@/components/sessions/SessionSkeleton";
 import { useSessions, useSessionDetail } from "@/hooks/useSessions";
+import { usePagination } from "@/hooks/usePagination";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationPrevious,
+  PaginationNext,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
 import { useTherapistsToRate } from "@/hooks/useTherapistsToRate";
 import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import { useLang } from "@/context/i18n";
 import { getTherapists } from "@/services/api/therapists";
-import { mapSessionStatus } from "@/lib/format";
-import type { Therapist } from "@/types";
+import { isPast } from "@/lib/format";
 import type { SessionData } from "@/services/api/sessions";
 import { X } from "lucide-react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
-const TABS = ["sessionsUpcoming", "sessionsPast", "sessionsCancelled"] as const;
-const PAGE_SIZE = 15;
+const TABS = ["sessionsUpcoming", "tabCompleted", "sessionsCancelledPast"] as const;
+
+const isScheduled = (s: SessionData) =>
+  s.status === "SCHEDULED" || s.status === "IN_PROGRESS";
 
 function SessionsContent() {
   const { t } = useLang();
   const [tab, setTab] = useState<(typeof TABS)[number]>("sessionsUpcoming");
-  const [view, setView] = useState<ViewMode>("grid");
-  const [page, setPage] = useState(1);
+  const [view, setView] = useState<ViewMode>("compact");
   const [search, setSearch] = useState("");
+  const pagination = usePagination({ pageSize: 10 });
   const [pickerOpen, setPickerOpen] = useState(false);
   const [specialtyFilter, setSpecialtyFilter] = useState("General");
-  const [bookTherapist, setBookTherapist] = useState<Therapist | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [cancelTarget, setCancelTarget] = useState<SessionData | null>(null);
   const [rescheduleTarget, setRescheduleTarget] = useState<SessionData | null>(null);
@@ -70,11 +79,13 @@ function SessionsContent() {
 
     // Filter by tab
     if (tab === "sessionsUpcoming") {
-      list = list.filter((s) => mapSessionStatus(s.status) === "Confirmed");
-    } else if (tab === "sessionsPast") {
-      list = list.filter((s) => mapSessionStatus(s.status) === "Completed");
+      list = list.filter((s) => isScheduled(s) && !isPast(s.date, s.time));
+    } else if (tab === "tabCompleted") {
+      list = list.filter((s) => s.status === "COMPLETED");
     } else {
-      list = list.filter((s) => mapSessionStatus(s.status) === "Cancelled");
+      list = list.filter(
+        (s) => s.status === "CANCELLED" || (isScheduled(s) && isPast(s.date, s.time)),
+      );
     }
 
     // Filter by search
@@ -87,11 +98,11 @@ function SessionsContent() {
   }, [sessions, tab, search]);
 
   const paged = useMemo(() => {
-    const start = (page - 1) * PAGE_SIZE;
-    return filtered.slice(start, start + PAGE_SIZE);
-  }, [filtered, page]);
+    const start = pagination.skip;
+    return filtered.slice(start, start + pagination.pageSize);
+  }, [filtered, pagination.skip, pagination.pageSize]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const totalPages = pagination.totalPages(filtered.length);
 
   const rateableIds = useMemo(
     () => new Set(therapistsToRate.map((r) => r.sessionId)),
@@ -131,7 +142,7 @@ function SessionsContent() {
 
   const handleTabChange = (newTab: typeof TABS[number]) => {
     setTab(newTab);
-    setPage(1);
+    pagination.reset();
   };
 
   const rowProps = {
@@ -151,7 +162,7 @@ function SessionsContent() {
             <button
               key={_t}
               onClick={() => handleTabChange(_t)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition ${
+              className={`px-4 py-1.5 rounded-full text-xs md:text-[20px] font-medium transition ${
                 tab === _t ? "bg-white text-secondary shadow-sm" : "text-text-light hover:text-text"
               }`}
             >
@@ -177,18 +188,18 @@ function SessionsContent() {
 
       {/* Toolbar */}
       <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
         <div className="relative flex-1 min-w-[200px] max-w-xs">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" />
           <input
             type="text"
             value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            onChange={(e) => { setSearch(e.target.value); pagination.reset(); }}
             placeholder="Search by therapist..."
             className="w-full pl-9 pr-3 py-2 rounded-xl border border-border bg-white text-sm"
           />
         </div>
         <ViewToggle view={view} onChange={setView} />
+        <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
       </div>
 
       {/* Session list */}
@@ -197,16 +208,16 @@ function SessionsContent() {
       ) : paged.length === 0 ? (
         <div className="text-center py-16">
           <div className="text-4xl mb-3 opacity-30">
-            {tab === "sessionsUpcoming" ? "📅" : tab === "sessionsPast" ? "✅" : "🗑️"}
+            {tab === "sessionsUpcoming" ? "📅" : tab === "tabCompleted" ? "✅" : "🗑️"}
           </div>
           <p className="text-text-light text-sm mb-4">
             {search
               ? "No sessions match your search."
               : tab === "sessionsUpcoming"
               ? "No upcoming sessions."
-              : tab === "sessionsPast"
-              ? "No past sessions."
-              : "No cancelled sessions."}
+              : tab === "tabCompleted"
+              ? "No completed sessions."
+              : "No cancelled or past sessions."}
           </p>
           {!search && tab === "sessionsUpcoming" && (
             <button onClick={() => { setPickerOpen(true); setSpecialtyFilter("General"); }} className="btn-primary !py-2 !px-4 text-sm">
@@ -226,7 +237,7 @@ function SessionsContent() {
             <div className="card-soft overflow-hidden">
               <SessionTable sessions={paged} {...rowProps} />
             </div>
-          ) 
+          )
           // : (
           //   <div className="space-y-3">
           //     {paged.map((s) => (
@@ -237,35 +248,78 @@ function SessionsContent() {
           }
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 mt-6">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="btn-outline !py-1.5 !px-3 text-xs disabled:opacity-30"
-              >
-                Previous
-              </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setPage(p)}
-                  className={`w-8 h-8 rounded-lg text-sm font-medium transition ${
-                    p === page
-                      ? "bg-secondary text-white"
-                      : "text-text-light hover:bg-surface"
-                  }`}
-                >
-                  {p}
-                </button>
-              ))}
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="btn-outline !py-1.5 !px-3 text-xs disabled:opacity-30"
-              >
-                Next
-              </button>
+          {filtered.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-6">
+              <div className="text-xs text-text-light whitespace-nowrap">
+                Showing {pagination.skip + 1}–
+                {Math.min(pagination.skip + pagination.pageSize, filtered.length)} of {filtered.length}
+              </div>
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={(e) => {
+                        e.preventDefault();
+                        pagination.prevPage();
+                      }}
+                      aria-disabled={!pagination.canPrev}
+                      className={
+                        !pagination.canPrev
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
+                    />
+                  </PaginationItem>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter((p) => {
+                      if (totalPages <= 7) return true;
+                      if (p === 1 || p === totalPages) return true;
+                      if (Math.abs(p - pagination.page) <= 1) return true;
+                      return false;
+                    })
+                    .reduce<(number | "ellipsis")[]>((acc, p, idx, arr) => {
+                      if (idx > 0 && p - (arr[idx - 1] as number) > 1) {
+                        acc.push("ellipsis");
+                      }
+                      acc.push(p);
+                      return acc;
+                    }, [])
+                    .map((item, idx) =>
+                      item === "ellipsis" ? (
+                        <PaginationItem key={`ellipsis-${idx}`}>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      ) : (
+                        <PaginationItem key={item}>
+                          <PaginationLink
+                            isActive={item === pagination.page}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              pagination.goToPage(item);
+                            }}
+                            className="cursor-pointer"
+                          >
+                            {item}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ),
+                    )}
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={(e) => {
+                        e.preventDefault();
+                        pagination.nextPage(filtered.length);
+                      }}
+                      aria-disabled={!pagination.canNext(filtered.length)}
+                      className={
+                        !pagination.canNext(filtered.length)
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
             </div>
           )}
         </>
@@ -362,23 +416,11 @@ function SessionsContent() {
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {filteredTherapists.map((th) => (
-                <TherapistCard
-                  key={th.id}
-                  t={th}
-                  onBook={(thr) => {
-                    setPickerOpen(false);
-                    setBookTherapist(thr);
-                  }}
-                />
+                <TherapistCard key={th.id} t={th} />
               ))}
             </div>
           </div>
         </div>
-      )}
-
-      {/* Booking modal */}
-      {bookTherapist && (
-        <BookingModal therapist={bookTherapist} onClose={() => setBookTherapist(null)} />
       )}
     </div>
   );

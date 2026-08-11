@@ -1,28 +1,43 @@
-import { Star } from "lucide-react";
+import { ArrowUpRight, Star } from "lucide-react";
+import Link from "next/link";
 import { Avatar } from "./Avatar";
-import { BookButton } from "./BookButton";
-import { npr } from "@/utils/format";
 import type { Therapist } from "@/types";
 import { useLang } from "@/context/i18n";
 
-export function TherapistCard({ t: therapist, onBook }: { t: Therapist; onBook: (t: Therapist) => void }) {
+export function TherapistCard({ t: therapist }: { t: Therapist }) {
   const { t } = useLang();
+  const photo = therapist.mediaUrls?.split(",")[0];
+
   return (
-    <div className="card-soft p-4 flex flex-col gap-3 hover:shadow-md transition">
-      <div className="flex items-start gap-3">
-        <Avatar name={therapist.name} size={48} src={therapist.mediaUrls?.split(",")[0]} />
-        <div className="flex-1 min-w-0">
-          <div className="font-medium truncate">{therapist.name}</div>
-          <div className="text-xs text-text-light truncate">{therapist.specialty} · {therapist.city}</div>
-          <div className="flex items-center gap-1 mt-1 text-xs text-text-light">
-            <Star size={12} className="fill-primary text-primary" /> <span className="font-medium text-text">{therapist.rating}</span> ({therapist.reviews})
-          </div>
+    <article className="bg-paper-bright rounded-2xl border-2 border-carbon shadow-[4px_4px_0_var(--color-carbon)] p-5 md:p-8 grid grid-cols-[auto_1fr] lg:grid-cols-1 gap-x-5 items-center lg:justify-items-center text-left lg:text-center transition-all duration-300 hover:-translate-y-2 hover:shadow-[8px_8px_0_var(--color-carbon)] h-full">
+      <Link
+        href={`/therapist/${therapist.id}`}
+        className="w-20 h-20 lg:w-32 lg:h-32 rounded-full overflow-hidden mb-0 lg:mb-6 bg-surface border-2 border-carbon block justify-self-start lg:justify-self-center hover:rotate-3 transition-transform [&_*]:!w-full [&_*]:!h-full"
+        aria-label={therapist.name}
+      >
+        {photo ? (
+          <img src={photo} alt={therapist.name} className="w-full h-full object-cover" />
+        ) : (
+          <Avatar name={therapist.name} size={128} />
+        )}
+      </Link>
+      <div className="min-w-0 flex flex-col items-start lg:items-center gap-0.5">
+        <h3 className="font-display font-bold text-lg md:text-2xl leading-tight">{therapist.name}</h3>
+        <p className="font-mono font-bold uppercase text-xs text-text-light truncate max-w-full">
+          {therapist.specialty} • {therapist.city}
+        </p>
+        <div className="flex items-center gap-1.5 mt-1 mb-0 lg:mb-6">
+          <Star size={16} className="fill-volt text-carbon" />
+          <span className="font-bold">{therapist.rating}</span>
+          <span className="text-text-light ml-1">({therapist.reviews} {t("therapistProfile.reviews")})</span>
         </div>
       </div>
-      <div className="flex items-center justify-between pt-2 border-t border-border">
-        <div className="text-sm"><span className="font-semibold">{npr(therapist.price)}</span><span className="text-xs text-text-light"> {t("therapists.perSession")}</span></div>
-        <BookButton onClick={() => onBook(therapist)} size="sm" />
-      </div>
-    </div>
+      <Link
+        href={`/therapist/${therapist.id}`}
+        className="mt-4 md:mt-auto col-span-2 lg:col-span-1 w-full bg-carbon text-paper-bright font-mono font-bold uppercase text-xs md:text-sm rounded-full py-3 md:py-4 text-center hover:bg-olive transition-colors"
+      >
+        {t("therapistProfile.viewProfile")} →
+      </Link>
+    </article>
   );
 }

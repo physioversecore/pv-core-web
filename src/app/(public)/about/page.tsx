@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useLang } from "@/context/i18n";
 import { PageShell } from "@/components/PageShell";
 import { Reveal, CountUp } from "@/components/Reveal";
-import { Heart, ShieldCheck, HandHeart, Sparkles } from "lucide-react";
+import { Heart, ShieldCheck, HandHeart, Sparkles, ArrowUpRight } from "lucide-react";
 
 export default function About() {
   const { t } = useLang();
@@ -17,10 +17,10 @@ export default function About() {
   ];
 
   const STATS = [
-    { to: 12400, s: "+", l: t("about.statHomeVisits") },
-    { to: 180, s: "+", l: t("about.statTherapists") },
+    { to: 12400, s: "&plus;", l: t("about.statHomeVisits") },
+    { to: 180, s: "&plus;", l: t("about.statTherapists") },
     { to: 6, s: "", l: t("about.statCities") },
-    { to: 48, s: "\u2605", l: t("about.statRating") },
+    { to: 4.8, s: "&#11088;", l: t("about.statRating") },
   ];
 
   return (
@@ -40,15 +40,15 @@ export default function About() {
       <section className="py-16 bg-surface/60">
         <div className="max-w-7xl mx-auto px-5 lg:px-8">
           <Reveal>
-            <p className="eyebrow mb-3">{t("about.valuesEyebrow")}</p>
-            <h2 className="text-3xl font-display mb-10 max-w-2xl">{t("about.valuesTitle")}</h2>
+            <p className="eyebrow mb-2">{t("about.valuesEyebrow")}</p>
+            <h2 className="text-3xl font-display font-bold mb-10 max-w-2xl">{t("about.valuesTitle")}</h2>
           </Reveal>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {VALUES.map((v, i) => (
               <Reveal key={v.title} delay={i * 80}>
-                <div className="card-soft p-6">
-                  <div className="w-11 h-11 rounded-xl grid place-items-center mb-3 text-secondary" style={{ background: "#D1E8DF" }}>{v.icon}</div>
-                  <div className="font-display text-lg mb-1">{v.title}</div>
+                <div className="card-neo card-neo-hover p-6">
+                  <div className="w-11 h-11 rounded-lg grid place-items-center mb-3 text-carbon bg-mint border-2 border-carbon shadow-[3px_3px_0_var(--color-carbon)]">{v.icon}</div>
+                  <div className="font-display font-bold text-lg mb-1">{v.title}</div>
                   <p className="text-text-light text-sm">{v.desc}</p>
                 </div>
               </Reveal>
@@ -61,8 +61,8 @@ export default function About() {
         <div className="max-w-7xl mx-auto px-5 lg:px-8 grid grid-cols-2 md:grid-cols-4 text-center">
           {STATS.map((s, i) => (
             <div key={i} className={`py-4 ${i > 0 ? "md:border-l border-border" : ""}`}>
-              <div className="font-display text-4xl text-secondary">
-                {i === 3 ? <>4.8<span className="text-primary">\u2605</span></> : <><CountUp to={s.to} /><span className="text-primary">{s.s}</span></>}
+              <div className="font-display font-extrabold text-4xl text-moss">
+                 <><CountUp to={s.to} /><span className="text-olive" dangerouslySetInnerHTML={{__html:`${s.s}`}}></span></>
               </div>
               <div className="text-xs text-text-light mt-2 font-mono uppercase tracking-widest">{s.l}</div>
             </div>
@@ -72,13 +72,10 @@ export default function About() {
 
       <section className="py-16">
         <div className="max-w-4xl mx-auto px-5 lg:px-8 text-center">
-          <h2 className="font-display text-3xl mb-4">{t("about.ctaTitle")}</h2>
-          <p className="text-text-light mb-6">{t("about.ctaDesc")}</p>
-          <div className="flex flex-wrap gap-3 justify-center">
-            <Link href="/contact" className="btn-primary">{t("about.ctaContact")}</Link>
-            <Link href="/find-a-therapist" className="inline-flex items-center gap-2 px-5 py-3 rounded-full font-semibold border border-secondary text-secondary hover:bg-secondary hover:text-white transition">{t("about.ctaTherapists")}</Link>
+          <h2 className="font-display font-bold text-3xl mb-2">{t("about.ctaTitle")}</h2>
+          <p className="text-text-light mb-8">{t("about.ctaDesc")}</p>
+          <Link href="/for-physiotherapists/#enroll" className="btn-outline-ink inline-flex item-center gap-1 uppercase">{t("about.ctaTherapists")} <ArrowUpRight size={16}/> </Link>
           </div>
-        </div>
       </section>
     </PageShell>
   );

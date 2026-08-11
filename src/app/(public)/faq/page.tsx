@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useLang } from "@/context/i18n";
 import { PageShell } from "@/components/PageShell";
+import { ArrowUpRight } from "lucide-react";
 
 export default function FAQ() {
   const { t } = useLang();
@@ -45,15 +46,15 @@ export default function FAQ() {
         <div className="max-w-4xl mx-auto px-5 lg:px-8 space-y-8">
           {GROUPS.map((g) => (
             <div key={g.group}>
-              <p className="eyebrow mb-3">{g.group}</p>
-              <div className="card-soft divide-y divide-border">
+              <p className="label-ink mb-3">{g.group}</p>
+              <div className="card-neo divide-y divide-carbon/15 overflow-hidden">
                 {g.items.map((it, i) => {
                   const key = `${g.group}-${i}`;
                   const isOpen = open === key;
                   return (
                     <div key={key} className="px-5">
-                      <button onClick={() => setOpen(isOpen ? null : key)} className="w-full text-left py-4 flex justify-between items-center font-medium">
-                        {it.q}<span className="text-text-light">{isOpen ? "\u2212" : "+"}</span>
+                      <button onClick={() => setOpen(isOpen ? null : key)} className="w-full text-left py-4 flex justify-between items-center font-semibold">
+                        {it.q}<span className="text-text-light font-mono">{isOpen ? "\u2212" : "+"}</span>
                       </button>
                       {isOpen && <p className="text-sm text-text-light pb-4 -mt-1">{it.a}</p>}
                     </div>
@@ -64,7 +65,7 @@ export default function FAQ() {
           ))}
           <div className="text-center pt-4">
             <p className="text-text-light mb-3">{t("faq.ctaTitle")}</p>
-            <Link href="/contact" className="btn-primary">{t("faq.ctaSupport")}</Link>
+            <Link href="/contact" className="btn-volt inline-flex item-center gap-1 uppercase">{t("faq.ctaSupport")}<ArrowUpRight size={16}/></Link>
           </div>
         </div>
       </section>

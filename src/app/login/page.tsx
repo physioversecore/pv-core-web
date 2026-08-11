@@ -74,56 +74,65 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-moss p-4 md:p-8">
+      <div className="w-full max-w-2xl">
         <Link href="/" className="flex items-center gap-2 justify-center mb-8">
-          <span className="w-6 h-6 rounded-full bg-secondary inline-block" />
-          <span className="font-display text-lg">{t("header.brand")}</span>
+          <span className="w-6 h-6 rounded-full bg-volt border-2 border-carbon inline-block" />
+          <span className="font-display font-extrabold text-lg text-white">{t("header.brand")}</span>
         </Link>
 
-        <div className="bg-background rounded-3xl border border-border shadow-2xl p-7 sm:p-9">
-          <p className="eyebrow mb-2">{t("auth.account")}</p>
-          <h2 className="text-3xl font-display mb-1">{t("auth.welcomeBack")}</h2>
-          <p className="text-text-light text-sm mb-6">{t("auth.loginSubtitle")}</p>
+        <div className="relative bg-paper-bright rounded-2xl border-2 border-carbon shadow-[8px_8px_0_var(--color-carbon)] p-8 md:p-12 overflow-hidden">
+          <div aria-hidden className="absolute top-0 left-0 w-full h-2 bg-carbon" />
+          <div className="mb-10">
+            <p className="label-ink mb-3">{t("auth.account")}</p>
+            <h1 className="font-display font-extrabold uppercase text-4xl md:text-5xl leading-none mb-2">{t("auth.welcomeBack")}</h1>
+            <div className="h-0.5 w-full bg-carbon mt-6 mb-4" />
+            <p className="text-text-light max-w-md">{t("auth.loginSubtitle")}</p>
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <div>
-              <label className="text-xs font-medium text-text-light">{t("auth.labelEmail")}</label>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-2">
+              <label className="label-ink uppercase block">{t("auth.labelEmail")}</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => { setEmail(e.target.value); setError(null); }}
                 placeholder={t("auth.placeholderEmail")}
-                className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary"
+                className="input-neo py-3.5"
               />
             </div>
-            <div>
-              <label className="text-xs font-medium text-text-light">{t("auth.labelPassword")}</label>
-              <div className="relative mt-1">
+            <div className="space-y-2">
+              <div className="flex justify-between items-end">
+                <label className="label-ink uppercase block">{t("auth.labelPassword")}</label>
+                <Link href="/forgot-password" className="label-ink underline decoration-2 underline-offset-4 hover:bg-volt transition-colors">{t("common.forgotPassword")}</Link>
+              </div>
+              <div className="relative">
                 <input
                   type={showPw ? "text" : "password"}
                   value={password}
                   onChange={(e) => { setPassword(e.target.value); setError(null); }}
-                  className="w-full px-3 py-2.5 pr-10 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="input-neo py-3.5 pr-11"
+                  placeholder="••••••••"
                 />
-                <button type="button" onClick={() => setShowPw((v) => !v)} className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-text-light">
+                <button type="button" onClick={() => setShowPw((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-text-light">
                   {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
-              <div className="text-right mt-1">
-                <Link href="/forgot-password" className="text-xs text-secondary hover:underline">{t("common.forgotPassword")}</Link>
-              </div>
             </div>
             <InlineError message={error} />
-            <button type="submit" disabled={submitting} className="btn-secondary w-full disabled:opacity-60">
-              {submitting ? t("common.loading") : t("auth.loginBtn")}
-            </button>
+            <div className="pt-2">
+              <button type="submit" disabled={submitting} className="btn-volt w-full !py-4 !text-base disabled:opacity-60">
+                {submitting ? t("common.loading") : t("auth.loginBtn")}
+              </button>
+            </div>
           </form>
 
-          <p className="text-sm text-text-light text-center mt-5">
-            {t("auth.dontHaveAccount")}{" "}
-            <Link href="/signup" className="text-secondary font-semibold hover:underline">{t("common.signUp")}</Link>
-          </p>
+          <div className="mt-8 text-center border-t-2 border-carbon pt-6">
+            <p className="text-text-light">
+              {t("auth.dontHaveAccount")}{" "}
+              <Link href="/signup" className="label-ink uppercase underline decoration-2 underline-offset-4 hover:bg-volt transition-colors ml-2">{t("common.signUp")}</Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

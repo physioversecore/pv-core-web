@@ -14,10 +14,10 @@ const iconMap: Record<string, LucideIcon> = {
 
 function ServiceSkeleton() {
   return (
-    <div className="rounded-2xl bg-white border border-border/60 p-6 animate-pulse">
-      <div className="w-11 h-11 rounded-xl bg-surface mb-3" />
-      <div className="h-4 bg-surface rounded w-2/3 mb-2" />
-      <div className="h-3 bg-surface rounded w-full" />
+    <div className="card-neo p-6 animate-pulse">
+      <div className="w-12 h-12 rounded-xl bg-surface border-2 border-carbon mb-3" />
+      <div className="h-4 bg-surface border border-carbon rounded w-2/3 mb-2" />
+      <div className="h-3 bg-surface border border-carbon rounded w-full" />
     </div>
   );
 }
@@ -31,14 +31,14 @@ export function ServicesSection() {
   const shopServices = services.filter((s) => s.category === "SHOP");
 
   return (
-    <section id="services" className="py-20 relative bg-surface">
+    <section id="services" className="py-20 md:py-28 relative bg-mint">
       <PlusField count={8} seed={7} />
       <div className="relative max-w-7xl mx-auto px-5 lg:px-8">
         <Reveal>
-          <p className="eyebrow mb-3">{t("landing.servicesEyebrow")}</p>
-          <h2 className="text-4xl font-display mb-12 max-w-2xl">{t("landing.servicesTitle")}</h2>
+          <p className="label-ink mb-3">{t("landing.servicesEyebrow")}</p>
+          <h2 className="text-4xl md:text-6xl font-display font-extrabold uppercase tracking-tighter mb-12 max-w-3xl">{t("landing.servicesTitle")}</h2>
         </Reveal>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {isError ? (
             <div className="col-span-full"><SectionError onRetry={() => refetch()} /></div>
           ) : isLoading
@@ -53,10 +53,10 @@ export function ServicesSection() {
               })}
         </div>
         <Reveal>
-          <p className="eyebrow mb-3 mt-10">{t("landing.otherServicesEyebrow")}</p>
-          <h2 className="text-3xl font-display mb-8 max-w-2xl">{t("landing.otherServicesTitle")}</h2>
+          <p className="label-ink mb-3 mt-14">{t("landing.otherServicesEyebrow")}</p>
+          <h2 className="text-3xl md:text-5xl font-display font-extrabold uppercase tracking-tighter mb-10 max-w-3xl">{t("landing.otherServicesTitle")}</h2>
         </Reveal>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {isError ? (
             <div className="col-span-full"><SectionError onRetry={() => refetch()} /></div>
           ) : isLoading

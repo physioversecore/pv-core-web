@@ -1,9 +1,9 @@
 "use client";
 
 import { SmartBadge } from "./SmartBadge";
-import { formatWhen, formatType, npr, mapSessionStatus } from "@/lib/format";
+import { formatWhen, formatType, npr, mapSessionStatus, isPast, isOverdueSession } from "@/lib/format";
 import type { SessionData } from "@/services/api/sessions";
-import { CheckCircle2, XCircle, RefreshCw, X } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle, RefreshCw, X, Clock, IndianRupee, Star } from "lucide-react";
 
 interface SessionTableProps {
   sessions: SessionData[];
@@ -15,9 +15,17 @@ interface SessionTableProps {
 }
 
 const statusStyles: Record<string, string> = {
-  Confirmed: "!bg-success/15 !text-success",
+  Confirmed: "!bg-blue-600/75 !text-white",
   Completed: "!bg-amber/15 !text-amber",
   Cancelled: "!bg-danger !text-white",
+  Overdue: "!bg-danger/15 !text-danger",
+};
+
+const statusIconStyles: Record<string, string> = {
+  Confirmed: "text-blue-600/75",
+  Completed: "text-success",
+  Cancelled: "text-danger",
+  Overdue: "text-danger",
 };
 
 export function SessionTable({ sessions, onCancel, onReschedule, onRate, onClick, rateableIds }: SessionTableProps) {
@@ -27,55 +35,60 @@ export function SessionTable({ sessions, onCancel, onReschedule, onRate, onClick
     <div className="overflow-x-auto rounded-xl border border-border">
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-xs uppercase font-mono text-text-light text-left border-b border-border bg-surface/50">
+          <tr className="text-[11px] uppercase tracking-wide font-mono text-text-light text-left border-b border-border bg-surface/60">
             <th className="py-2.5 px-3 md:px-4 font-medium">Therapist</th>
             <th className="py-2.5 px-3 md:px-4 font-medium">Date & time</th>
             <th className="py-2.5 px-3 md:px-4 font-medium hidden md:table-cell">Type</th>
             <th className="py-2.5 px-3 md:px-4 font-medium hidden md:table-cell">Fee</th>
             <th className="py-2.5 px-3 md:px-4 font-medium text-center md:text-left">Status</th>
             <th className="py-2.5 px-3 md:px-4"></th>
-            <th className="py-2.5 px-3 md:px-4 md:hidden"></th>
-            <th className="py-2.5 px-3 md:px-4 md:hidden"></th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
           {sessions.map((s) => {
-            const displayStatus = mapSessionStatus(s.status);
             const isUpcoming = s.status === "SCHEDULED" || s.status === "IN_PROGRESS";
-            const isPast = new Date(s.date) < new Date(new Date().toDateString());
-            const showActions = isUpcoming && !isPast;
+            const isOverdue = isOverdueSession(s.status, s.date, s.time);
+            const displayStatus = isOverdue ? "Overdue" : mapSessionStatus(s.status);
+            const showActions = isUpcoming && !isPast(s.date, s.time);
             const canRate = displayStatus === "Completed" && rateableIds?.has(s.id);
             return (
               <tr
                 key={s.id}
-                className="cursor-pointer hover:bg-surface/50 transition"
+                className="cursor-pointer hover:bg-surface/50 transition-colors"
                 onClick={() => onClick(s.id)}
               >
-                <td className="py-3.5 px-3 md:px-4 font-medium text-secondary truncate">
-                  {s.therapistName || "Therapist"}
+                <td className="py-3.5 px-3 md:px-4 max-w-[140px] md:max-w-none">
+                  <div className="text-sm font-medium text-secondary truncate">{s.therapistName || "Therapist"}</div>
+                  <div className="text-[10px] text-text-light truncate md:hidden">{formatType(s.type)}</div>
                 </td>
-                <td className="py-3.5 px-3 md:px-4 text-text-light whitespace-nowrap text-ellipsis overflow-hidden">
-                  {formatWhen(s.date, s.time)}
+                <td className="py-3.5 px-3 md:px-4 text-text-light whitespace-nowrap">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Clock size={12} className="opacity-60 shrink-0 hidden md:inline" />
+                    {formatWhen(s.date, s.time)}
+                  </span>
                 </td>
-                <td className="py-3.5 px-3 md:px-4 text-text-light truncate table-cell">
+                <td className="py-3.5 px-3 md:px-4 text-text-light truncate hidden md:table-cell">
                   {formatType(s.type)}
                 </td>
-                <td className="py-3.5 px-3 md:px-4 text-text-light whitespace-nowrap table-cell">
-                  {npr(s.fee)}
+                <td className="py-3.5 px-3 md:px-4 text-text-light whitespace-nowrap hidden md:table-cell">
+                  <span className="inline-flex items-center gap-1">
+                    {npr(s.fee)}
+                  </span>
                 </td>
                 <td className="py-3.5 px-3 md:px-4 text-center md:text-left">
                   {/* Desktop: badge + chip */}
-                  <span className="hidden md:inline-flex items-center gap-1.5">
-                    <SmartBadge date={s.date} time={s.time} status={s.status} />
-                    <span className={`chip ${statusStyles[displayStatus] ?? ""}`}>
+                  <span className="hidden md:inline-flex items-center gap-1.5 text-[10px]">
+                    {!isOverdue && <SmartBadge date={s.date} time={s.time} status={s.status} />}
+                    <span className={`chip text-[10px] ${statusStyles[displayStatus] ?? ""}`}>
                       {displayStatus}
                     </span>
                   </span>
                   {/* Mobile: centered icon */}
                   <span className="md:hidden flex items-center justify-center">
-                    {displayStatus === "Confirmed" && <CheckCircle2 size={22} className="text-success" />}
-                    {displayStatus === "Completed" && <CheckCircle2 size={22} className="text-amber" />}
-                    {displayStatus === "Cancelled" && <XCircle size={22} className="text-danger" />}
+                    {displayStatus === "Confirmed" && <CheckCircle2 size={20} className={statusIconStyles.Confirmed} />}
+                    {displayStatus === "Overdue" && <AlertTriangle size={20} className={statusIconStyles.Overdue} />}
+                    {displayStatus === "Completed" && <CheckCircle2 size={20} className={statusIconStyles.Completed} />}
+                    {displayStatus === "Cancelled" && <XCircle size={20} className={statusIconStyles.Cancelled} />}
                   </span>
                 </td>
                 <td className="py-3.5 px-3 md:px-4 text-right">
@@ -86,26 +99,30 @@ export function SessionTable({ sessions, onCancel, onReschedule, onRate, onClick
                         onClick={() => onReschedule(s.id)}
                         className="hidden md:inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg border border-primary text-primary text-[11px] font-semibold cursor-pointer hover:bg-primary hover:text-white transition-all whitespace-nowrap"
                       >
+                        <RefreshCw size={11} />
                         Reschedule
                       </button>
                       <button
                         onClick={() => onCancel(s.id)}
                         className="hidden md:inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg border border-danger text-danger text-[11px] font-semibold cursor-pointer hover:bg-danger hover:text-white transition-all whitespace-nowrap"
                       >
-                        Cancel Session
+                        <X size={11} />
+                        Cancel
                       </button>
-                      {/* Mobile: icon-only buttons */}
+                      {/* Mobile: icon-only buttons, 36px touch target */}
                       <button
                         onClick={() => onReschedule(s.id)}
-                        className="md:hidden w-8 h-8 rounded-xl border border-primary text-primary flex items-center justify-center cursor-pointer hover:bg-primary hover:text-white transition-all"
+                        aria-label="Reschedule"
+                        className="md:hidden w-6 h-6 rounded-xl border border-primary text-primary flex items-center justify-center cursor-pointer hover:bg-primary hover:text-white transition-all"
                       >
-                        <RefreshCw size={12} />
+                        <RefreshCw size={14} />
                       </button>
                       <button
                         onClick={() => onCancel(s.id)}
-                        className="md:hidden w-8 h-8 rounded-xl border border-danger text-danger flex items-center justify-center cursor-pointer hover:bg-danger hover:text-white transition-all"
+                        aria-label="Cancel"
+                        className="md:hidden w-6 h-6 rounded-xl border border-danger text-danger flex items-center justify-center cursor-pointer hover:bg-danger hover:text-white transition-all"
                       >
-                        <X size={12} />
+                        <X size={14} />
                       </button>
                     </div>
                   )}
@@ -115,6 +132,7 @@ export function SessionTable({ sessions, onCancel, onReschedule, onRate, onClick
                         onClick={() => onRate(s.id)}
                         className="inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg border border-primary text-primary text-[11px] font-semibold cursor-pointer hover:bg-primary hover:text-white transition-all whitespace-nowrap"
                       >
+                        <Star size={11} />
                         Rate
                       </button>
                     </div>

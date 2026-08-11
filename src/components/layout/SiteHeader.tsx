@@ -38,8 +38,7 @@ export function SiteHeader({ variant = "solid" }: { variant?: "hero" | "solid" }
     const map: Record<string, string> = {
       "/how-it-works": t("nav.howItWorks"),
       "/services": t("nav.services"),
-      "/find-a-therapist": t("nav.findTherapist"),
-      "/app": t("nav.app"),
+      "/for-physiotherapists": t("nav.forPhysiotherapists"),
     };
     return map[to] ?? "";
   };
@@ -49,83 +48,79 @@ export function SiteHeader({ variant = "solid" }: { variant?: "hero" | "solid" }
     router.push(user.role === "patient" ? "/patient" : user.role === "therapist" ? "/therapist" : "/admin");
   };
 
-  const textCls = scrolled ? "text-text-light" : "text-white/80";
-  const borderCls = scrolled ? "border-border" : "border-white/20";
-  const panelBg = scrolled ? "bg-background/98" : "bg-background-dark/98";
+  const pill = scrolled
+    ? "bg-paper-bright/95 border-carbon/20 shadow-[4px_4px_0_var(--color-carbon)]"
+    : "bg-paper-bright/85 border-carbon/20";
 
   return (
-    <header className={`fixed top-0 inset-x-0 z-40 transition-all duration-300 ${scrolled ? "bg-background/92 backdrop-blur-md border-b border-border" : "bg-transparent"}`}>
-      <div className="max-w-7xl mx-auto px-5 lg:px-8 h-16 flex items-center justify-between">
+    <header className={`fixed top-0 inset-x-0 z-40 transition-all duration-300 ${scrolled ? "bg-paper/90 backdrop-blur-md" : "bg-transparent"}`}>
+      <nav className={`max-w-7xl mx-auto my-3 px-4 lg:px-6 h-14 flex items-center justify-between rounded-full border-2 border-carbon transition-all duration-300 ${pill}`}>
         <Link href="/" className="flex items-center gap-2">
-          <span className="w-6 h-6 rounded-full bg-secondary inline-block" />
-          <span className={`font-display text-lg transition-colors ${scrolled ? "text-text" : "text-white"}`}>{t("header.brand")}</span>
+          <span className="w-6 h-6 rounded-full bg-volt border-2 border-carbon inline-block" />
+          <span className="font-display font-extrabold text-lg tracking-tighter text-carbon">{t("header.brand")}</span>
         </Link>
 
-        <nav className={`hidden md:flex items-center gap-6 text-sm transition-colors ${textCls}`}>
+        <div className={`hidden md:flex items-center gap-6 ${scrolled ? "text-carbon" : "text-carbon"}`}>
           {NAV_LINKS.map((l) => (
             <Link
               key={l.to}
               href={l.to}
-              className="hover:text-primary transition-colors"
+              className={`label-ink transition-colors ${pathname === l.to || pathname.startsWith(l.to + "/")
+                ? "text-carbon border-b-2 border-volt"
+                : "text-text-light hover:text-carbon"}`}
             >
               {navLabel(l.to)}
             </Link>
           ))}
-        </nav>
+        </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <LangSwitcher />
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className={`md:hidden p-2 rounded-lg transition-colors ${textCls} hover:text-primary`}
+            className={`md:hidden p-2 rounded-lg text-carbon hover:bg-surface transition-colors`}
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
           >
             {mobileOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
           <div className="hidden sm:flex items-center gap-2">
             {user ? (
-              <button onClick={goDash} className="btn-secondary !py-2 !px-4 text-sm">{t("header.openDashboard")}</button>
+              <button onClick={goDash} className="btn-carbon !py-2 !px-4 text-sm">{t("header.openDashboard")}</button>
             ) : (
               <>
-                <Link
-                  href="/signup"
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition ${scrolled ? "border-secondary text-secondary hover:bg-secondary hover:text-white" : "border-white/60 text-white hover:bg-white/10"}`}
-                >
-                  {t("header.signUp")}
-                </Link>
-                <Link
-                  href="/login"
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition ${scrolled ? "border-secondary text-secondary hover:bg-secondary hover:text-white" : "border-white/60 text-white hover:bg-white/10"}`}
-                >
-                  {t("header.logIn")}
-                </Link>
-                <button onClick={() => openAuth("signup", "patient")} className="btn-primary !py-2 !px-4 text-sm">{t("header.bookNow")}</button>
+                <Link href="/login" className="btn-outline-ink !py-2 !px-4 text-sm">{t("header.logIn")}</Link>
+                <button onClick={() => openAuth("signup", "patient")} className="btn-carbon !py-2.5 !px-5 text-sm">{t("header.bookNow")}</button>
               </>
             )}
           </div>
         </div>
-      </div>
+      </nav>
 
       {mobileOpen && (
-        <div className={`md:hidden border-t ${borderCls} ${panelBg} backdrop-blur-md`}>
-          <div className="max-w-7xl mx-auto px-5 py-4 space-y-3">
+        <div className="md:hidden mx-4 rounded-2xl border-2 border-carbon bg-paper-bright shadow-[4px_4px_0_var(--color-carbon)]">
+          <div className="px-5 py-4 space-y-3">
             {NAV_LINKS.map((l) => (
               <Link
                 key={l.to}
                 href={l.to}
-                className={`block py-2 text-sm font-medium transition-colors ${textCls} hover:text-primary`}
+                className={`block py-2 label-ink transition-colors ${pathname === l.to ? "text-carbon border-b-2 border-volt" : "text-text-light"}`}
               >
                 {navLabel(l.to)}
               </Link>
             ))}
-            <hr className={borderCls} />
+            <Link
+              href="/contact"
+              className={`block py-2 label-ink transition-colors ${pathname === "/contact" ? "text-carbon border-b-2 border-volt" : "text-text-light"}`}
+            >
+              {t("nav.contactUs")}
+            </Link>
+            <hr className="border-carbon" />
             {user ? (
-              <button onClick={goDash} className="w-full btn-secondary !py-2.5 !px-4 text-sm mt-2">{t("header.openDashboard")}</button>
+              <button onClick={goDash} className="w-full btn-carbon !py-2.5 !px-4 text-sm mt-2">{t("header.openDashboard")}</button>
             ) : (
               <div className="flex flex-col gap-2 pt-1">
-                <Link href="/signup" className={`w-full text-center px-4 py-2.5 rounded-full text-sm font-semibold border transition ${scrolled ? "border-secondary text-secondary" : "border-white/60 text-white"}`}>{t("header.signUp")}</Link>
-                <Link href="/login" className={`w-full text-center px-4 py-2.5 rounded-full text-sm font-semibold border transition ${scrolled ? "border-secondary text-secondary" : "border-white/60 text-white"}`}>{t("header.logIn")}</Link>
-                <button onClick={() => { setMobileOpen(false); openAuth("signup", "patient"); }} className="w-full btn-primary !py-2.5 !px-4 text-sm">{t("header.bookNow")}</button>
+                <Link href="/login" className="w-full text-center btn-outline-ink !py-2.5 !px-4 text-sm">{t("header.logIn")}</Link>
+                <button onClick={() => { setMobileOpen(false); openAuth("signup", "patient"); }} className="w-full btn-carbon !py-2.5 !px-4 text-sm">{t("header.bookNow")}</button>
               </div>
             )}
           </div>

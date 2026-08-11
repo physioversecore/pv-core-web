@@ -2,7 +2,7 @@
 
 import { Avatar } from "@/components/common/Avatar";
 import { SmartBadge } from "./SmartBadge";
-import { formatWhen, formatType, npr, mapSessionStatus } from "@/lib/format";
+import { formatWhen, formatType, npr, mapSessionStatus, isPast, isOverdueSession } from "@/lib/format";
 import type { SessionData } from "@/services/api/sessions";
 
 interface SessionRowProps {
@@ -18,13 +18,14 @@ const statusStyles: Record<string, string> = {
   Confirmed: "!bg-success/15 !text-success",
   Completed: "!bg-amber/15 !text-amber",
   Cancelled: "!bg-danger !text-white",
+  Overdue: "!bg-danger/15 !text-danger",
 };
 
 export function SessionRow({ session, onCancel, onReschedule, onRate, onClick, rateableIds }: SessionRowProps) {
-  const displayStatus = mapSessionStatus(session.status);
   const isUpcoming = session.status === "SCHEDULED" || session.status === "IN_PROGRESS";
-  const isPast = new Date(session.date) < new Date(new Date().toDateString());
-  const showActions = isUpcoming && !isPast;
+  const isOverdue = isOverdueSession(session.status, session.date, session.time);
+  const displayStatus = isOverdue ? "Overdue" : mapSessionStatus(session.status);
+  const showActions = isUpcoming && !isPast(session.date, session.time);
   const canRate = displayStatus === "Completed" && rateableIds?.has(session.id);
 
   return (
@@ -43,7 +44,7 @@ export function SessionRow({ session, onCancel, onReschedule, onRate, onClick, r
               </div>
             </div>
             <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
-              <SmartBadge date={session.date} time={session.time} status={session.status} />
+              {!isOverdue && <SmartBadge date={session.date} time={session.time} status={session.status} />}
               <span className={`chip ${statusStyles[displayStatus] ?? ""}`}>
                 {displayStatus}
               </span>
