@@ -18,16 +18,15 @@ export interface NavItem {
 export const NAV_LINKS = [
   { to: "/how-it-works", label: "How it works" },
   { to: "/services", label: "Services" },
-  { to: "/find-a-therapist", label: "Find a Therapist" },
-  { to: "/app", label: "App" },
+  { to: "/for-physiotherapists", label: "For Physiotherapists" },
 ] as const;
 
 export const RESOURCE_LINKS = [
   { to: "/blog", label: "Blog" },
-  { to: "/faq", label: "FAQ" },
   { to: "/testimonials", label: "Testimonials" },
-  { to: "/about", label: "About us" },
-  { to: "/contact", label: "Contact us" },
+  { to:"/find-a-therapist", label: "Book Your Therapist"}
+
+
 ] as const;
 
 export const patientNav: NavItem[] = [

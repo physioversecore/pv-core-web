@@ -977,9 +977,11 @@ interface BookingModalProps {
   onClose: () => void;
   therapist?: BookingTherapist;
   session?: ExistingSession;
+  initialDate?: string;
+  initialTime?: string;
 }
 
-function BookingModal({ onClose, therapist: propTherapist, session }: BookingModalProps) {
+function BookingModal({ onClose, therapist: propTherapist, session, initialDate, initialTime }: BookingModalProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -998,8 +1000,8 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
 
   const [currentStep, setCurrentStep] = useState(1);
   const todayStr = localDateStr();
-  const [selectedDate, setSelectedDate] = useState(session?.date ?? todayStr);
-  const [selectedTime, setSelectedTime] = useState(session?.time ?? "");
+  const [selectedDate, setSelectedDate] = useState(session?.date ?? initialDate ?? todayStr);
+  const [selectedTime, setSelectedTime] = useState(session?.time ?? initialTime ?? "");
   const [selectedCurrency, setSelectedCurrency] = useState("NPR");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
   const [bookingResult, setBookingResult] = useState<BookingResult | null>(null);

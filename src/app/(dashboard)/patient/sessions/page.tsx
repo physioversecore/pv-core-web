@@ -4,7 +4,6 @@ import { useState, useMemo, Suspense } from "react";
 import { Search, Plus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { TherapistCard } from "@/components/TherapistCard";
-import { BookingModal } from "@/components/BookingModal";
 import { SessionDrawer } from "@/components/modals/SessionDrawer";
 import { CancelConfirmModal } from "@/components/modals/CancelConfirmModal";
 import { RescheduleModal } from "@/components/modals/RescheduleModal";
@@ -30,7 +29,6 @@ import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import { useLang } from "@/context/i18n";
 import { getTherapists } from "@/services/api/therapists";
 import { isPast } from "@/lib/format";
-import type { Therapist } from "@/types";
 import type { SessionData } from "@/services/api/sessions";
 import { X } from "lucide-react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -48,7 +46,6 @@ function SessionsContent() {
   const pagination = usePagination({ pageSize: 10 });
   const [pickerOpen, setPickerOpen] = useState(false);
   const [specialtyFilter, setSpecialtyFilter] = useState("General");
-  const [bookTherapist, setBookTherapist] = useState<Therapist | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [cancelTarget, setCancelTarget] = useState<SessionData | null>(null);
   const [rescheduleTarget, setRescheduleTarget] = useState<SessionData | null>(null);
@@ -419,23 +416,11 @@ function SessionsContent() {
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {filteredTherapists.map((th) => (
-                <TherapistCard
-                  key={th.id}
-                  t={th}
-                  onBook={(thr) => {
-                    setPickerOpen(false);
-                    setBookTherapist(thr);
-                  }}
-                />
+                <TherapistCard key={th.id} t={th} />
               ))}
             </div>
           </div>
         </div>
-      )}
-
-      {/* Booking modal */}
-      {bookTherapist && (
-        <BookingModal therapist={bookTherapist} onClose={() => setBookTherapist(null)} />
       )}
     </div>
   );

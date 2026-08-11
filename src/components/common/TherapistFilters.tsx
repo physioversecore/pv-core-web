@@ -29,37 +29,39 @@ export function TherapistFilters({
     onGenderChange("");
   };
 
+  const selectCls = "px-3 h-11 rounded-xl border-2 border-carbon bg-paper-bright text-sm shadow-[3px_3px_0_var(--color-carbon)] focus:outline-none focus:ring-2 focus:ring-volt";
+
   return (
     <div className="mb-8">
-      <div className="card-soft p-3 grid sm:grid-cols-[1.4fr_1fr_1fr_1fr] gap-2 items-center">
+      <div className="card-neo p-3 grid sm:grid-cols-[1.4fr_1fr_1fr_1fr] gap-3 items-center">
         <div className="relative">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" />
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-light" />
           <input
             value={q}
             onChange={(e) => onQChange(e.target.value)}
             placeholder={t("find.placeholderSearch")}
-            className="w-full pl-9 pr-3 h-10 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            className="input-neo pl-9 h-11"
           />
         </div>
-        <select value={city} onChange={(e) => onCityChange(e.target.value)} className="px-3 h-10 rounded-xl border border-border bg-white text-sm">
+        <select value={city} onChange={(e) => onCityChange(e.target.value)} className={selectCls}>
           <option value="">{t("find.allCities")}</option>
           {CITIES.map((c) => <option key={c}>{c}</option>)}
         </select>
-        <select value={spec} onChange={(e) => onSpecChange(e.target.value)} className="px-3 h-10 rounded-xl border border-border bg-white text-sm">
+        <select value={spec} onChange={(e) => onSpecChange(e.target.value)} className={selectCls}>
           <option value="">{t("find.allSpecialties")}</option>
           {SPECIALTIES.map((s) => <option key={s}>{s}</option>)}
         </select>
-        <select value={gender} onChange={(e) => onGenderChange(e.target.value)} className="px-3 h-10 rounded-xl border border-border bg-white text-sm">
+        <select value={gender} onChange={(e) => onGenderChange(e.target.value)} className={selectCls}>
           <option value="">{t("find.anyGender")}</option>
           <option>{t("find.male")}</option>
           <option>{t("find.female")}</option>
         </select>
       </div>
       {hasFilters && (
-        <div className="flex justify-end mt-2">
+        <div className="flex justify-end mt-3">
           <button
             onClick={clearAll}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-text-light hover:text-secondary transition"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold label-ink text-text-light hover:text-danger transition"
           >
             <X size={14} />
             {t("common.clearFilters")}

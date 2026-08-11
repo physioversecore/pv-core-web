@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, CheckCircle2, ArrowLeft, Mail, KeyRound } from "lucide-react";
 import { useLang } from "@/context/i18n";
+import { PasswordRules } from "@/components/auth/PasswordRules";
 import { toast } from "sonner";
 import { forgotPassword, verifyOtp, resetPassword } from "@/services/api/auth";
 
@@ -148,19 +149,20 @@ export default function ForgotPasswordPage() {
 
   if (step === "success") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <div className="w-full max-w-md">
+      <div className="min-h-screen flex items-center justify-center bg-moss p-4 md:p-8">
+        <div className="w-full max-w-2xl">
           <Link href="/" className="flex items-center gap-2 justify-center mb-8">
-            <span className="w-6 h-6 rounded-full bg-secondary inline-block" />
-            <span className="font-display text-lg">{t("header.brand")}</span>
+            <span className="w-6 h-6 rounded-full bg-volt border-2 border-carbon inline-block" />
+            <span className="font-display font-extrabold text-lg text-white">{t("header.brand")}</span>
           </Link>
-          <div className="bg-background rounded-3xl border border-border shadow-2xl p-7 sm:p-9 text-center">
-            <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-4">
-              <CheckCircle2 size={32} className="text-success" />
+          <div className="relative bg-paper-bright rounded-2xl border-2 border-carbon shadow-[8px_8px_0_var(--color-carbon)] p-8 md:p-12 text-center overflow-hidden">
+            <div aria-hidden className="absolute top-0 left-0 w-full h-2 bg-carbon" />
+            <div className="w-16 h-16 rounded-full bg-mint border-2 border-carbon flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 size={32} className="text-carbon" />
             </div>
-            <h2 className="font-display text-2xl mb-2">Password reset</h2>
+            <h2 className="font-display font-extrabold text-2xl mb-2">Password reset</h2>
             <p className="text-text-light text-sm mb-6">Your password has been updated successfully.</p>
-            <button onClick={() => router.push("/login")} className="btn-secondary w-full">
+            <button onClick={() => router.push("/login")} className="btn-volt w-full">
               Back to login
             </button>
           </div>
@@ -170,14 +172,15 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-moss p-4 md:p-8">
+      <div className="w-full max-w-2xl">
         <Link href="/" className="flex items-center gap-2 justify-center mb-8">
-          <span className="w-6 h-6 rounded-full bg-secondary inline-block" />
-          <span className="font-display text-lg">{t("header.brand")}</span>
+          <span className="w-6 h-6 rounded-full bg-volt border-2 border-carbon inline-block" />
+          <span className="font-display font-extrabold text-lg text-white">{t("header.brand")}</span>
         </Link>
 
-        <div className="bg-background rounded-3xl border border-border shadow-2xl p-7 sm:p-9">
+        <div className="relative bg-paper-bright rounded-2xl border-2 border-carbon shadow-[8px_8px_0_var(--color-carbon)] p-8 md:p-12 overflow-hidden">
+          <div aria-hidden className="absolute top-0 left-0 w-full h-2 bg-carbon" />
           <button
             type="button"
             onClick={() => {
@@ -193,30 +196,30 @@ export default function ForgotPasswordPage() {
           {step === "email" && (
             <>
               <div className="flex items-center gap-2 mb-1">
-                <KeyRound size={16} className="text-primary" />
-                <p className="eyebrow">Reset password</p>
+                <KeyRound size={16} className="text-moss" />
+                <p className="label-ink">Reset password</p>
               </div>
-              <h2 className="text-2xl font-display mb-1">Forgot password?</h2>
+              <h2 className="text-3xl font-display font-extrabold uppercase tracking-tighter mb-1">Forgot password?</h2>
               <p className="text-text-light text-sm mb-6">
                 Enter your email and we'll send you a verification code.
               </p>
 
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div>
-                  <label className="text-xs font-medium text-text-light">Email</label>
+                  <label className="label-ink block mb-1.5">Email</label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="example@gmail.com"
-                    className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="input-neo !py-3"
                   />
                 </div>
                 <button
                   type="button"
                   disabled={submitting || !email}
                   onClick={handleSendOtp}
-                  className="btn-secondary w-full disabled:opacity-50"
+                  className="btn-volt w-full disabled:opacity-50"
                 >
                   {submitting ? "Sending..." : "Send verification code"}
                 </button>
@@ -227,12 +230,12 @@ export default function ForgotPasswordPage() {
           {step === "otp" && (
             <>
               <div className="flex items-center gap-2 mb-1">
-                <Mail size={16} className="text-primary" />
-                <p className="eyebrow">Check your email</p>
+                <Mail size={16} className="text-moss" />
+                <p className="label-ink">Check your email</p>
               </div>
-              <h2 className="text-2xl font-display mb-1">Enter verification code</h2>
+              <h2 className="text-3xl font-display font-extrabold uppercase tracking-tighter mb-1">Enter verification code</h2>
               <p className="text-text-light text-sm mb-6">
-                We sent a 6-digit code to <span className="font-medium text-text">{email}</span>
+                We sent a 6-digit code to <span className="font-semibold text-text">{email}</span>
               </p>
 
               <div className="space-y-4">
@@ -248,7 +251,7 @@ export default function ForgotPasswordPage() {
                       onChange={(e) => handleOtpChange(i, e.target.value)}
                       onKeyDown={(e) => handleOtpKeyDown(i, e)}
                       onPaste={i === 0 ? (e) => { e.preventDefault(); const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6); if (pasted) { setOtp(pasted.split("")); const next = document.getElementById(`otp-${Math.min(pasted.length, 5)}`); next?.focus(); } } : undefined}
-                      className="w-11 h-12 text-center text-lg font-mono font-bold rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-12 h-14 text-center text-lg font-mono font-bold rounded-xl border-2 border-carbon bg-paper-bright shadow-[3px_3px_0_var(--color-carbon)] focus:outline-none focus:ring-2 focus:ring-volt"
                     />
                   ))}
                 </div>
@@ -257,7 +260,7 @@ export default function ForgotPasswordPage() {
                   type="button"
                   disabled={submitting || otp.join("").length !== 6}
                   onClick={handleVerifyOtp}
-                  className="btn-secondary w-full disabled:opacity-50"
+                  className="btn-volt w-full disabled:opacity-50"
                 >
                   {submitting ? "Verifying..." : "Verify & continue"}
                 </button>
@@ -272,7 +275,7 @@ export default function ForgotPasswordPage() {
                       type="button"
                       disabled={submitting}
                       onClick={handleResend}
-                      className="text-xs text-secondary hover:underline disabled:opacity-50"
+                      className="text-xs text-moss font-semibold hover:underline disabled:opacity-50"
                     >
                       Resend code
                     </button>
@@ -285,23 +288,23 @@ export default function ForgotPasswordPage() {
           {step === "password" && (
             <>
               <div className="flex items-center gap-2 mb-1">
-                <KeyRound size={16} className="text-primary" />
-                <p className="eyebrow">New password</p>
+                <KeyRound size={16} className="text-moss" />
+                <p className="label-ink">New password</p>
               </div>
-              <h2 className="text-2xl font-display mb-1">Choose a new password</h2>
+              <h2 className="text-3xl font-display font-extrabold uppercase tracking-tighter mb-1">Choose a new password</h2>
               <p className="text-text-light text-sm mb-6">
                 Must be at least 8 characters with uppercase, lowercase, number, and special character.
               </p>
 
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs font-medium text-text-light">New password</label>
-                  <div className="relative mt-1">
+                  <label className="label-ink block mb-1.5">New password</label>
+                  <div className="relative">
                     <input
                       type={showPw ? "text" : "password"}
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full px-3 py-2.5 pr-10 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="input-neo !py-3 pr-11"
                     />
                     <button type="button" onClick={() => setShowPw((v) => !v)} className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-text-light">
                       {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -310,13 +313,13 @@ export default function ForgotPasswordPage() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-text-light">Confirm password</label>
-                  <div className="relative mt-1">
+                  <label className="label-ink block mb-1.5">Confirm password</label>
+                  <div className="relative">
                     <input
                       type={showConfirmPw ? "text" : "password"}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full px-3 py-2.5 pr-10 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="input-neo !py-3 pr-11"
                     />
                     <button type="button" onClick={() => setShowConfirmPw((v) => !v)} className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-text-light">
                       {showConfirmPw ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -327,19 +330,13 @@ export default function ForgotPasswordPage() {
                   )}
                 </div>
 
-                <div className="space-y-1.5 bg-surface rounded-xl p-3">
-                  <RuleCheck pass={rules.length} label="At least 8 characters" />
-                  <RuleCheck pass={rules.upper} label="One uppercase letter" />
-                  <RuleCheck pass={rules.lower} label="One lowercase letter" />
-                  <RuleCheck pass={rules.digit} label="One number" />
-                  <RuleCheck pass={rules.symbol} label="One special character" />
-                </div>
+                <PasswordRules password={newPassword} />
 
                 <button
                   type="button"
                   disabled={submitting || !allRulesPass || !passwordsMatch}
                   onClick={handleReset}
-                  className="btn-secondary w-full disabled:opacity-50"
+                  className="btn-volt w-full disabled:opacity-50"
                 >
                   {submitting ? "Resetting..." : "Reset password"}
                 </button>
@@ -349,25 +346,10 @@ export default function ForgotPasswordPage() {
 
           <p className="text-sm text-text-light text-center mt-5">
             Remember your password?{" "}
-            <Link href="/login" className="text-secondary font-semibold hover:underline">Log in</Link>
+            <Link href="/login" className="text-moss font-bold underline underline-offset-2 decoration-2 hover:bg-volt transition-colors">Log in</Link>
           </p>
         </div>
       </div>
-    </div>
-  );
-}
-
-function RuleCheck({ pass, label }: { pass: boolean; label: string }) {
-  return (
-    <div className="flex items-center gap-2 text-xs">
-      <div
-        className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
-          pass ? "bg-success border-success" : "border-text-light"
-        }`}
-      >
-        {pass && <span className="text-white text-[8px] font-bold">&#10003;</span>}
-      </div>
-      <span className={pass ? "text-text" : "text-text-light"}>{label}</span>
     </div>
   );
 }

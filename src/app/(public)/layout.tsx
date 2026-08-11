@@ -10,10 +10,12 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
   const isLanding = pathname === "/";
 
   return (
-    <div className="min-h-screen bg-background text-text">
+    <div className="min-h-screen bg-paper text-carbon">
       <SiteHeader variant={isLanding ? "hero" : "solid"} />
       {children}
-      <SiteFooter />
+      <div className="w-full bg-carbon">
+        <SiteFooter />
+      </div>
     </div>
   );
 }

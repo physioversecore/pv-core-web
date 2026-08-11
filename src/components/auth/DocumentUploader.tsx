@@ -290,8 +290,8 @@ export function DocumentUploader({
         }}
         className={`w-full p-3 rounded-xl border-2 border-dashed text-sm transition-colors cursor-pointer ${
           dragOver
-            ? "border-secondary bg-secondary/5 text-secondary"
-            : "border-border text-text-light hover:border-secondary hover:text-secondary"
+            ? "border-carbon bg-mint/20 text-carbon"
+            : "border-carbon text-text-light hover:border-moss hover:text-moss"
         }`}
       >
         <UploadCloud size={20} className="mx-auto mb-1 opacity-70" />
@@ -313,7 +313,7 @@ export function DocumentUploader({
           {docs.map((d) => (
             <div
               key={d.id}
-              className="relative rounded-xl overflow-hidden border border-border bg-surface aspect-square group"
+              className="relative rounded-xl overflow-hidden border-2 border-carbon bg-surface aspect-square group"
             >
               {d.previewUrl ? (
                 <img
@@ -323,7 +323,7 @@ export function DocumentUploader({
                 />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center gap-1 px-2 text-center">
-                  <FileText className="text-secondary" size={22} />
+                  <FileText className="text-moss" size={22} />
                   <span className="text-[10px] text-text-light leading-tight line-clamp-2 break-all">
                     {d.file.name}
                   </span>

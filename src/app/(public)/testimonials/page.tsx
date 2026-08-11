@@ -29,10 +29,10 @@ export default function Testimonials() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
             {REVIEWS.map((r, i) => (
               <Reveal key={r.name} delay={(i % 3) * 100}>
-                <figure className="card-soft p-6 h-full flex flex-col">
-                  <Quote size={22} className="text-primary mb-3" />
+                <figure className="card-neo card-neo-hover p-6 h-full flex flex-col">
+                  <Quote size={22} className="text-olive mb-3" />
                   <blockquote className="text-text text-sm leading-relaxed flex-1">&ldquo;{r.q}&rdquo;</blockquote>
-                  <div className="flex items-center gap-3 mt-5 pt-4 border-t border-border">
+                  <div className="flex items-center gap-3 mt-5 pt-4 border-t border-carbon/15">
                     <Avatar name={r.name} size={40} />
                     <div className="flex-1">
                       <div className="font-medium text-sm">{r.name}</div>
@@ -40,7 +40,7 @@ export default function Testimonials() {
                     </div>
                     <div className="flex items-center gap-0.5">
                       {Array.from({ length: r.rating }).map((_, k) => (
-                        <Star key={k} size={12} className="fill-primary text-primary" />
+                        <Star key={k} size={12} className="fill-volt text-volt stroke-carbon" />
                       ))}
                     </div>
                   </div>

@@ -12,9 +12,9 @@ interface BookButtonProps {
 
 export function BookButton({ onClick, children, size = "md", className = "" }: BookButtonProps) {
   const { t } = useLang();
-  const sizeClass = size === "sm" ? "!py-1.5 !px-4 text-sm" : "!py-2 !px-5 text-sm";
+  const sizeClass = size === "sm" ? "!py-1.5 !px-3.5 text-xs" : "!py-2.5 !px-5 text-sm";
   return (
-    <button onClick={onClick} className={`btn-primary ${sizeClass} ${className}`}>
+    <button onClick={onClick} className={`btn-volt ${sizeClass} ${className}`}>
       {children ?? t("common.book")}
     </button>
   );
