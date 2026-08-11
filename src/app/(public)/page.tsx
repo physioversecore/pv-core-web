@@ -27,7 +27,12 @@ export default function Landing() {
   const [gender, setGender] = useState("");
   const { booking, closeBooking } = useBooking();
 
-  const { data: therapistsData, isLoading, isError, refetch } = useQuery({
+  const {
+    data: therapistsData,
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: ["therapists"],
     queryFn: () => getTherapists(),
   });
@@ -39,11 +44,22 @@ export default function Landing() {
 
   const debouncedQ = useDebounce(q, 400);
 
+  const hasFilters = !!(debouncedQ || city || spec || gender);
+
+  const handleClearFilters = () => {
+    setQ("");
+    setCity("");
+    setSpec("");
+    setGender("");
+  };
+
   const filtered = useMemo(
     () =>
       therapists.filter(
         (t) =>
-          (!debouncedQ || t.name.toLowerCase().includes(debouncedQ.toLowerCase()) || t.specialty.toLowerCase().includes(debouncedQ.toLowerCase())) &&
+          (!debouncedQ ||
+            t.name.toLowerCase().includes(debouncedQ.toLowerCase()) ||
+            t.specialty.toLowerCase().includes(debouncedQ.toLowerCase())) &&
           (!city || t.city === city) &&
           (!spec || t.specialty === spec) &&
           (!gender || t.gender === gender),
@@ -69,10 +85,12 @@ export default function Landing() {
               spec={spec}
               gender={gender}
               filtered={filtered}
+              hasFilters={hasFilters}
               onQChange={setQ}
               onCityChange={setCity}
               onSpecChange={setSpec}
               onGenderChange={setGender}
+              onClearFilters={handleClearFilters}
             />
           </Suspense>
         </ErrorBoundary>
@@ -83,7 +101,7 @@ export default function Landing() {
       {/*<ServicesSection />*/}
 
       {/*Featured therapist top tier list section*/}
-        {/*<ErrorBoundary fallback={<SectionError onRetry={() => refetch()} />}>
+      {/*<ErrorBoundary fallback={<SectionError onRetry={() => refetch()} />}>
           <Suspense fallback={<FeaturedTherapistsSkeleton />}>
             <FeaturedTherapists therapists={therapists.slice(0, 3)} onBook={handleBook} loading={isLoading} />
           </Suspense>

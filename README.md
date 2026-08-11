@@ -89,10 +89,10 @@ src/
     api/uploads/complaint-evidence/route.ts  # POST — public XHR proxy for complaint evidence (session keyed)
     api/v1/uploads/evidence/[session]/[filename]/route.ts  # GET — serves complaint evidence, adds bearer cookie
     api/v1/uploads/[patientId]/[filename]/route.ts         # GET — serves patient report files (token query param)
-    layout.tsx                  # Root layout (fonts, providers)
+    layout.tsx                  # Root layout (self-hosted fonts, providers)
     providers.tsx               # Client providers wrapper
     page.tsx                    # Landing page
-    globals.css                 # Tailwind v4 theme + custom utilities
+    globals.css                 # Tailwind v4 theme + brutalist editorial utilities
   components/
     ui/                         # shadcn/ui primitives (47 components)
     availability/               # Therapist availability management
@@ -107,6 +107,7 @@ src/
     auth/                       # Shared auth components (SignupFlow, DocumentUploader)
     layout/                     # DashboardShell, PageShell, SiteHeader, SiteFooter
     ErrorBoundary.tsx           # Reusable error boundary
+    SectionError.tsx            # Brutalist error card with bounded auto-retry
     SuspenseFallback.tsx        # Loading skeleton components
   context/                      # React contexts (7 providers)
     auth.tsx                    # Auth state + API calls
@@ -136,17 +137,20 @@ src/
 
 ## Theme
 
+The public landing surfaces use a **brutalist editorial** design system — thick carbon borders, hard offset shadows, mono uppercase labels. See `DESIGN.md` for the full system.
+
 | Token | CSS Variable | Value | Usage |
 |---|---|---|---|
-| Primary | `--color-primary` | `#E2962F` (amber) | Buttons, links, accents, CTAs |
-| Secondary | `--color-secondary` | `#2F5D50` (forest green) | Secondary actions, badges |
-| Background | `--color-background` | `#FBFBF8` (cream) | Page background |
-| Foreground | `--color-foreground` | `#1E2A2E` (dark) | Text |
-| Surface | `--color-surface` | `#EEF1ED` (sage) | Muted backgrounds |
+| Volt (accent) | `--color-volt` | `#FFF100` | Buttons, chips, highlights |
+| Moss (green) | `--color-moss` | `#006D36` | Dark section backgrounds |
+| Carbon (ink) | `--color-carbon` | `#1B1B1B` | Text, borders, hard shadows |
+| Paper | `--color-paper` | `#F9F9F9` | Page background |
+| Paper-bright | `--color-paper-bright` | `#FFFFFF` | Card surfaces |
+| Surface | `--color-surface` | `#E8E8E8` | Muted fills, skeletons |
 
-**Fonts**: Fraunces (serif, headings), Inter (body), IBM Plex Mono (mono, labels/dates).
+**Fonts** (self-hosted via `next/font/google`, no FOUT): Anybody (display), Archivo Narrow (body), Space Grotesk (mono labels).
 
-**Dynamic theming**: Admin can customize all colors, fonts, and border radius via the Appearance section. Tokens are persisted via the API and applied in real-time.
+**Dynamic theming**: Admin can customize dashboard colors, fonts, and border radius via the Appearance section. Tokens are persisted via the API and applied in real-time via `DesignTokensProvider` (`src/types/design-tokens.ts`).
 
 ---
 

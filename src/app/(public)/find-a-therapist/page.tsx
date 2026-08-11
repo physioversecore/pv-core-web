@@ -127,7 +127,7 @@ export default function FindPage() {
                     </Reveal>
                   ))}
                   {therapists.length === 0 && (
-                    <p className="text-text-light text-sm col-span-full">{t("find.noMatch")}</p>
+                    <p className="font-display uppercase text-text-light text-sm col-span-full">{t("find.noMatch")}</p>
                   )}
                 </div>
               )}

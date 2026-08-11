@@ -73,6 +73,22 @@ Browser → Next.js Server (Server Components / Server Actions) → FastAPI Back
 - `src/app/error.tsx` — root-level error boundary (catches errors in public pages)
 - `src/app/(dashboard)/error.tsx` — dashboard-scoped error boundary (catches errors before the layout-level ErrorBoundary)
 
+### SectionError with bounded auto-retry (`src/components/SectionError.tsx`)
+Public API-driven sections (landing hero, services, find-a-therapist, therapist detail) render `SectionError` when their query fails:
+
+```tsx
+const { data, isLoading, isError, refetch } = useServices();
+{isError ? <SectionError onRetry={() => refetch()} /> : isLoading ? <Skeleton /> : ...}
+```
+
+- Auto-retries up to `MAX_RETRIES` (3) at `RETRY_DELAY_MS` (2s) intervals.
+- Retries are capped by a **module-level budget** (`retryBudget`) with a `COOLDOWN_MS` (60s) expiry. The budget survives component remounts — important because react-query's `refetch()` on a failed, data-less query flips `status` to `pending` (query.ts:723), which flips `isError` false and unmounts/remounts the section (and thus the SectionError), resetting any per-mount state.
+- The manual "Try again" button resets the budget and restarts the cycle.
+- Loading UI is the same `card-neo` panel with a `chip-volt` "retrying" badge + `dot-pulse`; failed UI shows the error title and the volt button.
+
+### Why not `useSuspenseQuery` (note)
+Note that sections on the landing page combine `SectionError` with a wrapping `ErrorBoundary` — the boundary catches render-phase throws, while SectionError handles `isError` from queries.
+
 ## Data Loading
 
 ### Why not `useSuspenseQuery`
@@ -177,7 +193,8 @@ Patients and therapists attach up to 3 evidence files (photos/screenshots) when 
 - Tailwind CSS v4 with `@theme inline` for design tokens
 - CSS custom properties for runtime theming (admin can customize colors/fonts/radii)
 - `cn()` utility from `@/lib/utils` (re-exports `clsx` + `tailwind-merge`)
-- Custom utility classes: `btn-primary`, `btn-secondary`, `card-soft`, `chip`, `stat-value`, `badge-*`, `tabs-filter`, `table-header`, `table-cell`
+- Two surfaces: **public brutalist editorial** utilities (`card-neo`, `btn-volt`, `btn-carbon`, `btn-outline-ink`, `chip-volt`, `chip-mint`, `chip-sand`, `input-neo`, `label-ink`, `grid-bg` — see `DESIGN.md`) and **dashboard** utilities (`btn-primary`, `btn-secondary`, `card-soft`, `chip`, `stat-value`, `badge-*`, `tabs-filter`, `table-header`, `table-cell`)
+- Fonts self-hosted via `next/font/google` in `src/app/layout.tsx` — Anybody (display), Archivo Narrow (sans), Space Grotesk (mono); exposed as `--font-display-loaded`, `--font-sans-loaded`, `--font-mono-loaded` on `<body>` and wired through `@theme inline` in `globals.css`
 - Dark mode via `.dark` class on `<html>`
 
 ## i18n

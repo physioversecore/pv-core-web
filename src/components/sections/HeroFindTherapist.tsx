@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Search, Star, ArrowUpRight } from "lucide-react";
+import { Search, Star, ArrowUpRight, X } from "lucide-react";
 import { useLang } from "@/context/i18n";
 import { Avatar } from "@/components/Avatar";
 import { HeroLiveSkeleton } from "@/components/SuspenseFallback";
@@ -16,15 +16,27 @@ interface HeroFindTherapistProps {
   gender: string;
   filtered: Therapist[];
   loading?: boolean;
+  hasFilters?: boolean;
   onQChange: (v: string) => void;
   onCityChange: (v: string) => void;
   onSpecChange: (v: string) => void;
   onGenderChange: (v: string) => void;
+  onClear?: () => void;
 }
 
 export function HeroFindTherapist({
-  q, city, spec, gender, filtered, loading,
-  onQChange, onCityChange, onSpecChange, onGenderChange,
+  q,
+  city,
+  spec,
+  gender,
+  filtered,
+  loading,
+  onQChange,
+  onCityChange,
+  onSpecChange,
+  onGenderChange,
+  hasFilters,
+  onClear,
 }: HeroFindTherapistProps) {
   const { t } = useLang();
 
@@ -49,13 +61,21 @@ export function HeroFindTherapist({
       <div className="grid grid-cols-3 gap-2 mb-5">
         <select value={city} onChange={(e) => onCityChange(e.target.value)} className={selectCls}>
           <option value="">{t("find.allCities")}</option>
-          {CITIES.map((c) => <option key={c}>{c}</option>)}
+          {CITIES.map((c) => (
+            <option key={c}>{c}</option>
+          ))}
         </select>
         <select value={spec} onChange={(e) => onSpecChange(e.target.value)} className={selectCls}>
           <option value="">{t("find.allSpecialties")}</option>
-          {SPECIALTIES.map((s) => <option key={s}>{s}</option>)}
+          {SPECIALTIES.map((s) => (
+            <option key={s}>{s}</option>
+          ))}
         </select>
-        <select value={gender} onChange={(e) => onGenderChange(e.target.value)} className={selectCls}>
+        <select
+          value={gender}
+          onChange={(e) => onGenderChange(e.target.value)}
+          className={selectCls}
+        >
           <option value="">{t("find.anyGender")}</option>
           <option>{t("find.male")}</option>
           <option>{t("find.female")}</option>
@@ -66,14 +86,21 @@ export function HeroFindTherapist({
         {loading ? (
           <HeroLiveSkeleton />
         ) : filtered.length === 0 ? (
-          <p className="text-xs text-text-light text-center py-6">{t("find.noMatch")}</p>
+          <p className="font-display uppercase text-xs text-text-light text-center py-6">
+            {t("find.noMatch")}
+          </p>
         ) : (
           filtered.slice(0, 5).map((th) => (
-            <div key={th.id} className="flex items-center gap-3 p-3 rounded-xl border-2 border-carbon">
+            <div
+              key={th.id}
+              className="flex items-center gap-3 p-3 rounded-xl border-2 border-carbon"
+            >
               <Avatar name={th.name} size={42} />
               <div className="flex-1 min-w-0">
                 <div className="font-semibold text-sm truncate text-carbon">{th.name}</div>
-                <div className="text-xs text-text-light truncate">{th.specialty} · {th.city}</div>
+                <div className="text-xs text-text-light truncate">
+                  {th.specialty} · {th.city}
+                </div>
                 <div className="flex items-center gap-1 text-xs text-text-light mt-0.5">
                   <Star size={11} className="fill-volt text-carbon" /> {th.rating}
                 </div>
@@ -92,13 +119,25 @@ export function HeroFindTherapist({
           ))
         )}
       </div>
-
-      <Link
-        href="/find-a-therapist"
-        className="mt-5 block w-full text-center font-mono font-bold uppercase text-xs py-3 rounded-xl border-2 border-carbon hover:bg-volt transition-colors"
-      >
-        {t("common.viewAll")} →
-      </Link>
+      <div className="grid grid-cols-2 gap-2 mt-5">
+        {hasFilters && (
+          <button
+            onClick={() => onClear?.()}
+            className="block w-full text-center font-mono font-bold uppercase text-xs py-3 rounded-xl border-2 border-danger text-danger hover:bg-danger hover:text-paper-bright transition-colors"
+          >
+            <X size={14} className="inline-block mr-1 align-[-2px]" />
+            {t("common.clearFilters")}
+          </button>
+        )}
+        <Link
+          href="/find-a-therapist"
+          className={`block w-full text-center font-mono font-bold uppercase text-xs py-3 rounded-xl border-2 border-carbon hover:bg-volt transition-colors ${
+            hasFilters ? "col-span-1" : "col-span-2"
+          }`}
+        >
+          {t("common.viewAll")} →
+        </Link>
+      </div>
     </div>
   );
 }
