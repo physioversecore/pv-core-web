@@ -32,6 +32,8 @@ const en = {
     remove: "Remove",
     clear: "Clear",
     loading: "Loading",
+    errorLoadingTitle: "Something went wrong",
+    retrying: "Retrying…",
     errorLoadingSection: "Couldn't load this section. Please try again.",
     noResults: "No results found.",
     seeAll: "See all",

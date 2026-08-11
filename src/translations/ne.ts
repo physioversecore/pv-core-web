@@ -32,6 +32,8 @@ const ne = {
     remove: "हटाउनुहोस्",
     clear: "खाली गर्नुहोस्",
     loading: "लोड हुँदै",
+    errorLoadingTitle: "केही गलत भयो",
+    retrying: "पुनः प्रयास गर्दैछ…",
     errorLoadingSection: "यो खण्ड लोड गर्न सकिएन। कृपया पुनः प्रयास गर्नुहोस्।",
     noResults: "कुनै परिणाम फेला परेन।",
     seeAll: "सबै हेर्नुहोस्",
