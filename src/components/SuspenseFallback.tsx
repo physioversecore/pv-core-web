@@ -65,26 +65,25 @@ export function DashboardPageSkeleton() {
 
 export function TherapistCardSkeleton() {
   return (
-    <div className="card-soft p-4 flex flex-col gap-3 animate-pulse">
-      <div className="flex items-start gap-3">
-        <div className="w-12 h-12 rounded-full bg-border shrink-0" />
-        <div className="flex-1 min-w-0 space-y-2">
-          <div className="h-4 w-3/4 bg-border rounded" />
-          <div className="h-3 w-1/2 bg-border rounded" />
-          <div className="h-3 w-16 bg-border rounded" />
+    <div className="bg-paper-bright rounded-2xl border-2 border-carbon shadow-[4px_4px_0_var(--color-carbon)] p-5 md:p-8 grid grid-cols-[auto_1fr] lg:grid-cols-1 gap-x-5 items-center lg:justify-items-center text-left lg:text-center h-full animate-pulse">
+      <div className="w-20 h-20 lg:w-32 lg:h-32 rounded-full bg-surface border-2 border-carbon mb-0 lg:mb-6 justify-self-start lg:justify-self-center shrink-0" />
+      <div className="min-w-0 w-full flex flex-col items-start lg:items-center gap-2">
+        <div className="h-6 md:h-7 w-3/4 bg-surface rounded" />
+        <div className="h-3 w-1/2 bg-surface rounded" />
+        <div className="flex items-center gap-1.5 mt-1 mb-0 lg:mb-6">
+          <div className="w-4 h-4 rounded-sm bg-volt border border-carbon" />
+          <div className="h-4 w-8 bg-surface rounded" />
+          <div className="h-3 w-16 bg-surface rounded" />
         </div>
       </div>
-      <div className="flex items-center justify-between pt-2 border-t border-border">
-        <div className="h-5 w-20 bg-border rounded" />
-        <div className="h-8 w-24 bg-border rounded" />
-      </div>
+      <div className="mt-4 md:mt-auto col-span-2 lg:col-span-1 w-full h-11 md:h-12 bg-carbon border-2 border-carbon rounded-full" />
     </div>
   );
 }
 
 export function TherapistCardGridSkeleton({ count = 6 }: { count?: number }) {
   return (
-    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {Array.from({ length: count }).map((_, i) => (
         <TherapistCardSkeleton key={i} />
       ))}
@@ -96,15 +95,19 @@ export function HeroLiveSkeleton() {
   return (
     <div className="space-y-3">
       {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="flex items-center gap-3 p-3 rounded-xl border border-white/10 animate-pulse" style={{ background: "rgba(255,255,255,0.06)" }}>
-          <div className="w-[42px] h-[42px] rounded-full bg-white/15 shrink-0" />
+        <div key={i} className="flex items-center gap-3 p-3 rounded-xl border-2 border-carbon bg-paper-bright animate-pulse">
+          <div className="w-[42px] h-[42px] rounded-full bg-surface border border-carbon shrink-0" />
           <div className="flex-1 min-w-0 space-y-2">
-            <div className="h-3.5 w-2/3 bg-white/15 rounded" />
-            <div className="h-3 w-1/3 bg-white/15 rounded" />
+            <div className="h-3.5 w-2/3 bg-surface rounded" />
+            <div className="h-3 w-1/2 bg-surface rounded" />
+            <div className="flex items-center gap-1 pt-0.5">
+              <div className="w-3 h-3 rounded-sm bg-volt border border-carbon" />
+              <div className="h-3 w-8 bg-surface rounded" />
+            </div>
           </div>
           <div className="text-right space-y-2">
-            <div className="h-4 w-12 bg-white/15 rounded ml-auto" />
-            <div className="h-7 w-16 bg-white/15 rounded" />
+            <div className="h-4 w-12 bg-surface rounded ml-auto" />
+            <div className="h-7 w-16 bg-surface rounded-md" />
           </div>
         </div>
       ))}
