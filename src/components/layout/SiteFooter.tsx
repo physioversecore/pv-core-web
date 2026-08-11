@@ -68,7 +68,7 @@ export function SiteFooter() {
           </p>
           <p className="text-paper-bright/60 mb-4">{t("footer.appDesc")}</p>
 
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 w-1/2 md:w-full">
             <AppStoreBadge platform="google" variant="footer" />
             <AppStoreBadge platform="apple" variant="footer" />
           </div>
