@@ -55,9 +55,9 @@ export const DEFAULT_TOKENS: DesignTokens = {
     info: "#0ea5e9",
   },
   typography: {
-    fontDisplay: '"Fraunces", ui-serif, Georgia, serif',
-    fontSans: '"Inter", ui-sans-serif, system-ui, sans-serif',
-    fontMono: '"IBM Plex Mono", ui-monospace, monospace',
+    fontDisplay: 'var(--font-display-loaded), "Anybody", ui-sans-serif, system-ui, sans-serif',
+    fontSans: 'var(--font-sans-loaded), "Archivo Narrow", ui-sans-serif, system-ui, sans-serif',
+    fontMono: 'var(--font-mono-loaded), "Space Grotesk", ui-monospace, monospace',
   },
   radii: {
     base: "1rem",

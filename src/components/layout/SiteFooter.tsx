@@ -57,7 +57,7 @@ export function SiteFooter() {
           </ul>
         </div>
 
-        <div>
+        <div className="col-span-2 md:col-span-1">
           <p className="label-ink text-volt! mb-4 inline-flex item-center gap-1">
             <span>
               {t("footer.getTheApp")}

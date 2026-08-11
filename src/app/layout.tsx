@@ -1,7 +1,26 @@
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
+import { Anybody, Archivo_Narrow, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+
+const fontDisplay = Anybody({
+  subsets: ["latin"],
+  weight: "variable",
+  variable: "--font-display-loaded",
+});
+
+const fontSans = Archivo_Narrow({
+  subsets: ["latin"],
+  weight: "variable",
+  variable: "--font-sans-loaded",
+});
+
+const fontMono = Space_Grotesk({
+  subsets: ["latin"],
+  weight: "variable",
+  variable: "--font-mono-loaded",
+});
 
 export const metadata: Metadata = {
   title: "Sahayatri Physio — Recovery, at your doorstep",
@@ -23,12 +42,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anybody:wght@400;500;600;700;800;900&family=Archivo+Narrow:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" />
-      </head>
-      <body>
+      <body className={`${fontDisplay.variable} ${fontSans.variable} ${fontMono.variable}`}>
         <Providers>{children}</Providers>
       </body>
     </html>

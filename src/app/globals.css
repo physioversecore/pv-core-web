@@ -86,9 +86,9 @@
   --color-warn-ink: #8A5A0B;
   --color-warn-border: #ECD09B;
 
-  --font-display: "Anybody", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "Archivo Narrow", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "Space Grotesk", ui-monospace, monospace;
+  --font-display: var(--font-display-loaded), "Anybody", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-sans-loaded), "Archivo Narrow", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono-loaded), "Space Grotesk", ui-monospace, monospace;
 }
 
 :root {
@@ -149,8 +149,8 @@
   --input-placeholder: #9ca3af;
 
   /* Typography */
-  --font-family-base: "Archivo Narrow", sans-serif;
-  --font-family-heading: "Anybody", sans-serif;
+  --font-family-base: var(--font-sans-loaded), "Archivo Narrow", sans-serif;
+  --font-family-heading: var(--font-display-loaded), "Anybody", sans-serif;
 
   --font-xs: 12px;
   --font-sm: 14px;
