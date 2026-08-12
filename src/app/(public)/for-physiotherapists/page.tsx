@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect, useCallback } from "react";
 import { CalendarClock, Wallet, TrendingUp, ArrowRight } from "lucide-react";
 import { useLang } from "@/context/i18n";
 import { Reveal } from "@/components/Reveal";
@@ -17,6 +17,18 @@ const BENEFITS = [
 export default function ForPhysiotherapists() {
   const { t } = useLang();
   const router = useRouter();
+
+  const scrollToEnroll = useCallback(() => {
+    const el = document.getElementById("enroll");
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
+
+  useEffect(() => {
+    if (window.location.hash === "#enroll") {
+      const t = window.setTimeout(scrollToEnroll, 100);
+      return () => window.clearTimeout(t);
+    }
+  }, [scrollToEnroll]);
 
   const handleSuccess = (role: Role) => {
     if (role === "therapist") {
@@ -78,15 +90,15 @@ export default function ForPhysiotherapists() {
                 {t("forTherapists.readyTitle")}
               </h2>
               <p className="text-paper-bright/80 text-lg mb-10">{t("forTherapists.readyDesc")}</p>
-              <div className="inline-flex items-center gap-2 bg-volt text-carbon font-mono font-bold uppercase text-sm tracking-wide px-8 py-4 rounded-full border-2 border-carbon-soft shadow-[1px_1px_0_var(--color-carbon-soft)] hover:bg-paper-bright hover:-translate-y-px transition-transform">
-                <Link href="#enroll">{t("forTherapists.applyNow")}</Link>
+              <button onClick={scrollToEnroll} className="inline-flex items-center gap-2 bg-volt text-carbon font-mono font-bold uppercase text-sm tracking-wide px-8 py-4 rounded-full border-2 border-carbon-soft shadow-[1px_1px_0_var(--color-carbon-soft)] hover:bg-paper-bright hover:-translate-y-px transition-transform cursor-pointer">
+                {t("forTherapists.applyNow")}
                 <ArrowRight size={16} />
-              </div>
+              </button>
             </div>
           </Reveal>
 
           <Reveal delay={120}>
-            <div id="enroll" className="bg-paper-bright text-carbon rounded-[32px] border-2 border-carbon-soft shadow-[10px_10px_0_var(--color-volt)] p-8 md:p-12">
+            <div id="enroll" className="scroll-mt-24 bg-paper-bright text-carbon rounded-[32px] border-2 border-carbon-soft shadow-[10px_10px_0_var(--color-volt)] p-8 md:p-12">
               <SignupFlow defaultSignupRole="therapist" onSuccess={handleSuccess} isSignUpPage={false} />
             </div>
           </Reveal>
