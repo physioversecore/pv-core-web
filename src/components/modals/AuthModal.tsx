@@ -96,7 +96,7 @@ export function AuthModal({
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <button className="absolute inset-0 bg-carbon/60 backdrop-blur-sm" onClick={onClose} aria-label={t("common.close")} />
-      <div className="relative w-full max-w-lg max-h-[92vh] bg-paper-bright rounded-2xl border-2 border-carbon shadow-[8px_8px_0_var(--color-carbon)] overflow-hidden">
+      <div className="relative w-full max-w-lg max-h-[92vh] bg-paper-bright rounded-2xl border-2 border-carbon-soft shadow-[5px_5px_0_var(--color-carbon-soft)] overflow-hidden">
         <button onClick={onClose} className="absolute right-4 top-4 z-10 p-2 rounded-full hover:bg-surface cursor-pointer" aria-label={t("common.close")}>
           <X size={18} />
         </button>

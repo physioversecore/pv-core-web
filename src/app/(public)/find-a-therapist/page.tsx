@@ -69,7 +69,6 @@ export default function FindPage() {
     >
       <section className="py-14">
         <div className="max-w-7xl mx-auto px-5 lg:px-8">
-          <Reveal>
             <div className="mb-8">
               <div className="card-neo p-3 grid sm:grid-cols-[1.4fr_1fr_1fr_1fr] gap-3 items-center">
                 <div className="relative">
@@ -81,15 +80,15 @@ export default function FindPage() {
                     className="input-neo pl-9 h-11"
                   />
                 </div>
-                <select value={city} onChange={(e) => setCity(e.target.value)} className="px-3 h-11 rounded-xl border-2 border-carbon bg-paper-bright text-sm shadow-[3px_3px_0_var(--color-carbon)]">
+                <select value={city} onChange={(e) => setCity(e.target.value)} className="px-3 h-11 rounded-xl border-2 border-carbon-soft bg-paper-bright text-sm shadow-[1px_1px_0_var(--color-carbon-soft)]">
                   <option value="">{t("find.allCities")}</option>
                   {CITIES.map((c) => <option key={c}>{c}</option>)}
                 </select>
-                <select value={spec} onChange={(e) => setSpec(e.target.value)} className="px-3 h-11 rounded-xl border-2 border-carbon bg-paper-bright text-sm shadow-[3px_3px_0_var(--color-carbon)]">
+                <select value={spec} onChange={(e) => setSpec(e.target.value)} className="px-3 h-11 rounded-xl border-2 border-carbon-soft bg-paper-bright text-sm shadow-[1px_1px_0_var(--color-carbon-soft)]">
                   <option value="">{t("find.allSpecialties")}</option>
                   {SPECIALTIES.map((s) => <option key={s}>{s}</option>)}
                 </select>
-                <select value={gender} onChange={(e) => setGender(e.target.value)} className="px-3 h-11 rounded-xl border-2 border-carbon bg-paper-bright text-sm shadow-[3px_3px_0_var(--color-carbon)]">
+                <select value={gender} onChange={(e) => setGender(e.target.value)} className="px-3 h-11 rounded-xl border-2 border-carbon-soft bg-paper-bright text-sm shadow-[1px_1px_0_var(--color-carbon-soft)]">
                   <option value="">{t("find.anyGender")}</option>
                   <option>{t("find.male")}</option>
                   <option>{t("find.female")}</option>
@@ -107,11 +106,7 @@ export default function FindPage() {
                 </div>
               )}
             </div>
-          </Reveal>
 
-          {!isLoading && <div className="font-display text-xs lg:text-sm  text-text-light mb-4 uppercase">
-            {total} {t("find.therapistsFound")}
-          </div> }
 
           <ErrorBoundary fallback={<SectionError onRetry={() => refetch()} />}>
             <Suspense fallback={<TherapistCardGridSkeleton count={9} />}>
@@ -119,17 +114,22 @@ export default function FindPage() {
                 <SectionError onRetry={() => refetch()} />
               ) : isLoading ? (
                 <TherapistCardGridSkeleton count={9} />
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {therapists.map((th, i) => (
-                    <Reveal key={th.id} delay={(i % 6) * 60}>
-                      <TherapistCard t={th} />
-                    </Reveal>
-                  ))}
-                  {therapists.length === 0 && (
-                    <p className="font-display uppercase text-text-light text-sm col-span-full">{t("find.noMatch")}</p>
-                  )}
-                </div>
+                ) : (
+                  <>
+                    <div className="font-display text-xs lg:text-sm  text-text-light mb-4 uppercase">
+                          {total} {t("find.therapistsFound")}
+                    </div>
+                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {therapists.map((th, i) => (
+                          <Reveal key={th.id} delay={(i % 6) * 60}>
+                            <TherapistCard t={th} />
+                          </Reveal>
+                        ))}
+                        {therapists.length === 0 && (
+                          <p className="font-display uppercase text-text-light text-sm col-span-full">{t("find.noMatch")}</p>
+                        )}
+                     </div>
+                   </>
               )}
             </Suspense>
           </ErrorBoundary>
@@ -140,7 +140,7 @@ export default function FindPage() {
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="p-2 rounded-xl border-2 border-carbon bg-paper-bright shadow-[3px_3px_0_var(--color-carbon)] disabled:opacity-40 hover:bg-surface transition"
+                  className="p-2 rounded-xl border-2 border-carbon-soft bg-paper-bright shadow-[1px_1px_0_var(--color-carbon-soft)] disabled:opacity-40 hover:bg-surface transition"
                 >
                   <ChevronLeft size={18} />
                 </button>
@@ -151,8 +151,8 @@ export default function FindPage() {
                       onClick={() => setPage(p)}
                       className={`w-8 h-8 rounded-xl text-sm font-bold transition ${
                         p === page
-                          ? "bg-carbon text-white border-2 border-carbon shadow-[2px_2px_0_var(--color-carbon)]"
-                          : "bg-paper-bright border-2 border-carbon text-text-light"
+                          ? "bg-carbon text-white border-2 border-carbon-soft shadow-[1px_1px_0_var(--color-carbon-soft)]"
+                          : "bg-paper-bright border-2 border-carbon-soft text-text-light"
                       }`}
                     >
                       {p}
@@ -162,7 +162,7 @@ export default function FindPage() {
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="p-2 rounded-xl border-2 border-carbon bg-paper-bright shadow-[3px_3px_0_var(--color-carbon)] disabled:opacity-40 hover:bg-surface transition"
+                  className="p-2 rounded-xl border-2 border-carbon-soft bg-paper-bright shadow-[1px_1px_0_var(--color-carbon-soft)] disabled:opacity-40 hover:bg-surface transition"
                 >
                   <ChevronRight size={18} />
                 </button>

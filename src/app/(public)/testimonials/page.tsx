@@ -32,7 +32,7 @@ export default function Testimonials() {
                 <figure className="card-neo card-neo-hover p-6 h-full flex flex-col">
                   <Quote size={22} className="text-olive mb-3" />
                   <blockquote className="text-text text-sm leading-relaxed flex-1">&ldquo;{r.q}&rdquo;</blockquote>
-                  <div className="flex items-center gap-3 mt-5 pt-4 border-t border-carbon/15">
+                  <div className="flex items-center gap-3 mt-5 pt-4 border-t border-carbon-soft/15">
                     <Avatar name={r.name} size={40} />
                     <div className="flex-1">
                       <div className="font-medium text-sm">{r.name}</div>

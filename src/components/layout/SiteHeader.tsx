@@ -49,14 +49,14 @@ export function SiteHeader({ variant = "solid" }: { variant?: "hero" | "solid" }
   };
 
   const pill = scrolled
-    ? "bg-paper-bright/95 border-carbon/20 shadow-[4px_4px_0_var(--color-carbon)]"
-    : "bg-paper-bright/85 border-carbon/20";
+    ? "bg-paper-bright/95 border-carbon-soft/20 shadow-[3px_3px_0_var(--color-carbon-soft)]"
+    : "bg-paper-bright/85 border-carbon-soft/20";
 
   return (
     <header className={`fixed top-0 inset-x-0 z-40 transition-all duration-300 ${scrolled ? "bg-paper/90 backdrop-blur-md" : "bg-transparent"}`}>
-      <nav className={`max-w-7xl mx-auto my-3 px-4 lg:px-6 h-14 flex items-center justify-between rounded-full border-2 border-carbon transition-all duration-300 ${pill}`}>
+      <nav className={`max-w-7xl mx-auto my-3 px-4 lg:px-6 h-14 flex items-center justify-between rounded-full border-2 border-carbon-soft transition-all duration-300 ${pill}`}>
         <Link href="/" className="flex items-center gap-2">
-          <span className="w-6 h-6 rounded-full bg-volt border-2 border-carbon inline-block" />
+          <span className="w-6 h-6 rounded-full bg-volt border-2 border-carbon-soft inline-block" />
           <span className="font-display font-extrabold text-lg tracking-tighter text-carbon">{t("header.brand")}</span>
         </Link>
 
@@ -97,7 +97,7 @@ export function SiteHeader({ variant = "solid" }: { variant?: "hero" | "solid" }
       </nav>
 
       {mobileOpen && (
-        <div className="md:hidden mx-4 rounded-2xl border-2 border-carbon bg-paper-bright shadow-[4px_4px_0_var(--color-carbon)]">
+        <div className="md:hidden mx-4 rounded-2xl border-2 border-carbon-soft bg-paper-bright shadow-[3px_3px_0_var(--color-carbon-soft)]">
           <div className="px-5 py-4 space-y-3">
             {NAV_LINKS.map((l) => (
               <Link
@@ -114,7 +114,7 @@ export function SiteHeader({ variant = "solid" }: { variant?: "hero" | "solid" }
             >
               {t("nav.contactUs")}
             </Link>
-            <hr className="border-carbon" />
+            <hr className="border-carbon-soft" />
             {user ? (
               <button onClick={goDash} className="w-full btn-carbon !py-2.5 !px-4 text-sm mt-2">{t("header.openDashboard")}</button>
             ) : (

@@ -101,18 +101,18 @@ export function BookingWidget({ therapistId, price, onConfirm }: BookingWidgetPr
 
   return (
     <div className="card-neo p-6 flex flex-col gap-6">
-      <div className="border-b-2 border-carbon pb-4 flex justify-between items-end">
+      <div className="border-b-2 border-carbon-soft pb-4 flex justify-between items-end">
         <h2 className="font-display font-extrabold uppercase tracking-tight text-xl">{t("therapistProfile.bookSession")}</h2>
-        <span className="font-mono font-bold uppercase text-xs bg-volt border-2 border-carbon px-2 py-1">{npr(price)}</span>
+        <span className="font-mono font-bold uppercase text-xs bg-volt border-2 border-carbon-soft px-2 py-1">{npr(price)}</span>
       </div>
 
       <div className="flex flex-col gap-4">
-        <div className="flex justify-between items-center bg-surface border-2 border-carbon p-2">
+        <div className="flex justify-between items-center bg-surface border-2 border-carbon-soft p-2">
           <button
             type="button"
             onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))}
             disabled={isCurrentMonth}
-            className={cn("p-1 border-2 border-carbon transition-colors", isCurrentMonth ? "opacity-40 cursor-not-allowed" : "hover:bg-volt")}
+            className={cn("p-1 border-2 border-carbon-soft transition-colors", isCurrentMonth ? "opacity-40 cursor-not-allowed" : "hover:bg-volt")}
             aria-label="Previous month"
           >
             <ChevronLeft size={16} />
@@ -123,7 +123,7 @@ export function BookingWidget({ therapistId, price, onConfirm }: BookingWidgetPr
           <button
             type="button"
             onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))}
-            className="p-1 border-2 border-carbon hover:bg-volt transition-colors"
+            className="p-1 border-2 border-carbon-soft hover:bg-volt transition-colors"
             aria-label="Next month"
           >
             <ChevronRight size={16} />
@@ -149,10 +149,10 @@ export function BookingWidget({ therapistId, price, onConfirm }: BookingWidgetPr
                 disabled={isPast}
                 onClick={() => { setSelectedDate(dateStr); setSelectedTime(""); }}
                 className={cn(
-                  "aspect-square flex flex-col items-center justify-center border-2 border-carbon transition-all relative group",
+                  "aspect-square flex flex-col items-center justify-center border-2 border-carbon-soft transition-all relative group",
                   isPast && "bg-surface opacity-40 cursor-not-allowed",
                   !isPast && !isSelected && "bg-paper-bright hover:bg-volt cursor-pointer",
-                  isSelected && "bg-volt shadow-[2px_2px_0_var(--color-carbon)] -translate-y-0.5 -translate-x-0.5",
+                  isSelected && "bg-volt shadow-[1px_1px_0_var(--color-carbon-soft)] -translate-y-0.5 -translate-x-0.5",
                   isToday && !isSelected && "font-bold",
                 )}
               >
@@ -173,11 +173,11 @@ export function BookingWidget({ therapistId, price, onConfirm }: BookingWidgetPr
         {isLoading ? (
           <div className="grid grid-cols-2 gap-2">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-10 rounded-xl bg-surface animate-pulse border-2 border-carbon/10" />
+              <div key={i} className="h-10 rounded-xl bg-surface animate-pulse border-2 border-carbon-soft/10" />
             ))}
           </div>
         ) : daySlots.length === 0 ? (
-          <p className="text-xs text-text-light text-center py-4 border-2 border-dashed border-carbon rounded-xl">
+          <p className="text-xs text-text-light text-center py-4 border-2 border-dashed border-carbon-soft rounded-xl">
             {t("therapistProfile.noSlots")}
           </p>
         ) : (
@@ -192,10 +192,10 @@ export function BookingWidget({ therapistId, price, onConfirm }: BookingWidgetPr
                   disabled={!isOpen}
                   onClick={() => isOpen && setSelectedTime(slot.time)}
                   className={cn(
-                    "py-2.5 rounded-xl border-2 border-carbon font-mono font-bold uppercase text-xs transition-all",
-                    isOpen && isSelected && "bg-volt shadow-[2px_2px_0_var(--color-carbon)]",
+                    "py-2.5 rounded-xl border-2 border-carbon-soft font-mono font-bold uppercase text-xs transition-all",
+                    isOpen && isSelected && "bg-volt shadow-[1px_1px_0_var(--color-carbon-soft)]",
                     isOpen && !isSelected && "bg-paper-bright hover:bg-volt",
-                    !isOpen && "bg-surface text-text-light/50 border-carbon/20 line-through cursor-not-allowed",
+                    !isOpen && "bg-surface text-text-light/50 border-carbon-soft/20 line-through cursor-not-allowed",
                   )}
                 >
                   {to12h(slot.time)}
@@ -211,9 +211,9 @@ export function BookingWidget({ therapistId, price, onConfirm }: BookingWidgetPr
         disabled={!selectedDate || !selectedTime}
         onClick={() => selectedDate && onConfirm(selectedDate, selectedTime)}
         className={cn(
-          "w-full py-4 font-display font-bold uppercase flex items-center justify-center gap-2 border-2 border-carbon transition-all",
+          "w-full py-4 font-display font-bold uppercase flex items-center justify-center gap-2 border-2 border-carbon-soft transition-all",
           selectedDate && selectedTime
-            ? "bg-carbon text-paper-bright hover:bg-olive shadow-[4px_4px_0_var(--color-carbon)] hover:translate-x-[-2px] hover:translate-y-[-2px]"
+            ? "bg-carbon text-paper-bright hover:bg-olive shadow-[1px_1px_0_var(--color-carbon-soft)] hover:translate-x-[-1px] hover:translate-y-[-1px]"
             : "bg-surface text-text-light/50 cursor-not-allowed",
         )}
       >

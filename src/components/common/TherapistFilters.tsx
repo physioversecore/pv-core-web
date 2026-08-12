@@ -29,7 +29,7 @@ export function TherapistFilters({
     onGenderChange("");
   };
 
-  const selectCls = "px-3 h-11 rounded-xl border-2 border-carbon bg-paper-bright text-sm shadow-[3px_3px_0_var(--color-carbon)] focus:outline-none focus:ring-2 focus:ring-volt";
+  const selectCls = "px-3 h-11 rounded-xl border-2 border-carbon-soft bg-paper-bright text-sm shadow-[1px_1px_0_var(--color-carbon-soft)] focus:outline-none focus:ring-2 focus:ring-volt";
 
   return (
     <div className="mb-8">

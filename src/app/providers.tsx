@@ -8,16 +8,23 @@ import { BookingBadgeProvider } from "@/context/booking-badge";
 import { ComplaintBadgeProvider } from "@/context/complaint-badge";
 import { CartProvider } from "@/context/cart";
 import { LangProvider } from "@/context/i18n";
+import type { Lang } from "@/translations";
 import { DesignTokensProvider } from "@/context/design-tokens";
 import { Toaster } from "sonner";
 
-export function Providers({ children }: { children: ReactNode }) {
+export function Providers({
+  children,
+  initialLang = "en",
+}: {
+  children: ReactNode;
+  initialLang?: Lang;
+}) {
   const [queryClient] = useState(() => new QueryClient());
 
   return (
     <QueryClientProvider client={queryClient}>
       <DesignTokensProvider>
-        <LangProvider>
+        <LangProvider initialLang={initialLang}>
           <AuthProvider>
             <CartProvider>
               <BookingBadgeProvider>

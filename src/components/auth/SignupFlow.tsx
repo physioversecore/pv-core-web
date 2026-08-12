@@ -199,7 +199,7 @@ export function SignupFlow({
   if (submitted === "patient-ok") {
     return (
       <div className="text-center py-6">
-        <div className="w-16 h-16 rounded-full bg-mint border-2 border-carbon grid place-items-center mx-auto mb-4 text-3xl text-carbon">✓</div>
+        <div className="w-16 h-16 rounded-full bg-mint border-2 border-carbon-soft grid place-items-center mx-auto mb-4 text-3xl text-carbon">✓</div>
         <h2 className="text-2xl font-display font-extrabold mb-2">{t("auth.youAreAllSet")}</h2>
         <p className="text-text-light text-sm mb-6">{t("auth.patientSuccessSub")}</p>
         <button onClick={() => handleSuccessCta("patient")} className="btn-volt">{t("auth.goToDashboard")}</button>
@@ -210,7 +210,7 @@ export function SignupFlow({
   if (submitted === "therapist-ok") {
     return (
       <div className="text-center py-6">
-        <div className="w-16 h-16 rounded-full bg-volt border-2 border-carbon grid place-items-center mx-auto mb-4 text-3xl text-carbon">✓</div>
+        <div className="w-16 h-16 rounded-full bg-volt border-2 border-carbon-soft grid place-items-center mx-auto mb-4 text-3xl text-carbon">✓</div>
         <h2 className="text-2xl font-display font-extrabold mb-2">{t("auth.applicationReceived")}</h2>
         <p className="text-text-light text-sm mb-6">{t("auth.therapistSuccessSub")}</p>
         <button onClick={() => handleSuccessCta("therapist")} className="btn-volt">{t("auth.goToLogin")}</button>
@@ -277,15 +277,15 @@ export function SignupFlow({
         <p className="text-text-light text-sm mb-6">{t("auth.signupSubtitle")}</p>
 
         <div className="grid gap-4">
-          <button onClick={() => setSignupRole("patient")} className="w-full text-left p-5 rounded-xl border-2 border-carbon bg-paper-bright shadow-[4px_4px_0_var(--color-carbon)] hover:shadow-[6px_6px_0_var(--color-carbon)] hover:-translate-y-0.5 transition flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-volt border-2 border-carbon grid place-items-center shrink-0"><HeartPulse className="text-carbon" size={28} /></div>
+          <button onClick={() => setSignupRole("patient")} className="w-full text-left p-5 rounded-xl border-2 border-carbon-soft bg-paper-bright shadow-[1px_1px_0_var(--color-carbon-soft)] hover:shadow-[1px_1px_0_var(--color-carbon-soft)] hover:-translate-y-px transition flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-volt border-2 border-carbon-soft grid place-items-center shrink-0"><HeartPulse className="text-carbon" size={28} /></div>
             <div className="min-w-0">
               <div className="font-bold text-text">{t("auth.iAmPatient")}</div>
               <div className="text-sm text-text-light">{t("auth.patientDesc")}</div>
             </div>
           </button>
-          <button onClick={() => setSignupRole("therapist")} className="w-full text-left p-5 rounded-xl border-2 border-carbon bg-paper-bright shadow-[4px_4px_0_var(--color-carbon)] hover:shadow-[6px_6px_0_var(--color-carbon)] hover:-translate-y-0.5 transition flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-mint border-2 border-carbon grid place-items-center shrink-0"><Stethoscope className="text-carbon" size={28} /></div>
+          <button onClick={() => setSignupRole("therapist")} className="w-full text-left p-5 rounded-xl border-2 border-carbon-soft bg-paper-bright shadow-[1px_1px_0_var(--color-carbon-soft)] hover:shadow-[1px_1px_0_var(--color-carbon-soft)] hover:-translate-y-px transition flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-mint border-2 border-carbon-soft grid place-items-center shrink-0"><Stethoscope className="text-carbon" size={28} /></div>
             <div className="min-w-0">
               <div className="font-bold text-text">{t("auth.iAmTherapist")}</div>
               <div className="text-sm text-text-light">{t("auth.therapistDesc")}</div>

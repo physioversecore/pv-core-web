@@ -9,10 +9,10 @@ export function TherapistCard({ t: therapist }: { t: Therapist }) {
   const photo = therapist.mediaUrls?.split(",")[0];
 
   return (
-    <article className="bg-paper-bright rounded-2xl border-2 border-carbon shadow-[4px_4px_0_var(--color-carbon)] p-5 md:p-8 grid grid-cols-[auto_1fr] lg:grid-cols-1 gap-x-5 items-center lg:justify-items-center text-left lg:text-center transition-all duration-300 hover:-translate-y-2 hover:shadow-[8px_8px_0_var(--color-carbon)] h-full">
+    <article className="bg-paper-bright rounded-2xl border-2 border-carbon-soft shadow-[3px_3px_0_var(--color-carbon-soft)] p-5 md:p-8 grid grid-cols-[auto_1fr] lg:grid-cols-1 gap-x-5 items-center lg:justify-items-center text-left lg:text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-[3px_3px_0_var(--color-carbon-soft)] h-full">
       <Link
         href={`/therapist/${therapist.id}`}
-        className="w-20 h-20 lg:w-32 lg:h-32 rounded-full overflow-hidden mb-0 lg:mb-6 bg-surface border-2 border-carbon block justify-self-start lg:justify-self-center hover:rotate-3 transition-transform [&_*]:!w-full [&_*]:!h-full"
+        className="w-20 h-20 lg:w-32 lg:h-32 rounded-full overflow-hidden mb-0 lg:mb-6 bg-surface border-2 border-carbon-soft block justify-self-start lg:justify-self-center hover:rotate-3 transition-transform [&_*]:!w-full [&_*]:!h-full"
         aria-label={therapist.name}
       >
         {photo ? (

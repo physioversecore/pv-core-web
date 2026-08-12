@@ -152,12 +152,12 @@ export default function ForgotPasswordPage() {
       <div className="min-h-screen flex items-center justify-center bg-moss p-4 md:p-8">
         <div className="w-full max-w-2xl">
           <Link href="/" className="flex items-center gap-2 justify-center mb-8">
-            <span className="w-6 h-6 rounded-full bg-volt border-2 border-carbon inline-block" />
+            <span className="w-6 h-6 rounded-full bg-volt border-2 border-carbon-soft inline-block" />
             <span className="font-display font-extrabold text-lg text-white">{t("header.brand")}</span>
           </Link>
-          <div className="relative bg-paper-bright rounded-2xl border-2 border-carbon shadow-[8px_8px_0_var(--color-carbon)] p-8 md:p-12 text-center overflow-hidden">
+          <div className="relative bg-paper-bright rounded-2xl border-2 border-carbon-soft shadow-[5px_5px_0_var(--color-carbon-soft)] p-8 md:p-12 text-center overflow-hidden">
             <div aria-hidden className="absolute top-0 left-0 w-full h-2 bg-carbon" />
-            <div className="w-16 h-16 rounded-full bg-mint border-2 border-carbon flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 rounded-full bg-mint border-2 border-carbon-soft flex items-center justify-center mx-auto mb-4">
               <CheckCircle2 size={32} className="text-carbon" />
             </div>
             <h2 className="font-display font-extrabold text-2xl mb-2">Password reset</h2>
@@ -175,11 +175,11 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen flex items-center justify-center bg-moss p-4 md:p-8">
       <div className="w-full max-w-2xl">
         <Link href="/" className="flex items-center gap-2 justify-center mb-8">
-          <span className="w-6 h-6 rounded-full bg-volt border-2 border-carbon inline-block" />
+          <span className="w-6 h-6 rounded-full bg-volt border-2 border-carbon-soft inline-block" />
           <span className="font-display font-extrabold text-lg text-white">{t("header.brand")}</span>
         </Link>
 
-        <div className="relative bg-paper-bright rounded-2xl border-2 border-carbon shadow-[8px_8px_0_var(--color-carbon)] p-8 md:p-12 overflow-hidden">
+        <div className="relative bg-paper-bright rounded-2xl border-2 border-carbon-soft shadow-[5px_5px_0_var(--color-carbon-soft)] p-8 md:p-12 overflow-hidden">
           <div aria-hidden className="absolute top-0 left-0 w-full h-2 bg-carbon" />
           <button
             type="button"
@@ -251,7 +251,7 @@ export default function ForgotPasswordPage() {
                       onChange={(e) => handleOtpChange(i, e.target.value)}
                       onKeyDown={(e) => handleOtpKeyDown(i, e)}
                       onPaste={i === 0 ? (e) => { e.preventDefault(); const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6); if (pasted) { setOtp(pasted.split("")); const next = document.getElementById(`otp-${Math.min(pasted.length, 5)}`); next?.focus(); } } : undefined}
-                      className="w-12 h-14 text-center text-lg font-mono font-bold rounded-xl border-2 border-carbon bg-paper-bright shadow-[3px_3px_0_var(--color-carbon)] focus:outline-none focus:ring-2 focus:ring-volt"
+                      className="w-12 h-14 text-center text-lg font-mono font-bold rounded-xl border-2 border-carbon-soft bg-paper-bright shadow-[1px_1px_0_var(--color-carbon-soft)] focus:outline-none focus:ring-2 focus:ring-volt"
                     />
                   ))}
                 </div>

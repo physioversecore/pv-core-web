@@ -47,10 +47,10 @@ export function HowItWorksSteps({ steps: stepsProp }: HowItWorksStepsProps) {
                   </span>
                   <div className="absolute inset-0 grid place-items-center">
                     <div className="relative">
-                      <div className="w-24 h-24 md:w-28 md:h-28 rounded-full bg-volt border-2 border-carbon grid place-items-center shadow-[6px_6px_0_var(--color-carbon)]">
+                      <div className="w-24 h-24 md:w-28 md:h-28 rounded-full bg-volt border-2 border-carbon-soft grid place-items-center shadow-[4px_4px_0_var(--color-carbon-soft)]">
                         <Icon size={40} strokeWidth={2} className="text-carbon" />
                       </div>
-                      <span className="absolute -right-10 -top-2 w-7 h-7 rounded-full bg-paper-bright border-2 border-carbon shadow-[3px_3px_0_var(--color-carbon)]" />
+                      <span className="absolute -right-10 -top-2 w-7 h-7 rounded-full bg-paper-bright border-2 border-carbon-soft shadow-[1px_1px_0_var(--color-carbon-soft)]" />
                       <span className="absolute -left-9 bottom-2 w-5 h-5 rounded-full bg-carbon" />
                     </div>
                   </div>
@@ -66,7 +66,7 @@ export function HowItWorksSteps({ steps: stepsProp }: HowItWorksStepsProps) {
               <span className="label-ink text-olive">{s.n}</span>
               <div className="mt-auto pt-10">
                 <div
-                  className={`w-16 h-16 rounded-full border-2 border-carbon grid place-items-center mb-6 shadow-[4px_4px_0_var(--color-carbon)] ${
+                  className={`w-16 h-16 rounded-full border-2 border-carbon-soft grid place-items-center mb-6 shadow-[3px_3px_0_var(--color-carbon-soft)] ${
                     i === 1 ? "bg-volt" : "bg-mint"
                   }`}
                 >

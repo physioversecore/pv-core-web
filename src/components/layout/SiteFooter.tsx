@@ -25,7 +25,7 @@ export function SiteFooter() {
       <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-10 text-sm">
         <div className="col-span-2 md:col-span-1">
           <div className="flex items-center gap-2 mb-3">
-            <span className="w-6 h-6 rounded-full bg-volt border-2 border-carbon inline-block" />
+            <span className="w-6 h-6 rounded-full bg-volt border-2 border-carbon-soft inline-block" />
             <span className="font-display font-extrabold text-lg text-volt">{t("footer.brand")}</span>
           </div>
           <p className="text-paper-bright/70">{t("footer.tagline")}</p>

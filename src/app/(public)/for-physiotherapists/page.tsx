@@ -41,7 +41,7 @@ export default function ForPhysiotherapists() {
       </section>
 
       <section className="max-w-7xl mx-auto px-5 lg:px-8 pb-16">
-        <div className="card-neo !shadow-[8px_8px_0_var(--color-carbon)] bg-paper-bright text-carbon p-8 md:p-12 mb-16">
+        <div className="card-neo !shadow-[5px_5px_0_var(--color-carbon-soft)] bg-paper-bright text-carbon p-8 md:p-12 mb-16">
           <p className="label-ink mb-3">{t("forTherapists.introTitle")}</p>
           <p className="text-text-light max-w-3xl">{t("forTherapists.introBody1")}</p>
           <p className="text-text-light max-w-3xl mt-4">{t("forTherapists.introBody2")}</p>
@@ -51,8 +51,8 @@ export default function ForPhysiotherapists() {
           {BENEFITS.map((b, i) => (
             <Reveal key={b.titleKey} delay={i * 80}>
               <div
-                className={`rounded-2xl border-2 border-carbon p-8 aspect-[4/3] flex flex-col justify-between group hover:-translate-y-1 hover:rotate-1 transition-transform duration-300 ${
-                  b.dark ? "bg-carbon text-paper-bright shadow-[6px_6px_0_var(--color-volt)]" : "bg-volt text-carbon shadow-[6px_6px_0_var(--color-carbon)]"
+                className={`rounded-2xl border-2 border-carbon-soft p-8 aspect-[4/3] flex flex-col justify-between group hover:-translate-y-0.5 hover:rotate-1 transition-transform duration-300 ${
+                  b.dark ? "bg-carbon text-paper-bright shadow-[6px_6px_0_var(--color-volt)]" : "bg-volt text-carbon shadow-[4px_4px_0_var(--color-carbon-soft)]"
                 }`}
               >
                 <div className={b.dark ? "text-volt group-hover:scale-110 transition-transform duration-300" : "text-carbon group-hover:scale-110 transition-transform duration-300"}>
@@ -78,7 +78,7 @@ export default function ForPhysiotherapists() {
                 {t("forTherapists.readyTitle")}
               </h2>
               <p className="text-paper-bright/80 text-lg mb-10">{t("forTherapists.readyDesc")}</p>
-              <div className="inline-flex items-center gap-2 bg-volt text-carbon font-mono font-bold uppercase text-sm tracking-wide px-8 py-4 rounded-full border-2 border-carbon shadow-[4px_4px_0_var(--color-carbon)] hover:bg-paper-bright hover:-translate-y-0.5 transition-transform">
+              <div className="inline-flex items-center gap-2 bg-volt text-carbon font-mono font-bold uppercase text-sm tracking-wide px-8 py-4 rounded-full border-2 border-carbon-soft shadow-[1px_1px_0_var(--color-carbon-soft)] hover:bg-paper-bright hover:-translate-y-px transition-transform">
                 <Link href="#enroll">{t("forTherapists.applyNow")}</Link>
                 <ArrowRight size={16} />
               </div>
@@ -86,7 +86,7 @@ export default function ForPhysiotherapists() {
           </Reveal>
 
           <Reveal delay={120}>
-            <div id="enroll" className="bg-paper-bright text-carbon rounded-[32px] border-2 border-carbon shadow-[10px_10px_0_var(--color-volt)] p-8 md:p-12">
+            <div id="enroll" className="bg-paper-bright text-carbon rounded-[32px] border-2 border-carbon-soft shadow-[10px_10px_0_var(--color-volt)] p-8 md:p-12">
               <SignupFlow defaultSignupRole="therapist" onSuccess={handleSuccess} isSignUpPage={false} />
             </div>
           </Reveal>

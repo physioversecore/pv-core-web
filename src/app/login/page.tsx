@@ -77,11 +77,11 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-moss p-4 md:p-8">
       <div className="w-full max-w-2xl">
         <Link href="/" className="flex items-center gap-2 justify-center mb-8">
-          <span className="w-6 h-6 rounded-full bg-volt border-2 border-carbon inline-block" />
+          <span className="w-6 h-6 rounded-full bg-volt border-2 border-carbon-soft inline-block" />
           <span className="font-display font-extrabold text-lg text-white">{t("header.brand")}</span>
         </Link>
 
-        <div className="relative bg-paper-bright rounded-2xl border-2 border-carbon shadow-[8px_8px_0_var(--color-carbon)] p-8 md:p-12 overflow-hidden">
+        <div className="relative bg-paper-bright rounded-2xl border-2 border-carbon-soft shadow-[5px_5px_0_var(--color-carbon-soft)] p-8 md:p-12 overflow-hidden">
           <div aria-hidden className="absolute top-0 left-0 w-full h-2 bg-carbon" />
           <div className="mb-10">
             <p className="label-ink mb-3">{t("auth.account")}</p>
@@ -127,7 +127,7 @@ export default function LoginPage() {
             </div>
           </form>
 
-          <div className="mt-8 text-center border-t-2 border-carbon pt-6">
+          <div className="mt-8 text-center border-t-2 border-carbon-soft pt-6">
             <p className="text-text-light">
               {t("auth.dontHaveAccount")}{" "}
               <Link href="/signup" className="label-ink uppercase underline decoration-2 underline-offset-4 hover:bg-volt transition-colors ml-2">{t("common.signUp")}</Link>

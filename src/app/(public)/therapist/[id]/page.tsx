@@ -59,17 +59,17 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               <div className="lg:col-span-8 flex flex-col gap-6">
                 <div className="card-neo overflow-hidden md:flex md:items-stretch">
-                  <div className="md:w-2/5 relative border-b-2 md:border-b-0 md:border-r-2 border-carbon bg-volt min-h-[280px] md:min-h-0 grid place-items-center">
+                  <div className="md:w-2/5 relative border-b-2 md:border-b-0 md:border-r-2 border-carbon-soft bg-volt min-h-[280px] md:min-h-0 grid place-items-center">
                     <div className="w-36 h-36 md:w-44 md:h-44">
                       {photo ? (
-                        <img src={photo} alt={therapist.name} className="w-full h-full object-cover rounded-2xl border-2 border-carbon shadow-[6px_6px_0_var(--color-carbon)]" />
+                        <img src={photo} alt={therapist.name} className="w-full h-full object-cover rounded-2xl border-2 border-carbon-soft shadow-[4px_4px_0_var(--color-carbon-soft)]" />
                       ) : (
-                        <div className="w-full h-full rounded-2xl border-2 border-carbon shadow-[6px_6px_0_var(--color-carbon)] grid place-items-center bg-mint">
+                        <div className="w-full h-full rounded-2xl border-2 border-carbon-soft shadow-[4px_4px_0_var(--color-carbon-soft)] grid place-items-center bg-mint">
                           <Avatar name={therapist.name} size={120} />
                         </div>
                       )}
                     </div>
-                    <span className="absolute bottom-4 left-4 bg-volt border-2 border-carbon px-3 py-1 font-mono font-bold uppercase text-[11px] tracking-wide flex items-center gap-1">
+                    <span className="absolute bottom-4 left-4 bg-volt border-2 border-carbon-soft px-3 py-1 font-mono font-bold uppercase text-[11px] tracking-wide flex items-center gap-1">
                       <BadgeCheck size={14} />
                       {t("therapistProfile.verified")}
                     </span>
@@ -77,14 +77,14 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
                   <div className="md:w-3/5 p-6 md:p-8 flex flex-col justify-between">
                     <div>
                       <div className="flex flex-wrap gap-2 mb-4">
-                        <span className="bg-volt border-2 border-carbon rounded-full px-4 py-1 font-mono font-bold uppercase text-[11px] tracking-wide">{therapist.specialty}</span>
-                        <span className="bg-transparent border-2 border-carbon rounded-full px-4 py-1 font-mono font-bold uppercase text-[11px] tracking-wide">{therapist.city}</span>
+                        <span className="bg-volt border-2 border-carbon-soft rounded-full px-4 py-1 font-mono font-bold uppercase text-[11px] tracking-wide">{therapist.specialty}</span>
+                        <span className="bg-transparent border-2 border-carbon-soft rounded-full px-4 py-1 font-mono font-bold uppercase text-[11px] tracking-wide">{therapist.city}</span>
                       </div>
                       <h1 className="font-display font-extrabold text-3xl md:text-4xl uppercase tracking-tight mb-2">{therapist.name}</h1>
                       <p className="font-mono font-bold uppercase text-xs text-text-light mb-6">
                         PT, DPT · {therapist.experience} {t("therapistProfile.experienceYears")}
                       </p>
-                      <div className="border-b-2 border-carbon mb-6" />
+                      <div className="border-b-2 border-carbon-soft mb-6" />
                       <p className="text-text-light text-sm leading-relaxed mb-6">{therapist.bio || t("therapistProfile.noBio")}</p>
                     </div>
                     <div className="flex items-center gap-6 mt-auto">
@@ -95,7 +95,7 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
                         </div>
                         <div className="font-mono font-bold uppercase text-[10px] tracking-wide text-text-light mt-1">{t("therapistProfile.patientRating")}</div>
                       </div>
-                      <div className="h-14 border-2 border-carbon" />
+                      <div className="h-14 border-2 border-carbon-soft" />
                       <div>
                         <div className="font-display font-extrabold text-4xl text-olive leading-none">{therapist.reviews}</div>
                         <div className="font-mono font-bold uppercase text-[10px] tracking-wide text-text-light mt-1">{t("therapistProfile.patientsTreated")}</div>
@@ -106,18 +106,18 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
 
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="card-neo card-neo-hover p-6">
-                    <div className="flex items-center gap-3 border-b-2 border-carbon pb-4 mb-6">
+                    <div className="flex items-center gap-3 border-b-2 border-carbon-soft pb-4 mb-6">
                       <GraduationCap size={32} />
                       <h2 className="font-display font-extrabold uppercase tracking-tight text-xl">{t("therapistProfile.education")}</h2>
                     </div>
                     <ul className="space-y-5">
                       <li className="relative pl-6">
-                        <span className="absolute left-0 top-2 w-3 h-3 bg-volt border-2 border-carbon" />
+                        <span className="absolute left-0 top-2 w-3 h-3 bg-volt border-2 border-carbon-soft" />
                         <h3 className="font-mono font-bold uppercase text-xs tracking-wide">Doctor of Physical Therapy</h3>
                         <p className="text-xs text-text-light mt-0.5">PT · {therapist.experience} {t("therapistProfile.experienceYears")}</p>
                       </li>
                       <li className="relative pl-6">
-                        <span className="absolute left-0 top-2 w-3 h-3 bg-mint border-2 border-carbon" />
+                        <span className="absolute left-0 top-2 w-3 h-3 bg-mint border-2 border-carbon-soft" />
                         <h3 className="font-mono font-bold uppercase text-xs tracking-wide">{therapist.specialty}</h3>
                         <p className="text-xs text-text-light mt-0.5">{therapist.city}</p>
                       </li>
@@ -125,18 +125,18 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
                   </div>
 
                   <div className="card-neo card-neo-hover p-6">
-                    <div className="flex items-center gap-3 border-b-2 border-carbon pb-4 mb-6">
+                    <div className="flex items-center gap-3 border-b-2 border-carbon-soft pb-4 mb-6">
                       <Award size={32} />
                       <h2 className="font-display font-extrabold uppercase tracking-tight text-xl">{t("therapistProfile.certifications")}</h2>
                     </div>
                     <ul className="space-y-5">
                       <li className="relative pl-6">
-                        <span className="absolute left-0 top-2 w-3 h-3 bg-volt border-2 border-carbon" />
+                        <span className="absolute left-0 top-2 w-3 h-3 bg-volt border-2 border-carbon-soft" />
                         <h3 className="font-mono font-bold uppercase text-xs tracking-wide">NMC</h3>
                         <p className="text-xs text-text-light mt-0.5">Nepal Medical Council</p>
                       </li>
                       <li className="relative pl-6">
-                        <span className="absolute left-0 top-2 w-3 h-3 bg-mint border-2 border-carbon" />
+                        <span className="absolute left-0 top-2 w-3 h-3 bg-mint border-2 border-carbon-soft" />
                         <h3 className="font-mono font-bold uppercase text-xs tracking-wide">{therapist.specialty}</h3>
                         <p className="text-xs text-text-light mt-0.5">{t("therapistProfile.verified")}</p>
                       </li>

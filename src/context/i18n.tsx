@@ -5,6 +5,15 @@ import { translations, type Lang } from "@/translations";
 
 const KEY = "sahayatri.lang";
 
+function isLang(value: unknown): value is Lang {
+  return value === "en" || value === "ne";
+}
+
+function writeLangCookie(l: Lang) {
+  if (typeof document === "undefined") return;
+  document.cookie = `${KEY}=${l}; path=/; max-age=31536000; samesite=lax`;
+}
+
 type DeepKeys<T> = T extends Record<string, unknown>
   ? { [K in keyof T & string]: `${K}${T[K] extends Record<string, unknown> ? `.${DeepKeys<T[K]>}` : ""}` }[keyof T & string]
   : "";
@@ -28,19 +37,29 @@ function resolve(obj: Record<string, unknown>, path: string): string | undefined
 
 const Ctx = createContext<I18nCtx | null>(null);
 
-export function LangProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("en");
+export function LangProvider({
+  children,
+  initialLang = "en",
+}: {
+  children: ReactNode;
+  initialLang?: Lang;
+}) {
+  const [lang, setLangState] = useState<Lang>(initialLang);
 
   useEffect(() => {
     try {
       const raw = typeof window !== "undefined" ? localStorage.getItem(KEY) : null;
-      if (raw === "en" || raw === "ne") setLangState(raw);
+      if (isLang(raw)) {
+        setLangState(raw);
+        writeLangCookie(raw);
+      }
     } catch {}
-  }, []);
+  }, [initialLang]);
 
   const setLang = (l: Lang) => {
     setLangState(l);
     if (typeof window !== "undefined") localStorage.setItem(KEY, l);
+    writeLangCookie(l);
   };
 
   const t = useCallback(

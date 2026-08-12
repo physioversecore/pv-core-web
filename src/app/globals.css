@@ -53,6 +53,7 @@
   --color-moss: #006D36;
   --color-mint: #6DFE9C;
   --color-carbon: #1B1B1B;
+  --color-carbon-soft: #4A4A4A;
   --color-paper: #F9F9F9;
   --color-paper-bright: #FFFFFF;
   --color-olive: #666000;
@@ -89,6 +90,7 @@
   --font-display: var(--font-display-loaded), "Anybody", ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-sans-loaded), "Archivo Narrow", ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-mono-loaded), "Space Grotesk", ui-monospace, monospace;
+  --font-serif: var(--font-sans-loaded), "Archivo Narrow", ui-sans-serif, system-ui, sans-serif;
 }
 
 :root {
@@ -320,74 +322,74 @@
   padding: .8rem 1.5rem; border-radius: 1rem;
   background: var(--color-volt); color: var(--color-carbon);
   font-family: var(--font-mono); font-weight: 700; font-size: .8rem; text-transform: uppercase; letter-spacing: .04em;
-  border: 2px solid var(--color-carbon);
-  box-shadow: 4px 4px 0 var(--color-carbon);
+  border: 2px solid var(--color-carbon-soft);
+  box-shadow: 1px 1px 0 var(--color-carbon-soft);
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-  &:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--color-carbon); }
-  &:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--color-carbon); }
+  &:hover { transform: translate(-1px, -1px); box-shadow: 1px 1px 0 var(--color-carbon-soft); }
+  &:active { transform: translate(1px, 1px); box-shadow: 0 0 0 var(--color-carbon-soft); }
 }
 @utility btn-carbon {
   display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
   padding: .8rem 1.5rem; border-radius: 1rem;
   background: var(--color-carbon); color: var(--color-paper-bright);
   font-family: var(--font-mono); font-weight: 700; font-size: .8rem; text-transform: uppercase; letter-spacing: .04em;
-  border: 2px solid var(--color-carbon);
-  box-shadow: 4px 4px 0 var(--color-carbon);
+  border: 2px solid var(--color-carbon-soft);
+  box-shadow: 1px 1px 0 var(--color-carbon-soft);
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-  &:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--color-carbon); background: var(--color-olive); }
-  &:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--color-carbon); }
+  &:hover { transform: translate(-1px, -1px); box-shadow: 1px 1px 0 var(--color-carbon-soft); background: var(--color-olive); }
+  &:active { transform: translate(1px, 1px); box-shadow: 0 0 0 var(--color-carbon-soft); }
 }
 @utility btn-outline-ink {
   display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
   padding: .8rem 1.5rem; border-radius: 1rem;
   background: transparent; color: var(--color-carbon);
   font-family: var(--font-mono); font-weight: 700; font-size: .8rem; text-transform: uppercase; letter-spacing: .04em;
-  border: 2px solid var(--color-carbon);
-  box-shadow: 4px 4px 0 var(--color-carbon);
+  border: 2px solid var(--color-carbon-soft);
+  box-shadow: 1px 1px 0 var(--color-carbon-soft);
   transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
-  &:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--color-carbon); background: var(--color-volt); }
-  &:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--color-carbon); }
+  &:hover { transform: translate(-1px, -1px); box-shadow: 1px 1px 0 var(--color-carbon-soft); background: var(--color-volt); }
+  &:active { transform: translate(1px, 1px); box-shadow: 0 0 0 var(--color-carbon-soft); }
 }
 @utility card-neo {
-  background: var(--color-paper-bright); border: 2px solid var(--color-carbon); border-radius: 1.25rem;
-  box-shadow: 5px 5px 0 var(--color-carbon);
+  background: var(--color-paper-bright); border: 2px solid var(--color-carbon-soft); border-radius: 1.25rem;
+  box-shadow: 3px 3px 0 var(--color-carbon-soft);
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 @utility card-neo-hover {
-  &:hover { transform: translate(-3px, -3px); box-shadow: 8px 8px 0 var(--color-carbon); }
+  &:hover { transform: translate(-2px, -2px); box-shadow: 3px 3px 0 var(--color-carbon-soft); }
 }
 @utility chip-volt {
   display: inline-flex; align-items: center; gap: .35rem;
   padding: .3rem .7rem; border-radius: .6rem;
   font-family: var(--font-mono); font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em;
   background: var(--color-volt); color: var(--color-carbon);
-  border: 2px solid var(--color-carbon);
-  box-shadow: 2px 2px 0 var(--color-carbon);
+  border: 2px solid var(--color-carbon-soft);
+  box-shadow: 1px 1px 0 var(--color-carbon-soft);
 }
 @utility chip-mint {
   display: inline-flex; align-items: center; gap: .35rem;
   padding: .3rem .7rem; border-radius: .6rem;
   font-family: var(--font-mono); font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em;
   background: var(--color-mint); color: var(--color-carbon);
-  border: 2px solid var(--color-carbon);
-  box-shadow: 2px 2px 0 var(--color-carbon);
+  border: 2px solid var(--color-carbon-soft);
+  box-shadow: 1px 1px 0 var(--color-carbon-soft);
 }
 @utility chip-sand {
   display: inline-flex; align-items: center; gap: .35rem;
   padding: .3rem .7rem; border-radius: .6rem;
   font-family: var(--font-mono); font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em;
   background: var(--color-paper); color: var(--color-carbon);
-  border: 2px solid var(--color-carbon);
+  border: 2px solid var(--color-carbon-soft);
 }
 @utility input-neo {
   width: 100%; padding: .7rem 1rem; border-radius: .9rem;
   background: var(--color-paper-bright); color: var(--color-carbon);
-  border: 2px solid var(--color-carbon);
-  box-shadow: 3px 3px 0 var(--color-carbon);
+  border: 2px solid var(--color-carbon-soft);
+  box-shadow: 1px 1px 0 var(--color-carbon-soft);
   font-family: var(--font-sans); font-size: .95rem;
   transition: box-shadow var(--transition-fast), transform var(--transition-fast);
   &::placeholder { color: var(--color-text-muted); }
-  &:focus { outline: none; box-shadow: 4px 4px 0 var(--color-carbon); transform: translate(-1px, -1px); }
+  &:focus { outline: none; box-shadow: 2px 2px 0 var(--color-carbon-soft); transform: translate(-1px, -1px); }
 }
 @utility label-ink {
   font-family: var(--font-mono); font-weight: 700; text-transform: uppercase;

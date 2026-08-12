@@ -68,7 +68,7 @@ export default function Contact() {
           <Reveal delay={120}>
             <div className="space-y-4">
               <div className="card-neo card-neo-hover p-5 flex gap-3">
-                <span className="w-12 h-12 rounded-xl grid place-items-center text-carbon bg-volt border-2 border-carbon"><Mail size={18} /></span>
+                <span className="w-12 h-12 rounded-xl grid place-items-center text-carbon bg-volt border-2 border-carbon-soft"><Mail size={18} /></span>
                 <div>
                   <div className="label-ink mb-1">{t("contact.emailLabel")}</div>
                   <div className="font-semibold">{t("contact.emailValue")}</div>
@@ -76,7 +76,7 @@ export default function Contact() {
                 </div>
               </div>
               <div className="card-neo card-neo-hover p-5 flex gap-3">
-                <span className="w-12 h-12 rounded-xl grid place-items-center text-carbon bg-mint border-2 border-carbon"><Phone size={18} /></span>
+                <span className="w-12 h-12 rounded-xl grid place-items-center text-carbon bg-mint border-2 border-carbon-soft"><Phone size={18} /></span>
                 <div>
                   <div className="label-ink mb-1">{t("contact.phoneLabel")}</div>
                   <div className="font-semibold">{t("contact.phoneValue")}</div>
@@ -84,7 +84,7 @@ export default function Contact() {
                 </div>
               </div>
               <div className="card-neo card-neo-hover p-5 flex gap-3">
-                <span className="w-12 h-12 rounded-xl grid place-items-center text-carbon bg-paper-bright border-2 border-carbon"><MapPin size={18} /></span>
+                <span className="w-12 h-12 rounded-xl grid place-items-center text-carbon bg-paper-bright border-2 border-carbon-soft"><MapPin size={18} /></span>
                 <div>
                   <div className="label-ink mb-1">{t("contact.officeLabel")}</div>
                   <div className="font-semibold">{t("contact.officeValue")}</div>
@@ -92,7 +92,7 @@ export default function Contact() {
                 </div>
               </div>
               <div className="card-neo card-neo-hover p-5 flex gap-3">
-                <span className="w-12 h-12 rounded-xl grid place-items-center text-carbon bg-cyan border-2 border-carbon"><Clock size={18} /></span>
+                <span className="w-12 h-12 rounded-xl grid place-items-center text-carbon bg-cyan border-2 border-carbon-soft"><Clock size={18} /></span>
                 <div>
                   <div className="label-ink mb-1">{t("contact.hoursLabel")}</div>
                   <div className="font-semibold">{t("contact.hoursValue")}</div>

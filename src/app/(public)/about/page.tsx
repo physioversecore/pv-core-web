@@ -47,7 +47,7 @@ export default function About() {
             {VALUES.map((v, i) => (
               <Reveal key={v.title} delay={i * 80}>
                 <div className="card-neo card-neo-hover p-6">
-                  <div className="w-11 h-11 rounded-lg grid place-items-center mb-3 text-carbon bg-mint border-2 border-carbon shadow-[3px_3px_0_var(--color-carbon)]">{v.icon}</div>
+                  <div className="w-11 h-11 rounded-lg grid place-items-center mb-3 text-carbon bg-mint border-2 border-carbon-soft shadow-[1px_1px_0_var(--color-carbon-soft)]">{v.icon}</div>
                   <div className="font-display font-bold text-lg mb-1">{v.title}</div>
                   <p className="text-text-light text-sm">{v.desc}</p>
                 </div>

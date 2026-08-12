@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { Anybody, Archivo_Narrow, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
@@ -8,18 +9,21 @@ const fontDisplay = Anybody({
   subsets: ["latin"],
   weight: "variable",
   variable: "--font-display-loaded",
+  display: "optional",
 });
 
 const fontSans = Archivo_Narrow({
   subsets: ["latin"],
   weight: "variable",
   variable: "--font-sans-loaded",
+  display: "optional",
 });
 
 const fontMono = Space_Grotesk({
   subsets: ["latin"],
   weight: "variable",
   variable: "--font-mono-loaded",
+  display: "optional",
 });
 
 export const metadata: Metadata = {
@@ -39,11 +43,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const cookieStore = await cookies();
+  const initialLang = cookieStore.get("sahayatri.lang")?.value === "ne" ? "ne" : "en";
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={initialLang} suppressHydrationWarning>
       <body className={`${fontDisplay.variable} ${fontSans.variable} ${fontMono.variable}`}>
-        <Providers>{children}</Providers>
+        <Providers initialLang={initialLang}>{children}</Providers>
       </body>
     </html>
   );

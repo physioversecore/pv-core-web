@@ -37,9 +37,9 @@ function CardSkeleton() {
   return (
     <div className="md:col-span-6 lg:col-span-4">
       <div className="card-neo p-6 animate-pulse">
-        <div className="w-12 h-12 rounded-xl bg-surface border-2 border-carbon mb-3" />
-        <div className="h-4 bg-surface border border-carbon rounded w-2/3 mb-2" />
-        <div className="h-3 bg-surface border border-carbon rounded w-full" />
+        <div className="w-12 h-12 rounded-xl bg-surface border-2 border-carbon-soft mb-3" />
+        <div className="h-4 bg-surface border border-carbon-soft rounded w-2/3 mb-2" />
+        <div className="h-3 bg-surface border border-carbon-soft rounded w-full" />
       </div>
     </div>
   );
@@ -65,7 +65,7 @@ function ServiceCard({
             <div className="md:w-1/2 p-6 md:p-10 flex flex-col justify-between order-2 md:order-1">
               {/*{badge && <span className="chip-volt self-start mb-8">{badge}</span>}*/}
               <div className="mt-8">
-                <div className="w-12 h-12 rounded-xl grid place-items-center mb-4 text-carbon bg-volt border-2 border-carbon group-hover:scale-110 group-hover:rotate-6 transition duration-300">
+                <div className="w-12 h-12 rounded-xl grid place-items-center mb-4 text-carbon bg-volt border-2 border-carbon-soft group-hover:scale-110 group-hover:rotate-6 transition duration-300">
                   <Icon size={22} />
                 </div>
                 <h3 className="font-display font-extrabold uppercase text-2xl md:text-4xl tracking-tighter text-carbon mb-4">
@@ -88,10 +88,10 @@ function ServiceCard({
               </span>
               <div className="absolute inset-0 grid place-items-center">
                 <div className="relative">
-                  <div className="w-24 h-24 md:w-28 md:h-28 rounded-full bg-volt border-2 border-carbon grid place-items-center shadow-[6px_6px_0_var(--color-carbon)]">
+                  <div className="w-24 h-24 md:w-28 md:h-28 rounded-full bg-volt border-2 border-carbon-soft grid place-items-center shadow-[4px_4px_0_var(--color-carbon-soft)]">
                     <Icon size={40} strokeWidth={2} className="text-carbon" />
                   </div>
-                  <span className="absolute -right-10 -top-2 w-7 h-7 rounded-full bg-paper-bright border-2 border-carbon shadow-[3px_3px_0_var(--color-carbon)]" />
+                  <span className="absolute -right-10 -top-2 w-7 h-7 rounded-full bg-paper-bright border-2 border-carbon-soft shadow-[1px_1px_0_var(--color-carbon-soft)]" />
                   <span className="absolute -left-9 bottom-2 w-5 h-5 rounded-full bg-carbon" />
                 </div>
               </div>
@@ -107,7 +107,7 @@ function ServiceCard({
       <Link href={`/services/${service.id}`} className="block h-full">
         <div className="card-neo card-neo-hover p-6 relative group h-full">
           {badge && <span className="chip-volt absolute top-4 right-4">{badge}</span>}
-          <div className="w-12 h-12 rounded-xl grid place-items-center mb-3 text-carbon bg-volt border-2 border-carbon group-hover:scale-110 group-hover:rotate-6 transition duration-300">
+          <div className="w-12 h-12 rounded-xl grid place-items-center mb-3 text-carbon bg-volt border-2 border-carbon-soft group-hover:scale-110 group-hover:rotate-6 transition duration-300">
             <Icon />
           </div>
           <div className="font-display font-bold text-lg mb-1">{service.name}</div>

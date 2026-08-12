@@ -15,7 +15,7 @@ export function TherapistCTA() {
     <section className="py-20 md:py-28 bg-paper">
       <div className="max-w-7xl mx-auto px-5 lg:px-8">
         <Reveal>
-          <div className="relative overflow-hidden rounded-2xl text-carbon p-6 sm:p-10 lg:p-16 grid md:grid-cols-[1.4fr_1fr] gap-6 md:gap-8 items-center bg-volt border-4 border-carbon shadow-[10px_10px_0_var(--color-carbon)]">
+          <div className="relative overflow-hidden rounded-2xl text-carbon p-6 sm:p-10 lg:p-16 grid md:grid-cols-[1.4fr_1fr] gap-6 md:gap-8 items-center bg-volt border-4 border-carbon-soft shadow-[6px_6px_0_var(--color-carbon-soft)]">
             <div
               aria-hidden
               className="pointer-events-none absolute -right-24 -top-24 w-[440px] h-[440px] rounded-full bg-paper-bright/30 blur-3xl blob-drift"

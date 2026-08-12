@@ -41,7 +41,7 @@ export function HeroFindTherapist({
   const { t } = useLang();
 
   const selectCls =
-    "px-2 h-11 min-w-0 rounded-xl border-2 border-carbon bg-paper-bright text-xs font-mono font-bold uppercase tracking-wide shadow-[2px_2px_0_var(--color-carbon)] focus:outline-none focus:ring-2 focus:ring-volt";
+    "px-2 h-11 min-w-0 rounded-xl border-2 border-carbon-soft bg-paper-bright text-xs font-mono font-bold uppercase tracking-wide shadow-[1px_1px_0_var(--color-carbon-soft)] focus:outline-none focus:ring-2 focus:ring-volt";
 
   return (
     <div className="relative rounded-2xl p-6 lg:p-7 card-neo !bg-paper-bright !text-carbon">
@@ -93,7 +93,7 @@ export function HeroFindTherapist({
           filtered.slice(0, 5).map((th) => (
             <div
               key={th.id}
-              className="flex items-center gap-3 p-3 rounded-xl border-2 border-carbon"
+              className="flex items-center gap-3 p-3 rounded-xl border-2 border-carbon-soft"
             >
               <Avatar name={th.name} size={42} />
               <div className="flex-1 min-w-0">
@@ -131,7 +131,7 @@ export function HeroFindTherapist({
         )}
         <Link
           href="/find-a-therapist"
-          className={`block w-full text-center font-mono font-bold uppercase text-xs py-3 rounded-xl border-2 border-carbon hover:bg-volt transition-colors ${
+          className={`block w-full text-center font-mono font-bold uppercase text-xs py-3 rounded-xl border-2 border-carbon-soft hover:bg-volt transition-colors ${
             hasFilters ? "col-span-1" : "col-span-2"
           }`}
         >

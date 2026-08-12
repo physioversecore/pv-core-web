@@ -46,7 +46,7 @@ export default function SignupPage() {
         <div className="md:col-span-5 flex flex-col justify-center text-white mb-8 md:mb-0">
           <Link href="/" className="inline-block mb-8">
             <span className="flex items-center gap-2 font-display font-extrabold text-2xl md:text-4xl tracking-tighter text-volt">
-              <span className="w-6 h-6 rounded-full bg-volt border-2 border-carbon inline-block" />
+              <span className="w-6 h-6 rounded-full bg-volt border-2 border-carbon-soft inline-block" />
               {t("header.brand")}
             </span>
           </Link>
@@ -62,7 +62,7 @@ export default function SignupPage() {
           </div>
         </div>
 
-        <div className="md:col-span-7 relative bg-paper-bright rounded-xl border-2 border-carbon shadow-[8px_8px_0_var(--color-carbon)] p-6 md:p-10 overflow-hidden">
+        <div className="md:col-span-7 relative bg-paper-bright rounded-xl border-2 border-carbon-soft shadow-[5px_5px_0_var(--color-carbon-soft)] p-6 md:p-10 overflow-hidden">
           <SignupFlow defaultSignupRole={defaultRole} onSuccess={handleSuccess} />
         </div>
       </div>

@@ -61,7 +61,7 @@ export function PasswordRules({ password }: { password: string }) {
           <span
             key={i}
             className={cn(
-              "h-2.5 flex-1 rounded-full border-2 border-carbon transition-all duration-200",
+              "h-2.5 flex-1 rounded-full border-2 border-carbon-soft transition-all duration-200",
               i < metCount ? "bg-moss scale-y-110" : "bg-surface",
             )}
           />

@@ -16,7 +16,7 @@ function GuaranteeCard({ icon, title, desc, index }: { icon: ReactElement<Lucide
       <Reveal className="md:col-span-12">
         <div className="card-neo card-neo-hover overflow-hidden flex flex-col md:flex-row h-full group">
           <div className="md:w-1/2 p-6 md:p-10 flex flex-col justify-between order-2 md:order-1">
-            <div className="w-12 h-12 rounded-xl grid place-items-center text-carbon bg-volt border-2 border-carbon group-hover:scale-110 group-hover:rotate-6 transition duration-300">{icon}</div>
+            <div className="w-12 h-12 rounded-xl grid place-items-center text-carbon bg-volt border-2 border-carbon-soft group-hover:scale-110 group-hover:rotate-6 transition duration-300">{icon}</div>
             <div className="mt-8">
               <h3 className="font-display font-extrabold uppercase text-2xl md:text-4xl tracking-tighter text-carbon mb-4">{title}</h3>
               <p className="text-text-light text-sm leading-relaxed max-w-md">{desc}</p>
@@ -28,10 +28,10 @@ function GuaranteeCard({ icon, title, desc, index }: { icon: ReactElement<Lucide
             </span>
             <div className="absolute inset-0 grid place-items-center">
               <div className="relative">
-                <div className="w-24 h-24 md:w-28 md:h-28 rounded-full bg-volt border-2 border-carbon grid place-items-center shadow-[6px_6px_0_var(--color-carbon)]">
+                <div className="w-24 h-24 md:w-28 md:h-28 rounded-full bg-volt border-2 border-carbon-soft grid place-items-center shadow-[4px_4px_0_var(--color-carbon-soft)]">
                   {bigIcon}
                 </div>
-                <span className="absolute -right-10 -top-2 w-7 h-7 rounded-full bg-paper-bright border-2 border-carbon shadow-[3px_3px_0_var(--color-carbon)]" />
+                <span className="absolute -right-10 -top-2 w-7 h-7 rounded-full bg-paper-bright border-2 border-carbon-soft shadow-[1px_1px_0_var(--color-carbon-soft)]" />
                 <span className="absolute -left-9 bottom-2 w-5 h-5 rounded-full bg-carbon" />
               </div>
             </div>
@@ -44,7 +44,7 @@ function GuaranteeCard({ icon, title, desc, index }: { icon: ReactElement<Lucide
   return (
     <Reveal className="md:col-span-6 lg:col-span-4" delay={index * 80}>
       <div className="card-neo card-neo-hover p-6 h-full">
-        <div className="w-12 h-12 rounded-xl grid place-items-center mb-3 text-carbon bg-volt border-2 border-carbon">{icon}</div>
+        <div className="w-12 h-12 rounded-xl grid place-items-center mb-3 text-carbon bg-volt border-2 border-carbon-soft">{icon}</div>
         <div className="font-display font-bold text-lg mb-1">{title}</div>
         <p className="text-text-light text-sm">{desc}</p>
       </div>

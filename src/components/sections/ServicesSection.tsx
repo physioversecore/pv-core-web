@@ -15,9 +15,9 @@ const iconMap: Record<string, LucideIcon> = {
 function ServiceSkeleton() {
   return (
     <div className="card-neo p-6 animate-pulse">
-      <div className="w-12 h-12 rounded-xl bg-surface border-2 border-carbon mb-3" />
-      <div className="h-4 bg-surface border border-carbon rounded w-2/3 mb-2" />
-      <div className="h-3 bg-surface border border-carbon rounded w-full" />
+      <div className="w-12 h-12 rounded-xl bg-surface border-2 border-carbon-soft mb-3" />
+      <div className="h-4 bg-surface border border-carbon-soft rounded w-2/3 mb-2" />
+      <div className="h-3 bg-surface border border-carbon-soft rounded w-full" />
     </div>
   );
 }

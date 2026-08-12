@@ -18,7 +18,7 @@ export function ServiceCard({ icon, title, desc, live }: ServiceCardProps) {
         <span className="chip-sand absolute top-4 right-4">{t("landing.soon")}</span>
       )}
       <div
-        className="w-12 h-12 rounded-xl grid place-items-center mb-3 text-carbon bg-volt border-2 border-carbon group-hover:scale-110 group-hover:rotate-6 transition duration-300"
+        className="w-12 h-12 rounded-xl grid place-items-center mb-3 text-carbon bg-volt border-2 border-carbon-soft group-hover:scale-110 group-hover:rotate-6 transition duration-300"
       >
         {icon}
       </div>
