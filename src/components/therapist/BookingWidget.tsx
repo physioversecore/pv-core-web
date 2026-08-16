@@ -97,12 +97,12 @@ export function BookingWidget({ therapistId, price, onConfirm }: BookingWidgetPr
         month: "short",
         day: "numeric",
       })
-    : t("therapistProfile.selectDate");
+    : selectedDate;
 
   return (
     <div className="card-neo p-6 flex flex-col gap-6">
       <div className="border-b border-hairline pb-4 flex justify-between items-end">
-        <h2 className="font-display font-extrabold uppercase tracking-tight text-xl">{t("therapistProfile.bookSession")}</h2>
+        <h2 className="font-display font-extrabold uppercase tracking-tight text-xl">bookSession</h2>
         <span className="text-xs font-bold uppercase bg-volt border border-carbon/10 px-2 py-1 rounded-lg">{npr(price)}</span>
       </div>
 
@@ -167,7 +167,7 @@ export function BookingWidget({ therapistId, price, onConfirm }: BookingWidgetPr
 
       <div>
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-bold uppercase tracking-wide">{t("therapistProfile.availableTimes")}</span>
+          <span className="text-xs font-bold uppercase tracking-wide">availableTimes</span>
           <span className="text-xs text-ash">{selectedDateLabel}</span>
         </div>
         {isLoading ? (
@@ -178,7 +178,7 @@ export function BookingWidget({ therapistId, price, onConfirm }: BookingWidgetPr
           </div>
         ) : daySlots.length === 0 ? (
           <p className="text-xs text-ash text-center py-4 border border-dashed border-hairline rounded-xl">
-            {t("therapistProfile.noSlots")}
+           noSlots
           </p>
         ) : (
           <div className="grid grid-cols-2 gap-2">
@@ -217,11 +217,11 @@ export function BookingWidget({ therapistId, price, onConfirm }: BookingWidgetPr
             : "bg-surface text-ash/50 cursor-not-allowed",
         )}
       >
-        {t("therapistProfile.confirm")} →
+     .confirm →
       </button>
 
       <p className="text-xs text-center text-ash font-bold uppercase tracking-wide">
-        {t("therapistProfile.freeCancellation")}
+        freeCancellation
       </p>
     </div>
   );
