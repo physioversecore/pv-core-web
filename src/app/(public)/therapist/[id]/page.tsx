@@ -12,7 +12,7 @@ import { BookingWidget } from "@/components/therapist/BookingWidget";
 import { Avatar } from "@/components/Avatar";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { SectionError } from "@/components/SectionError";
-import { TherapistProfileSkeleton } from "@/components/SuspenseFallback";
+import { TherapistCardSkeleton } from "@/components/SuspenseFallback";
 import { getTherapist } from "@/services/api/therapists";
 
 export default function TherapistProfile({ params }: { params: Promise<{ id: string }> }) {
@@ -54,7 +54,7 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
           {isError ? (
             <SectionError onRetry={() => refetch()} />
           ) : isLoading || !therapist ? (
-            <TherapistProfileSkeleton />
+            <TherapistCardSkeleton />
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               <div className="lg:col-span-8 flex flex-col gap-6">

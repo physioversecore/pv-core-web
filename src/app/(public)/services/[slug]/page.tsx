@@ -39,7 +39,7 @@ export default function ServiceDetail({ params }: { params: Promise<{ slug: stri
           className="inline-flex items-center gap-1.5 text-sm font-medium text-ash hover:text-carbon transition-colors mb-8"
         >
           <ArrowLeft size={16} />
-          {t("serviceDetails.backToServices")}
+          {t("nav.services")}
         </Link>
 
         <ErrorBoundary fallback={<SectionError onRetry={() => refetch()} />}>
@@ -59,7 +59,7 @@ export default function ServiceDetail({ params }: { params: Promise<{ slug: stri
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               <div className="lg:col-span-12 bg-white border border-hairline p-6 md:p-12 rounded-2xl">
                 <span className="inline-block bg-volt px-3 py-1.5 text-xs font-semibold uppercase tracking-wide rounded-full mb-4">
-                  {t("serviceDetails.chip")}
+                  {t("find.allCities")}
                 </span>
                 <h1 className="font-display font-extrabold text-4xl md:text-6xl uppercase tracking-tighter break-words text-carbon">
                   {service.name}
@@ -79,20 +79,20 @@ export default function ServiceDetail({ params }: { params: Promise<{ slug: stri
               <div className="lg:col-span-5 flex flex-col gap-6 h-[300px] md:h-[400px]">
                 <div className="flex-1 bg-white border border-hairline p-6 md:p-8 rounded-2xl overflow-y-auto">
                   <h2 className="font-display font-extrabold uppercase tracking-tight text-2xl mb-4 pb-4 border-b border-hairline">
-                    {t("serviceDetails.overview")}
+                    {t("find.allSpecialties")}
                   </h2>
                   <p className="text-ash text-sm leading-relaxed">{service.description}</p>
                 </div>
                 <div className="bg-volt p-6 rounded-2xl flex flex-col justify-between">
                   <div className="flex justify-between items-end mb-4">
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-carbon/70 mb-1">{t("serviceDetails.sessionRate")}</p>
-                      <p className="font-display font-extrabold text-3xl uppercase text-carbon">{t("serviceDetails.findTherapist")}</p>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-carbon/70 mb-1">{t("find.bannerQuote")}</p>
+                      <p className="font-display font-extrabold text-3xl uppercase text-carbon">{t("find.heroSubtitle")}</p>
                     </div>
                     <CalendarCheck size={36} strokeWidth={1.5} />
                   </div>
                   <Link href="/find-a-therapist" className="btn-carbon w-full text-center">
-                    {t("serviceDetails.bookSession")}
+                    {t("find.therapistsFound")}
                   </Link>
                 </div>
               </div>
