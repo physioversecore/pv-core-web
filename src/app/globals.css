@@ -387,6 +387,9 @@
 .progress-fill { width: 60%; animation: progFill 3.2s ease-in-out infinite alternate; }
 @keyframes progFill { from { width: 40%; } to { width: 78%; } }
 
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
 .blob-drift { animation: blobDrift 14s ease-in-out infinite; }
 @keyframes blobDrift {
   0%, 100% { transform: translate(0, 0) scale(1); }

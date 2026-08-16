@@ -13,7 +13,11 @@ import { Menu, X } from "lucide-react";
 const VOLT = "#d3fb52";
 const GLASS_DEEP = "rgba(5,35,38,0.92)";
 
-export function SiteHeader({ variant = "solid" }: { variant?: "hero" | "solid" }) {
+export function SiteHeader({
+  variant = "solid",
+}: {
+  variant?: "hero" | "hero-light" | "solid";
+}) {
   const { t } = useLang();
   const [scrolled, setScrolled] = useState(variant === "solid");
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -51,6 +55,11 @@ export function SiteHeader({ variant = "solid" }: { variant?: "hero" | "solid" }
     router.push(user.role === "patient" ? "/patient" : user.role === "therapist" ? "/therapist" : "/admin");
   };
 
+  const darkText = !scrolled && variant === "hero-light";
+  const linkCls = `text-[14px] font-medium whitespace-nowrap transition-colors ${
+    darkText ? "text-text hover:text-primary" : "text-white hover:text-[#d3fb52]"
+  }`;
+
   return (
     <header
       className={`fixed top-0 inset-x-0 z-40 transition-all duration-300 ease-in-out will-change-[padding] ${
@@ -73,11 +82,7 @@ export function SiteHeader({ variant = "solid" }: { variant?: "hero" | "solid" }
 
         <nav className="hidden md:flex items-center gap-6">
           {NAV_LINKS.map((l) => (
-            <Link
-              key={l.to}
-              href={l.to}
-              className="text-[14px] font-medium text-white whitespace-nowrap transition-colors hover:text-[#d3fb52]"
-            >
+            <Link key={l.to} href={l.to} className={linkCls}>
               {navLabel(l.to)}
             </Link>
           ))}
@@ -87,7 +92,9 @@ export function SiteHeader({ variant = "solid" }: { variant?: "hero" | "solid" }
           <LangSwitcher dark />
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className={`md:hidden p-2 rounded-lg text-white transition-colors hover:text-[#d3fb52]`}
+            className={`md:hidden p-2 rounded-lg transition-colors ${
+              darkText ? "text-text hover:text-primary" : "text-white hover:text-[#d3fb52]"
+            }`}
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
           >
             {mobileOpen ? <X size={22} /> : <Menu size={22} />}
@@ -105,7 +112,11 @@ export function SiteHeader({ variant = "solid" }: { variant?: "hero" | "solid" }
               <>
                 <Link
                   href="/login"
-                  className="h-9 inline-flex items-center px-4 rounded-lg text-sm font-medium text-white border border-white/70 transition-colors hover:bg-white/10"
+                  className={`h-9 inline-flex items-center px-4 rounded-lg text-sm font-medium transition-colors ${
+                    darkText
+                      ? "text-text border border-border hover:bg-surface"
+                      : "text-white border border-white/70 hover:bg-white/10"
+                  }`}
                 >
                   {t("header.logIn")}
                 </Link>
