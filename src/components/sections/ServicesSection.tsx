@@ -40,7 +40,7 @@ export function ServicesSection() {
   return (
     <section
       id="services"
-      className="services-atmosphere relative overflow-hidden py-16 sm:py-24"
+      className="relative overflow-hidden"
     >
       <div
         aria-hidden

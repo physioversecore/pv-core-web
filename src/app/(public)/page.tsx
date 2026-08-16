@@ -34,18 +34,20 @@ export default function Landing() {
 
   return (
     <div className="overflow-x-hidden">
-      <HeroSection />
-      <ServicesSection />
+      <div className="home-background">
+        <HeroSection />
+        <ServicesSection />
+      </div>
       <PartnersMarquee />
-      <ImpactStats />
+      {/*<ImpactStats />*/}
       <HowItWorksSection />
-      {isError ? null : (
+      {/*{isError ? null : (
         <ErrorBoundary fallback={<SectionError onRetry={() => refetch()} />}>
           <Suspense fallback={<FeaturedTherapistsSkeleton />}>
             <FeaturedTherapists therapists={therapists.slice(0, 3)} onBook={handleBook} loading={isLoading} />
           </Suspense>
         </ErrorBoundary>
-      )}
+      )}*/}
       <TherapistCTA />
       {booking && <BookingModal therapist={booking} onClose={closeBooking} />}
     </div>

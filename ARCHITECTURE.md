@@ -177,8 +177,8 @@ Patients and therapists attach up to 3 evidence files (photos/screenshots) when 
 - Tailwind CSS v4 with `@theme inline` for design tokens
 - CSS custom properties for runtime theming (admin can customize colors/fonts/radii)
 - `cn()` utility from `@/lib/utils` (re-exports `clsx` + `tailwind-merge`)
-- Custom utility classes: `btn-primary`, `btn-secondary`, `card-soft`, `chip`, `stat-value`, `badge-*`, `tabs-filter`, `table-header`, `table-cell`, `services-atmosphere` (dark services section with lime/cyan `color-mix` radial glows)
-- **Dark mode dropped** — no `.dark` variant. Dark sections use brand canvas tokens directly: hero (`abyss-soft → abyss-mid → abyss-deep` gradient) and `.services-atmosphere` (solid `abyss-deep`) share one continuous olive-charcoal canvas
+- Custom utility classes: `btn-primary`, `btn-secondary`, `card-soft`, `chip`, `stat-value`, `badge-*`, `tabs-filter`, `table-header`, `table-cell`, `home-background` (shared Hero + Services canvas — one continuous olive-charcoal background with a lime/cyan radial glow)
+- **Dark mode dropped** — no `.dark` variant. Dark sections use brand canvas tokens directly. The landing page wraps `HeroSection` + `ServicesSection` in `.home-background` (`globals.css`): both sections are transparent and the shared parent owns the entire atmosphere — an olive-charcoal vertical base (vh-anchored: `abyss-soft → abyss-mid → abyss-deep → mid-abyss`) plus a green radial glow centered on the hero content that fades out ~110-120vh so it extends past the hero boundary into the services section with no seam. Content layers sit above via `z-index: 1`
 - Landing search: `HeroSection` pushes `router.push("/find-a-therapist?q=…")`; the find page seeds its `q`/`spec` state from `useSearchParams()` (wrapped in `<Suspense>`)
 
 ## i18n

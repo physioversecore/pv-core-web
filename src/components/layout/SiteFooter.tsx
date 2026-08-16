@@ -43,7 +43,6 @@ export function SiteFooter() {
     {
       heading: t("footer.legal"),
       links: [
-        { to: "/faq", label: t("nav.faq") },
         { to: "/privacy", label: t("footer.privacy") },
         { to: "/terms", label: t("footer.terms") },
       ],
@@ -114,7 +113,7 @@ export function SiteFooter() {
           </Accordion>
         </div>
 
-        <div aria-hidden className="relative w-full text-center select-none">
+        <div aria-hidden className="relative w-full text-center select-none pointer-events-none">
           <span
             className="font-anybody font-black uppercase text-voltage-lime whitespace-nowrap inline-block"
             style={{ fontSize: "clamp(12vw, 15vw, 16vw)", lineHeight: 0.72, letterSpacing: "-0.03em" }}

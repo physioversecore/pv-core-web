@@ -59,23 +59,8 @@ export function HeroSection() {
   return (
     <section
       id="top"
-      className="relative min-h-screen overflow-hidden flex flex-col items-center justify-center text-white"
-      style={{
-        background:
-          "linear-gradient(180deg, var(--color-abyss-soft) 0%, var(--color-abyss-mid) 55%, var(--color-abyss-deep) 80%)",
-      }}
+      className="relative flex min-h-screen flex-col items-center justify-center text-white"
     >
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div
-          className="absolute inset-0"
-          style={{
-            background: `radial-gradient(ellipse 85% 75% at 55% 40%, var(--color-cyan-spark) 0%, var(--color-voltage-lime) 60%, transparent 78%)`,
-            filter: "blur(70px)",
-            opacity: 0.5,
-          }}
-        />
-      </div>
-
       <div className="relative z-10 w-full max-w-7xl mx-auto px-5 lg:px-8 flex flex-col items-center text-center">
         <h1
           className="font-anybody font-bold uppercase text-white"

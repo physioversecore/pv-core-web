@@ -401,19 +401,46 @@
 .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 
-.services-atmosphere {
-  background:
-    radial-gradient(ellipse 70% 46% at 50% -10%, color-mix(in srgb, var(--color-voltage-lime) 18%, transparent) 0%, color-mix(in srgb, var(--color-voltage-lime) 7%, transparent) 32%, transparent 70%),
-    radial-gradient(ellipse 55% 32% at 50% -6%, color-mix(in srgb, var(--color-cyan-spark) 8%, transparent) 0%, transparent 62%),
-    var(--color-abyss-deep);
+/* Shared Hero + Services atmospheric canvas — one continuous background.
+   Hero and Services are transparent; the whole environment lives here so the
+   green glow bleeds past the hero boundary instead of being clipped at it. */
+.home-background {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--color-mid-abyss);
 }
-@media (max-width: 640px) {
-  .services-atmosphere {
-    background:
-      radial-gradient(ellipse 110% 30% at 50% -8%, color-mix(in srgb, var(--color-voltage-lime) 15%, transparent) 0%, color-mix(in srgb, var(--color-voltage-lime) 5%, transparent) 36%, transparent 72%),
-      radial-gradient(ellipse 80% 20% at 50% -5%, color-mix(in srgb, var(--color-cyan-spark) 6%, transparent) 0%, transparent 58%),
-      var(--color-abyss-deep);
-  }
+
+.home-background::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    /* Green atmospheric glow — centered on the hero content, fading out
+       ~110-120vh so it continues well into the services section */
+    radial-gradient(
+      ellipse 80vw 110vh at 50% 38vh,
+      color-mix(in srgb, var(--color-voltage-lime) 34%, transparent) 0%,
+      color-mix(in srgb, var(--color-voltage-lime) 14%, transparent) 26%,
+      color-mix(in srgb, var(--color-abyss-mid) 42%, transparent) 52%,
+      transparent 78%
+    ),
+    /* Olive-charcoal vertical base spanning hero → services (vh-anchored,
+       viewport-relative so the hero's min-h-screen never hard-cuts it) */
+    linear-gradient(
+      180deg,
+      var(--color-abyss-soft) 0vh,
+      var(--color-abyss-mid) 45vh,
+      var(--color-abyss-deep) 75vh,
+      var(--color-mid-abyss) 115vh
+    );
+}
+
+.home-background > * {
+  position: relative;
+  z-index: 1;
 }
 
 .blob-drift { animation: blobDrift 14s ease-in-out infinite; }

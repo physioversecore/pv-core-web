@@ -23,10 +23,7 @@ export const NAV_LINKS = [
 
 export const RESOURCE_LINKS = [
   { to: "/blog", label: "Blog" },
-  { to: "/faq", label: "FAQ" },
-  { to: "/testimonials", label: "Testimonials" },
-  { to: "/about", label: "About us" },
-  { to: "/contact", label: "Contact us" },
+  { to: "/testimonials", label: "Testimonials" }
 ] as const;
 
 export const patientNav: NavItem[] = [
