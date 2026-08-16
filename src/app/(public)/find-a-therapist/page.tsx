@@ -144,9 +144,9 @@ function FindPageContent() {
       className="relative min-h-screen"
       style={{
         background:
-          "radial-gradient(58rem 32rem at 28% 6%, color-mix(in srgb, var(--color-cyan-spark) 16%, transparent) 0%, transparent 55%)," +
+          "radial-gradient(58rem 32rem at 28% 6%, color-mix(in srgb, var(--color-abyss-deep) 16%, transparent) 0%, transparent 55%)," +
           "radial-gradient(62rem 36rem at 72% 10%, color-mix(in srgb, var(--color-voltage-lime) 14%, transparent) 0%, transparent 55%)," +
-          "linear-gradient(180deg, var(--color-mid-abyss) 0%, var(--color-background) 45%, var(--color-pure-white) 100%)",
+          "linear-gradient(180deg, var(--color-abyss-soft) 0%, var(--color-background) 45%, var(--color-pure-white) 100%)",
       }}
     >
       {/* ── Hero ─────────────────────────────────────────── */}

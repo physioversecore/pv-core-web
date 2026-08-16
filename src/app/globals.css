@@ -423,6 +423,62 @@
   .partner-logo-name { font-size: 12px; }
 }
 
+/* ── Feature visuals (editorial alternating layout) ── */
+.feature-visual {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  isolation: isolate;
+}
+@media (min-width: 1024px) {
+  .feature-visual { border-radius: 34px; }
+}
+.feature-visual::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.feature-visual-a::before {
+  background:
+    radial-gradient(85% 85% at 18% 10%, color-mix(in srgb, var(--color-voltage-lime) 46%, transparent) 0%, transparent 62%),
+    radial-gradient(72% 72% at 88% 90%, color-mix(in srgb, var(--color-cyan-spark) 36%, transparent) 0%, transparent 60%),
+    linear-gradient(150deg, var(--color-abyss-soft) 0%, var(--color-abyss-deep) 100%);
+}
+.feature-visual-b::before {
+  background:
+    radial-gradient(85% 85% at 84% 12%, color-mix(in srgb, var(--color-cyan-spark) 42%, transparent) 0%, transparent 60%),
+    radial-gradient(72% 72% at 14% 88%, color-mix(in srgb, var(--color-voltage-lime) 38%, transparent) 0%, transparent 62%),
+    linear-gradient(150deg, var(--color-mid-abyss) 0%, var(--color-abyss-deep) 100%);
+}
+.feature-visual-c::before {
+  background:
+    radial-gradient(80% 80% at 50% 12%, color-mix(in srgb, var(--color-voltage-lime) 26%, transparent) 0%, transparent 58%),
+    radial-gradient(85% 85% at 86% 88%, color-mix(in srgb, var(--color-abyss-soft) 72%, transparent) 0%, transparent 62%),
+    linear-gradient(150deg, var(--color-abyss-mid) 0%, var(--color-abyss-deep) 100%);
+}
+.feature-visual-grid {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(70% 70% at 50% 40%, black, transparent);
+  -webkit-mask-image: radial-gradient(70% 70% at 50% 40%, black, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 .phone-float { animation: phoneFloat 6s ease-in-out infinite; }
 @keyframes phoneFloat {
   0%, 100% { transform: translateY(0); }
