@@ -101,7 +101,7 @@ export default function ServiceDetail({ params }: { params: Promise<{ slug: stri
                 <div className="p-6 md:p-8 border-b border-hairline bg-volt">
                   <h2 className="font-display font-extrabold uppercase tracking-tight text-2xl md:text-3xl flex items-center gap-4">
                     <span className="text-[40px] md:text-5xl"><Home strokeWidth={1.5} /></span>
-                    {t("serviceDetails.homeVisitTitle")}
+                    {t("find.allSpecialties")}
                   </h2>
                 </div>
                 <div className="flex flex-col">
@@ -117,9 +117,9 @@ export default function ServiceDetail({ params }: { params: Promise<{ slug: stri
                       <div className="p-6 md:p-8 md:w-3/4 flex flex-col justify-center">
                         <h3 className="font-display font-extrabold uppercase tracking-tight text-xl mb-2 flex items-center gap-3">
                           <span className="hidden md:block text-carbon">{e.icon}</span>
-                          {t(`serviceDetails.${e.titleKey}`)}
+                          {t(`testimonials.eyebrow`)}
                         </h3>
-                        <p className="text-ash text-sm leading-relaxed">{t(`serviceDetails.${e.descKey}`)}</p>
+                        <p className="text-ash text-sm leading-relaxed">{t(`about.ctaDesc`)}</p>
                       </div>
                     </div>
                   ))}
