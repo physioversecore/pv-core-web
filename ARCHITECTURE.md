@@ -177,8 +177,9 @@ Patients and therapists attach up to 3 evidence files (photos/screenshots) when 
 - Tailwind CSS v4 with `@theme inline` for design tokens
 - CSS custom properties for runtime theming (admin can customize colors/fonts/radii)
 - `cn()` utility from `@/lib/utils` (re-exports `clsx` + `tailwind-merge`)
-- Custom utility classes: `btn-primary`, `btn-secondary`, `card-soft`, `chip`, `stat-value`, `badge-*`, `tabs-filter`, `table-header`, `table-cell`
-- Dark mode via `.dark` class on `<html>`
+- Custom utility classes: `btn-primary`, `btn-secondary`, `card-soft`, `chip`, `stat-value`, `badge-*`, `tabs-filter`, `table-header`, `table-cell`, `services-atmosphere` (dark services section with lime/cyan `color-mix` radial glows)
+- **Dark mode dropped** — no `.dark` variant. Dark sections use brand canvas tokens directly: hero (`abyss-soft → abyss-mid → abyss-deep` gradient) and `.services-atmosphere` (solid `abyss-deep`) share one continuous olive-charcoal canvas
+- Landing search: `HeroSection` pushes `router.push("/find-a-therapist?q=…")`; the find page seeds its `q`/`spec` state from `useSearchParams()` (wrapped in `<Suspense>`)
 
 ## i18n
 

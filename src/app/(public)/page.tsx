@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { BookingModal } from "@/components/BookingModal";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -20,17 +20,7 @@ import type { Therapist } from "@/types";
 import { getTherapists } from "@/services/api/therapists";
 
 export default function Landing() {
-  const [q, setQ] = useState("");
-  const [city, setCity] = useState("");
-  const [spec, setSpec] = useState("");
-  const [gender, setGender] = useState("");
   const { booking, book: handleBook, closeBooking } = useBooking();
-
-  const handleHeroSearch = (query: string, specialty?: string) => {
-    setQ(query);
-    if (specialty) setSpec(specialty);
-    document.getElementById("find")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
 
   const { data: therapistsData, isLoading, isError, refetch } = useQuery({
     queryKey: ["therapists"],
@@ -42,24 +32,9 @@ export default function Landing() {
     gender: t.gender as "Male" | "Female",
   }));
 
-  const filtered = useMemo(
-    () =>
-      therapists.filter(
-        (t) =>
-          (!q ||
-            t.name.toLowerCase().includes(q.toLowerCase()) ||
-            t.specialty.toLowerCase().includes(q.toLowerCase()) ||
-            t.city.toLowerCase().includes(q.toLowerCase())) &&
-          (!city || t.city === city) &&
-          (!spec || t.specialty === spec) &&
-          (!gender || t.gender === gender),
-      ),
-    [q, city, spec, gender, therapists],
-  );
-
   return (
     <div className="overflow-x-hidden">
-      <HeroSection onSearch={handleHeroSearch} />
+      <HeroSection />
       <ServicesSection />
       <PartnersMarquee />
       <ImpactStats />

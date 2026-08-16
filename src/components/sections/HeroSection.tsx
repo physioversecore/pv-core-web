@@ -1,18 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { Search, ArrowRight } from "lucide-react";
 import { useLang } from "@/context/i18n";
 import { SPECIALTIES } from "@/constants";
 
 const CHIPS = SPECIALTIES.slice(0, 4);
 
-interface HeroSectionProps {
-  onSearch?: (q: string, spec?: string) => void;
-}
-
-export function HeroSection({ onSearch }: HeroSectionProps) {
+export function HeroSection() {
   const { t, lang } = useLang();
+  const router = useRouter();
   const [q, setQ] = useState("");
   const [phIndex, setPhIndex] = useState(0);
   const [phText, setPhText] = useState("");
@@ -46,12 +44,16 @@ export function HeroSection({ onSearch }: HeroSectionProps) {
   const submit = (e: FormEvent) => {
     e.preventDefault();
     const query = q.trim();
-    if (query) onSearch?.(query);
+    if (query) {
+      router.push(`/find-a-therapist?q=${encodeURIComponent(query)}`);
+    }
   };
 
   const chip = (value: string) => {
     setQ(value);
-    onSearch?.(value, value);
+    router.push(
+      `/find-a-therapist?q=${encodeURIComponent(value)}`,
+    );
   };
 
   return (
@@ -76,10 +78,10 @@ export function HeroSection({ onSearch }: HeroSectionProps) {
 
       <div className="relative z-10 w-full max-w-7xl mx-auto px-5 lg:px-8 flex flex-col items-center text-center">
         <h1
-          className="font-display font-bold uppercase text-white"
+          className="font-anybody font-bold uppercase text-white"
           style={{
             fontSize: "clamp(44px, 7vw, 128px)",
-            lineHeight: 0.85,
+            lineHeight:0.92,
             letterSpacing: "-0.02em",
           }}
         >

@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   ArrowRight,
   ChevronDown,
@@ -34,7 +35,20 @@ const PAGE_SIZE = 10;
 type SortKey = "trending" | "rated" | "price";
 
 export default function FindPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="relative min-h-screen" style={{ background: "var(--color-background)" }} />
+      }
+    >
+      <FindPageContent />
+    </Suspense>
+  );
+}
+
+function FindPageContent() {
   const { t } = useLang();
+  const searchParams = useSearchParams();
   const [q, setQ] = useState("");
   const [city, setCity] = useState("");
   const [spec, setSpec] = useState("");
@@ -44,6 +58,11 @@ export default function FindPage() {
   const [auth, setAuth] = useState<null | "login" | "signup">(null);
   const [booking, setBooking] = useState<Therapist | null>(null);
   const { user } = useAuth();
+
+  useEffect(() => {
+    setQ(searchParams.get("q") ?? "");
+    setSpec(searchParams.get("specialty") ?? "");
+  }, [searchParams]);
 
   const debouncedQ = useDebounce(q, 500);
 
@@ -238,13 +257,13 @@ export default function FindPage() {
             </div>
 
             <div className="mt-5 flex items-center justify-between gap-3">
-              <div className="text-sm font-semibold text-white whitespace-nowrap">
+              <div className="text-sm font-semibold text-text/75 whitespace-nowrap">
                 {isLoading ? t("common.loading") : `${total} ${t("find.therapistsFound")}`}
               </div>
               {hasFilters && (
                 <button
                   onClick={clearAll}
-                  className="inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold whitespace-nowrap text-white/70 transition-colors hover:border-danger hover:text-danger"
+                  className="inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold whitespace-nowrap text-text/75 transition-colors hover:border-danger hover:text-danger"
                 >
                   <X size={14} />
                   {t("common.clearFilters")}

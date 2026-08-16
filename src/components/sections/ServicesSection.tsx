@@ -40,7 +40,7 @@ export function ServicesSection() {
   return (
     <section
       id="services"
-      className="services-atmosphere relative z-10 -mt-24 overflow-hidden py-28 sm:py-32"
+      className="services-atmosphere relative overflow-hidden py-16 sm:py-24"
     >
       <div
         aria-hidden
@@ -48,10 +48,10 @@ export function ServicesSection() {
       />
       <div className="relative z-10 mx-auto max-w-7xl px-5 text-center">
         <Reveal>
-          <h2 className="font-sans text-[22px] font-medium leading-snug tracking-[-0.02em] text-white sm:text-2xl">
+          <h2 className="font-sans text-heading-sm font-medium leading-snug tracking-[-0.02em] text-white sm:text-2xl">
             {t("landing.servicesTitle")}
           </h2>
-          <p className="mx-auto mt-4 max-w-[560px] text-sm leading-relaxed text-ink-dim">
+          <p className="mx-auto mt-4 max-w-140 text-sm leading-relaxed text-ink-dim">
             {t("landing.servicesDesc")}
           </p>
         </Reveal>

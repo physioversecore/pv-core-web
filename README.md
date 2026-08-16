@@ -67,23 +67,27 @@ Auth is **API-driven** — JWT tokens stored in HTTP-only cookies (`sahayatri.se
 
 | Role | Sections |
 |---|---|
-| **Admin** (20) | Overview, Therapists, Patients, Bookings, Schedules, Leave, Payments, Refunds, Complaints, Verification, Performance, Safety Incidents, Notifications, Analytics, Admin Team, Activity Log, Service Areas, Appearance, Settings |
-| **Patient** (10) | Overview, Sessions, Shop, Progress, Reports, Complaints, Profile, Help, Settings |
-| **Therapist** (10) | Overview, Schedule, Availability, Reports, Patients, Earnings, Complaints, Profile, Settings |
+| **Admin** (19) | Overview, Therapists, Patients, Bookings, Schedules, Leave, Payments, Refunds, Complaints, Verification, Performance, Safety Incidents, Notifications, Analytics, Admin Team, Activity Log, Service Areas, Appearance, Settings |
+| **Patient** (9) | Overview, Sessions, Shop, Progress, Reports, Complaints, Profile, Help, Settings |
+| **Therapist** (9) | Overview, Schedule, Availability, Reports, Patients, Earnings, Complaints, Profile, Settings |
 
 ## Project Structure
 
 ```
 src/
   app/                          # Next.js App Router
+    (public)/                   # Route group — public pages (SiteHeader + SiteFooter persist)
+      layout.tsx                # Header/footer wrapper, hero/solid variant by path
+      page.tsx                  # Landing page (hero → services → partners → stats → how-it-works → featured → CTA)
+      about/, app/, blog/, contact/, faq/, find-a-therapist/,
+      how-it-works/, services/, testimonials/, therapist/
+    book/                       # Booking route (standalone)
     (dashboard)/                # Route group — authenticated pages
-      admin/                    # Admin dashboard (20 sections)
-      patient/                  # Patient dashboard (10 sections)
-      therapist/                # Therapist dashboard (10 sections)
+      admin/                    # Admin dashboard (19 sections)
+      patient/                  # Patient dashboard (9 sections)
+      therapist/                # Therapist dashboard (9 sections)
     login/                      # Standalone login page
     signup/                     # Standalone signup page (role selection → OTP → account creation)
-    about/, app/, blog/, book/, contact/, faq/,
-    find/, how-it-works/, services/, testimonials/, therapists/
     api/                        # Route handlers (upload proxies)
     api/reports/route.ts        # POST — proxies FormData to backend /api/v1/reports
     api/uploads/complaint-evidence/route.ts  # POST — public XHR proxy for complaint evidence (session keyed)
@@ -91,7 +95,6 @@ src/
     api/v1/uploads/[patientId]/[filename]/route.ts         # GET — serves patient report files (token query param)
     layout.tsx                  # Root layout (fonts, providers)
     providers.tsx               # Client providers wrapper
-    page.tsx                    # Landing page
     globals.css                 # Tailwind v4 theme + custom utilities
   components/
     ui/                         # shadcn/ui primitives (47 components)
@@ -136,15 +139,25 @@ src/
 
 ## Theme
 
+Handshake-inspired design language — monochrome canvas + voltage-lime accent, pillow radii, hairline borders, no drop shadows.
+
+**Brand tokens** (defined in `globals.css` `@theme`, used as Tailwind utilities like `bg-voltage-lime`):
+
 | Token | CSS Variable | Value | Usage |
 |---|---|---|---|
-| Primary | `--color-primary` | `#E2962F` (amber) | Buttons, links, accents, CTAs |
-| Secondary | `--color-secondary` | `#2F5D50` (forest green) | Secondary actions, badges |
-| Background | `--color-background` | `#FBFBF8` (cream) | Page background |
-| Foreground | `--color-foreground` | `#1E2A2E` (dark) | Text |
-| Surface | `--color-surface` | `#EEF1ED` (sage) | Muted backgrounds |
+| Lime | `--color-voltage-lime` | `#d3fb52` | Brand accent, primary CTAs |
+| Cyan | `--color-cyan-spark` | `#7af3ff` | Secondary accent, glows |
+| Abyss | `--color-mid-abyss` | `#052326` | Deep green-black |
+| Carbon | `--color-carbon-ink` | `#14151c` | Near-black ink |
+| Ash | `--color-ash` | `#666666` | Muted text |
 
-**Fonts**: Fraunces (serif, headings), Inter (body), IBM Plex Mono (mono, labels/dates).
+**Dark canvas** (hero + services atmosphere): `abyss-soft #1e3a2b`, `abyss-mid #112720`, `abyss-deep #0a1815` — the hero bleeds into the services section via a shared olive-charcoal gradient.
+
+**Dark-section text hierarchy**: `ink-soft #e7e7ea`, `ink-muted #9a9aa3`, `ink-faint #85858d`, `ink-dim #b0b0b7`.
+
+**Legacy admin tokens** (kept in `:root` for dashboard/forms): Primary `#E2962F` (amber), Secondary `#2F5D50` (forest green), Background `#FBFBF8` (cream), Foreground `#1E2A2E`, Surface `#EEF1ED` (sage).
+
+**Fonts**: Fraunces (`font-display`, serif headings), Inter (`font-sans`, body), IBM Plex Mono (`font-mono`, mono labels/dates), Anybody (`font-anybody`, display weights).
 
 **Dynamic theming**: Admin can customize all colors, fonts, and border radius via the Appearance section. Tokens are persisted via the API and applied in real-time.
 
