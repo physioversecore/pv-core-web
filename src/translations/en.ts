@@ -642,7 +642,7 @@ const en = {
     eyebrow: "Find a therapist",
     title: "Browse verified physiotherapists.",
     subtitle: "Filter by city, specialty, and gender — every therapist is NMC-verified with real patient reviews.",
-    placeholderSearch: "Search by therapist name",
+    placeholderSearch: "Search Physiotherapist",
     allCities: "All cities",
     allSpecialties: "All specialties",
     anyGender: "Any gender",
