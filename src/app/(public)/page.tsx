@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { BookingModal } from "@/components/BookingModal";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { SectionError } from "@/components/SectionError";
-import { FeaturedTherapistsSkeleton, HeroLiveSkeleton, TherapistCardGridSkeleton } from "@/components/SuspenseFallback";
+import { FeaturedTherapistsSkeleton, TherapistCardGridSkeleton } from "@/components/SuspenseFallback";
 import {
   HeroSection,
   PartnersMarquee,
@@ -28,6 +28,12 @@ export default function Landing() {
   const [gender, setGender] = useState("");
   const { booking, book: handleBook, closeBooking } = useBooking();
 
+  const handleHeroSearch = (query: string, specialty?: string) => {
+    setQ(query);
+    if (specialty) setSpec(specialty);
+    document.getElementById("find")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   const { data: therapistsData, isLoading, isError, refetch } = useQuery({
     queryKey: ["therapists"],
     queryFn: () => getTherapists(),
@@ -42,7 +48,10 @@ export default function Landing() {
     () =>
       therapists.filter(
         (t) =>
-          (!q || t.name.toLowerCase().includes(q.toLowerCase()) || t.specialty.toLowerCase().includes(q.toLowerCase())) &&
+          (!q ||
+            t.name.toLowerCase().includes(q.toLowerCase()) ||
+            t.specialty.toLowerCase().includes(q.toLowerCase()) ||
+            t.city.toLowerCase().includes(q.toLowerCase())) &&
           (!city || t.city === city) &&
           (!spec || t.specialty === spec) &&
           (!gender || t.gender === gender),
@@ -52,19 +61,7 @@ export default function Landing() {
 
   return (
     <div className="overflow-x-hidden">
-      {isError ? (
-        <section className="relative bg-background-dark py-24 px-5">
-          <div className="relative max-w-7xl mx-auto">
-            <SectionError onRetry={() => refetch()} />
-          </div>
-        </section>
-      ) : (
-        <ErrorBoundary fallback={<SectionError onRetry={() => refetch()} />}>
-          <Suspense fallback={<HeroLiveSkeleton />}>
-            <HeroSection therapists={therapists} onBook={handleBook} loading={isLoading} />
-          </Suspense>
-        </ErrorBoundary>
-      )}
+      <HeroSection onSearch={handleHeroSearch} />
       <PartnersMarquee />
       <ImpactStats />
       <HowItWorksSection />

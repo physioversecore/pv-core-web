@@ -292,6 +292,11 @@ const ne = {
     appStore: "App Store",
     getItOn: "GET IT ON",
     downloadOnThe: "Download on the",
+    headline: "नेपालको घर-भेट फिजियोथेरापी नेटवर्क।",
+    company: "कम्पनी",
+    legal: "कानुनी",
+    privacy: "गोपनीयता",
+    terms: "सर्तहरू",
   },
 
   landing: {
@@ -299,6 +304,11 @@ const ne = {
     heroTitle: "पुनर्स्थापना, तपाईंको ढोकामा।",
     heroDesc: "तपाईंको घरमा आउने प्रमाणित, इजाजतपत्र प्राप्त फिजियोथेरापिस्टहरू। मिनेटमा बुक गर्नुहोस्, हेरचाहका साथ स्वास्थ्यलाभ गर्नुहोस्, र आफ्नो प्रगति ट्र्याक गर्नुहोस् — सबै एकै ठाउँमा।",
     heroCta: "सत्र बुक गर्नुहोस् →",
+    heroSearchPlaceholder: "चिकित्सक, विशेषज्ञता, वा शहर खोज्नुहोस्",
+    heroSearchSubmit: "खोजी गर्नुहोस्",
+    heroSearchPhrase1: "खेलकुद र शल्यक्रिया पछि",
+    heroSearchPhrase2: "काठमाडौं",
+    heroSearchPhrase3: "बृद्ध र स्नायु",
     heroLiveNow: "अहिले उपलब्ध",
     heroAvailableToday: "आज उपलब्ध",
     heroRegion: "काठमाडौं उपत्यका",

@@ -1,102 +1,132 @@
 "use client";
 
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { Search, ArrowRight } from "lucide-react";
 import { useLang } from "@/context/i18n";
-import { Star } from "lucide-react";
-import { Avatar } from "@/components/Avatar";
-import { Reveal } from "@/components/Reveal";
-import { HeroStat } from "@/components/HeroStat";
-import { BookButton } from "@/components/BookButton";
-import { AppStoreBadge } from "@/components/AppStoreBadge";
-import { HeroLiveSkeleton } from "@/components/SuspenseFallback";
-import { npr } from "@/lib/cart";
-import type { Therapist } from "@/lib/types";
+import { SPECIALTIES } from "@/constants";
+
+const ABYSS = "#052326";
+const CYAN = "#7af3ff";
+const LIME = "#d3fb52";
+
+const CHIPS = SPECIALTIES.slice(0, 4);
 
 interface HeroSectionProps {
-  therapists: Therapist[];
-  onBook: (t: Therapist) => void;
-  loading?: boolean;
+  onSearch?: (q: string, spec?: string) => void;
 }
 
-export function HeroSection({ therapists, onBook, loading }: HeroSectionProps) {
-  const { t } = useLang();
+export function HeroSection({ onSearch }: HeroSectionProps) {
+  const { t, lang } = useLang();
+  const [q, setQ] = useState("");
+  const [phIndex, setPhIndex] = useState(0);
+  const [phText, setPhText] = useState("");
+  const [phDeleting, setPhDeleting] = useState(false);
+
+  const phrases = useMemo(
+    () => [t("landing.heroSearchPhrase1"), t("landing.heroSearchPhrase2"), t("landing.heroSearchPhrase3")],
+    [lang],
+  );
+
+  useEffect(() => {
+    const word = phrases[phIndex];
+    let timeout: ReturnType<typeof setTimeout>;
+
+    if (!phDeleting) {
+      if (phText.length < word.length) {
+        timeout = setTimeout(() => setPhText(word.slice(0, phText.length + 1)), 60);
+      } else {
+        timeout = setTimeout(() => setPhDeleting(true), 1800);
+      }
+    } else if (phText.length > 0) {
+      timeout = setTimeout(() => setPhText(word.slice(0, phText.length - 1)), 30);
+    } else {
+      setPhDeleting(false);
+      setPhIndex((i) => (i + 1) % phrases.length);
+    }
+
+    return () => clearTimeout(timeout);
+  }, [phText, phDeleting, phIndex, phrases]);
+
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    const query = q.trim();
+    if (query) onSearch?.(query);
+  };
+
+  const chip = (value: string) => {
+    setQ(value);
+    onSearch?.(value, value);
+  };
 
   return (
-    <section id="top" className="relative min-h-screen overflow-hidden text-white bg-background-dark">
-      <div aria-hidden className="absolute inset-0 hero-gradient-bg" />
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="absolute top-24 -left-20 w-[420px] h-[420px] rounded-full bg-secondary/40 blur-3xl blob-float-a" />
-        <div className="absolute top-1/3 -right-24 w-[440px] h-[440px] rounded-full bg-primary/25 blur-3xl blob-float-b" />
-        <div className="absolute bottom-10 left-1/3 w-[360px] h-[360px] rounded-full bg-primary-light/15 blur-3xl blob-float-c" />
+    <section
+      id="top"
+      className="relative min-h-screen overflow-hidden flex flex-col items-center justify-center text-white"
+      style={{ background: ABYSS }}
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: `radial-gradient(circle at 55% 45%, ${CYAN} 0%, ${LIME} 70%, transparent 76%)`,
+          filter: "blur(80px)",
+          opacity: 0.5,
+        }}
+      />
+
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-5 lg:px-8 flex flex-col items-center text-center">
+        <h1
+          className="font-display font-bold uppercase text-white"
+          style={{
+            fontSize: "clamp(44px, 7vw, 128px)",
+            lineHeight: 0.85,
+            letterSpacing: "-0.02em",
+          }}
+        >
+          {t("landing.heroTitle")}
+        </h1>
+
+        <p className="hidden md:block mt-6 max-w-2xl text-base text-white/70">
+          {t("landing.heroDesc")}
+        </p>
+
+        <div className="mt-10 w-full max-w-[680px]">
+          <form
+            onSubmit={submit}
+            className="flex items-center gap-3 rounded-3xl bg-white px-5 py-6 sm:px-6 sm:py-4"
+          >
+            <Search size={24} className="shrink-0 text-black/50 sm:size-5" />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder={phText}
+              className="flex-1 min-w-0 bg-transparent text-base text-black placeholder:text-black/50 outline-none sm:text-[15px]"
+              aria-label={t("landing.heroSearchPlaceholder")}
+            />
+            <button
+              type="submit"
+              aria-label={t("landing.heroSearchSubmit")}
+              className="shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-transform hover:scale-105 sm:w-10 sm:h-10"
+              style={{ background: LIME, color: "#000" }}
+            >
+              <ArrowRight size={22} strokeWidth={2.5} className="sm:size-5" />
+            </button>
+          </form>
+
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+            {CHIPS.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => chip(c)}
+                className="text-[12px] text-white border border-white/30 rounded-full px-3.5 py-2 sm:px-4 sm:py-1.5 sm:text-[14px] transition-colors hover:bg-[#d3fb52] hover:text-black"
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
-      <div aria-hidden className="absolute inset-0 grain-overlay" />
-
-      <svg aria-hidden className="absolute left-0 right-0 pointer-events-none" style={{ bottom: "18%", height: "90px", width: "100%" }} viewBox="0 0 1200 90" preserveAspectRatio="none">
-        <path d="M0 45 L280 45 L300 45 L310 20 L322 70 L332 15 L344 65 L356 45 L1200 45" fill="none" stroke="var(--color-primary)" strokeWidth="1.6" strokeOpacity="0.55" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-
-      <div className="relative max-w-7xl mx-auto px-5 lg:px-8 pt-32 pb-24 grid lg:grid-cols-[1.1fr_1fr] gap-10 items-center">
-        <Reveal>
-          <p className="eyebrow !text-white/70 mb-4 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-primary dot-pulse inline-block" />
-            {t("landing.heroBadge")}
-          </p>
-          <h1 className="font-display leading-[1.02] mb-5" style={{ fontSize: "clamp(2.5rem, 5.4vw, 3.65rem)" }}>
-            {t("landing.heroTitle")}
-          </h1>
-          <p className="text-white/75 text-lg max-w-xl mb-7">
-            {t("landing.heroDesc")}
-          </p>
-          <div className="flex flex-wrap gap-3 mb-6">
-            <button onClick={() => therapists[0] && onBook(therapists[0])} className="btn-primary">{t("landing.heroCta")}</button>
-          </div>
-          <div className="flex flex-wrap gap-3 mb-10">
-            <AppStoreBadge platform="google" variant="hero" />
-            <AppStoreBadge platform="apple" variant="hero" />
-          </div>
-          <div className="grid grid-cols-3 gap-4 max-w-lg">
-            <HeroStat value="180+" label={t("landing.heroStatTherapists")} />
-            <HeroStat value="4.8★" label={t("landing.heroStatRating")} />
-            <HeroStat value="6" label={t("landing.heroStatCities")} />
-          </div>
-        </Reveal>
-
-        <Reveal delay={120}>
-          <div className="relative rounded-[22px] p-6 lg:p-7 border border-white/15" style={{ background: "rgba(251,251,248,0.07)", backdropFilter: "blur(18px)" }}>
-            <div className="absolute -top-3 left-6 chip !bg-primary !text-white">{t("landing.heroLiveNow")}</div>
-            <div className="flex items-center justify-between mb-4">
-              <div className="font-display text-lg text-white">{t("landing.heroAvailableToday")}</div>
-              <div className="text-xs text-white/60">{t("landing.heroRegion")}</div>
-            </div>
-            <div className="space-y-3">
-              {loading ? (
-                <HeroLiveSkeleton />
-              ) : (
-                therapists.slice(0, 3).map((t) => (
-                  <div key={t.id} className="flex items-center gap-3 p-3 rounded-xl border border-white/10" style={{ background: "rgba(255,255,255,0.06)" }}>
-                    <Avatar name={t.name} size={42} />
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm truncate text-white">{t.name}</div>
-                      <div className="text-xs text-white/60 truncate">{t.specialty}</div>
-                      <div className="flex items-center gap-1 text-xs text-white/60 mt-0.5">
-                        <Star size={11} className="fill-primary text-primary" /> {t.rating}
-                      </div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <div className="text-sm font-semibold text-white">{npr(t.price)}</div>
-                      <BookButton onClick={() => onBook(t)} size="sm" className="mt-1" />
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </Reveal>
-      </div>
-
-      {/* <div aria-hidden className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/50">
-        <span className="font-mono text-[10px] uppercase tracking-widest">Scroll</span>
-        <span className="w-px h-8 bg-white/50 scroll-cue origin-top" />
-      </div> */}
     </section>
   );
 }

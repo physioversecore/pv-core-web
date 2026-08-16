@@ -295,6 +295,11 @@ const en = {
     appStore: "App Store",
     getItOn: "GET IT ON",
     downloadOnThe: "Download on the",
+    headline: "Nepal's home-visit physiotherapy network.",
+    company: "Company",
+    legal: "Legal",
+    privacy: "Privacy",
+    terms: "Terms",
   },
 
   landing: {
@@ -302,6 +307,11 @@ const en = {
     heroTitle: "Recovery, at your doorstep.",
     heroDesc: "Verified, licensed physiotherapists who come to your home. Book in minutes, recover with care, and track your progress — all in one place.",
     heroCta: "Book a session →",
+    heroSearchPlaceholder: "Search therapists, specialties, or city",
+    heroSearchSubmit: "Search",
+    heroSearchPhrase1: "Sports & post-surgery",
+    heroSearchPhrase2: "Kathmandu",
+    heroSearchPhrase3: "Geriatric & neuro",
     heroLiveNow: "Live now",
     heroAvailableToday: "Available today",
     heroRegion: "Kathmandu Valley",

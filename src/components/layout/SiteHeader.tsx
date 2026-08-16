@@ -10,6 +10,9 @@ import { LangSwitcher } from "@/components/common/LangSwitcher";
 import { useLang } from "@/context/i18n";
 import { Menu, X } from "lucide-react";
 
+const VOLT = "#d3fb52";
+const GLASS_DEEP = "rgba(5,35,38,0.92)";
+
 export function SiteHeader({ variant = "solid" }: { variant?: "hero" | "solid" }) {
   const { t } = useLang();
   const [scrolled, setScrolled] = useState(variant === "solid");
@@ -24,9 +27,9 @@ export function SiteHeader({ variant = "solid" }: { variant?: "hero" | "solid" }
       setScrolled(true);
       return;
     }
-    const onScroll = () => setScrolled(window.scrollY > 40);
+    const onScroll = () => setScrolled(window.scrollY > 50);
     onScroll();
-    window.addEventListener("scroll", onScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, [variant]);
 
@@ -49,57 +52,71 @@ export function SiteHeader({ variant = "solid" }: { variant?: "hero" | "solid" }
     router.push(user.role === "patient" ? "/patient" : user.role === "therapist" ? "/therapist" : "/admin");
   };
 
-  const textCls = scrolled ? "text-text-light" : "text-white/80";
-  const borderCls = scrolled ? "border-border" : "border-white/20";
-  const panelBg = scrolled ? "bg-background/98" : "bg-background-dark/98";
-
   return (
-    <header className={`fixed top-0 inset-x-0 z-40 transition-all duration-300 ${scrolled ? "bg-background/92 backdrop-blur-md border-b border-border" : "bg-transparent"}`}>
-      <div className="max-w-7xl mx-auto px-5 lg:px-8 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="w-6 h-6 rounded-full bg-secondary inline-block" />
-          <span className={`font-display text-lg transition-colors ${scrolled ? "text-text" : "text-white"}`}>{t("header.brand")}</span>
+    <header
+      className={`fixed top-0 inset-x-0 z-40 transition-all duration-300 ease-in-out will-change-[padding] ${
+        scrolled ? "pt-3 px-3 sm:px-[calc((100%-1000px)/2)]" : "pt-0 px-0"
+      }`}
+    >
+      <div
+        className={`w-full flex items-center justify-between transition-all duration-300 ease-in-out ${
+          scrolled
+            ? "h-14 rounded-2xl bg-[rgba(5,35,38,0.8)] backdrop-blur-md border border-white/10 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.4)] px-4 sm:px-6"
+            : "h-16 rounded-2xl bg-transparent border border-transparent px-5 lg:px-8"
+        }`}
+      >
+        <Link href="/" className="flex items-center gap-2 shrink-0" aria-label={t("header.brand")}>
+          <span className="w-6 h-6 rounded-full inline-block" style={{ background: VOLT }} />
+          <span className="font-display text-lg font-semibold whitespace-nowrap" style={{ color: VOLT }}>
+            {t("header.brand")}
+          </span>
         </Link>
 
-        <nav className={`hidden md:flex items-center gap-6 text-sm transition-colors ${textCls}`}>
+        <nav className="hidden md:flex items-center gap-6">
           {NAV_LINKS.map((l) => (
             <Link
               key={l.to}
               href={l.to}
-              className="hover:text-primary transition-colors"
+              className="text-[14px] font-medium text-white whitespace-nowrap transition-colors hover:text-[#d3fb52]"
             >
               {navLabel(l.to)}
             </Link>
           ))}
         </nav>
 
-        <div className="flex items-center gap-1">
-          <LangSwitcher />
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+          <LangSwitcher dark />
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className={`md:hidden p-2 rounded-lg transition-colors ${textCls} hover:text-primary`}
+            className={`md:hidden p-2 rounded-lg text-white transition-colors hover:text-[#d3fb52]`}
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
           >
             {mobileOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
           <div className="hidden sm:flex items-center gap-2">
             {user ? (
-              <button onClick={goDash} className="btn-secondary !py-2 !px-4 text-sm">{t("header.openDashboard")}</button>
+              <button
+                onClick={goDash}
+                className="h-9 inline-flex items-center px-4 rounded-lg text-sm font-semibold transition hover:opacity-90"
+                style={{ background: VOLT, color: "#000" }}
+              >
+                {t("header.openDashboard")}
+              </button>
             ) : (
               <>
                 <Link
-                  href="/signup"
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition ${scrolled ? "border-secondary text-secondary hover:bg-secondary hover:text-white" : "border-white/60 text-white hover:bg-white/10"}`}
-                >
-                  {t("header.signUp")}
-                </Link>
-                <Link
                   href="/login"
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition ${scrolled ? "border-secondary text-secondary hover:bg-secondary hover:text-white" : "border-white/60 text-white hover:bg-white/10"}`}
+                  className="h-9 inline-flex items-center px-4 rounded-lg text-sm font-medium text-white border border-white/70 transition-colors hover:bg-white/10"
                 >
                   {t("header.logIn")}
                 </Link>
-                <button onClick={() => openAuth("signup", "patient")} className="btn-primary !py-2 !px-4 text-sm">{t("header.bookNow")}</button>
+                <Link
+                  href="/signup"
+                  className="h-9 inline-flex items-center px-4 rounded-lg text-sm font-semibold transition hover:opacity-90"
+                  style={{ background: VOLT, color: "#000" }}
+                >
+                  {t("header.signUp")}
+                </Link>
               </>
             )}
           </div>
@@ -107,28 +124,54 @@ export function SiteHeader({ variant = "solid" }: { variant?: "hero" | "solid" }
       </div>
 
       {mobileOpen && (
-        <div className={`md:hidden border-t ${borderCls} ${panelBg} backdrop-blur-md`}>
-          <div className="max-w-7xl mx-auto px-5 py-4 space-y-3">
-            {NAV_LINKS.map((l) => (
+        <div
+          className="md:hidden mx-3 mt-2 rounded-2xl border border-white/10 p-4 space-y-3"
+          style={{ background: GLASS_DEEP }}
+        >
+          {NAV_LINKS.map((l) => (
+            <Link
+              key={l.to}
+              href={l.to}
+              className="block py-2 text-sm font-medium text-white transition-colors hover:text-[#d3fb52]"
+            >
+              {navLabel(l.to)}
+            </Link>
+          ))}
+          <hr className="border-white/10" />
+          {user ? (
+            <button
+              onClick={goDash}
+              className="w-full h-10 rounded-lg text-sm font-semibold transition hover:opacity-90"
+              style={{ background: VOLT, color: "#000" }}
+            >
+              {t("header.openDashboard")}
+            </button>
+          ) : (
+            <div className="flex flex-col gap-2 pt-1">
               <Link
-                key={l.to}
-                href={l.to}
-                className={`block py-2 text-sm font-medium transition-colors ${textCls} hover:text-primary`}
+                href="/login"
+                className="w-full text-center h-10 rounded-lg text-sm font-medium text-white border border-white/70 transition-colors hover:bg-white/10 inline-flex items-center justify-center"
               >
-                {navLabel(l.to)}
+                {t("header.logIn")}
               </Link>
-            ))}
-            <hr className={borderCls} />
-            {user ? (
-              <button onClick={goDash} className="w-full btn-secondary !py-2.5 !px-4 text-sm mt-2">{t("header.openDashboard")}</button>
-            ) : (
-              <div className="flex flex-col gap-2 pt-1">
-                <Link href="/signup" className={`w-full text-center px-4 py-2.5 rounded-full text-sm font-semibold border transition ${scrolled ? "border-secondary text-secondary" : "border-white/60 text-white"}`}>{t("header.signUp")}</Link>
-                <Link href="/login" className={`w-full text-center px-4 py-2.5 rounded-full text-sm font-semibold border transition ${scrolled ? "border-secondary text-secondary" : "border-white/60 text-white"}`}>{t("header.logIn")}</Link>
-                <button onClick={() => { setMobileOpen(false); openAuth("signup", "patient"); }} className="w-full btn-primary !py-2.5 !px-4 text-sm">{t("header.bookNow")}</button>
-              </div>
-            )}
-          </div>
+              <Link
+                href="/signup"
+                className="w-full text-center h-10 rounded-lg text-sm font-semibold transition hover:opacity-90 inline-flex items-center justify-center"
+                style={{ background: VOLT, color: "#000" }}
+              >
+                {t("header.signUp")}
+              </Link>
+              <button
+                onClick={() => {
+                  setMobileOpen(false);
+                  openAuth("signup", "patient");
+                }}
+                className="w-full text-center h-10 rounded-lg text-sm font-semibold text-white border border-white/20 transition-colors hover:bg-white/10"
+              >
+                {t("header.bookNow")}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </header>
