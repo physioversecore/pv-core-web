@@ -338,7 +338,7 @@ const ne = {
     servicesDesc: "स्वास्थ्यलाभको हरेक चरणमा विशेषज्ञ फिजियोथेरापी — घरमा वा क्लिनिकमा।",
     servicesCategoryClinical: "क्लिनिकल पुनर्स्थापना",
     servicesCategoryShop: "घर र स्वास्थ्यलाभ",
-    servicesCta: "सबै सेवाहरू हेर्नुहोस्",
+    servicesCta: "चिकित्सक बुक गर्नुहोस्",
     servicesSecondary: "यसले कसरी काम गर्छ",
     otherServicesEyebrow: "अन्य सेवाहरू",
     otherServicesTitle: "तपाईंको स्वास्थ्यलाभमा थप सहयोग।",

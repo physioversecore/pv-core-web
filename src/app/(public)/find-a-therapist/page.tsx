@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -49,15 +49,16 @@ export default function FindPage() {
 function FindPageContent() {
   const { t } = useLang();
   const searchParams = useSearchParams();
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(() => searchParams.get("q") ?? "");
   const [city, setCity] = useState("");
-  const [spec, setSpec] = useState("");
+  const [spec, setSpec] = useState(() => searchParams.get("specialty") ?? "");
   const [gender, setGender] = useState("");
   const [sort, setSort] = useState<SortKey>("trending");
   const [page, setPage] = useState(1);
   const [auth, setAuth] = useState<null | "login" | "signup">(null);
   const [booking, setBooking] = useState<Therapist | null>(null);
   const { user } = useAuth();
+  const searchTherapyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setQ(searchParams.get("q") ?? "");
@@ -101,6 +102,12 @@ function FindPageContent() {
   useEffect(() => {
     setPage(1);
   }, [q, city, spec, gender]);
+
+  useEffect(() => {
+    if (window.innerWidth < 768) {
+      searchTherapyRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [page]);
 
   const clearAll = () => {
     setQ("");
@@ -184,7 +191,7 @@ function FindPageContent() {
       </section>
 
       {/* ── Search & filter ──────────────────────────────── */}
-      <section className="pb-10">
+      <section ref={searchTherapyRef} className="pb-10 scroll-mt-10">
         <div className="max-w-7xl mx-auto px-5 lg:px-8">
           <Reveal>
             <div className="card-soft rounded-2xl p-3 grid sm:grid-cols-[1.6fr_1fr_1fr_1fr] gap-2">

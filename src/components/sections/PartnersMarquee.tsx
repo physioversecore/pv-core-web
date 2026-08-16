@@ -6,18 +6,29 @@ import { partners } from "@/lib/landing-data";
 export function PartnersMarquee() {
   const { t } = useLang();
   return (
-    <section aria-label="Trusted by">
-      <div className="max-w-7xl mx-auto px-5 lg:px-8 pt-8">
-        <p className="text-center eyebrow !text-white/50">{t("landing.partnersTitle")}</p>
+    <section aria-label={t("landing.partnersTitle")} className="pt-16 pb-14 sm:pt-20 sm:pb-16">
+      <div className="w-full lg:mx-6 px-5 lg:px-8">
+        <p className="flex items-center justify-center gap-1.5 lg:justify-start font-sans text-xs font-semibold tracking-[0.08em] uppercase text-white">
+          <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-voltage-lime/70" />
+          {t("landing.partnersTitle")}
+        </p>
       </div>
-      <div className="marquee py-6">
-        <div className="marquee-track font-display text-base text-white/60">
-          {[...Array(2)].map((_, dup) => (
-            <div key={dup} className="flex items-center gap-12 pr-12 shrink-0">
-              {partners.map((s) => (
-                <span key={s.name + dup} className="flex items-center gap-2 whitespace-nowrap">
-                  <span>{s.icon}</span> {s.name}
-                </span>
+
+      <div className="marquee mt-5 sm:mt-6">
+        <div className="marquee-track">
+          {[0, 1].map((half) => (
+            <div key={half} className="flex shrink-0 items-stretch gap-3 pr-3 sm:gap-3.5 sm:pr-3.5">
+              {[...partners, ...partners].map((p, i) => (
+                <div
+                  key={`${p.name}-${half}-${i}`}
+                  className="partner-logo-card"
+                  title={p.name}
+                >
+                  <span aria-hidden className="partner-logo-mark">
+                    {p.icon}
+                  </span>
+                  <span className="partner-logo-name">{p.name}</span>
+                </div>
               ))}
             </div>
           ))}

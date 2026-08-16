@@ -341,7 +341,7 @@ const en = {
     servicesDesc: "Expert physiotherapy across every stage of recovery — at home or in clinic.",
     servicesCategoryClinical: "Clinical rehab",
     servicesCategoryShop: "Home & recovery",
-    servicesCta: "Explore all services",
+    servicesCta: "Book a therapist",
     servicesSecondary: "How it works",
     otherServicesEyebrow: "Other services",
     otherServicesTitle: "More ways to support your recovery.",
