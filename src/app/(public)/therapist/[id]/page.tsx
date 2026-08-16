@@ -47,7 +47,7 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
           className="inline-flex items-center gap-1.5 text-sm font-medium text-ash hover:text-carbon transition-colors mb-8"
         >
           <ArrowLeft size={16} />
-          {t("therapistProfile.backToFind")}
+          {t("therapist_dashboard.noAppointments")}
         </Link>
 
         <ErrorBoundary fallback={<SectionError onRetry={() => refetch()} />}>
@@ -71,7 +71,7 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
                     </div>
                     <span className="absolute bottom-4 left-4 bg-white border border-hairline px-3 py-1 text-xs font-semibold uppercase tracking-wide rounded-full flex items-center gap-1">
                       <BadgeCheck size={14} className="text-moss" />
-                      {t("therapistProfile.verified")}
+                      {t("therapist_complaints.attachFile")}
                     </span>
                   </div>
                   <div className="md:w-3/5 p-6 md:p-8 flex flex-col justify-between">
@@ -82,10 +82,10 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
                       </div>
                       <h1 className="font-display font-extrabold text-3xl md:text-4xl uppercase tracking-tight mb-2 text-carbon">{therapist.name}</h1>
                       <p className="text-xs font-medium uppercase text-ash mb-6">
-                        PT, DPT · {therapist.experience} {t("therapistProfile.experienceYears")}
+                        PT, DPT · {therapist.experience} {t("therapist_complaints.against")}
                       </p>
                       <div className="border-b border-hairline mb-6" />
-                      <p className="text-ash text-sm leading-relaxed mb-6">{therapist.bio || t("therapistProfile.noBio")}</p>
+                      <p className="text-ash text-sm leading-relaxed mb-6">{therapist.bio || t("therapist_complaints.against")}</p>
                     </div>
                     <div className="flex items-center gap-6 mt-auto">
                       <div>
@@ -93,12 +93,12 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
                           {therapist.rating}
                           <Star size={20} className="fill-volt text-carbon stroke-carbon" />
                         </div>
-                        <div className="text-[10px] font-semibold uppercase tracking-wide text-ash mt-1">{t("therapistProfile.patientRating")}</div>
+                        <div className="text-[10px] font-semibold uppercase tracking-wide text-ash mt-1">{t("therapist_complaints.against")}</div>
                       </div>
                       <div className="h-14 border-l border-hairline" />
                       <div>
                         <div className="font-display font-extrabold text-4xl text-carbon leading-none">{therapist.reviews}</div>
-                        <div className="text-[10px] font-semibold uppercase tracking-wide text-ash mt-1">{t("therapistProfile.patientsTreated")}</div>
+                        <div className="text-[10px] font-semibold uppercase tracking-wide text-ash mt-1">{t("therapist_complaints.against")}</div>
                       </div>
                     </div>
                   </div>
@@ -108,13 +108,13 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
                   <div className="card-neo card-neo-hover p-6">
                     <div className="flex items-center gap-3 border-b border-hairline pb-4 mb-6">
                       <GraduationCap size={32} />
-                      <h2 className="font-display font-extrabold uppercase tracking-tight text-xl">{t("therapistProfile.education")}</h2>
+                      <h2 className="font-display font-extrabold uppercase tracking-tight text-xl">{t("therapist_complaints.against")}</h2>
                     </div>
                     <ul className="space-y-5">
                       <li className="relative pl-6">
                         <span className="absolute left-0 top-2 w-3 h-3 bg-volt border border-carbon/10" />
                         <h3 className="text-xs font-bold uppercase tracking-wide text-carbon">Doctor of Physical Therapy</h3>
-                        <p className="text-xs text-ash mt-0.5">PT · {therapist.experience} {t("therapistProfile.experienceYears")}</p>
+                        <p className="text-xs text-ash mt-0.5">PT · {therapist.experience} {t("therapist_dashboard.feePerSession")}</p>
                       </li>
                       <li className="relative pl-6">
                         <span className="absolute left-0 top-2 w-3 h-3 bg-mint border border-carbon/10" />
@@ -127,7 +127,7 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
                   <div className="card-neo card-neo-hover p-6">
                     <div className="flex items-center gap-3 border-b border-hairline pb-4 mb-6">
                       <Award size={32} />
-                      <h2 className="font-display font-extrabold uppercase tracking-tight text-xl">{t("therapistProfile.certifications")}</h2>
+                      <h2 className="font-display font-extrabold uppercase tracking-tight text-xl">{t("therapist_complaints.against")}</h2>
                     </div>
                     <ul className="space-y-5">
                       <li className="relative pl-6">
@@ -138,7 +138,7 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
                       <li className="relative pl-6">
                         <span className="absolute left-0 top-2 w-3 h-3 bg-mint border border-carbon/10" />
                         <h3 className="text-xs font-bold uppercase tracking-wide text-carbon">{therapist.specialty}</h3>
-                        <p className="text-xs text-ash mt-0.5">{t("therapistProfile.verified")}</p>
+                        <p className="text-xs text-ash mt-0.5">{t("testimonials.eyebrow")}</p>
                       </li>
                     </ul>
                   </div>
@@ -165,8 +165,6 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
             reviews: therapist.reviews,
             imageUrl: photo,
           }}
-          initialDate={initialDate}
-          initialTime={initialTime}
           onClose={() => setBookingOpen(false)}
         />
       )}
