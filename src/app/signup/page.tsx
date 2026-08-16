@@ -2,10 +2,9 @@
 
 import { useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
 import { useAuth } from "@/context/auth";
-import { useLang } from "@/context/i18n";
 import { SignupFlow } from "@/components/auth/SignupFlow";
+import { AuthShell } from "@/components/auth/AuthShell";
 import type { Role } from "@/types";
 
 const ROLE_HOME: Record<string, string> = {
@@ -14,7 +13,6 @@ const ROLE_HOME: Record<string, string> = {
 };
 
 export default function SignupPage() {
-  const { t } = useLang();
   const { user, loading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -40,17 +38,10 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md">
-        <Link href="/" className="flex items-center gap-2 justify-center mb-8">
-          <span className="w-6 h-6 rounded-full bg-secondary inline-block" />
-          <span className="font-display text-lg">{t("header.brand")}</span>
-        </Link>
-
-        <div className="bg-background rounded-3xl border border-border shadow-2xl p-7 sm:p-9">
-          <SignupFlow defaultSignupRole={defaultRole} onSuccess={handleSuccess} />
-        </div>
+    <AuthShell maxWidth={400}>
+      <div className="mt-7">
+        <SignupFlow defaultSignupRole={defaultRole} onSuccess={handleSuccess} />
       </div>
-    </div>
+    </AuthShell>
   );
 }

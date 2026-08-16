@@ -17,7 +17,7 @@ export function HeroSection() {
   const [phDeleting, setPhDeleting] = useState(false);
 
   const phrases = useMemo(
-    () => [t("landing.heroSearchPhrase1"), t("landing.heroSearchPhrase2"), t("landing.heroSearchPhrase3")],
+    () => [t("landing.heroSearchPhrase0"), t("landing.heroSearchPhrase1"), t("landing.heroSearchPhrase2"), t("landing.heroSearchPhrase3")],
     [lang],
   );
 

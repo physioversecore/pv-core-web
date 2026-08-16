@@ -56,7 +56,7 @@ export function SiteHeader({
   };
 
   const darkText = !scrolled && variant === "hero-light";
-  const linkCls = `text-[14px] font-medium whitespace-nowrap transition-colors ${
+  const linkCls = `text-[14px] font-sans font-medium whitespace-nowrap transition-colors ${
     darkText ? "text-text hover:text-primary" : "text-white hover:text-[#d3fb52]"
   }`;
 

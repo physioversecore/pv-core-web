@@ -542,6 +542,19 @@
   z-index: 1;
 }
 
+/* Auth pages — predominantly white, with an extremely subtle lime
+   atmospheric tint fading down from the top. Calm and focused, unlike
+   the expressive dark landing background. */
+.auth-bg {
+  background:
+    radial-gradient(
+      ellipse 80% 35% at 50% 0%,
+      color-mix(in srgb, var(--color-voltage-lime) 14%, transparent),
+      transparent 70%
+    ),
+    #ffffff;
+}
+
 .blob-drift { animation: blobDrift 14s ease-in-out infinite; }
 @keyframes blobDrift {
   0%, 100% { transform: translate(0, 0) scale(1); }
