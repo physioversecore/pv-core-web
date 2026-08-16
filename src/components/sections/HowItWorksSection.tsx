@@ -7,7 +7,7 @@ import { HowItWorksSteps } from "@/components/HowItWorksSteps";
 export function HowItWorksSection() {
   const { t } = useLang();
   return (
-    <section id="how" className="py-24 lg:py-32">
+    <section id="how" className="py-18 lg:py-22">
       <div className="max-w-7xl mx-auto px-5 lg:px-8">
         <Reveal className="max-w-2xl">
           <div className="flex items-center gap-2.5 mb-4">
@@ -15,8 +15,7 @@ export function HowItWorksSection() {
             <p className="eyebrow !text-white/50 mb-0">{t("landing.howItWorksEyebrow")}</p>
           </div>
           <h2
-            className="font-sans font-medium tracking-[-0.02em] text-white"
-            style={{ fontSize: "clamp(28px, 3.4vw, 48px)", lineHeight: 1.1 }}
+            className="font-sans text-heading-sm sm:text-heading-lg font-medium leading-snug tracking-[-0.02em] text-white"
           >
             {t("landing.howItWorksTitle")}
           </h2>
