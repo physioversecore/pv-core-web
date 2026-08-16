@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { BookingModal } from "@/components/BookingModal";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { SectionError } from "@/components/SectionError";
-import { FeaturedTherapistsSkeleton, TherapistCardGridSkeleton } from "@/components/SuspenseFallback";
+import { FeaturedTherapistsSkeleton } from "@/components/SuspenseFallback";
 import {
   HeroSection,
   PartnersMarquee,
@@ -13,7 +13,6 @@ import {
   HowItWorksSection,
   ServicesSection,
   FeaturedTherapists,
-  FindTherapistSection,
   TherapistCTA,
 } from "@/components/sections";
 import { useBooking } from "@/hooks/useBooking";
@@ -69,23 +68,6 @@ export default function Landing() {
         <ErrorBoundary fallback={<SectionError onRetry={() => refetch()} />}>
           <Suspense fallback={<FeaturedTherapistsSkeleton />}>
             <FeaturedTherapists therapists={therapists.slice(0, 3)} onBook={handleBook} loading={isLoading} />
-          </Suspense>
-        </ErrorBoundary>
-      )}
-      {isError ? null : (
-        <ErrorBoundary fallback={<SectionError onRetry={() => refetch()} />}>
-          <Suspense fallback={<TherapistCardGridSkeleton count={6} />}>
-            <FindTherapistSection
-              q={q} city={city} spec={spec} gender={gender}
-              filtered={filtered.slice(0, 6)}
-              hasMore={filtered.length > 6}
-              loading={isLoading}
-              onQChange={setQ}
-              onCityChange={setCity}
-              onSpecChange={setSpec}
-              onGenderChange={setGender}
-              onBook={handleBook}
-            />
           </Suspense>
         </ErrorBoundary>
       )}

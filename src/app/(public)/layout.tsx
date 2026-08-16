@@ -8,12 +8,10 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 export default function PublicLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isLanding = pathname === "/";
-  const headerVariant =
-    isLanding || pathname.startsWith("/find-a-therapist") ? "hero" : "solid";
 
   return (
     <div className={`min-h-screen ${isLanding ? "bg-mid-abyss text-white" : "bg-background text-text"}`}>
-      <SiteHeader variant={headerVariant} />
+      <SiteHeader variant="hero" />
       {children}
       <SiteFooter />
     </div>

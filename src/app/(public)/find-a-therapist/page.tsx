@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useLang } from "@/context/i18n";
+import { useDebounce } from "@/hooks/useDebounce";
 import { Reveal } from "@/components/Reveal";
 import { TherapistJobCard } from "@/components/TherapistJobCard";
 import { Avatar } from "@/components/Avatar";
@@ -44,16 +45,18 @@ export default function FindPage() {
   const [booking, setBooking] = useState<Therapist | null>(null);
   const { user } = useAuth();
 
+  const debouncedQ = useDebounce(q, 500);
+
   const skip = (page - 1) * PAGE_SIZE;
   const hasFilters = q || city || spec || gender;
 
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["therapists", page, q, city, spec, gender],
+    queryKey: ["therapists", page, debouncedQ, city, spec, gender],
     queryFn: () =>
       getTherapists({
         skip,
         limit: PAGE_SIZE,
-        search: q || undefined,
+        search: debouncedQ || undefined,
         city: city || undefined,
         specialty: spec || undefined,
         gender: gender || undefined,
@@ -93,10 +96,10 @@ export default function FindPage() {
   };
 
   const stats = [
-    { value: "10,000+", label: t("find.statSessions") },
-    { value: "500+", label: t("find.statVerified") },
-    { value: "4.9", label: `★ ${t("find.statRating")}` },
-    { value: "24", label: t("find.statCities") },
+    { value: "12,400+", label: t("find.statSessions") },
+    { value: "180+", label: t("find.statVerified") },
+    { value: "4.8", label: `★ ${t("find.statRating")}` },
+    { value: "6", label: t("find.statCities") },
   ];
 
   const sorts: { key: SortKey; label: string; icon: string }[] = [
@@ -162,7 +165,7 @@ export default function FindPage() {
       </section>
 
       {/* ── Search & filter ──────────────────────────────── */}
-      <section className="pb-12">
+      <section className="pb-10">
         <div className="max-w-7xl mx-auto px-5 lg:px-8">
           <Reveal>
             <div className="card-soft rounded-2xl p-3 grid sm:grid-cols-[1.6fr_1fr_1fr_1fr] gap-2">
@@ -222,7 +225,7 @@ export default function FindPage() {
                 <button
                   key={s.key}
                   onClick={() => setSort(s.key)}
-                  className={`shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-full border text-sm font-medium transition ${
+                  className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm rounded-full border font-medium transition ${
                     sort === s.key
                       ? "border-secondary bg-secondary text-white"
                       : "border-border bg-white text-text-light hover:border-secondary/40 hover:text-text"
@@ -234,14 +237,14 @@ export default function FindPage() {
               ))}
             </div>
 
-            <div className="mt-4 flex items-center justify-between">
-              <div className="text-sm text-text-light">
+            <div className="mt-5 flex items-center justify-between gap-3">
+              <div className="text-sm font-semibold text-white whitespace-nowrap">
                 {isLoading ? t("common.loading") : `${total} ${t("find.therapistsFound")}`}
               </div>
               {hasFilters && (
                 <button
                   onClick={clearAll}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-text-light hover:text-secondary transition"
+                  className="inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold whitespace-nowrap text-white/70 transition-colors hover:border-danger hover:text-danger"
                 >
                   <X size={14} />
                   {t("common.clearFilters")}
@@ -276,14 +279,6 @@ export default function FindPage() {
                       </div>
                       <h3 className="text-2xl font-bold text-text">{t("find.noResultsTitle")}</h3>
                       <p className="text-text-light mt-2 max-w-sm">{t("find.noResultsDesc")}</p>
-                      {hasFilters && (
-                        <button
-                          onClick={clearAll}
-                          className="mt-6 px-5 py-2 rounded-full border border-border text-sm font-semibold text-text transition-colors hover:border-secondary hover:text-secondary"
-                        >
-                          {t("common.clearFilters")}
-                        </button>
-                      )}
                     </div>
                   )}
                 </div>
