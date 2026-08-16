@@ -4,10 +4,10 @@ import { Activity, Calendar, FileText, Search, Star, type LucideIcon } from "luc
 import type { ReactNode } from "react";
 import { Avatar } from "./Avatar";
 
-const CARD =
+export const VISUAL_CARD =
   "flex w-full max-w-sm h-[300px] sm:h-[360px] flex-col justify-center rounded-2xl bg-white p-3.5 shadow-2xl ring-1 ring-black/5 sm:p-4";
 
-function VisualFrame({ tone, children }: { tone: "a" | "b" | "c"; children: ReactNode }) {
+export function VisualFrame({ tone, children }: { tone: "a" | "b" | "c"; children: ReactNode }) {
   return (
     <div className={`feature-visual feature-visual-${tone}`}>
       <div className="feature-visual-grid" aria-hidden />
@@ -36,7 +36,7 @@ function TherapistRow({ name, spec, rating, price }: { name: string; spec: strin
 export function SearchVisual() {
   return (
     <VisualFrame tone="a">
-      <div className={CARD}>
+      <div className={VISUAL_CARD}>
         <div className="flex items-center gap-2 rounded-xl bg-surface px-3 py-2.5">
           <Search size={15} className="shrink-0 text-text-light" />
           <span className="text-[13px] text-text-light">Sports injury · Kathmandu</span>
@@ -58,7 +58,7 @@ export function SearchVisual() {
 export function BookingVisual() {
   return (
     <VisualFrame tone="b">
-      <div className={CARD}>
+      <div className={VISUAL_CARD}>
         <div className="flex items-center justify-between">
           <div>
             <div className="text-[13px] font-semibold text-text">Home visit · 45 min</div>
@@ -103,7 +103,7 @@ export function BookingVisual() {
 export function RecoveryVisual() {
   return (
     <VisualFrame tone="c">
-      <div className={CARD}>
+      <div className={VISUAL_CARD}>
         <div className="flex items-center gap-3.5">
           <div
             className="relative grid h-16 w-16 shrink-0 place-items-center rounded-full"
@@ -149,7 +149,7 @@ export function ServiceStackVisual({
     <div className={`feature-visual feature-visual-${accent}`}>
       <div className="feature-visual-grid" aria-hidden />
       <div className="relative z-10 flex h-full w-full items-center justify-center p-4 sm:p-8">
-        <div className={CARD}>
+        <div className={VISUAL_CARD}>
           <div className="space-y-2.5">
             {items.slice(0, 3).map((s, i) => {
               const Icon = iconMap[s.iconName] || Activity;

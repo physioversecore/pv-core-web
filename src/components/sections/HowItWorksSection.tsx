@@ -9,8 +9,11 @@ export function HowItWorksSection() {
   return (
     <section id="how" className="py-24 lg:py-32">
       <div className="max-w-7xl mx-auto px-5 lg:px-8">
-        <Reveal className="mx-auto max-w-2xl text-center">
-          <p className="eyebrow !text-white/50 mb-4">{t("landing.howItWorksEyebrow")}</p>
+        <Reveal className="max-w-2xl">
+          <div className="flex items-center gap-2.5 mb-4">
+            <span className="inline-block w-2 h-2 rounded-full bg-voltage-lime" />
+            <p className="eyebrow !text-white/50 mb-0">{t("landing.howItWorksEyebrow")}</p>
+          </div>
           <h2
             className="font-sans font-medium tracking-[-0.02em] text-white"
             style={{ fontSize: "clamp(28px, 3.4vw, 48px)", lineHeight: 1.1 }}
