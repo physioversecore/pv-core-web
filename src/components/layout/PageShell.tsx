@@ -10,24 +10,7 @@ export function PageHero({
   subtitle?: string;
 }) {
   return (
-    <section
-      className="pt-36 pb-24 relative overflow-hidden text-white"
-      style={{ background: "#052326" }}
-    >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 section-blend-bottom"
-        style={{
-          background:
-            "radial-gradient(58rem 32rem at 25% 10%, rgba(122,243,255,0.16) 0%, rgba(122,243,255,0) 55%)," +
-            "radial-gradient(62rem 36rem at 78% 20%, rgba(211,251,82,0.14) 0%, rgba(211,251,82,0) 55%)",
-        }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-32"
-        style={{ background: "linear-gradient(180deg, transparent 0%, var(--color-background) 100%)" }}
-      />
+    <section className="pt-36 pb-24 relative overflow-hidden text-white">
       <div className="relative max-w-7xl mx-auto px-5 lg:px-8">
         {eyebrow && <p className="eyebrow !text-white/70 mb-3">{eyebrow}</p>}
         <h1 className="font-display text-4xl md:text-5xl leading-tight max-w-3xl">{title}</h1>
@@ -49,9 +32,17 @@ export function PageShell({
   children: ReactNode;
 }) {
   return (
-    <>
+    <div
+      className="relative min-h-screen"
+      style={{
+        background:
+          "radial-gradient(58rem 32rem at 28% 6%, color-mix(in srgb, var(--color-cyan-spark) 16%, transparent) 0%, transparent 55%)," +
+          "radial-gradient(62rem 36rem at 72% 10%, color-mix(in srgb, var(--color-voltage-lime) 14%, transparent) 0%, transparent 55%)," +
+          "linear-gradient(180deg, var(--color-mid-abyss) 0%, var(--color-background) 45%, var(--color-pure-white) 100%)",
+      }}
+    >
       <PageHero title={title} eyebrow={eyebrow} subtitle={subtitle} />
       <main>{children}</main>
-    </>
+    </div>
   );
 }

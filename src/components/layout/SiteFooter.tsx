@@ -56,7 +56,7 @@ export function SiteFooter() {
   ];
 
   const linkCls =
-    "font-normal text-white transition-colors hover:text-voltage-lime text-[clamp(13px,2.5vw,16px)]";
+    "font-sans text-white transition-colors hover:text-voltage-lime text-[clamp(12px,2.5vw,14px)]";
 
   return (
     <footer>
@@ -75,7 +75,7 @@ export function SiteFooter() {
           <div className="hidden md:grid md:grid-cols-4 gap-8">
             {columns.map((col) => (
               <div key={col.heading}>
-                <p className="font-mono text-[11px] uppercase tracking-widest text-ash mb-4">
+                <p className="font-mono text-xs uppercase tracking-widest text-ash mb-4">
                   {col.heading}
                 </p>
                 <ul className="space-y-3">

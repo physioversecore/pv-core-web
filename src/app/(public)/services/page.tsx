@@ -85,17 +85,6 @@ export default function Services() {
           </div>
         </div>
       </section>
-
-      <section className="py-16" style={{ background: "linear-gradient(180deg,#F0F5F1 0%,var(--color-background) 100%)"}}>
-        <div className="max-w-4xl mx-auto px-5 lg:px-8 text-center">
-          <h2 className="font-display text-3xl mb-4">{t("services.ctaTitle")}</h2>
-          <p className="text-text-light mb-6">{t("services.ctaDesc")}</p>
-          <div className="flex flex-wrap gap-3 justify-center">
-            <Link href="/find-a-therapist" className="btn-primary">{t("services.ctaFind")}</Link>
-            <Link href="/contact" className="inline-flex items-center gap-2 px-5 py-3 rounded-full font-semibold border border-secondary text-secondary hover:bg-secondary hover:text-white transition">{t("services.ctaContact")}</Link>
-          </div>
-        </div>
-      </section>
     </PageShell>
   );
 }
