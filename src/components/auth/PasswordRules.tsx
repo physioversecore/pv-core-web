@@ -7,18 +7,18 @@ import { useLang } from "@/context/i18n";
 type Strength = "weak" | "fair" | "good" | "strong" | "veryStrong";
 
 type StrengthKey =
-  | "auth.passwordStrengthWeak"
-  | "auth.passwordStrengthFair"
-  | "auth.passwordStrengthGood"
-  | "auth.passwordStrengthStrong"
-  | "auth.passwordStrengthVeryStrong";
+  | "passwordStrengthWeak"
+  | "passwordStrengthFair"
+  | "passwordStrengthGood"
+  | "passwordStrengthStrong"
+  | "passwordStrengthVeryStrong";
 
 const STRENGTH_KEY: Record<Strength, StrengthKey> = {
-  weak: "auth.passwordStrengthWeak",
-  fair: "auth.passwordStrengthFair",
-  good: "auth.passwordStrengthGood",
-  strong: "auth.passwordStrengthStrong",
-  veryStrong: "auth.passwordStrengthVeryStrong",
+  weak: "passwordStrengthWeak",
+  fair: "passwordStrengthFair",
+  good: "passwordStrengthGood",
+  strong: "passwordStrengthStrong",
+  veryStrong: "passwordStrengthVeryStrong",
 };
 
 const STRENGTH_CLASS: Record<Strength, string> = {
@@ -48,11 +48,11 @@ export function PasswordRules({ password }: { password: string }) {
       <div className="flex items-center justify-between mb-2">
         <p className="label-ink text-text-light flex items-center gap-1.5">
           <ShieldCheck size={14} />
-          {t("auth.passwordStrengthTitle")}
+            PasswordRules
         </p>
         {password.length > 0 && (
           <span className={cn("text-xs uppercase font-mono font-bold tracking-wide transition-colors", STRENGTH_CLASS[strength])}>
-            {t(STRENGTH_KEY[strength])}
+            {STRENGTH_KEY[strength]}
           </span>
         )}
       </div>
