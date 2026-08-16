@@ -402,7 +402,7 @@ function FindPageContent() {
                 <p className="mt-3 text-text-light">{t("find.bannerText")}</p>
                 <Link
                   href="/testimonials"
-                  className="mt-8 inline-flex w-fit items-center gap-2 px-6 py-3 rounded-full bg-carbon-ink text-white text-sm font-semibold hover:bg-black transition-colors"
+                  className="mt-8 inline-flex w-fit items-center gap-2 px-6 py-3 rounded-full bg-voltage-lime text-carbon-ink text-sm font-semibold hover:bg-voltage-lime/75 transition-colors"
                 >
                   {t("find.bannerCta")}
                   <ArrowRight size={16} />

@@ -6,6 +6,7 @@ import { Reveal } from "@/components/Reveal";
 import { ServiceCard } from "@/components/ServiceCard";
 import { SectionError } from "@/components/SectionError";
 import { useServices } from "@/hooks/useServices";
+import { ArrowRight } from "lucide-react";
 
 function ServiceSkeleton() {
   return (
@@ -72,21 +73,14 @@ export function ServicesSection() {
           )}
         </div>
 
-        <Reveal delay={150}>
+        <Reveal delay={100}>
           <Link
             href="/find-a-therapist"
-            className="mt-8 inline-flex items-center justify-center rounded-lg bg-voltage-lime px-5 py-2.5 text-sm font-semibold text-carbon-ink transition-all duration-150 hover:-translate-y-px hover:brightness-110"
+            className="mt-12 inline-flex items-center justify-center rounded-lg bg-voltage-lime px-5 py-2.5 text-sm font-semibold text-carbon-ink transition-all duration-150 hover:-translate-y-px hover:brightness-110"
           >
             {t("landing.servicesCta")}
+            <ArrowRight size={16} />
           </Link>
-          <div className="mt-5">
-            <Link
-              href="/how-it-works"
-              className="text-[11px] text-ink-muted underline-offset-4 transition-colors hover:text-white hover:underline"
-            >
-              {t("landing.servicesSecondary")}
-            </Link>
-          </div>
         </Reveal>
       </div>
     </section>
