@@ -118,9 +118,9 @@ export default function FindPage() {
       className="relative min-h-screen"
       style={{
         background:
-          "radial-gradient(58rem 32rem at 28% 6%, rgba(122,243,255,0.16) 0%, rgba(122,243,255,0) 55%)," +
-          "radial-gradient(62rem 36rem at 72% 10%, rgba(211,251,82,0.14) 0%, rgba(211,251,82,0) 55%)," +
-          "linear-gradient(180deg, #052326 0%, #123E3B 20%, #7FA094 38%, #E2EDE7 58%, #FBFBF8 82%, #FFFFFF 100%)",
+          "radial-gradient(58rem 32rem at 28% 6%, color-mix(in srgb, var(--color-cyan-spark) 16%, transparent) 0%, transparent 55%)," +
+          "radial-gradient(62rem 36rem at 72% 10%, color-mix(in srgb, var(--color-voltage-lime) 14%, transparent) 0%, transparent 55%)," +
+          "linear-gradient(180deg, var(--color-mid-abyss) 0%, var(--color-background) 45%, var(--color-pure-white) 100%)",
       }}
     >
       {/* ── Hero ─────────────────────────────────────────── */}
