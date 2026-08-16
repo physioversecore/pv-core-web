@@ -84,7 +84,6 @@ const en = {
     services: "Services",
     therapists: "Therapists",
     findTherapist: "Find a Therapist",
-    app: "App",
     blog: "Blog",
     faq: "FAQ",
     testimonials: "Testimonials",
@@ -617,21 +616,6 @@ const en = {
     search: "Search",
     therapistsFound: "therapist(s) found",
     noMatch: "No therapists match your filters.",
-  },
-
-  app: {
-    eyebrow: "Sahayatri app",
-    title: "Your recovery, in your pocket.",
-    subtitle: "Track sessions, chat with your therapist, and never miss an exercise reminder — all from your phone.",
-    builtForRecovery: "Built for recovery",
-    sectionTitle: "Everything, in one calm app.",
-    feature1: "Session reports uploaded after every visit",
-    feature2: "In-app chat with your therapist",
-    feature3: "Reminders for exercises and next visits",
-    googlePlay: "Google Play",
-    appStore: "App Store",
-    getItOn: "GET IT ON",
-    downloadOnThe: "Download on the",
   },
 
   therapist_dashboard: {

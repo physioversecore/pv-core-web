@@ -64,15 +64,22 @@ export function HeroSection({ onSearch }: HeroSectionProps) {
       className="relative min-h-screen overflow-hidden flex flex-col items-center justify-center text-white"
       style={{ background: ABYSS }}
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background: `radial-gradient(circle at 55% 45%, ${CYAN} 0%, ${LIME} 70%, transparent 76%)`,
-          filter: "blur(80px)",
-          opacity: 0.5,
-        }}
-      />
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `radial-gradient(ellipse 85% 75% at 55% 40%, ${CYAN} 0%, ${LIME} 60%, transparent 78%)`,
+            filter: "blur(70px)",
+            opacity: 0.5,
+          }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `radial-gradient(ellipse 100% 105% at 60% 25%, transparent 0%, ${ABYSS} 100%)`,
+          }}
+        />
+      </div>
 
       <div className="relative z-10 w-full max-w-7xl mx-auto px-5 lg:px-8 flex flex-col items-center text-center">
         <h1

@@ -15,7 +15,6 @@ export function SiteFooter() {
       "/how-it-works": t("nav.howItWorks"),
       "/services": t("nav.services"),
       "/find-a-therapist": t("nav.findTherapist"),
-      "/app": t("nav.app"),
       "/blog": t("nav.blog"),
       "/faq": t("nav.faq"),
       "/testimonials": t("nav.testimonials"),
@@ -39,7 +38,6 @@ export function SiteFooter() {
       links: [
         { to: "/about", label: t("nav.aboutUs") },
         { to: "/contact", label: t("nav.contactUs") },
-        { to: "/app", label: t("nav.app") },
       ],
     },
     {

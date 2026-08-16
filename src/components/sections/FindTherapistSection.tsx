@@ -30,10 +30,10 @@ export function FindTherapistSection({
 }: FindTherapistSectionProps) {
   const { t } = useLang();
   return (
-    <section id="find" className="bg-background py-20">
+    <section id="find" className="py-24">
       <div className="max-w-7xl mx-auto px-5 lg:px-8">
         <Reveal>
-          <p className="eyebrow mb-3">{t("find.eyebrow")}</p>
+          <p className="eyebrow !text-white/50 mb-3">{t("find.eyebrow")}</p>
           <h2 className="text-4xl font-display mb-8 max-w-2xl">{t("find.title")}</h2>
         </Reveal>
 
@@ -43,6 +43,7 @@ export function FindTherapistSection({
             city={city}
             spec={spec}
             gender={gender}
+            variant="dark"
             onQChange={onQChange}
             onCityChange={onCityChange}
             onSpecChange={onSpecChange}
@@ -51,16 +52,16 @@ export function FindTherapistSection({
         </Reveal>
 
         {loading ? (
-          <TherapistCardGridSkeleton count={6} />
+          <TherapistCardGridSkeleton count={6} variant="dark" />
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((t, i) => (
               <Reveal key={t.id} delay={(i % 6) * 60}>
-                <TherapistCard t={t} onBook={onBook} />
+                <TherapistCard t={t} onBook={onBook} variant="dark" />
               </Reveal>
             ))}
             {filtered.length === 0 && (
-              <p className="text-text-light text-sm col-span-full">{t("find.noMatch")}</p>
+              <p className="text-white/60 text-sm col-span-full">{t("find.noMatch")}</p>
             )}
           </div>
         )}
@@ -68,7 +69,7 @@ export function FindTherapistSection({
         {hasMore && (
           <Reveal>
             <div className="mt-8 text-center">
-              <Link href="/find-a-therapist" className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-semibold border border-secondary text-secondary hover:bg-secondary hover:text-white transition">
+              <Link href="/find-a-therapist" className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-semibold border border-voltage-lime text-voltage-lime hover:bg-voltage-lime hover:text-carbon-ink transition">
                 {t("common.viewAll")} →
               </Link>
             </div>

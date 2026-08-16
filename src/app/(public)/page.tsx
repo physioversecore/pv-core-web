@@ -14,7 +14,6 @@ import {
   ServicesSection,
   FeaturedTherapists,
   FindTherapistSection,
-  AppDownloadSection,
   TherapistCTA,
 } from "@/components/sections";
 import { useBooking } from "@/hooks/useBooking";
@@ -90,7 +89,6 @@ export default function Landing() {
           </Suspense>
         </ErrorBoundary>
       )}
-      <AppDownloadSection />
       <TherapistCTA />
       {booking && <BookingModal therapist={booking} onClose={closeBooking} />}
     </div>

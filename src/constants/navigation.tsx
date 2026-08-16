@@ -19,7 +19,6 @@ export const NAV_LINKS = [
   { to: "/how-it-works", label: "How it works" },
   { to: "/services", label: "Services" },
   { to: "/find-a-therapist", label: "Find a Therapist" },
-  { to: "/app", label: "App" },
 ] as const;
 
 export const RESOURCE_LINKS = [

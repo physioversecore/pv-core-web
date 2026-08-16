@@ -14,10 +14,10 @@ const iconMap: Record<string, LucideIcon> = {
 
 function ServiceSkeleton() {
   return (
-    <div className="rounded-2xl bg-white border border-border/60 p-6 animate-pulse">
-      <div className="w-11 h-11 rounded-xl bg-surface mb-3" />
-      <div className="h-4 bg-surface rounded w-2/3 mb-2" />
-      <div className="h-3 bg-surface rounded w-full" />
+    <div className="rounded-2xl bg-white/5 border border-white/10 p-6 animate-pulse">
+      <div className="w-11 h-11 rounded-xl bg-white/10 mb-3" />
+      <div className="h-4 bg-white/10 rounded w-2/3 mb-2" />
+      <div className="h-3 bg-white/10 rounded w-full" />
     </div>
   );
 }
@@ -31,11 +31,11 @@ export function ServicesSection() {
   const shopServices = services.filter((s) => s.category === "SHOP");
 
   return (
-    <section id="services" className="py-20 relative bg-surface">
+    <section id="services" className="py-24 relative">
       <PlusField count={8} seed={7} />
       <div className="relative max-w-7xl mx-auto px-5 lg:px-8">
         <Reveal>
-          <p className="eyebrow mb-3">{t("landing.servicesEyebrow")}</p>
+          <p className="eyebrow !text-white/50 mb-3">{t("landing.servicesEyebrow")}</p>
           <h2 className="text-4xl font-display mb-12 max-w-2xl">{t("landing.servicesTitle")}</h2>
         </Reveal>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -53,7 +53,7 @@ export function ServicesSection() {
               })}
         </div>
         <Reveal>
-          <p className="eyebrow mb-3 mt-10">{t("landing.otherServicesEyebrow")}</p>
+          <p className="eyebrow !text-white/50 mb-3 mt-10">{t("landing.otherServicesEyebrow")}</p>
           <h2 className="text-3xl font-display mb-8 max-w-2xl">{t("landing.otherServicesTitle")}</h2>
         </Reveal>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">

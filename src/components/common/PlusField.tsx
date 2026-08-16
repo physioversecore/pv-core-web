@@ -27,7 +27,7 @@ export function PlusField({ count = 10, seed = 1 }: PlusFieldProps) {
       {items.map((it, i) => (
         <svg
           key={i}
-          className="absolute text-secondary"
+          className="absolute text-white"
           style={{
             top: `${it.top}%`,
             left: `${it.left}%`,

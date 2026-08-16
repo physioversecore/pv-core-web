@@ -6,7 +6,7 @@ import { partners } from "@/lib/landing-data";
 export function PartnersMarquee() {
   const { t } = useLang();
   return (
-    <section aria-label="Trusted by" className="bg-background-dark">
+    <section aria-label="Trusted by">
       <div className="max-w-7xl mx-auto px-5 lg:px-8 pt-8">
         <p className="text-center eyebrow !text-white/50">{t("landing.partnersTitle")}</p>
       </div>

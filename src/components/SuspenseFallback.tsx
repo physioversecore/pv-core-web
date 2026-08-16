@@ -63,30 +63,31 @@ export function DashboardPageSkeleton() {
   );
 }
 
-export function TherapistCardSkeleton() {
+export function TherapistCardSkeleton({ variant = "light" }: { variant?: "light" | "dark" }) {
+  const dark = variant === "dark";
   return (
-    <div className="card-soft p-4 flex flex-col gap-3 animate-pulse">
+    <div className={`${dark ? "card-glass" : "card-soft"} p-4 flex flex-col gap-3 animate-pulse`}>
       <div className="flex items-start gap-3">
-        <div className="w-12 h-12 rounded-full bg-border shrink-0" />
+        <div className={`w-12 h-12 rounded-full ${dark ? "bg-white/15" : "bg-border"} shrink-0`} />
         <div className="flex-1 min-w-0 space-y-2">
-          <div className="h-4 w-3/4 bg-border rounded" />
-          <div className="h-3 w-1/2 bg-border rounded" />
-          <div className="h-3 w-16 bg-border rounded" />
+          <div className={`h-4 w-3/4 ${dark ? "bg-white/15" : "bg-border"} rounded`} />
+          <div className={`h-3 w-1/2 ${dark ? "bg-white/15" : "bg-border"} rounded`} />
+          <div className={`h-3 w-16 ${dark ? "bg-white/15" : "bg-border"} rounded`} />
         </div>
       </div>
-      <div className="flex items-center justify-between pt-2 border-t border-border">
-        <div className="h-5 w-20 bg-border rounded" />
-        <div className="h-8 w-24 bg-border rounded" />
+      <div className={`flex items-center justify-between pt-2 border-t ${dark ? "border-white/10" : "border-border"}`}>
+        <div className={`h-5 w-20 ${dark ? "bg-white/15" : "bg-border"} rounded`} />
+        <div className={`h-8 w-24 ${dark ? "bg-white/15" : "bg-border"} rounded`} />
       </div>
     </div>
   );
 }
 
-export function TherapistCardGridSkeleton({ count = 6 }: { count?: number }) {
+export function TherapistCardGridSkeleton({ count = 6, variant = "light" }: { count?: number; variant?: "light" | "dark" }) {
   return (
     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {Array.from({ length: count }).map((_, i) => (
-        <TherapistCardSkeleton key={i} />
+        <TherapistCardSkeleton key={i} variant={variant} />
       ))}
     </div>
   );

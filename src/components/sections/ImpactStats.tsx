@@ -8,18 +8,18 @@ import { impactStats } from "@/lib/landing-data";
 export function ImpactStats() {
   const { t } = useLang();
   return (
-    <section className="relative py-16 bg-background">
+    <section className="relative py-20">
       <PlusField count={10} seed={3} />
       <div className="relative max-w-7xl mx-auto px-5 lg:px-8 grid grid-cols-2 md:grid-cols-4">
         {impactStats.map((s, i) => (
           <Reveal key={i} delay={i * 80}>
-            <div className={`text-center py-4 ${i > 0 ? "md:border-l border-border" : ""}`}>
-              <div className="font-display text-4xl lg:text-5xl text-secondary">
+            <div className={`text-center py-4 ${i > 0 ? "md:border-l border-white/10" : ""}`}>
+              <div className="font-display text-4xl lg:text-5xl text-white">
                 {s.isRating
-                  ? <>4.8<span className="text-primary">★</span></>
-                  : <><CountUp to={s.value} /><span className="text-primary">{s.suffix}</span></>}
+                  ? <>4.8<span className="text-voltage-lime">★</span></>
+                  : <><CountUp to={s.value} /><span className="text-voltage-lime">{s.suffix}</span></>}
               </div>
-              <div className="text-xs text-text-light mt-2 font-mono uppercase tracking-widest">
+              <div className="text-xs text-white/60 mt-2 font-mono uppercase tracking-widest">
                 {s.isRating ? t("landing.impactStatsRating") : s.label}
               </div>
             </div>

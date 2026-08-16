@@ -42,7 +42,6 @@ export function SiteHeader({ variant = "solid" }: { variant?: "hero" | "solid" }
       "/how-it-works": t("nav.howItWorks"),
       "/services": t("nav.services"),
       "/find-a-therapist": t("nav.findTherapist"),
-      "/app": t("nav.app"),
     };
     return map[to] ?? "";
   };

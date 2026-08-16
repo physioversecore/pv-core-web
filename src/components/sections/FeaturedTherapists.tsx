@@ -22,14 +22,14 @@ const GRADIENTS = [
 export function FeaturedTherapists({ therapists, onBook, loading }: FeaturedTherapistsProps) {
   const { t } = useLang();
   return (
-    <section id="therapists" className="relative py-24 overflow-hidden text-background bg-background-dark">
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="absolute top-8 left-8 w-[380px] h-[380px] rounded-full bg-primary/25 blur-3xl blob-drift" />
-        <div className="absolute bottom-0 right-8 w-[420px] h-[420px] rounded-full bg-secondary/45 blur-3xl blob-float-b" />
+    <section id="therapists" className="relative py-24 overflow-hidden text-white">
+      <div aria-hidden className="pointer-events-none absolute inset-0 section-blend-bottom">
+        <div className="absolute top-8 left-8 w-[380px] h-[380px] rounded-full bg-cyan-spark/20 blur-3xl blob-drift" />
+        <div className="absolute bottom-0 right-8 w-[420px] h-[420px] rounded-full bg-voltage-lime/15 blur-3xl blob-float-b" />
       </div>
       <div className="relative max-w-7xl mx-auto px-5 lg:px-8">
         <Reveal>
-          <p className="eyebrow !text-primary mb-3">{t("landing.featuredTherapistsEyebrow")}</p>
+          <p className="eyebrow !text-voltage-lime mb-3">{t("landing.featuredTherapistsEyebrow")}</p>
           <h2 className="text-4xl font-display mb-12 max-w-2xl">{t("landing.featuredTherapistsTitle")}</h2>
         </Reveal>
         <div className="grid md:grid-cols-3 gap-6">
@@ -41,7 +41,7 @@ export function FeaturedTherapists({ therapists, onBook, loading }: FeaturedTher
   return (
     <Reveal key={therapist.id} delay={i * 120}>
       <div
-        className="group relative rounded-3xl overflow-hidden p-6 h-72 flex flex-col justify-between border border-white/10 transition duration-300 hover:-translate-y-1 hover:border-primary hover:shadow-[0_20px_50px_-15px_rgba(226,150,47,0.55)]"
+        className="group relative rounded-3xl overflow-hidden p-6 h-72 flex flex-col justify-between border border-white/10 transition duration-300 hover:-translate-y-1 hover:border-voltage-lime hover:shadow-[0_20px_50px_-15px_rgba(211,251,82,0.35)]"
         style={{ background: GRADIENTS[i % GRADIENTS.length] }}
       >
         <span className="absolute right-4 top-4 chip !bg-white/95 !text-secondary">{t("landing.nmcVerified")}</span>
@@ -49,7 +49,7 @@ export function FeaturedTherapists({ therapists, onBook, loading }: FeaturedTher
           {initials}
         </span>
         <div className="flex items-center gap-1 text-xs relative z-10">
-          <Star size={14} className="fill-primary text-primary" />
+          <Star size={14} className="fill-voltage-lime text-voltage-lime" />
           <span className="font-semibold">{therapist.rating}</span>
           <span className="text-white/70">({therapist.reviews} {t("landing.reviews")})</span>
         </div>

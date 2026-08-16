@@ -11,11 +11,11 @@ interface ServiceCardProps {
 export function ServiceCard({ icon, title, desc, live }: ServiceCardProps) {
   const { t } = useLang();
   return (
-    <div className="card-soft p-6 relative group hover:-translate-y-1 hover:shadow-[0_18px_38px_-18px_rgba(47,93,80,.45)] transition duration-300">
+    <div className="card-glass p-6 relative group hover:-translate-y-1 hover:shadow-[0_18px_38px_-18px_rgba(0,0,0,.6)] transition duration-300">
       {live ? (
-        <span className="chip !bg-secondary !text-white absolute top-4 right-4">{t("landing.live")}</span>
+        <span className="chip !bg-voltage-lime !text-carbon-ink absolute top-4 right-4">{t("landing.live")}</span>
       ) : (
-        <span className="chip absolute top-4 right-4">{t("landing.soon")}</span>
+        <span className="chip !bg-white/10 !text-white/80 absolute top-4 right-4">{t("landing.soon")}</span>
       )}
       <div
         className="w-11 h-11 rounded-xl grid place-items-center mb-3 text-secondary group-hover:scale-110 group-hover:rotate-6 transition duration-300"
@@ -24,7 +24,7 @@ export function ServiceCard({ icon, title, desc, live }: ServiceCardProps) {
         {icon}
       </div>
       <div className="font-display text-lg mb-1">{title}</div>
-      <p className="text-text-light text-sm">{desc}</p>
+      <p className="text-white/60 text-sm">{desc}</p>
     </div>
   );
 }

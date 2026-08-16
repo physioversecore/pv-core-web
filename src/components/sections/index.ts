@@ -5,5 +5,4 @@ export { HowItWorksSection } from "./HowItWorksSection";
 export { ServicesSection } from "./ServicesSection";
 export { FeaturedTherapists } from "./FeaturedTherapists";
 export { FindTherapistSection } from "./FindTherapistSection";
-export { AppDownloadSection } from "./AppDownloadSection";
 export { TherapistCTA } from "./TherapistCTA";

@@ -84,7 +84,6 @@ const ne = {
     services: "सेवाहरू",
     therapists: "चिकित्सकहरू",
     findTherapist: "चिकित्सक खोज्नुहोस्",
-    app: "एप",
     blog: "ब्लग",
     faq: "प्रायः सोधिने प्रश्नहरू",
     testimonials: "प्रशंसापत्र",
@@ -614,21 +613,6 @@ const ne = {
     search: "खोजी गर्नुहोस्",
     therapistsFound: "चिकित्सक(हरू) फेला पर्यो",
     noMatch: "तपाईंको फिल्टरसँग मिल्ने चिकित्सक छैन।",
-  },
-
-  app: {
-    eyebrow: "Sahayatri एप",
-    title: "तपाईंको स्वास्थ्यलाभ, तपाईंको खल्तीमा।",
-    subtitle: "सत्रहरू ट्र्याक गर्नुहोस्, आफ्नो चिकित्सकसँग कुरा गर्नुहोस्, र व्यायाम रिमाइन्डर कहिल्यै नभुल्नुहोस् — सबै तपाईंको फोनबाट।",
-    builtForRecovery: "पुनर्स्थापनाको लागि बनाइएको",
-    sectionTitle: "सबै कुरा, एउटा शान्त एपमा।",
-    feature1: "प्रत्येक भेट पछि सत्र रिपोर्टहरू अपलोड",
-    feature2: "तपाईंको चिकित्सकसँग एपमै कुराकानी",
-    feature3: "व्यायाम र अर्को भेटको लागि रिमाइन्डरहरू",
-    googlePlay: "Google Play",
-    appStore: "App Store",
-    getItOn: "GET IT ON",
-    downloadOnThe: "Download on the",
   },
 
   therapist_dashboard: {
