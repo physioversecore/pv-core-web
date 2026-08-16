@@ -5,10 +5,6 @@ import { Search, ArrowRight } from "lucide-react";
 import { useLang } from "@/context/i18n";
 import { SPECIALTIES } from "@/constants";
 
-const ABYSS = "#052326";
-const CYAN = "#7af3ff";
-const LIME = "#d3fb52";
-
 const CHIPS = SPECIALTIES.slice(0, 4);
 
 interface HeroSectionProps {
@@ -62,21 +58,18 @@ export function HeroSection({ onSearch }: HeroSectionProps) {
     <section
       id="top"
       className="relative min-h-screen overflow-hidden flex flex-col items-center justify-center text-white"
-      style={{ background: ABYSS }}
+      style={{
+        background:
+          "linear-gradient(180deg, var(--color-abyss-soft) 0%, var(--color-abyss-mid) 55%, var(--color-abyss-deep) 80%)",
+      }}
     >
       <div aria-hidden className="pointer-events-none absolute inset-0">
         <div
           className="absolute inset-0"
           style={{
-            background: `radial-gradient(ellipse 85% 75% at 55% 40%, ${CYAN} 0%, ${LIME} 60%, transparent 78%)`,
+            background: `radial-gradient(ellipse 85% 75% at 55% 40%, var(--color-cyan-spark) 0%, var(--color-voltage-lime) 60%, transparent 78%)`,
             filter: "blur(70px)",
             opacity: 0.5,
-          }}
-        />
-        <div
-          className="absolute inset-0"
-          style={{
-            background: `radial-gradient(ellipse 100% 105% at 60% 25%, transparent 0%, ${ABYSS} 100%)`,
           }}
         />
       </div>
@@ -114,7 +107,7 @@ export function HeroSection({ onSearch }: HeroSectionProps) {
               type="submit"
               aria-label={t("landing.heroSearchSubmit")}
               className="shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-transform hover:scale-105 sm:w-10 sm:h-10"
-              style={{ background: LIME, color: "#000" }}
+              style={{ background: "var(--color-voltage-lime)", color: "var(--color-carbon-ink)" }}
             >
               <ArrowRight size={22} strokeWidth={2.5} className="sm:size-5" />
             </button>
@@ -126,7 +119,7 @@ export function HeroSection({ onSearch }: HeroSectionProps) {
                 key={c}
                 type="button"
                 onClick={() => chip(c)}
-                className="text-[12px] text-white border border-white/30 rounded-full px-3.5 py-2 sm:px-4 sm:py-1.5 sm:text-[14px] transition-colors hover:bg-[#d3fb52] hover:text-black"
+                className="text-[12px] text-white border border-white/30 rounded-full px-3.5 py-2 sm:px-4 sm:py-1.5 sm:text-[14px] transition-colors hover:bg-voltage-lime hover:text-carbon-ink"
               >
                 {c}
               </button>

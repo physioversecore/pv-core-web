@@ -1,30 +1,15 @@
-import type { ReactNode } from "react";
-import { useLang } from "@/context/i18n";
-
 interface ServiceCardProps {
-  icon: ReactNode;
   title: string;
+  meta: string;
   desc: string;
-  live?: boolean;
 }
 
-export function ServiceCard({ icon, title, desc, live }: ServiceCardProps) {
-  const { t } = useLang();
+export function ServiceCard({ title, meta, desc }: ServiceCardProps) {
   return (
-    <div className="card-glass p-6 relative group hover:-translate-y-1 hover:shadow-[0_18px_38px_-18px_rgba(0,0,0,.6)] transition duration-300">
-      {live ? (
-        <span className="chip !bg-voltage-lime !text-carbon-ink absolute top-4 right-4">{t("landing.live")}</span>
-      ) : (
-        <span className="chip !bg-white/10 !text-white/80 absolute top-4 right-4">{t("landing.soon")}</span>
-      )}
-      <div
-        className="w-11 h-11 rounded-xl grid place-items-center mb-3 text-secondary group-hover:scale-110 group-hover:rotate-6 transition duration-300"
-        style={{ background: "#D1E8DF" }}
-      >
-        {icon}
-      </div>
-      <div className="font-display text-lg mb-1">{title}</div>
-      <p className="text-white/60 text-sm">{desc}</p>
+    <div className="flex h-full flex-col rounded-xl border border-white/10 bg-white/[0.02] p-7 transition-all duration-150 hover:-translate-y-px hover:border-white/[0.16] hover:bg-white/[0.03]">
+      <h3 className="font-sans text-[15px] font-medium leading-snug text-ink-soft">{title}</h3>
+      <p className="mt-1 text-xs text-ink-muted">{meta}</p>
+      <p className="mt-auto pt-5 text-[11px] leading-relaxed text-ink-faint">{desc}</p>
     </div>
   );
 }

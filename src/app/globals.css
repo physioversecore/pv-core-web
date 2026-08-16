@@ -89,6 +89,17 @@
   --color-true-black: #000000;
   --color-ash: #666666;
 
+  /* Dark canvas — olive-charcoal atmosphere */
+  --color-abyss-soft: #1e3a2b;
+  --color-abyss-mid: #112720;
+  --color-abyss-deep: #0a1815;
+
+  /* Dark-section text hierarchy */
+  --color-ink-soft: #e7e7ea;
+  --color-ink-muted: #9a9aa3;
+  --color-ink-faint: #85858d;
+  --color-ink-dim: #b0b0b7;
+
   /* Typography — Font Families */
   --font-noigrotesk: "NoiGrotesk", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-sansplomb: "SansPlomb", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -389,6 +400,21 @@
 
 .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
+
+.services-atmosphere {
+  background:
+    radial-gradient(ellipse 70% 46% at 50% -10%, color-mix(in srgb, var(--color-voltage-lime) 18%, transparent) 0%, color-mix(in srgb, var(--color-voltage-lime) 7%, transparent) 32%, transparent 70%),
+    radial-gradient(ellipse 55% 32% at 50% -6%, color-mix(in srgb, var(--color-cyan-spark) 8%, transparent) 0%, transparent 62%),
+    var(--color-abyss-deep);
+}
+@media (max-width: 640px) {
+  .services-atmosphere {
+    background:
+      radial-gradient(ellipse 110% 30% at 50% -8%, color-mix(in srgb, var(--color-voltage-lime) 15%, transparent) 0%, color-mix(in srgb, var(--color-voltage-lime) 5%, transparent) 36%, transparent 72%),
+      radial-gradient(ellipse 80% 20% at 50% -5%, color-mix(in srgb, var(--color-cyan-spark) 6%, transparent) 0%, transparent 58%),
+      var(--color-abyss-deep);
+  }
+}
 
 .blob-drift { animation: blobDrift 14s ease-in-out infinite; }
 @keyframes blobDrift {

@@ -60,10 +60,10 @@ export default function Landing() {
   return (
     <div className="overflow-x-hidden">
       <HeroSection onSearch={handleHeroSearch} />
+      <ServicesSection />
       <PartnersMarquee />
       <ImpactStats />
       <HowItWorksSection />
-      <ServicesSection />
       {isError ? null : (
         <ErrorBoundary fallback={<SectionError onRetry={() => refetch()} />}>
           <Suspense fallback={<FeaturedTherapistsSkeleton />}>

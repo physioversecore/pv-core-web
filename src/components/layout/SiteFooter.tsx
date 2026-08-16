@@ -64,7 +64,7 @@ export function SiteFooter() {
       <div className="bg-carbon-ink text-white rounded-t-3xl overflow-hidden font-noigrotesk text-base leading-[1.4] tracking-normal">
         <div className="w-full px-5 lg:px-8 pt-20 pb-14 grid lg:grid-cols-[1.05fr_1fr] gap-12">
           <div>
-            <h2 className="font-display text-3xl lg:text-4xl leading-[1.05] max-w-md">
+            <h2 className="font-display text-2xl lg:text-3xl leading-[1.05] max-w-md">
               {t("footer.headline")}
             </h2>
             <div className="mt-8 flex flex-wrap gap-3">
