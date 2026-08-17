@@ -22,7 +22,7 @@ function PackageCard({ pkg, delay }: { pkg: Package; delay: number }) {
   return (
     <Reveal delay={delay}>
       <Card
-        className={`relative w-full rounded-2xl border h-full transition-all duration-200 hover:shadow-lg ${
+        className={`relative w-full rounded-2xl border h-full flex flex-col transition-all duration-200 hover:shadow-lg ${
           pkg.featured
             ? "border-voltage-lime/60 bg-white shadow-lg"
             : "border-border bg-white"
@@ -46,13 +46,13 @@ function PackageCard({ pkg, delay }: { pkg: Package; delay: number }) {
           <CardTitle className="mt-4 font-sans font-medium text-lg text-carbon-ink">
             {pkg.name}
           </CardTitle>
-          <CardDescription className="mt-2 text-sm leading-relaxed text-ash">
+          <CardDescription className="mt-2 text-[12px] leading-tight text-ash">
             {pkg.blurb}
           </CardDescription>
         </CardHeader>
 
         <CardContent>
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-6 mt-auto">
             <p className="flex items-baseline gap-1 text-xl">
               <span className="font-display text-3xl font-semibold text-carbon-ink">
                 Rs {pkg.price.toLocaleString()}
