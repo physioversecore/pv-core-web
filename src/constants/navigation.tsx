@@ -18,9 +18,9 @@ export interface NavItem {
 export const NAV_LINKS = [
   { to: "/how-it-works", label: "How it works" },
   { to: "/services", label: "Services" },
-  { to: "/packages", label: "Packages" },
-  { to: "/clinics", label: "Clinics" },
   { to: "/find-a-therapist", label: "Find a Therapist" },
+  { to: "/clinics", label: "Clinics" },
+  { to: "/packages", label: "Packages" },
 ] as const;
 
 export const RESOURCE_LINKS = [
