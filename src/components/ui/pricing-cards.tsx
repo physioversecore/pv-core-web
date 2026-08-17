@@ -102,7 +102,7 @@ export function PricingCards() {
             <div className="h-8 w-64 rounded bg-surface animate-pulse" />
             <div className="h-5 w-96 max-w-full rounded bg-surface animate-pulse" />
           </div>
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
+          <div className="mt-12 grid gap-6 md:grid-cols-3 [grid-auto-rows:1fr]">
             {[1, 2, 3].map((i) => (
               <div key={i} className="rounded-2xl border border-border bg-white p-6 animate-pulse">
                 <div className="h-10 w-10 rounded-xl bg-surface" />
@@ -126,22 +126,9 @@ export function PricingCards() {
   if (packages.length === 0) return null;
 
   return (
-    <section className="relative pt-12 pb-16 lg:pt-16 lg:pb-24">
+    <section className="space-y-1.5">
       <div className="max-w-6xl mx-auto px-5 lg:px-8">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <Badge variant="secondary" className="bg-voltage-lime/10 text-carbon-ink border-0 text-xs font-semibold px-3 py-1">
-            {t("packages.eyebrow")}
-          </Badge>
-          <h2 className="font-sans font-medium tracking-[-0.02em] text-carbon-ink"
-            style={{ fontSize: "clamp(28px, 3.4vw, 48px)", lineHeight: 1.1 }}>
-            {t("packages.title")}
-          </h2>
-          <p className="text-base text-ash max-w-xl leading-relaxed">
-            {t("packages.subtitle")}
-          </p>
-        </div>
-
-        <div className="mt-12 grid gap-6 md:grid-cols-3 items-start">
+        <div className="mt-12 grid gap-6 md:grid-cols-3 [grid-auto-rows:1fr]">
           {packages.map((pkg, i) => (
             <PackageCard key={pkg.id} pkg={pkg} delay={i * 80} />
           ))}
