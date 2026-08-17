@@ -31,7 +31,7 @@ export default function SignupPage() {
     redirected.current = true;
     // Therapists can't log in until the admin approves their application.
     if (role === "therapist") {
-      router.replace("/login");
+      router.replace("/access");
       return;
     }
     router.replace(ROLE_HOME[role] ?? "/");

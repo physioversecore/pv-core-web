@@ -71,7 +71,7 @@ export function SiteHeader({
   };
 
   const goDash = () => {
-    if (!user) return router.push("/login");
+    if (!user) return router.push("/access");
     router.push(user.role === "patient" ? "/patient" : user.role === "therapist" ? "/therapist" : "/admin");
   };
 
@@ -130,7 +130,7 @@ export function SiteHeader({
             ) : (
               <>
                 <Link
-                  href="/login"
+                  href="/access"
                   className={`h-9 inline-flex items-center px-4 rounded-lg text-sm font-medium transition-colors ${
                     darkText
                       ? "text-text border border-border hover:bg-surface"
@@ -184,7 +184,7 @@ export function SiteHeader({
           ) : (
             <div className="flex flex-col gap-2 pt-1">
               <Link
-                href="/login"
+                href="/access"
                 className="w-full text-center h-10 rounded-lg text-sm font-medium text-white border border-white/70 transition-colors hover:bg-white/10 inline-flex items-center justify-center"
               >
                 {t("header.logIn")}

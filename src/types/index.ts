@@ -170,7 +170,7 @@ export interface AppNotification {
   relatedEntityId?: string;
 }
 
-export type AuthMode = "login" | "signup";
+export type AuthMode = "access" | "signup";
 
 export type BookingStatus = "Confirmed" | "Pending" | "Completed" | "Cancelled";
 export type PaymentStatus = "Paid" | "Pending" | "Refunded";

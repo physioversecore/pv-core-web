@@ -37,7 +37,7 @@ export function AuthModalProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider value={{ openAuth, closeAuth, onLoginSuccess: loginSuccessCb, setOnLoginSuccess }}>
       {children}
-      <AuthModal open={mode !== null} mode={mode ?? "login"} onClose={closeAuth} onLoginSuccess={loginSuccessCb} defaultSignupRole={signupRole} />
+      <AuthModal open={mode !== null} mode={mode ?? "access"} onClose={closeAuth} onLoginSuccess={loginSuccessCb} defaultSignupRole={signupRole} />
     </Ctx.Provider>
   );
 }

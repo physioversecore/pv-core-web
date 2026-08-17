@@ -48,7 +48,7 @@ const secondaryBtnClass = (enabled: boolean) =>
 
 type Step = "email" | "welcome" | "otp";
 
-export default function LoginPage() {
+export default function AccessPage() {
   const { t } = useLang();
   const { user, loading, login } = useAuth();
   const router = useRouter();

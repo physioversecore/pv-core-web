@@ -160,7 +160,7 @@ export default function ForgotPasswordPage() {
             </div>
             <h2 className="font-display text-2xl mb-2">Password reset</h2>
             <p className="text-text-light text-sm mb-6">Your password has been updated successfully.</p>
-            <button onClick={() => router.push("/login")} className="btn-secondary w-full">
+            <button onClick={() => router.push("/access")} className="btn-secondary w-full">
               Back to login
             </button>
           </div>
@@ -183,7 +183,7 @@ export default function ForgotPasswordPage() {
             onClick={() => {
               if (step === "otp") setStep("email");
               else if (step === "password") setStep("otp");
-              else router.push("/login");
+              else router.push("/access");
             }}
             className="flex items-center gap-1 text-xs text-text-light hover:text-text mb-4"
           >
@@ -349,7 +349,7 @@ export default function ForgotPasswordPage() {
 
           <p className="text-sm text-text-light text-center mt-5">
             Remember your password?{" "}
-            <Link href="/login" className="text-secondary font-semibold hover:underline">Log in</Link>
+            <Link href="/access" className="text-secondary font-semibold hover:underline">Log in</Link>
           </p>
         </div>
       </div>

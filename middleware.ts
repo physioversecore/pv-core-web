@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 const SESSION_COOKIE = "sahayatri.session";
 
 const PROTECTED_PREFIXES = ["/patient", "/therapist", "/admin"];
-const PUBLIC_PREFIXES = ["/login", "/signup", "/forgot-password", "/reset-password"];
+const PUBLIC_PREFIXES = ["/access", "/signup", "/forgot-password", "/reset-password"];
 
 function isProtectedPath(pathname: string): boolean {
   if (PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))) return false;
@@ -29,13 +29,13 @@ export function middleware(request: NextRequest) {
 
   if (isProtectedPath(pathname)) {
     if (!token || isJwtExpired(token)) {
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("callbackUrl", pathname);
-      return NextResponse.redirect(loginUrl);
+      const accessUrl = new URL("/access", request.url);
+      accessUrl.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(accessUrl);
     }
   }
 
-  if (pathname === "/login" && token && !isJwtExpired(token)) {
+  if (pathname === "/access" && token && !isJwtExpired(token)) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
@@ -47,7 +47,7 @@ export const config = {
     "/patient/:path*",
     "/therapist/:path*",
     "/admin/:path*",
-    "/login",
+    "/access",
     "/signup",
     "/forgot-password",
     "/reset-password",

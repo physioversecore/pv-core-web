@@ -20,7 +20,7 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
   const { id } = use(params);
   const { t } = useLang();
   const { user } = useAuth();
-  const [auth, setAuth] = useState<null | "login" | "signup">(null);
+  const [auth, setAuth] = useState<null | "access" | "signup">(null);
   const [bookingOpen, setBookingOpen] = useState(false);
   const [initialDate, setInitialDate] = useState("");
   const [initialTime, setInitialTime] = useState("");
@@ -154,7 +154,7 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
         </ErrorBoundary>
       </div>
 
-      <AuthModal open={auth !== null} mode={auth ?? "login"} onClose={() => setAuth(null)} />
+      <AuthModal open={auth !== null} mode={auth ?? "access"} onClose={() => setAuth(null)} />
       {bookingOpen && therapist && (
         <BookingModal
           therapist={{

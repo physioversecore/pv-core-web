@@ -34,7 +34,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      router.replace(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
+      router.replace(`/access?callbackUrl=${encodeURIComponent(pathname)}`);
       return;
     }
     const expectedPrefix = ROLE_ROUTES[user.role];

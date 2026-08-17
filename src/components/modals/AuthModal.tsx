@@ -86,7 +86,7 @@ export function AuthModal({
     onClose();
     if (!onLoginSuccess) {
       if (role === "therapist") {
-        router.replace("/login");
+        router.replace("/access");
       } else {
         router.replace("/patient");
       }
@@ -102,7 +102,7 @@ export function AuthModal({
         </button>
         <div className="max-h-[92vh] overflow-y-auto p-7 sm:p-9">
 
-        {mode === "login" && (
+        {mode === "access" && (
           <>
             <p className="eyebrow mb-2">{t("auth.account")}</p>
             <h2 className="text-3xl font-display mb-1">{t("auth.welcomeBack")}</h2>

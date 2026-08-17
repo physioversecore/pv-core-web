@@ -55,7 +55,7 @@ function FindPageContent() {
   const [gender, setGender] = useState("");
   const [sort, setSort] = useState<SortKey>("trending");
   const [page, setPage] = useState(1);
-  const [auth, setAuth] = useState<null | "login" | "signup">(null);
+  const [auth, setAuth] = useState<null | "access" | "signup">(null);
   const [booking, setBooking] = useState<Therapist | null>(null);
   const { user } = useAuth();
   const searchTherapyRef = useRef<HTMLDivElement>(null);
@@ -413,7 +413,7 @@ function FindPageContent() {
         </div>
       </section>
 
-      <AuthModal open={auth !== null} mode={auth ?? "login"} onClose={() => setAuth(null)} />
+      <AuthModal open={auth !== null} mode={auth ?? "access"} onClose={() => setAuth(null)} />
       {booking && <BookingModal therapist={booking} onClose={() => setBooking(null)} />}
     </div>
   );

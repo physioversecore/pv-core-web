@@ -292,7 +292,7 @@ export function SignupFlow({
 
         <p className="text-sm text-text-light text-center mt-6">
           {t("auth.alreadyHaveAccount")}{" "}
-          <a href="/login" className="text-secondary font-semibold hover:underline">{t("auth.loginBtn")}</a>
+          <a href="/access" className="text-secondary font-semibold hover:underline">{t("auth.loginBtn")}</a>
         </p>
       </>
     );
