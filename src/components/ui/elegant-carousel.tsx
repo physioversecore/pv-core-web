@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { Star, ChevronLeft, ChevronRight, ShieldCheck } from "lucide-react";
-import { Avatar } from "@/components/common/Avatar";
 import { npr } from "@/utils/format";
 import { useLang } from "@/context/i18n";
 import type { Therapist } from "@/types";
@@ -13,6 +12,19 @@ interface ElegantCarouselProps {
   onBook: (t: Therapist) => void;
   loading?: boolean;
 }
+
+const UNSPLASH_FALLBACK = [
+  "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=600&h=750&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=600&h=750&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=600&h=750&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=600&h=750&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=600&h=750&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1594824476967-48c8b964ac31?w=600&h=750&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1638202993928-7267aad84c31?w=600&h=750&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1666214280557-f1b5022eb634?w=600&h=750&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=600&h=750&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=600&h=750&fit=crop&q=80",
+];
 
 const SLIDE_DURATION = 6000;
 const TRANSITION_DURATION = 800;
@@ -247,9 +259,14 @@ export function ElegantCarousel({ therapists, onBook, loading }: ElegantCarousel
                   priority
                 />
               ) : (
-                <div className="absolute inset-0 grid place-items-center bg-mid-abyss">
-                  <Avatar name={current.name} size={160} />
-                </div>
+                <Image
+                  src={UNSPLASH_FALLBACK[currentIndex % UNSPLASH_FALLBACK.length]}
+                  alt={current.name}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-cover"
+                  priority
+                />
               )}
 
               {/* Gradient overlay */}
