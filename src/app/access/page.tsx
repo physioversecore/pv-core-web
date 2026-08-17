@@ -241,7 +241,7 @@ export default function AccessPage() {
 
           <p className="mt-4 text-center text-xs text-text-light">
             {t("auth.physioPrompt")}{" "}
-            <Link href="/access" className=" text-blue-400 underline">
+            <Link href="/signup" className=" text-blue-400 underline">
               {t("common.applyToJoin")}
             </Link>
           </p>
