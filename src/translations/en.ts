@@ -390,7 +390,7 @@ const en = {
     otherService4Title: "Recovery Nutrition",
     otherService4Desc: "Supplements & meal plans.",
     featuredTherapistsEyebrow: "Featured therapists",
-    featuredTherapistsTitle: "Meet a few of our top-rated pros.",
+    featuredTherapistsTitle: "Meet Our Top Physiotherapists.",
     findTherapistEyebrow: "Find a therapist",
     findTherapistTitle: "Browse verified physiotherapists.",
     appEyebrow: "Sahayatri app",

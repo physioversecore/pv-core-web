@@ -41,7 +41,7 @@ export function ServicesSection() {
   return (
     <section
       id="services"
-      className="relative overflow-hidden"
+      className="relative overflow-hidden pt-16 pb-20 lg:pt-20 lg:pb-28"
     >
       <div
         aria-hidden

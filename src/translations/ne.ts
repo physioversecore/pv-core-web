@@ -391,7 +391,7 @@ const ne = {
     otherService4Title: "स्वास्थ्यलाभ पोषण",
     otherService4Desc: "पूरक आहार र खाना योजनाहरू।",
     featuredTherapistsEyebrow: "विशेष चिकित्सकहरू",
-    featuredTherapistsTitle: "हाम्रा शीर्ष-मूल्याङ्कित पेशेवरहरूसँग भेट्नुहोस्।",
+    featuredTherapistsTitle: "हाम्रा शीर्ष फिजियोथेरापिस्टहरूसँग भेट्नुहोस्।",
     findTherapistEyebrow: "चिकित्सक खोज्नुहोस्",
     findTherapistTitle: "प्रमाणित फिजियोथेरापिस्टहरू ब्राउज गर्नुहोस्।",
     appEyebrow: "Sahayatri एप",

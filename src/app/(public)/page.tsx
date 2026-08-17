@@ -37,21 +37,19 @@ export default function Landing() {
     <div className="overflow-x-hidden">
       <div className="home-background">
         <HeroSection />
-        {!isLoading && therapists.length > 0 && (
-          <ElegantCarousel therapists={therapists.slice(0, 6)} onBook={handleBook} />
-        )}
+        <ElegantCarousel therapists={therapists.slice(0, 9)} onBook={handleBook} loading={isLoading} />
         <ServicesSection />
       </div>
       <PartnersMarquee />
       {/*<ImpactStats />*/}
       <HowItWorksSection />
-      {isError ? null : (
+      {/*{isError ? null : (
         <ErrorBoundary fallback={<SectionError onRetry={() => refetch()} />}>
           <Suspense fallback={<FeaturedTherapistsSkeleton />}>
             <FeaturedTherapists therapists={therapists.slice(0, 3)} onBook={handleBook} loading={isLoading} />
           </Suspense>
         </ErrorBoundary>
-      )}
+      )}*/}
       <TherapistCTA />
       {booking && <BookingModal therapist={booking} onClose={closeBooking} />}
     </div>

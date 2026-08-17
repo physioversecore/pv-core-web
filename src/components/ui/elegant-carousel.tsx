@@ -10,12 +10,45 @@ import type { Therapist } from "@/types";
 interface ElegantCarouselProps {
   therapists: Therapist[];
   onBook: (t: Therapist) => void;
+  loading?: boolean;
 }
 
 const SLIDE_DURATION = 6000;
 const TRANSITION_DURATION = 800;
 
-export function ElegantCarousel({ therapists, onBook }: ElegantCarouselProps) {
+function CarouselSkeleton() {
+  return (
+    <div className="relative py-16 lg:py-20">
+      <div className="max-w-7xl mx-auto px-5 lg:px-8">
+        <div className="mb-10">
+          <div className="h-3 w-48 rounded bg-white/10" />
+          <div className="mt-3 h-8 w-72 rounded bg-white/10" />
+        </div>
+        <div className="grid lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] gap-10 items-center">
+          <div className="order-2 lg:order-1 space-y-6">
+            <div className="h-3 w-20 rounded bg-white/10" />
+            <div className="h-12 w-3/4 rounded bg-white/10 animate-pulse" />
+            <div className="h-4 w-1/2 rounded bg-white/10" />
+            <div className="flex gap-4">
+              <div className="h-8 w-32 rounded bg-white/10" />
+              <div className="h-8 w-28 rounded bg-voltage-lime/20" />
+            </div>
+          </div>
+          <div className="order-1 lg:order-2">
+            <div className="w-full max-w-md aspect-[3/4] rounded-3xl bg-white/5 border border-white/10 animate-pulse" />
+          </div>
+        </div>
+        <div className="mt-10 flex gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex-1 h-1 rounded-full bg-white/10" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function ElegantCarousel({ therapists, onBook, loading }: ElegantCarouselProps) {
   const { t } = useLang();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -86,6 +119,7 @@ export function ElegantCarousel({ therapists, onBook }: ElegantCarouselProps) {
     }
   };
 
+  if (loading) return <CarouselSkeleton />;
   if (count === 0) return null;
 
   const current = slides[currentIndex];
@@ -96,7 +130,7 @@ export function ElegantCarousel({ therapists, onBook }: ElegantCarouselProps) {
 
   return (
     <section
-      className="relative py-16 lg:py-24 overflow-hidden"
+      className="relative pt-16 pb-20 lg:pt-20 lg:pb-28 overflow-hidden"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={handleTouchStart}
@@ -115,9 +149,12 @@ export function ElegantCarousel({ therapists, onBook }: ElegantCarouselProps) {
       <div className="relative max-w-7xl mx-auto px-5 lg:px-8">
         {/* Section header */}
         <div className="mb-10">
-          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-voltage-lime mb-3">
-            {t("landing.featuredTherapistsEyebrow")}
-          </p>
+          <div className="inline-flex items-center gap-2.5 mb-3">
+            <span className="w-2 h-2 rounded-full bg-voltage-lime" />
+            <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-voltage-lime">
+              {t("landing.featuredTherapistsEyebrow")}
+            </span>
+          </div>
           <h2 className="font-display text-3xl md:text-4xl text-white tracking-tight">
             {t("landing.featuredTherapistsTitle")}
           </h2>
@@ -167,7 +204,7 @@ export function ElegantCarousel({ therapists, onBook }: ElegantCarouselProps) {
               <span className="w-px h-5 bg-white/15" />
               <button
                 onClick={() => onBook(current)}
-                className="inline-flex items-center gap-2 rounded-full bg-cyan-spark px-5 py-2 text-sm font-semibold text-mid-abyss transition-all hover:-translate-y-0.5 hover:brightness-110"
+                className="inline-flex items-center gap-2 rounded-full bg-cyan-spark px-6 py-2.5 text-sm font-semibold text-mid-abyss transition-all hover:-translate-y-0.5 hover:brightness-110"
               >
                 {t("common.book")}
               </button>
@@ -192,10 +229,10 @@ export function ElegantCarousel({ therapists, onBook }: ElegantCarouselProps) {
             </div>
           </div>
 
-          {/* Right: Image card */}
-          <div className="order-1 lg:order-2 relative flex justify-center">
+          {/* Right: Full-size image */}
+          <div className="order-1 lg:order-2 relative">
             <div
-              className={`relative w-full max-w-md aspect-[3/4] rounded-3xl overflow-hidden border border-white/10 transition-all duration-500 ease-out ${
+              className={`relative w-full aspect-[3/4] rounded-3xl overflow-hidden border border-white/10 transition-all duration-500 ease-out ${
                 isTransitioning ? "opacity-0 scale-[0.97]" : "opacity-100 scale-100"
               }`}
             >
@@ -206,13 +243,13 @@ export function ElegantCarousel({ therapists, onBook }: ElegantCarouselProps) {
                   className="absolute inset-0 w-full h-full object-cover"
                 />
               ) : (
-                <div className="absolute inset-0 grid place-items-center bg-white/5">
-                  <Avatar name={current.name} size={160} />
+                <div className="absolute inset-0">
+                  <Avatar name={current.name} />
                 </div>
               )}
 
               {/* Gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 
               {/* Bottom info card */}
               <div className="absolute bottom-0 left-0 right-0 p-6">
