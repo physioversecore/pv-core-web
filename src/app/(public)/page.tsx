@@ -36,7 +36,7 @@ export default function Landing() {
   return (
     <div className="overflow-x-hidden">
       <div className="home-background">
-        <HeroSection />
+        <HeroSection onBook={(t) => handleBook({ ...t, gender: t.gender as Therapist["gender"] })} />
         <ElegantCarousel therapists={therapists.slice(0, 9)} onBook={handleBook} loading={isLoading} />
         <ServicesSection />
       </div>

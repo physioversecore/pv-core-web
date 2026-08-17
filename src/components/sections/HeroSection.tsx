@@ -16,7 +16,7 @@ import { HeroLiveSkeleton } from "@/components/SuspenseFallback";
 
 const CHIPS = SPECIALTIES.slice(0, 4);
 
-export function HeroSection() {
+export function HeroSection({ onBook }: { onBook?: (t: TherapistData) => void }) {
   const { t, lang } = useLang();
   const router = useRouter();
   const [q, setQ] = useState("");
@@ -67,7 +67,7 @@ export function HeroSection() {
   return (
     <section
       id="top"
-      className="relative flex min-h-[85vh] lg:min-h-[80vh] flex-col pt-36 lg:pt-40 pb-12 text-white"
+      className="relative flex min-h-[85vh] lg:min-h-[80vh] flex-col pt-36 lg:pt-40 pb-6 text-white"
     >
       <div className="relative z-10 w-full max-w-7xl mx-auto px-5 lg:px-8">
         {/* Main hero: side-by-side on desktop, stacked on mobile */}
@@ -180,7 +180,7 @@ export function HeroSection() {
         <div className="mt-24">
           <ErrorBoundary>
             <Suspense fallback={<HeroLiveSkeleton />}>
-              <AvailableToday />
+              <AvailableToday onBook={onBook} />
             </Suspense>
           </ErrorBoundary>
         </div>
@@ -189,7 +189,7 @@ export function HeroSection() {
   );
 }
 
-function AvailableToday() {
+function AvailableToday({ onBook }: { onBook?: (t: TherapistData) => void }) {
   const { t } = useLang();
   const router = useRouter();
 
@@ -232,7 +232,6 @@ function AvailableToday() {
         {therapists.map((therapist) => (
           <button
             key={therapist.id}
-            onClick={() => router.push(`/find-a-therapist?q=${encodeURIComponent(therapist.name)}`)}
             className="bg-white/[0.04] border border-white/10 rounded-xl p-4 flex flex-col gap-3 text-left hover:shadow-md hover:border-voltage-lime/30 transition-all duration-200"
           >
             <div className="flex items-center gap-3">
@@ -259,14 +258,21 @@ function AvailableToday() {
               {therapist.specialty}
             </p>
 
-            <div className="mt-auto pt-1 flex items-center justify-between gap-2 border-t border-white/10">
+            <div className="mt-auto pt-2 flex items-center justify-between gap-2 border-t border-white/10">
               <span className="inline-flex items-center gap-1.5 text-xs font-medium text-voltage-lime">
                 <ShieldCheck size={14} />
                 {t("landing.heroNmcVerifiedCare")}
               </span>
-              <span className="px-3 py-1.5 rounded-full border border-white/15 text-sm font-semibold text-white transition-colors hover:border-voltage-lime/50 hover:text-voltage-lime">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onBook?.(therapist);
+                }}
+                className="px-3 py-1.5 rounded-full border border-white/15 text-sm font-semibold text-white transition-colors hover:border-voltage-lime/50 hover:text-voltage-lime"
+              >
                 {t("common.book")}
-              </span>
+              </button>
             </div>
           </button>
         ))}

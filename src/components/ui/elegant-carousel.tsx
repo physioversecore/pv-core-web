@@ -150,15 +150,6 @@ export function ElegantCarousel({ therapists, onBook, loading }: ElegantCarousel
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Background accent wash */}
-      <div
-        className="pointer-events-none absolute inset-0 transition-colors duration-1000"
-        style={{
-          background:
-            "radial-gradient(ellipse 60vw 50vh at 70% 50%, color-mix(in srgb, var(--color-voltage-lime) 8%, transparent) 0%, transparent 70%)",
-        }}
-      />
-
       <div className="relative max-w-7xl mx-auto px-5 lg:px-8">
         {/* Section header */}
         <div className="mb-10">
@@ -210,14 +201,14 @@ export function ElegantCarousel({ therapists, onBook, loading }: ElegantCarousel
               </span>
             </div>
 
-            {/* Price + book button (cyan) */}
+            {/* Price + book button */}
             <div className={contentCls("flex items-center gap-4 mt-6")}>
               <span className="text-2xl font-bold text-white">{npr(current.price)}</span>
               <span className="text-sm text-white/50">{t("therapists.perSession")}</span>
               <span className="w-px h-5 bg-white/15" />
               <button
                 onClick={() => onBook(current)}
-                className="inline-flex items-center gap-2 rounded-full bg-cyan-spark px-6 py-2.5 text-sm font-semibold text-mid-abyss transition-all hover:-translate-y-0.5 hover:brightness-110"
+                className="inline-flex items-center gap-2 rounded-full bg-voltage-lime px-7 py-3 text-base font-semibold text-carbon-ink transition-all hover:-translate-y-0.5 hover:brightness-110"
               >
                 {t("common.book")}
               </button>
