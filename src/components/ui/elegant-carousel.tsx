@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Star, ChevronLeft, ChevronRight, ShieldCheck } from "lucide-react";
 import { Avatar } from "@/components/common/Avatar";
-import { BookButton } from "@/components/common/BookButton";
 import { npr } from "@/utils/format";
 import { useLang } from "@/context/i18n";
 import type { Therapist } from "@/types";
@@ -136,44 +135,42 @@ export function ElegantCarousel({ therapists, onBook }: ElegantCarouselProps) {
               </span>
             </div>
 
-            {/* Therapist name */}
-            <h3
-              className={contentCls(
-                "font-display text-4xl md:text-5xl xl:text-6xl text-white leading-[1.05] tracking-tight",
-              )}
-            >
-              {current.name}
-            </h3>
-
-            {/* Specialty */}
-            <p
-              className={contentCls("font-mono text-sm uppercase tracking-[0.08em] text-voltage-lime mt-4")}
-            >
-              {current.specialty}
-            </p>
-
-            {/* City + rating */}
-            <div className={contentCls("flex items-center gap-4 mt-5")}>
-              <span className="text-white/60 text-sm">{current.city}</span>
-              <span className="flex items-center gap-1.5 text-sm">
+            {/* Name + rating inline */}
+            <div className={contentCls("flex items-baseline gap-4 flex-wrap")}>
+              <h3 className="font-display text-4xl md:text-5xl xl:text-6xl text-white leading-[1.05] tracking-tight">
+                {current.name}
+              </h3>
+              <span className="flex items-center gap-1.5 text-sm shrink-0">
                 <Star size={14} className="fill-voltage-lime text-voltage-lime" />
                 <span className="font-semibold text-white">{current.rating}</span>
                 <span className="text-white/50">({current.reviews})</span>
               </span>
             </div>
 
-            {/* Price */}
-            <div className={contentCls("mt-5")}>
-              <span className="text-2xl font-bold text-white">{npr(current.price)}</span>
-              <span className="text-sm text-white/50 ml-2">{t("therapists.perSession")}</span>
+            {/* Specialty · city · verified */}
+            <div className={contentCls("flex items-center gap-2 mt-4 flex-wrap")}>
+              <span className="font-mono text-sm uppercase tracking-[0.08em] text-voltage-lime">
+                {current.specialty}
+              </span>
+              <span className="text-white/30">·</span>
+              <span className="text-white/60 text-sm">{current.city}</span>
+              <span className="text-white/30">·</span>
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-voltage-lime">
+                <ShieldCheck size={14} /> {t("find.verified")}
+              </span>
             </div>
 
-            {/* Verified badge + book */}
-            <div className={contentCls("flex items-center gap-4 mt-8")}>
-              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-voltage-lime">
-                <ShieldCheck size={16} /> {t("find.verified")}
-              </span>
-              <BookButton onClick={() => onBook(current)} size="sm" />
+            {/* Price + book button (cyan) */}
+            <div className={contentCls("flex items-center gap-4 mt-6")}>
+              <span className="text-2xl font-bold text-white">{npr(current.price)}</span>
+              <span className="text-sm text-white/50">{t("therapists.perSession")}</span>
+              <span className="w-px h-5 bg-white/15" />
+              <button
+                onClick={() => onBook(current)}
+                className="inline-flex items-center gap-2 rounded-full bg-cyan-spark px-5 py-2 text-sm font-semibold text-mid-abyss transition-all hover:-translate-y-0.5 hover:brightness-110"
+              >
+                {t("common.book")}
+              </button>
             </div>
 
             {/* Nav arrows */}
