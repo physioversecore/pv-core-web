@@ -43,7 +43,7 @@ function PackageCard({ pkg, delay }: { pkg: Package; delay: number }) {
               {pkg.tag}
             </span>
           </div>
-          <CardTitle className="mt-4 font-sans font-medium text-lg text-carbon-ink">
+          <CardTitle className="mt-4 font-sans font-medium text-lg md:text-subheading text-carbon-ink">
             {pkg.name}
           </CardTitle>
           <CardDescription className="mt-2 text-[12px] leading-tight text-ash">
@@ -64,7 +64,7 @@ function PackageCard({ pkg, delay }: { pkg: Package; delay: number }) {
               {pkg.points.map((pt) => (
                 <div key={pt} className="flex gap-2.5">
                   <Check className="mt-0.5 size-4 shrink-0 text-voltage-lime" />
-                  <p className="text-sm text-text-light leading-relaxed">{pt}</p>
+                  <p className="text-caption text-text-light leading-tight">{pt}</p>
                 </div>
               ))}
             </div>
@@ -76,7 +76,7 @@ function PackageCard({ pkg, delay }: { pkg: Package; delay: number }) {
             ) : (
               <Button
                 variant="outline"
-                className="w-full gap-2 rounded-xl border-border h-11 font-medium"
+                className="w-full gap-2 rounded-xl border-border hover:bg-voltage-lime/90 hover:text-text h-11 font-medium"
               >
                 {t("packages.choosePackage")} <MoveRight className="size-4" />
               </Button>
@@ -95,13 +95,8 @@ export function PricingCards() {
 
   if (isLoading) {
     return (
-      <section className="relative pt-12 pb-16 lg:pt-16 lg:pb-24">
+      <section className="relative pb-16 lg:pb-24">
         <div className="max-w-6xl mx-auto px-5 lg:px-8">
-          <div className="flex flex-col items-center gap-4 text-center">
-            <div className="h-6 w-20 rounded-full bg-surface animate-pulse" />
-            <div className="h-8 w-64 rounded bg-surface animate-pulse" />
-            <div className="h-5 w-96 max-w-full rounded bg-surface animate-pulse" />
-          </div>
           <div className="mt-12 grid gap-6 md:grid-cols-3 [grid-auto-rows:1fr]">
             {[1, 2, 3].map((i) => (
               <div key={i} className="rounded-2xl border border-border bg-white p-6 animate-pulse">
@@ -126,7 +121,7 @@ export function PricingCards() {
   if (packages.length === 0) return null;
 
   return (
-    <section className="space-y-1.5">
+    <section className="relative pb-16 lg:pb-24">
       <div className="max-w-6xl mx-auto px-5 lg:px-8">
         <div className="mt-12 grid gap-6 md:grid-cols-3 [grid-auto-rows:1fr]">
           {packages.map((pkg, i) => (
