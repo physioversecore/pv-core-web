@@ -55,7 +55,7 @@ function CategoryRow({
 }) {
   return (
     <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] lg:gap-20">
-      <Reveal className={reversed ? "lg:order-2" : "lg:order-1"}>{visual}</Reveal>
+      <Reveal className={`w-full min-w-0 ${reversed ? "lg:order-2" : "lg:order-1"}`}>{visual}</Reveal>
       <Reveal delay={120} className={reversed ? "lg:order-1" : "lg:order-2"}>
         <div className="max-w-[400px]">
           <div className="flex items-center gap-3">
@@ -118,7 +118,7 @@ export default function Services() {
       title={t("services.title")}
       subtitle={t("services.subtitle")}
     >
-      <section className="py-16 lg:py-24">
+      <section className="py-16 lg:py-24 overflow-x-hidden">
         <div className="max-w-7xl mx-auto px-5 lg:px-8 space-y-24 lg:space-y-40">
           {isLoading ? (
             <>

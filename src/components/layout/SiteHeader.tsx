@@ -10,9 +10,6 @@ import { LangSwitcher } from "@/components/common/LangSwitcher";
 import { useLang } from "@/context/i18n";
 import { Menu, X } from "lucide-react";
 
-const VOLT = "#d3fb52";
-const GLASS_DEEP = "rgba(5,35,38,0.92)";
-
 export function SiteHeader({
   variant = "solid",
 }: {
@@ -41,10 +38,32 @@ export function SiteHeader({
     setMobileOpen(false);
   }, [pathname]);
 
+  useEffect(() => {
+    if (!mobileOpen) return;
+
+    const scrollY = window.scrollY;
+    const html = document.documentElement;
+    const body = document.body;
+
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    body.style.touchAction = "none";
+    (body.style as any).webkitOverflowScrolling = "none";
+
+    return () => {
+      html.style.overflow = "";
+      body.style.overflow = "";
+      body.style.touchAction = "";
+      (body.style as any).webkitOverflowScrolling = "";
+      window.scrollTo(0, scrollY);
+    };
+  }, [mobileOpen]);
+
   const navLabel = (to: string): string => {
     const map: Record<string, string> = {
       "/how-it-works": t("nav.howItWorks"),
       "/services": t("nav.services"),
+      "/clinics": t("nav.clinics"),
       "/find-a-therapist": t("nav.findTherapist"),
     };
     return map[to] ?? "";
@@ -57,7 +76,7 @@ export function SiteHeader({
 
   const darkText = !scrolled && variant === "hero-light";
   const linkCls = `text-[14px] font-sans font-medium whitespace-nowrap transition-colors ${
-    darkText ? "text-text hover:text-primary" : "text-white hover:text-[#d3fb52]"
+    darkText ? "text-text hover:text-primary" : "text-white hover:text-voltage-lime"
   }`;
 
   return (
@@ -67,15 +86,15 @@ export function SiteHeader({
       }`}
     >
       <div
-        className={`w-full flex items-center justify-between transition-all duration-300 ease-in-out ${
+        className={`relative z-30 w-full flex items-center justify-between transition-all duration-300 ease-in-out ${
           scrolled
-            ? "h-14 rounded-2xl bg-[rgba(5,35,38,0.8)] backdrop-blur-md border border-white/10 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.4)] px-4 sm:px-6"
+            ? "h-14 rounded-2xl bg-mid-abyss/80 backdrop-blur-md border border-white/10 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.4)] px-4 sm:px-6"
             : "h-16 rounded-2xl bg-transparent border border-transparent px-5 lg:px-8"
         }`}
       >
         <Link href="/" className="flex items-center gap-2 shrink-0" aria-label={t("header.brand")}>
-          <span className="w-6 h-6 rounded-full inline-block" style={{ background: VOLT }} />
-          <span className="font-display text-lg font-semibold whitespace-nowrap" style={{ color: VOLT }}>
+          <span className="w-6 h-6 rounded-full bg-voltage-lime inline-block" />
+          <span className="font-display text-lg font-semibold text-voltage-lime whitespace-nowrap">
             {t("header.brand")}
           </span>
         </Link>
@@ -93,7 +112,7 @@ export function SiteHeader({
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             className={`md:hidden p-2 rounded-lg transition-colors ${
-              darkText ? "text-text hover:text-primary" : "text-white hover:text-[#d3fb52]"
+              darkText ? "text-text hover:text-primary" : "text-white hover:text-voltage-lime"
             }`}
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
           >
@@ -103,8 +122,7 @@ export function SiteHeader({
             {user ? (
               <button
                 onClick={goDash}
-                className="h-9 inline-flex items-center px-4 rounded-lg text-sm font-semibold transition hover:opacity-90"
-                style={{ background: VOLT, color: "#000" }}
+                className="h-9 inline-flex items-center px-4 rounded-lg bg-voltage-lime text-carbon-ink text-sm font-semibold transition hover:opacity-90"
               >
                 {t("header.openDashboard")}
               </button>
@@ -122,8 +140,7 @@ export function SiteHeader({
                 </Link>
                 <Link
                   href="/signup"
-                  className="h-9 inline-flex items-center px-4 rounded-lg text-sm font-semibold transition hover:opacity-90"
-                  style={{ background: VOLT, color: "#000" }}
+                  className="h-9 inline-flex items-center px-4 rounded-lg bg-voltage-lime text-carbon-ink text-sm font-semibold transition hover:opacity-90"
                 >
                   {t("header.signUp")}
                 </Link>
@@ -135,14 +152,22 @@ export function SiteHeader({
 
       {mobileOpen && (
         <div
-          className="md:hidden mx-3 mt-2 rounded-2xl border border-white/10 p-4 space-y-3"
-          style={{ background: GLASS_DEEP }}
+          className="md:hidden fixed inset-0 z-20 bg-abyss-deep/90"
+          onClick={() => setMobileOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {mobileOpen && (
+        <div
+          className="md:hidden mx-3 mt-2 max-h-[calc(100dvh-80px)] overflow-y-auto overscroll-contain rounded-2xl bg-mid-abyss/92 border border-white/10 p-4 space-y-3 relative z-40"
+          onClick={() => setMobileOpen(false)}
         >
           {NAV_LINKS.map((l) => (
             <Link
               key={l.to}
               href={l.to}
-              className="block py-2 text-sm font-medium text-white transition-colors hover:text-[#d3fb52]"
+              className="block py-2 text-sm font-medium text-white transition-colors hover:text-voltage-lime"
             >
               {navLabel(l.to)}
             </Link>
@@ -151,8 +176,7 @@ export function SiteHeader({
           {user ? (
             <button
               onClick={goDash}
-              className="w-full h-10 rounded-lg text-sm font-semibold transition hover:opacity-90"
-              style={{ background: VOLT, color: "#000" }}
+              className="w-full h-10 rounded-lg bg-voltage-lime text-carbon-ink text-sm font-semibold transition hover:opacity-90"
             >
               {t("header.openDashboard")}
             </button>
@@ -166,14 +190,12 @@ export function SiteHeader({
               </Link>
               <Link
                 href="/signup"
-                className="w-full text-center h-10 rounded-lg text-sm font-semibold transition hover:opacity-90 inline-flex items-center justify-center"
-                style={{ background: VOLT, color: "#000" }}
+                className="w-full text-center h-10 rounded-lg bg-voltage-lime text-carbon-ink text-sm font-semibold transition hover:opacity-90 inline-flex items-center justify-center"
               >
                 {t("header.signUp")}
               </Link>
               <button
                 onClick={() => {
-                  setMobileOpen(false);
                   openAuth("signup", "patient");
                 }}
                 className="w-full text-center h-10 rounded-lg text-sm font-semibold text-white border border-white/20 transition-colors hover:bg-white/10"

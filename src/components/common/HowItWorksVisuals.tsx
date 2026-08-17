@@ -146,7 +146,7 @@ export function ServiceStackVisual({
   accent?: "a" | "b";
 }) {
   return (
-    <div className={`feature-visual feature-visual-${accent}`}>
+    <div className={`w-full feature-visual feature-visual-${accent}`}>
       <div className="feature-visual-grid" aria-hidden />
       <div className="relative z-10 flex h-full w-full items-center justify-center p-4 sm:p-8">
         <div className={VISUAL_CARD}>

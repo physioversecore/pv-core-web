@@ -13,6 +13,17 @@ export interface Therapist {
   mediaUrls?: string;
 }
 
+export interface Clinic {
+  id: string;
+  name: string;
+  area: string;
+  city: string;
+  address: string;
+  services: string[];
+  phone: string;
+  hours: string;
+}
+
 export interface PatientProfile {
   id: string;
   userId: string;

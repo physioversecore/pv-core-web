@@ -82,6 +82,7 @@ const ne = {
   nav: {
     howItWorks: "यसले कसरी काम गर्छ",
     services: "सेवाहरू",
+    clinics: "क्लिनिकहरू",
     therapists: "चिकित्सकहरू",
     findTherapist: "चिकित्सक खोज्नुहोस्",
     blog: "ब्लग",
@@ -337,6 +338,11 @@ const ne = {
     heroStatTherapists: "प्रमाणित चिकित्सकहरू",
     heroStatRating: "औसत मूल्याङ्कन",
     heroStatCities: "नेपालका शहरहरू",
+    heroViewAllTherapists: "सबै चिकित्सकहरू हेर्नुहोस्",
+    heroCertifiedProfessionals: "प्रमाणित व्यावसायिकहरू",
+    heroNmcVerifiedCare: "NMC प्रमाणित हेरचाह",
+    heroAvgPatientRating: "औसत बिरामी मूल्याङ्कन",
+    heroPerSession: "प्रति सत्र",
     howItWorksEyebrow: "यसले कसरी काम गर्छ",
     howItWorksTitle: "हेरचाह तीन सरल चरणमा।",
     step1Number: "०१",
@@ -506,6 +512,13 @@ const ne = {
     errorRequired: "कृपया आफ्नो नाम, इमेल, र सन्देश भर्नुहोस्।",
     successSent: "सन्देश पठाइयो — हामी १ कार्य दिनभित्र जवाफ दिनेछौं।",
     sendMessage: "सन्देश पठाउनुहोस्",
+  },
+
+  clinics: {
+    eyebrow: "साझेदार क्लिनिकहरू",
+    title: "तपाईं नजिकको क्लिनिक खोज्नुहोस्",
+    subtitle: "व्यक्तिगत फिजियोथेरापीको लागि हाम्रा साझेदार क्लिनिकहरूमा भ्रमण गर्नुहोस्। प्रत्येक क्लिनिक प्रमाणित छ र इजाजतपत्र प्राप्त व्यावसायिकहरूले सेवा गर्छन्।",
+    noResults: "हाल कुनै क्लिनिक उपलब्ध छैन।",
   },
 
   howItWorks: {

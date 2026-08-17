@@ -48,3 +48,67 @@ export const otherServices: ServiceItem[] = [
   { iconName: "Pill", title: "Medicines", desc: "Recovery medications delivered." },
   { iconName: "Apple", title: "Recovery Nutrition", desc: "Supplements & meal plans." },
 ];
+
+export interface ClinicData {
+  id: string;
+  name: string;
+  area: string;
+  city: string;
+  address: string;
+  services: string[];
+  phone: string;
+  hours: string;
+}
+
+export const clinics: ClinicData[] = [
+  {
+    id: "chhetrapati-clinic",
+    name: "Chhetrapati Clinic",
+    area: "Chhetrapati",
+    city: "Kathmandu",
+    address: "Chhetrapati, Kathmandu (near Indra Chowk)",
+    services: ["Orthopedic physio", "Post-surgery rehab", "Manual therapy"],
+    phone: "+977 01-4261234",
+    hours: "Sun–Fri: 8:00 AM – 6:00 PM",
+  },
+  {
+    id: "hamro-physio-clinic",
+    name: "Hamro Physio Clinic",
+    area: "Maharajgunj",
+    city: "Kathmandu",
+    address: "Maharajgunj, Kathmandu (near TUTH)",
+    services: ["Neuro rehab", "Pediatric physiotherapy", "Geriatric care"],
+    phone: "+977 01-4720567",
+    hours: "Sun–Fri: 9:00 AM – 7:00 PM",
+  },
+  {
+    id: "move-mobility-clinic",
+    name: "Move Mobility Healthy Life",
+    area: "Kaladhara",
+    city: "Kathmandu",
+    address: "Kaladhara, Kathmandu",
+    services: ["Sports injury rehab", "Strength & conditioning", "Chronic pain management"],
+    phone: "+977 01-4419988",
+    hours: "Sun–Fri: 7:00 AM – 8:00 PM",
+  },
+  {
+    id: "patan-physiotherapy-centre",
+    name: "Patan Physiotherapy Centre",
+    area: "Lagankhel",
+    city: "Lalitpur",
+    address: "Lagankhel, Lalitpur (near Patan Hospital)",
+    services: ["Post-op rehab", "Cardiac physiotherapy", "Respiratory care"],
+    phone: "+977 01-5522310",
+    hours: "Sun–Fri: 8:00 AM – 5:00 PM",
+  },
+  {
+    id: "pokhara-rehabilitation-hub",
+    name: "Pokhara Rehabilitation Hub",
+    area: "Mahendrapul",
+    city: "Pokhara",
+    address: "Mahendrapul, Pokhara",
+    services: ["Sports injury rehab", "Neuro rehab", "Pediatric physiotherapy"],
+    phone: "+977 061-521456",
+    hours: "Sun–Fri: 9:00 AM – 6:00 PM",
+  },
+];

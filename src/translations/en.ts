@@ -82,6 +82,7 @@ const en = {
   nav: {
     howItWorks: "How it works",
     services: "Services",
+    clinics: "Clinics",
     therapists: "Therapists",
     findTherapist: "Find a Therapist",
     blog: "Blog",
@@ -336,6 +337,11 @@ const en = {
     heroStatTherapists: "Verified therapists",
     heroStatRating: "Average rating",
     heroStatCities: "Cities in Nepal",
+    heroViewAllTherapists: "View all therapists",
+    heroCertifiedProfessionals: "Certified professionals",
+    heroNmcVerifiedCare: "NMC verified care",
+    heroAvgPatientRating: "Average patient rating",
+    heroPerSession: "per session",
     howItWorksEyebrow: "How it works",
     howItWorksTitle: "Care in three simple steps.",
     step1Number: "01",
@@ -505,6 +511,13 @@ const en = {
     errorRequired: "Please fill in your name, email, and message.",
     successSent: "Message sent — we'll reply within 1 business day.",
     sendMessage: "Send message",
+  },
+
+  clinics: {
+    eyebrow: "Partner clinics",
+    title: "Find a Clinic Near You",
+    subtitle: "Visit our partner clinics for in-person physiotherapy. Each clinic is verified and staffed with licensed professionals.",
+    noResults: "No clinics available at the moment.",
   },
 
   howItWorks: {

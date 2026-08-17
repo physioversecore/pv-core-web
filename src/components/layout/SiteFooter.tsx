@@ -14,6 +14,7 @@ export function SiteFooter() {
     const map: Record<string, string> = {
       "/how-it-works": t("nav.howItWorks"),
       "/services": t("nav.services"),
+      "/clinics": t("nav.clinics"),
       "/find-a-therapist": t("nav.findTherapist"),
       "/blog": t("nav.blog"),
       "/faq": t("nav.faq"),
