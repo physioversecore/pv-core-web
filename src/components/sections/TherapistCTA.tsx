@@ -4,8 +4,8 @@ import { useLang } from "@/context/i18n";
 import { ArrowRight, Calendar, Check, Star, Wallet } from "lucide-react";
 import { Reveal } from "@/components/Reveal";
 import { Avatar } from "@/components/Avatar";
-import { useAuthModal } from "@/lib/auth-modal";
 import { VisualFrame, VISUAL_CARD } from "@/components/common/HowItWorksVisuals";
+import { useRouter } from "next/navigation";
 
 function EarningsVisual() {
   const bars = [42, 58, 46, 74, 62, 92, 78];
@@ -55,7 +55,7 @@ function EarningsVisual() {
 
 export function TherapistCTA() {
   const { t } = useLang();
-  const { openAuth } = useAuthModal();
+  const route = useRouter();
 
   return (
     <section className="py-24 lg:py-32">
@@ -75,7 +75,7 @@ export function TherapistCTA() {
               </h2>
               <p className="mt-4 max-w-[400px] text-[15px] leading-[1.6] text-ink-muted">{t("landing.therapistCtaDesc")}</p>
               <button
-                onClick={() => openAuth("access")}
+                onClick={()=>route.push("/signup")}
                 className="mt-7 inline-flex items-center gap-2 rounded-full bg-voltage-lime px-5 py-2.5 text-sm font-semibold text-carbon-ink transition-all duration-150 hover:-translate-y-0.5 hover:brightness-110"
               >
                 {t("common.applyToJoin")}

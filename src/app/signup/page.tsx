@@ -35,11 +35,17 @@ export default function SignupPage() {
 
   const redirected = useRef(false);
 
+  const rolePath: Record<string, string> = {
+    admin: "/admin",
+    patient: "/patient",
+    therapist: "/therapist",
+  }
+
   useEffect(() => {
     if (redirected.current) return;
     if (!loading && user) {
       redirected.current = true;
-      router.replace(user.role === "patient" ? "/patient" : user.role === "therapist" ? "/therapist" : "/admin");
+      router.replace(rolePath[user.role] ?? "/");
     }
   }, [loading, user, router]);
 
@@ -68,10 +74,10 @@ export default function SignupPage() {
         name: `${firstName.trim()} ${lastName.trim()}`,
         email: email.trim(),
         password,
-        role: "PATIENT",
+        role: "THERAPIST",
       });
-      toast.success("Account created! Welcome to Sahayatri Physio.");
-      router.replace("/patient");
+      toast.success("Verification link send to your email. ");
+      router.replace("/access");
     } catch (err) {
       const status = (err as { status?: number } | null)?.status;
       if (status === 409) {
@@ -87,11 +93,11 @@ export default function SignupPage() {
   return (
     <AuthShell maxWidth={504}>
       <h1 className="mt-7 text-[28px] font-semibold leading-[1.15] tracking-[-0.01em] text-text sm:text-[30px]">
-        Sign up for free
+        Join as a Physiotherapist
       </h1>
 
       <p className="mt-3 text-[14px] leading-[1.55] text-text-light max-w-[420px]">
-        Create an account to book home-visit physiotherapy, track your recovery, and connect with verified professionals.
+        Apply to join Sahayatri Physio as a verified therapist. Grow your practice with home-visit sessions, flexible scheduling, and direct patient connections.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-5">

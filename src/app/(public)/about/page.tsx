@@ -219,10 +219,10 @@ export default function About() {
                     <ArrowRight size={15} />
                   </Link>
                   <Link
-                    href="/find-a-therapist"
+                    href="/signup"
                     className="inline-flex items-center gap-2 rounded-full border border-border bg-white px-5 py-2.5 text-sm font-semibold text-text transition-all duration-150 hover:-translate-y-0.5"
                   >
-                    {t("about.ctaTherapists")}
+                    Apply as {t("common.applyToJoin")}
                   </Link>
                 </div>
               </div>
