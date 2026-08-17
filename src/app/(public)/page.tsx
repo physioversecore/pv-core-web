@@ -15,6 +15,7 @@ import {
   FeaturedTherapists,
   TherapistCTA,
 } from "@/components/sections";
+import { ElegantCarousel } from "@/components/ui/elegant-carousel";
 import { useBooking } from "@/hooks/useBooking";
 import type { Therapist } from "@/types";
 import { getTherapists } from "@/services/api/therapists";
@@ -36,6 +37,9 @@ export default function Landing() {
     <div className="overflow-x-hidden">
       <div className="home-background">
         <HeroSection />
+        {!isLoading && therapists.length > 0 && (
+          <ElegantCarousel therapists={therapists.slice(0, 6)} onBook={handleBook} />
+        )}
         <ServicesSection />
       </div>
       <PartnersMarquee />
