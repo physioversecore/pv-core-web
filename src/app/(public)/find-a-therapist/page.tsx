@@ -55,7 +55,7 @@ function FindPageContent() {
   const [gender, setGender] = useState("");
   const [sort, setSort] = useState<SortKey>("trending");
   const [page, setPage] = useState(1);
-  const [auth, setAuth] = useState<null | "access" | "signup">(null);
+  const [auth, setAuth] = useState<null | "access">(null);
   const [booking, setBooking] = useState<Therapist | null>(null);
   const { user } = useAuth();
   const searchTherapyRef = useRef<HTMLDivElement>(null);
@@ -117,7 +117,7 @@ function FindPageContent() {
   };
 
   const handleBook = (th: Therapist) => {
-    if (!user) return setAuth("signup");
+    if (!user) return setAuth("access");
     setBooking(th);
   };
 

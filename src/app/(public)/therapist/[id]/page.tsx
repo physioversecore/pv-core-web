@@ -20,7 +20,7 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
   const { id } = use(params);
   const { t } = useLang();
   const { user } = useAuth();
-  const [auth, setAuth] = useState<null | "access" | "signup">(null);
+  const [auth, setAuth] = useState<null | "access">(null);
   const [bookingOpen, setBookingOpen] = useState(false);
   const [initialDate, setInitialDate] = useState("");
   const [initialTime, setInitialTime] = useState("");
@@ -32,7 +32,7 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
   });
 
   const handleConfirm = (date: string, time: string) => {
-    if (!user) return setAuth("signup");
+    if (!user) return setAuth("access");
     setInitialDate(date);
     setInitialTime(time);
     setBookingOpen(true);

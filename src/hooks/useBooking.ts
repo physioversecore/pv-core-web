@@ -19,7 +19,7 @@ export function useBooking() {
           setBooking(t);
           pendingRef.current = null;
         });
-        return openAuth("signup");
+        return openAuth("access");
       }
       setBooking(t);
     },

@@ -11,7 +11,7 @@ export default function HowItWorks() {
   const { t } = useLang();
 
   const STEPS = [
-    { n: t("howItWorks.step1Number"), t: t("howItWorks.step1Title"), d: t("howItWorks.step1Desc"), cta: t("howItWorks.step1Cta"), href: "/signup" },
+    { n: t("howItWorks.step1Number"), t: t("howItWorks.step1Title"), d: t("howItWorks.step1Desc"), cta: t("howItWorks.step1Cta"), href: "/access" },
     { n: t("howItWorks.step2Number"), t: t("howItWorks.step2Title"), d: t("howItWorks.step2Desc"), cta: t("howItWorks.step2Cta"), href: "/find-a-therapist" },
     { n: t("howItWorks.step3Number"), t: t("howItWorks.step3Title"), d: t("howItWorks.step3Desc"), cta: t("howItWorks.step3Cta"), href: "/services" },
   ];

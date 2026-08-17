@@ -26,7 +26,7 @@ export function HowItWorksSteps({ steps: stepsProp, variant = "light" }: HowItWo
   const { t } = useLang();
   const dark = variant === "dark";
   const DEFAULT_STEPS: Step[] = [
-    { n: t("landing.step1Number"), t: t("landing.step1Title"), d: t("landing.step1DescDefault"), cta: t("landing.step1Cta"), href: "/signup" },
+    { n: t("landing.step1Number"), t: t("landing.step1Title"), d: t("landing.step1DescDefault"), cta: t("landing.step1Cta"), href: "/access" },
     { n: t("landing.step2Number"), t: t("landing.step2Title"), d: t("landing.step2DescDefault"), cta: t("landing.step2Cta"), href: "/find-a-therapist" },
     { n: t("landing.step3Number"), t: t("landing.step3Title"), d: t("landing.step3DescDefault"), cta: t("landing.step3Cta"), href: "/services" },
   ];

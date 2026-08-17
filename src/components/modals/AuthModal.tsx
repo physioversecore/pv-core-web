@@ -4,29 +4,23 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { X, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/context/auth";
-import type { AuthMode, Role } from "@/types";
+import type { AuthMode } from "@/types";
 import { useLang } from "@/context/i18n";
 import { toast } from "sonner";
-import { SignupFlow } from "@/components/auth/SignupFlow";
 import { InlineError } from "@/components/common/InlineError";
-
-type SignupRole = "patient" | "therapist" | null;
 
 export function AuthModal({
   open,
   mode: initialMode,
   onClose,
   onLoginSuccess,
-  defaultSignupRole,
 }: {
   open: boolean;
   mode: AuthMode;
   onClose: () => void;
   onLoginSuccess?: (() => void) | null;
-  defaultSignupRole?: SignupRole;
 }) {
   const [mode, setMode] = useState<AuthMode>(initialMode);
-  const [signupRole, setSignupRole] = useState<SignupRole>(defaultSignupRole ?? null);
   const [showPw, setShowPw] = useState(false);
   const [form, setForm] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
@@ -38,14 +32,13 @@ export function AuthModal({
   useEffect(() => {
     if (open) {
       setMode(initialMode);
-      setSignupRole(defaultSignupRole ?? null);
       setError(null);
       document.body.style.overflow = "hidden";
     }
     return () => {
       document.body.style.overflow = "";
     };
-  }, [open, initialMode, defaultSignupRole]);
+  }, [open, initialMode]);
 
   if (!open) return null;
 
@@ -75,20 +68,6 @@ export function AuthModal({
         setError(/not approved/i.test(msg) ? t("auth.loginRejected") : t("auth.loginUnderReview"));
       } else {
         setError(e instanceof Error ? e.message : t("auth.errorLoginFailed"));
-      }
-    }
-  };
-
-  const handleSignupSuccess = (role: Role) => {
-    if (onLoginSuccess) {
-      onLoginSuccess();
-    }
-    onClose();
-    if (!onLoginSuccess) {
-      if (role === "therapist") {
-        router.replace("/access");
-      } else {
-        router.replace("/patient");
       }
     }
   };
@@ -143,16 +122,9 @@ export function AuthModal({
 
             <p className="text-sm text-text-light text-center mt-5">
               {t("auth.dontHaveAccount")}{" "}
-              <button onClick={() => setMode("signup")} className="text-secondary font-semibold hover:underline">{t("common.signUp")}</button>
+              <a href="/access" className="text-secondary font-semibold hover:underline">{t("common.signUp")}</a>
             </p>
           </>
-        )}
-
-        {mode === "signup" && (
-          <SignupFlow
-            defaultSignupRole={signupRole}
-            onSuccess={handleSignupSuccess}
-          />
         )}
         </div>
       </div>

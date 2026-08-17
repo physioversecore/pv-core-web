@@ -188,6 +188,7 @@ export default function AccessPage() {
   };
 
   return (
+    <>
     <AuthShell centered={step !== "email"}>
       {step === "email" && (
         <>
@@ -240,7 +241,7 @@ export default function AccessPage() {
 
           <p className="mt-4 text-center text-xs text-text-light">
             {t("auth.physioPrompt")}{" "}
-            <Link href="/signup?role=therapist" className=" text-blue-400 underline">
+            <Link href="/access" className=" text-blue-400 underline">
               {t("common.applyToJoin")}
             </Link>
           </p>
@@ -387,5 +388,13 @@ export default function AccessPage() {
         </div>
       )}
     </AuthShell>
+
+    <div className="fixed bottom-0 inset-x-0 pb-6 pt-4 text-center text-[11px] leading-relaxed text-text-light/60 pointer-events-none px-5">
+      By continuing, you agree to our{" "}
+      <Link href="/terms" className="underline pointer-events-auto hover:text-text-light">Terms of Service</Link>{" "}
+      and{" "}
+      <Link href="/privacy" className="underline pointer-events-auto hover:text-text-light">Privacy Policy</Link>.
+    </div>
+    </>
   );
 }

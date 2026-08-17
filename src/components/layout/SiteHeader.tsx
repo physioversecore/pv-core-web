@@ -140,7 +140,7 @@ export function SiteHeader({
                   {t("header.logIn")}
                 </Link>
                 <Link
-                  href="/signup"
+                  href="/access"
                   className="h-9 inline-flex items-center px-4 rounded-lg bg-voltage-lime text-carbon-ink text-sm font-semibold transition hover:opacity-90"
                 >
                   {t("header.signUp")}
@@ -190,14 +190,14 @@ export function SiteHeader({
                 {t("header.logIn")}
               </Link>
               <Link
-                href="/signup"
+                href="/access"
                 className="w-full text-center h-10 rounded-lg bg-voltage-lime text-carbon-ink text-sm font-semibold transition hover:opacity-90 inline-flex items-center justify-center"
               >
                 {t("header.signUp")}
               </Link>
               <button
                 onClick={() => {
-                  openAuth("signup", "patient");
+                  openAuth("access");
                 }}
                 className="w-full text-center h-10 rounded-lg text-sm font-semibold text-white border border-white/20 transition-colors hover:bg-white/10"
               >
