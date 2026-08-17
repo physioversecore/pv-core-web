@@ -19,7 +19,7 @@ const TRANSITION_DURATION = 800;
 
 function CarouselSkeleton() {
   return (
-    <div className="relative py-16 lg:py-20">
+    <div className="relative pt-8 pb-16 lg:pt-12 lg:pb-24">
       <div className="max-w-7xl mx-auto px-5 lg:px-8">
         <div className="mb-10">
           <div className="h-3 w-48 rounded bg-white/10" />
@@ -131,7 +131,7 @@ export function ElegantCarousel({ therapists, onBook, loading }: ElegantCarousel
 
   return (
     <section
-      className="relative pt-16 pb-20 lg:pt-20 lg:pb-28 overflow-hidden"
+      className="relative pt-8 pb-16 lg:pt-12 lg:pb-24 overflow-hidden"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={handleTouchStart}
@@ -233,7 +233,7 @@ export function ElegantCarousel({ therapists, onBook, loading }: ElegantCarousel
           {/* Right: Full-size image */}
           <div className="order-1 lg:order-2 relative">
             <div
-              className={`relative w-full aspect-[3/4] rounded-3xl overflow-hidden border border-white/10 transition-all duration-500 ease-out ${
+              className={`relative w-full max-w-sm aspect-[4/5] rounded-2xl overflow-hidden border border-white/10 transition-all duration-500 ease-out ${
                 isTransitioning ? "opacity-0 scale-[0.97]" : "opacity-100 scale-100"
               }`}
             >
@@ -270,8 +270,8 @@ export function ElegantCarousel({ therapists, onBook, loading }: ElegantCarousel
               </div>
 
               {/* Decorative corner accents */}
-              <div className="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-voltage-lime/40 rounded-tl-lg" />
-              <div className="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-voltage-lime/40 rounded-br-lg" />
+              <div className="absolute top-3 left-3 w-5 h-5 border-t border-l border-voltage-lime/40 rounded-tl" />
+              <div className="absolute bottom-3 right-3 w-5 h-5 border-b border-r border-voltage-lime/40 rounded-br" />
             </div>
           </div>
         </div>

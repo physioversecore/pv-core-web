@@ -67,7 +67,7 @@ export function HeroSection() {
   return (
     <section
       id="top"
-      className="relative flex min-h-screen flex-col pt-36 lg:pt-48 pb-16 text-white"
+      className="relative flex min-h-[85vh] lg:min-h-[80vh] flex-col pt-36 lg:pt-40 pb-12 text-white"
     >
       <div className="relative z-10 w-full max-w-7xl mx-auto px-5 lg:px-8">
         {/* Main hero: side-by-side on desktop, stacked on mobile */}
