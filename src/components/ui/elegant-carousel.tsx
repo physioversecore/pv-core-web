@@ -31,7 +31,7 @@ const TRANSITION_DURATION = 800;
 
 function CarouselSkeleton() {
   return (
-    <div className="relative pt-8 pb-16 lg:pt-12 lg:pb-24">
+    <div className="relative pt-8 pb-16 lg:pt-14 lg:pb-28">
       <div className="max-w-7xl mx-auto px-5 lg:px-8">
         <div className="mb-10">
           <div className="h-3 w-48 rounded bg-white/10" />
@@ -143,7 +143,7 @@ export function ElegantCarousel({ therapists, onBook, loading }: ElegantCarousel
 
   return (
     <section
-      className="relative pt-8 pb-16 lg:pt-12 lg:pb-24 overflow-hidden"
+      className="relative pt-10 pb-16 lg:pt-14 lg:pb-28 overflow-hidden"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={handleTouchStart}
@@ -203,12 +203,14 @@ export function ElegantCarousel({ therapists, onBook, loading }: ElegantCarousel
 
             {/* Price + book button */}
             <div className={contentCls("flex items-center gap-4 mt-6")}>
-              <span className="text-2xl font-bold text-white">{npr(current.price)}</span>
-              <span className="text-sm text-white/50">{t("therapists.perSession")}</span>
+              <span className="text-2xl font-bold text-white">
+                {npr(current.price)}
+                <span className="text-sm text-white/50">{t("therapists.perSession")}</span>
+              </span>
               <span className="w-px h-5 bg-white/15" />
               <button
                 onClick={() => onBook(current)}
-                className="inline-flex items-center gap-2 rounded-full bg-voltage-lime px-7 py-3 text-base font-semibold text-carbon-ink transition-all hover:-translate-y-0.5 hover:brightness-110"
+                className="inline-flex items-center gap-2 rounded-full bg-voltage-lime px-7 py-1.5 text-base font-semibold text-carbon-ink transition-all hover:-translate-y-0.5 hover:brightness-110"
               >
                 {t("common.book")}
               </button>

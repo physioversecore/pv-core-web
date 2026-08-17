@@ -67,7 +67,7 @@ export function HeroSection({ onBook }: { onBook?: (t: TherapistData) => void })
   return (
     <section
       id="top"
-      className="relative flex min-h-[85vh] lg:min-h-[80vh] flex-col pt-36 lg:pt-40 pb-6 text-white"
+      className="relative flex min-h-[85vh] lg:min-h-[80vh] flex-col pt-36 lg:pt-40 pb-6 lg:pb-12 text-white"
     >
       <div className="relative z-10 w-full max-w-7xl mx-auto px-5 lg:px-8">
         {/* Main hero: side-by-side on desktop, stacked on mobile */}
@@ -193,7 +193,7 @@ function AvailableToday({ onBook }: { onBook?: (t: TherapistData) => void }) {
   const { t } = useLang();
   const router = useRouter();
 
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["hero-featured-therapists"],
     queryFn: () => getTherapists({ limit: 20 }),
   });
@@ -207,6 +207,7 @@ function AvailableToday({ onBook }: { onBook?: (t: TherapistData) => void }) {
     return list.slice(0, 4);
   }, [data]);
 
+  if (isLoading) return <HeroLiveSkeleton />;
   if (therapists.length === 0) return null;
 
   return (
