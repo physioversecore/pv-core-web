@@ -517,7 +517,11 @@ const en = {
     eyebrow: "Partner clinics",
     title: "Find a Clinic Near You",
     subtitle: "Visit our partner clinics for in-person physiotherapy. Each clinic is verified and staffed with licensed professionals.",
-    noResults: "No clinics available at the moment.",
+    noResults: "No clinics found.",
+    searchPlaceholder: "Search clinics by name or area...",
+    search: "Search",
+    allCities: "All Cities",
+    results: "clinic(s) found",
   },
 
   howItWorks: {
