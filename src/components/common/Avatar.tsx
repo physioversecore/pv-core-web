@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Image from "next/image";
 
 export function Avatar({ name, size = 40, src }: { name: string; size?: number; src?: string }) {
   const [imgError, setImgError] = useState(false);
@@ -15,12 +16,14 @@ export function Avatar({ name, size = 40, src }: { name: string; size?: number; 
 
   if (showImg) {
     return (
-      <img
+      <Image
         src={src}
         alt={name}
+        width={size}
+        height={size}
+        unoptimized
         onError={() => setImgError(true)}
         className="rounded-full object-cover shrink-0"
-        style={{ width: size, height: size }}
       />
     );
   }

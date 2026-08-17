@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
+import Image from "next/image";
 import { useAuth } from "@/lib/auth";
 import { CITIES, SPECIALTIES } from "@/lib/constants";
 import { toast } from "sonner";
@@ -361,9 +362,12 @@ export default function TProfile() {
         <div className="flex items-center gap-4">
           <div className="relative group">
             {photoPreview ? (
-              <img
+              <Image
                 src={photoPreview}
                 alt="Profile"
+                width={80}
+                height={80}
+                unoptimized
                 className="w-20 h-20 rounded-full object-cover border-2 border-border"
               />
             ) : (

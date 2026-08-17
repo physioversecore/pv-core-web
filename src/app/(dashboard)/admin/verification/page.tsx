@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import Image from "next/image";
 import {
   Check,
   X,
@@ -867,9 +868,12 @@ function DocumentPreview({
           rel="noopener noreferrer"
           className="block overflow-hidden rounded-lg border border-border bg-white"
         >
-          <img
+          <Image
             src={documentUrl}
             alt={fileName ?? verification.documentType}
+            width={400}
+            height={260}
+            unoptimized
             className="w-full max-h-[260px] object-contain"
           />
         </a>

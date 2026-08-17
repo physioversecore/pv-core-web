@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import {
   X,
   Loader2,
@@ -316,9 +317,12 @@ export function DocumentUploader({
               className="relative rounded-xl overflow-hidden border border-border bg-surface aspect-square group"
             >
               {d.previewUrl ? (
-                <img
+                <Image
                   src={d.previewUrl}
                   alt={d.file.name}
+                  width={200}
+                  height={200}
+                  unoptimized
                   className="w-full h-full object-cover"
                 />
               ) : (

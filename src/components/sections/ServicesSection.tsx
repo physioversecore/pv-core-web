@@ -43,13 +43,9 @@ export function ServicesSection() {
       id="services"
       className="relative overflow-hidden pt-12 pb-16 lg:pt-16 lg:pb-24"
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-mid-abyss"
-      />
       <div className="relative z-10 mx-auto max-w-7xl px-5 text-center">
         <Reveal>
-          <h2 className="font-sans text-heading-sm font-medium leading-snug tracking-[-0.02em] text-white sm:text-2xl">
+          <h2 className="font-display text-heading-sm font-medium leading-snug tracking-[-0.02em] text-white sm:text-2xl">
             {t("landing.servicesTitle")}
           </h2>
           <p className="mx-auto mt-4 max-w-140 text-sm leading-relaxed text-ink-dim">

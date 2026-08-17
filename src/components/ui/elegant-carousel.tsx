@@ -178,7 +178,7 @@ export function ElegantCarousel({ therapists, onBook, loading }: ElegantCarousel
 
             {/* Name + rating inline */}
             <div className={contentCls("flex items-baseline gap-4 flex-wrap")}>
-              <h3 className="font-display text-4xl md:text-5xl xl:text-6xl text-white leading-[1.05] tracking-tight">
+              <h3 className="font-display text-3xl md:text-4xl xl:text-5xl text-white leading-[1.05] tracking-tight">
                 {current.name}
               </h3>
               <span className="flex items-center gap-1.5 text-sm shrink-0">

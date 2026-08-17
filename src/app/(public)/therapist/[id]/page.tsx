@@ -2,6 +2,7 @@
 
 import { use, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, BadgeCheck, GraduationCap, Award, Star } from "lucide-react";
 import { useLang } from "@/context/i18n";
@@ -62,7 +63,7 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
                   <div className="md:w-2/5 relative border-b md:border-b-0 md:border-r border-hairline bg-volt min-h-[280px] md:min-h-0 grid place-items-center">
                     <div className="w-36 h-36 md:w-44 md:h-44">
                       {photo ? (
-                        <img src={photo} alt={therapist.name} className="w-full h-full object-cover rounded-2xl border border-carbon/10" />
+                        <Image src={photo} alt={therapist.name} width={176} height={176} unoptimized className="w-full h-full object-cover rounded-2xl border border-carbon/10" />
                       ) : (
                         <div className="w-full h-full rounded-2xl border border-carbon/10 grid place-items-center bg-white">
                           <Avatar name={therapist.name} size={120} />

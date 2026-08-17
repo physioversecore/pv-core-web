@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import Image from "next/image";
 import { FileText, Image as ImageIcon, Video, File } from "lucide-react";
 import {
   Dialog,
@@ -116,9 +117,12 @@ export function PreviewDialog({
         <div className="flex-1 min-h-0 relative bg-black/5">
           <div className="absolute inset-0 flex items-center justify-center p-6">
             {authSrc && isImageUrl(fileName ?? title) && (
-              <img
+              <Image
                 src={authSrc}
                 alt={title}
+                width={800}
+                height={600}
+                unoptimized
                 className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg shadow-xl"
               />
             )}

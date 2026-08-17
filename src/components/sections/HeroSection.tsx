@@ -12,7 +12,7 @@ import { npr } from "@/utils/format";
 import { Avatar } from "@/components/common/Avatar";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Suspense } from "react";
-import { HeroLiveSkeleton } from "@/components/SuspenseFallback";
+import { HeroLiveSkeleton, TherapistCardGridSkeleton } from "@/components/SuspenseFallback";
 
 const CHIPS = SPECIALTIES.slice(0, 4);
 
@@ -179,7 +179,7 @@ export function HeroSection({ onBook }: { onBook?: (t: TherapistData) => void })
         {/* Available today strip */}
         <div className="mt-24">
           <ErrorBoundary>
-            <Suspense fallback={<HeroLiveSkeleton />}>
+            <Suspense fallback={<TherapistCardGridSkeleton count={4}  />}>
               <AvailableToday onBook={onBook} />
             </Suspense>
           </ErrorBoundary>
@@ -207,7 +207,28 @@ function AvailableToday({ onBook }: { onBook?: (t: TherapistData) => void }) {
     return list.slice(0, 4);
   }, [data]);
 
-  if (isLoading) return <HeroLiveSkeleton />;
+  if (isLoading) return (
+    <>
+      <div className="flex items-center justify-between gap-3 pb-4">
+        <p className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-white/60 flex items-center gap-2 shrink-0">
+          <span className="relative flex size-1.5 sm:size-2">
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-voltage-lime/75" />
+            <span className="relative inline-flex size-1.5 sm:size-2 rounded-full bg-voltage-lime" />
+          </span>
+          <span className="hidden sm:inline">{t("landing.heroAvailableToday")} · {t("landing.heroRegion")}</span>
+          <span className="sm:hidden">{t("landing.heroAvailableToday")}</span>
+        </p>
+        <button
+          onClick={() => router.push("/find-a-therapist")}
+          className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-white/40 transition-colors hover:text-white cursor-pointer shrink-0"
+        >
+          {t("landing.heroViewAllTherapists")} →
+        </button>
+      </div>
+       <TherapistCardGridSkeleton count={4} variant="dark" gridCount={[2, 4]} />
+    </>
+  )
+
   if (therapists.length === 0) return null;
 
   return (

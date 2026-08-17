@@ -83,9 +83,9 @@ export function TherapistCardSkeleton({ variant = "light" }: { variant?: "light"
   );
 }
 
-export function TherapistCardGridSkeleton({ count = 6, variant = "light" }: { count?: number; variant?: "light" | "dark" }) {
+export function TherapistCardGridSkeleton({ count = 6, variant = "light", gridCount = [2,3] }: { count?: number; variant?: "light" | "dark", gridCount?: [number,number] }) {
   return (
-    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className={`grid sm:grid-cols-${gridCount[0]} lg:grid-cols-${gridCount[1]} gap-4`}>
       {Array.from({ length: count }).map((_, i) => (
         <TherapistCardSkeleton key={i} variant={variant} />
       ))}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useMemo } from "react";
+import Image from "next/image";
 import {
   Sheet,
   SheetContent,
@@ -467,9 +468,12 @@ export function TherapistDetailSheet({
                 {mediaFiles.map((url, i) => (
                   <div key={i} className="relative group border rounded-md overflow-hidden">
                     {isImage(url) ? (
-                      <img
+                      <Image
                         src={url}
                         alt={getFileName(url)}
+                        width={400}
+                        height={200}
+                        unoptimized
                         className="w-full h-28 object-cover"
                       />
                     ) : (
@@ -611,9 +615,12 @@ function DocumentViewer({
         <div className="mt-2 max-h-[70vh] overflow-auto rounded-lg border border-border bg-white">
           {url ? (
             isImageUrl(url) ? (
-              <img
+              <Image
                 src={url}
                 alt={doc.fileName ?? "Document"}
+                width={800}
+                height={600}
+                unoptimized
                 className="w-full object-contain"
               />
             ) : (
