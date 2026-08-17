@@ -252,7 +252,7 @@ function AvailableToday({ onBook }: { onBook?: (t: TherapistData) => void }) {
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {therapists.map((therapist) => (
-          <button
+          <div
             key={therapist.id}
             className="bg-white/[0.04] border border-white/10 rounded-xl p-4 flex flex-col gap-3 text-left hover:shadow-md hover:border-voltage-lime/30 transition-all duration-200"
           >
@@ -296,7 +296,7 @@ function AvailableToday({ onBook }: { onBook?: (t: TherapistData) => void }) {
                 {t("common.book")}
               </button>
             </div>
-          </button>
+          </div>
         ))}
       </div>
     </>
