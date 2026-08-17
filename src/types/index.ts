@@ -24,6 +24,20 @@ export interface Clinic {
   hours: string;
 }
 
+export interface Package {
+  id: string;
+  name: string;
+  tag: string;
+  icon: string;
+  price: number;
+  cadence: string;
+  blurb: string;
+  points: string[];
+  featured: boolean;
+  sortOrder: number;
+  isActive: boolean;
+}
+
 export interface PatientProfile {
   id: string;
   userId: string;

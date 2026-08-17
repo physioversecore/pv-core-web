@@ -238,9 +238,9 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="mt-8 text-center text-[13px] text-text-light">
+          <p className="mt-4 text-center text-xs text-text-light">
             {t("auth.physioPrompt")}{" "}
-            <Link href="/signup?role=therapist" className="font-semibold text-blue-400 underline">
+            <Link href="/signup?role=therapist" className=" text-blue-400 underline">
               {t("common.applyToJoin")}
             </Link>
           </p>

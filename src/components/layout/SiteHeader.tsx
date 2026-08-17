@@ -63,6 +63,7 @@ export function SiteHeader({
     const map: Record<string, string> = {
       "/how-it-works": t("nav.howItWorks"),
       "/services": t("nav.services"),
+      "/packages": t("nav.packages"),
       "/clinics": t("nav.clinics"),
       "/find-a-therapist": t("nav.findTherapist"),
     };

@@ -82,6 +82,7 @@ const en = {
   nav: {
     howItWorks: "How it works",
     services: "Services",
+    packages: "Packages",
     clinics: "Clinics",
     therapists: "Therapists",
     findTherapist: "Find a Therapist",
@@ -522,6 +523,16 @@ const en = {
     search: "Search",
     allCities: "All Cities",
     results: "clinic(s) found",
+  },
+
+  packages: {
+    eyebrow: "Packages",
+    title: "Prices that make sense!",
+    subtitle: "Pick a package by condition, pay once from anywhere, and we handle the visits, scheduling and updates — you get a report after every session.",
+    perMonth: "/ month",
+    choosePackage: "Choose package",
+    contactUs: "Contact us",
+    phone: "+977 980-1234567",
   },
 
   howItWorks: {
