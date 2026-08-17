@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import { Star, ChevronLeft, ChevronRight, ShieldCheck } from "lucide-react";
 import { Avatar } from "@/components/common/Avatar";
 import { npr } from "@/utils/format";
@@ -237,14 +238,17 @@ export function ElegantCarousel({ therapists, onBook, loading }: ElegantCarousel
               }`}
             >
               {photo ? (
-                <img
+                <Image
                   src={photo}
                   alt={current.name}
-                  className="absolute inset-0 w-full h-full object-cover"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-contain"
+                  priority
                 />
               ) : (
-                <div className="absolute inset-0">
-                  <Avatar name={current.name} />
+                <div className="absolute inset-0 grid place-items-center bg-mid-abyss">
+                  <Avatar name={current.name} size={160} />
                 </div>
               )}
 
