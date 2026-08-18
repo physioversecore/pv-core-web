@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { HeartPulse, Clock, CheckCircle2, AlertCircle, Loader2, ArrowLeft, ArrowRight } from "lucide-react";
+import { HeartPulse, Clock, AlertCircle, Loader2, ArrowLeft, ArrowRight } from "lucide-react";
 import { useAuth } from "@/context/auth";
 import { useLang } from "@/context/i18n";
 import { toast } from "sonner";
@@ -288,19 +288,20 @@ export default function TherapistOnboardingPage() {
             </span>
           </Link>
           <div className="mt-8 text-center">
-            <div className="w-16 h-16 rounded-full bg-amber-50 border-2 border-amber-200 flex items-center justify-center mx-auto mb-5">
-              <Clock size={28} className="text-amber-500" />
-            </div>
-            <h1 className="text-[24px] font-semibold leading-tight tracking-[-0.01em] text-text">
+            <h1 className="text-[24px] font-semibold leading-tight tracking-[-0.01em] text-text inline-flex items-center gap-1">
+              <Clock size={28} className="text-amber-500 border-2 border-voltage-line rounded-2xl" />
               Application Under Review
             </h1>
-            <p className="mt-3 text-[14px] leading-[1.5] text-text-light max-w-[340px] mx-auto">
-              Thank you for applying! Our team is reviewing your application and credentials. This usually takes 24 hours.
-            </p>
             <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
               <p className="text-[13px] text-amber-800">
-                We&apos;ll notify you via email once your application is reviewed. You can check back here anytime.
+               Thank you for applying! Our team is reviewing your application. We&apos;ll notify you via email once it is reviewed. This usually takes 24 hours. You can check back here anytime.
               </p>
+              <Link
+                href="/"
+                className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-[7px] border border-[#d8dadd] bg-white px-7 text-[14px] font-semibold text-text transition-colors hover:bg-neutral-50"
+              >
+               Go to Home page
+              </Link>
             </div>
           </div>
         </div>

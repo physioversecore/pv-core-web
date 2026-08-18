@@ -324,7 +324,7 @@ export default function SignupPage() {
               {error ?? ""}
             </p>
 
-            <div className="flex flex-col-reverse gap-4 pt-1 items-center">
+            <div className="flex flex-col-reverse gap-2 pt-1 items-center">
               <Link href="/access" className="text-[13px] font-medium text-secondary hover:underline">
                 {t("auth.alreadyHaveAccount")} {t("auth.loginBtn")}
               </Link>
@@ -335,6 +335,9 @@ export default function SignupPage() {
               >
                 {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create account"}
               </button>
+              <p role="alert" className="min-h-[18px] text-[12px] leading-[14px] text-red-500">
+                {otpError ?? ""}
+              </p>
             </div>
           </form>
         </>

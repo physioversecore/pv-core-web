@@ -37,6 +37,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       router.replace(`/access?callbackUrl=${encodeURIComponent(pathname)}`);
       return;
     }
+    if (user.role === "therapist" && user.status === "PENDING") {
+      router.replace("/onboarding/therapist");
+      return;
+    }
     const expectedPrefix = ROLE_ROUTES[user.role];
     if (!pathname.startsWith(expectedPrefix)) {
       router.replace(expectedPrefix);
@@ -73,6 +77,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [role, pathname, resetComplaintCount]);
 
   if (loading || !user) return null;
+  if (user.role === "therapist" && user.status === "PENDING") return null;
 
   const labelToKey: Record<string, string> = {
     "Overview": "nav.overview",

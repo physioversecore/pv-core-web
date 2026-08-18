@@ -90,7 +90,7 @@ export default function AccessPage() {
       try {
         const { getApplicationStatus } = await import("@/services/api/therapists");
         const status = await getApplicationStatus();
-        if (status.status === "INCOMPLETE" || status.status === "CHANGES_REQUIRED" || status.status === "SUBMITTED") {
+        if (status.status === "INCOMPLETE" || status.status === "CHANGES_REQUIRED") {
           router.replace("/onboarding/therapist");
           return;
         }
