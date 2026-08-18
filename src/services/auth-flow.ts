@@ -67,5 +67,42 @@ export async function verifyOtp(email: string, code: string, purpose = "signup")
 
 export async function signup(data: SignupData): Promise<AuthFlowUser> {
   const res = await post<AuthFlowResponse>("/api/v1/auth/signup", data);
+  if (res.access_token) {
+    const { setTokenClient } = await import("@/services/api/session-client");
+    setTokenClient(res.access_token);
+  }
+  return { ...res.user, role: res.user.role.toLowerCase() };
+}
+
+export async function checkEmail(email: string) {
+  return post<{ exists: boolean; role?: string }>("/api/v1/auth/check-email", { email });
+}
+
+export async function googleAuth(credential: string, role: string = "PATIENT") {
+  const res = await post<AuthFlowResponse>("/api/v1/auth/google", { credential, role });
+  if (res.access_token) {
+    const { setTokenClient } = await import("@/services/api/session-client");
+    setTokenClient(res.access_token);
+  }
+  return { ...res.user, role: res.user.role.toLowerCase() };
+}
+
+export async function sendLoginOtp(email: string, name: string) {
+  return post<{ message: string; resend_after: number }>("/api/v1/auth/send-login-otp", {
+    email,
+    name,
+  });
+}
+
+export async function loginWithOtp(email: string, code: string): Promise<AuthFlowUser> {
+  const res = await post<AuthFlowResponse>("/api/v1/auth/login-otp", {
+    email,
+    code,
+    purpose: "login",
+  });
+  if (res.access_token) {
+    const { setTokenClient } = await import("@/services/api/session-client");
+    setTokenClient(res.access_token);
+  }
   return { ...res.user, role: res.user.role.toLowerCase() };
 }

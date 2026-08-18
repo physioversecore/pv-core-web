@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import * as AuthService from "@/services/api/auth";
 import type { SignupDocument } from "@/services/api/auth";
-import { signup as clientSignup } from "@/services/auth-flow";
+import { signup as clientSignup, googleAuth, loginWithOtp as clientLoginWithOtp } from "@/services/auth-flow";
 import type { Role } from "@/types";
 
 export interface User {
@@ -35,6 +35,8 @@ interface AuthCtx {
   login: (email: string, password: string, role: Role) => Promise<User>;
   signupPatient: (data: Omit<User, "id" | "role" | "status"> & { password: string }) => Promise<User>;
   signupTherapist: (data: TherapistSignupData) => Promise<User>;
+  loginWithGoogle: (credential: string, role?: string) => Promise<User>;
+  loginWithOtp: (email: string, code: string) => Promise<User>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
 }
@@ -99,8 +101,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         bio: data.bio,
         documents: data.documents,
       });
-      // Therapist applications require admin approval. The signup endpoint
-      // does not issue a token, so the therapist must not be signed in yet.
+      setUser(u as User);
+      return u as User;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loginWithGoogle: AuthCtx["loginWithGoogle"] = async (credential, role = "PATIENT") => {
+    setLoading(true);
+    try {
+      const u = await googleAuth(credential, role);
+      setUser(u as User);
+      return u as User;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loginWithOtp: AuthCtx["loginWithOtp"] = async (email, code) => {
+    setLoading(true);
+    try {
+      const u = await clientLoginWithOtp(email, code);
+      setUser(u as User);
       return u as User;
     } finally {
       setLoading(false);
@@ -118,7 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <Ctx.Provider value={{ user, loading, login, signupPatient, signupTherapist, logout, refreshSession }}>
+    <Ctx.Provider value={{ user, loading, login, signupPatient, signupTherapist, loginWithGoogle, loginWithOtp, logout, refreshSession }}>
       {children}
     </Ctx.Provider>
   );

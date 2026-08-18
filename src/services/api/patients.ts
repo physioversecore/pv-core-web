@@ -69,3 +69,62 @@ export async function getTherapistPatients(params?: {
     `/patients/my-patients?${searchParams.toString()}`,
   );
 }
+
+// --- Onboarding ---
+
+export interface OnboardingData {
+  name?: string;
+  phone?: string;
+  city?: string;
+  address?: string;
+  dob?: string;
+  gender?: string;
+  condition?: string;
+  medicalHistory?: string;
+  emergencyName?: string;
+  emergencyRelation?: string;
+  emergencyPhone?: string;
+}
+
+export interface FamilyMember {
+  id: string;
+  name: string;
+  relationship: string;
+  dob?: string;
+  phone?: string;
+  condition?: string;
+  gender?: string;
+}
+
+export interface OnboardingStatus {
+  completed: boolean;
+  step?: string;
+}
+
+export async function getOnboardingStatus(): Promise<OnboardingStatus> {
+  return api.get<OnboardingStatus>("/patients/me/onboarding-status");
+}
+
+export async function completeOnboarding(data: OnboardingData) {
+  return api.post<{ success: boolean }>("/patients/me/onboarding", data);
+}
+
+export async function saveOnboardingProgress(step: string, data: Record<string, unknown>) {
+  return api.post<{ success: boolean }>("/patients/me/onboarding/progress", { step, ...data });
+}
+
+export async function getFamilyMembers() {
+  return api.get<FamilyMember[]>("/patients/me/family-members");
+}
+
+export async function addFamilyMember(data: Omit<FamilyMember, "id">) {
+  return api.post<FamilyMember>("/patients/me/family-members", data);
+}
+
+export async function updateFamilyMember(id: string, data: Partial<FamilyMember>) {
+  return api.put<FamilyMember>(`/patients/me/family-members/${id}`, data);
+}
+
+export async function deleteFamilyMember(id: string) {
+  return api.delete<void>(`/patients/me/family-members/${id}`);
+}

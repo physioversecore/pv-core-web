@@ -158,3 +158,53 @@ export async function getTherapistSlots(
     `/therapists/${therapistId}/slots?${params.toString()}`,
   );
 }
+
+// --- Application Status ---
+
+export interface ApplicationFeedback {
+  section: string;
+  message: string;
+}
+
+export interface ApplicationStatusData {
+  status: string;
+  feedback: ApplicationFeedback[];
+}
+
+export interface ApplicationSectionsData {
+  personal: {
+    name: string;
+    phone: string;
+    city: string;
+    gender: string;
+  };
+  professional: {
+    specialty: string;
+    experience: number;
+    fee: number;
+    license: string;
+    bio: string;
+  };
+  documents: {
+    id: string;
+    documentType?: string;
+    documentUrl?: string;
+    fileName?: string;
+    status?: string;
+  }[];
+}
+
+export async function getApplicationStatus(): Promise<ApplicationStatusData> {
+  return api.get<ApplicationStatusData>("/therapists/me/application-status");
+}
+
+export async function getApplicationSections(): Promise<ApplicationSectionsData> {
+  return api.get<ApplicationSectionsData>("/therapists/me/application-sections");
+}
+
+export async function updateApplication(data: {
+  personal?: Partial<ApplicationSectionsData["personal"]>;
+  professional?: Partial<ApplicationSectionsData["professional"]>;
+}) {
+  return api.put<{ success: boolean }>("/therapists/me/application", data);
+}

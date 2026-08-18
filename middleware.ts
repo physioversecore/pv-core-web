@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 const SESSION_COOKIE = "sahayatri.session";
 
 const PROTECTED_PREFIXES = ["/patient", "/therapist", "/admin"];
-const PUBLIC_PREFIXES = ["/access", "/signup", "/forgot-password", "/reset-password"];
+const PUBLIC_PREFIXES = ["/access", "/signup", "/forgot-password", "/reset-password", "/onboarding"];
 
 function isProtectedPath(pathname: string): boolean {
   if (PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))) return false;
@@ -51,5 +51,6 @@ export const config = {
     "/signup",
     "/forgot-password",
     "/reset-password",
+    "/onboarding/:path*",
   ],
 };

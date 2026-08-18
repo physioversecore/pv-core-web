@@ -97,3 +97,7 @@ export async function getSession(): Promise<UserData | null> {
 export async function updateProfile(data: Partial<UserData>) {
   return api.put<UserData>("/auth/me", data);
 }
+
+export async function checkEmail(email: string) {
+  return api.post<{ exists: boolean; role?: string }>("/auth/check-email", { email });
+}

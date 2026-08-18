@@ -1,15 +1,16 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/auth";
 import { useLang } from "@/context/i18n";
 import { toast } from "sonner";
-import { sendOtp } from "@/services/auth-flow";
+import { sendLoginOtp } from "@/services/auth-flow";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { GoogleIcon } from "@/components/auth/GoogleIcon";
+import { OtpInput } from "@/components/auth/OtpInput";
 
 const ROLE_HOME: Record<string, string> = {
   patient: "/patient",
@@ -50,7 +51,7 @@ type Step = "email" | "welcome" | "otp";
 
 export default function AccessPage() {
   const { t } = useLang();
-  const { user, loading, login } = useAuth();
+  const { user, loading, login, loginWithGoogle, loginWithOtp } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl");
@@ -72,13 +73,43 @@ export default function AccessPage() {
 
   const redirected = useRef(false);
 
+  const routeAfterAuth = useCallback(async (u: { role: string; status?: string }) => {
+    if (u.role === "patient") {
+      try {
+        const { getOnboardingStatus } = await import("@/services/api/patients");
+        const status = await getOnboardingStatus();
+        if (!status.completed) {
+          router.replace("/onboarding/patient");
+          return;
+        }
+      } catch {
+        // proceed to dashboard
+      }
+      router.replace(ROLE_HOME[u.role] ?? "/");
+    } else if (u.role === "therapist") {
+      try {
+        const { getApplicationStatus } = await import("@/services/api/therapists");
+        const status = await getApplicationStatus();
+        if (status.status === "INCOMPLETE" || status.status === "CHANGES_REQUIRED" || status.status === "SUBMITTED") {
+          router.replace("/onboarding/therapist");
+          return;
+        }
+      } catch {
+        // proceed to dashboard
+      }
+      router.replace(ROLE_HOME[u.role] ?? "/");
+    } else {
+      router.replace(ROLE_HOME[u.role] ?? "/");
+    }
+  }, [router]);
+
   useEffect(() => {
     if (redirected.current) return;
     if (!loading && user) {
       redirected.current = true;
-      router.replace(resolveCallbackUrl(callbackUrl, user.role));
+      routeAfterAuth(user);
     }
-  }, [loading, user, router, callbackUrl]);
+  }, [loading, user, routeAfterAuth]);
 
   useEffect(() => {
     if (step !== "otp" || resendAfter <= 0) return;
@@ -130,7 +161,7 @@ export default function AccessPage() {
       const u = await login(email.trim(), password, "patient");
       toast.success(t("auth.successWelcome") + ", " + u.name);
       redirected.current = true;
-      router.replace(resolveCallbackUrl(callbackUrl, u.role));
+      await routeAfterAuth(u);
     } catch (err) {
       const status = (err as { status?: number } | null)?.status;
       if (status === 403) {
@@ -144,22 +175,49 @@ export default function AccessPage() {
     }
   };
 
-  const handleGoogle = () => toast.info(t("auth.googleComingSoon"));
+  const handleGoogle = async () => {
+    if (!window.google?.accounts?.id) {
+      toast.error("Google Sign-In is not available. Please try again later.");
+      return;
+    }
+
+    window.google.accounts.id.initialize({
+      client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "",
+      callback: async (response: { credential?: string }) => {
+        if (!response.credential) {
+          toast.error("Google Sign-In failed. Please try again.");
+          return;
+        }
+        setSubmitting(true);
+        try {
+          const u = await loginWithGoogle(response.credential);
+          toast.success(t("auth.successWelcome") + ", " + u.name);
+          redirected.current = true;
+          await routeAfterAuth(u);
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : "Google Sign-In failed";
+          toast.error(msg);
+        } finally {
+          setSubmitting(false);
+        }
+      },
+    });
+
+    window.google.accounts.id.prompt();
+  };
 
   const handleSendCode = async () => {
     setOtpError(null);
     setSending(true);
     try {
-      const res = await sendOtp(email.trim(), emailName());
+      const res = await sendLoginOtp(email.trim(), emailName());
       setResendAfter(res.resend_after);
       setOtpCode("");
       setStep("otp");
     } catch (err) {
-      // Registered emails are rejected by send-otp (signup-only). Passwordless
-      // login isn't live on the backend yet, so direct them to the password path.
       const status = (err as { status?: number } | null)?.status;
-      if (status === 409) {
-        toast.info(t("auth.passwordlessSoon"));
+      if (status === 404) {
+        setOtpError("No account found with this email.");
       } else {
         setOtpError(t("auth.couldntSendCode"));
       }
@@ -168,17 +226,27 @@ export default function AccessPage() {
     }
   };
 
-  const handleVerifyOtp = () => {
+  const handleVerifyOtp = useCallback(async () => {
     if (otpCode.length !== 6) return;
-    // Backend has no passwordless login exchange yet — surface the pending state.
-    toast.info(t("auth.passwordlessSoon"));
-  };
+    setOtpError(null);
+    setSubmitting(true);
+    try {
+      const u = await loginWithOtp(email.trim(), otpCode);
+      toast.success(t("auth.successWelcome") + ", " + u.name);
+      redirected.current = true;
+      await routeAfterAuth(u);
+    } catch {
+      setOtpError(t("auth.errorOtpFailed"));
+    } finally {
+      setSubmitting(false);
+    }
+  }, [otpCode, email, loginWithOtp, routeAfterAuth, t]);
 
   const handleResendOtp = async () => {
     if (resendAfter > 0) return;
     setOtpError(null);
     try {
-      const res = await sendOtp(email.trim(), emailName());
+      const res = await sendLoginOtp(email.trim(), emailName());
       setResendAfter(res.resend_after);
       setOtpCode("");
       toast.success(t("auth.otpSentTo"));
@@ -275,7 +343,7 @@ export default function AccessPage() {
             {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : t("auth.sendOneTimeCode")}
           </button>
 
-          <p role="alert" className="mt-2 min-h-[18px] text-[13px] leading-[18px] text-red-500">
+          <p role="alert" className="mt-2 min-h-[18px] text-[12px] leading-[14px] text-red-500">
             {otpError ?? ""}
           </p>
 
@@ -285,8 +353,8 @@ export default function AccessPage() {
             <span className="h-px flex-1 bg-[#dedede]" />
           </div>
 
-          <form onSubmit={handleLogin} noValidate className="w-full text-left">
-            <div className="relative">
+          <form onSubmit={handleLogin} noValidate className="w-full flex flex-col gap-2 text-left">
+            <div className="relative space-y-3">
               <label htmlFor="auth-password" className="sr-only">
                 {t("auth.enterPassword")}
               </label>
@@ -313,16 +381,6 @@ export default function AccessPage() {
                 {showPw ? <EyeOff size={17} /> : <Eye size={17} />}
               </button>
             </div>
-
-            <div className="mt-2 text-right">
-              <Link href="/forgot-password" className="text-[13px] font-medium text-secondary hover:underline">
-                {t("common.forgotPassword")}
-              </Link>
-            </div>
-
-            <p role="alert" className="mt-3 min-h-[18px] text-[13px] leading-[18px] text-red-500">
-              {error ?? ""}
-            </p>
             <button
               type="submit"
               disabled={submitting || !password}
@@ -330,49 +388,48 @@ export default function AccessPage() {
             >
               {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : t("auth.continueWithPassword")}
             </button>
+            <p role="alert" className="min-h-[18px] text-[12px] leading-[14px] text-red-500">
+              {error ?? ""}
+            </p>
           </form>
         </div>
       )}
 
       {step === "otp" && (
         <div className="flex flex-col items-center text-center">
-          <h1 className="mt-4 text-[24px] font-semibold leading-tight tracking-[-0.01em] text-text">
+          <h1 className="text-[24px] font-semibold leading-tight tracking-[-0.01em] text-text">
             {t("auth.checkYourEmail")}
           </h1>
           <p className="mt-3 max-w-[330px] text-[14px] leading-[1.5] text-text-light">
             {t("auth.otpSentTo")}{" "}
-            <span className="font-medium text-text">{email}</span>
+              <span className="font-medium text-text">{email}</span>
+              <button
+                type="button"
+                onClick={() => setStep("email")}
+                className="ml-1.5 cursor-pointer text-[13px] font-medium text-blue-400 hover:underline"
+              >{t("common.edit")}
+              </button>
           </p>
 
           <div className="mt-6 w-full">
-            <label htmlFor="auth-otp" className="sr-only">
-              {t("auth.verifyYourEmail")}
-            </label>
-            <input
-              id="auth-otp"
-              name="otp"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              autoFocus
-              maxLength={6}
+            <OtpInput
               value={otpCode}
-              onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-              placeholder="000000"
-              className="h-12 w-full rounded-md border border-[#d8dadd] bg-white text-center font-mono text-xl tracking-[0.5em] text-text placeholder:text-text-muted/50 transition-colors focus:border-voltage-lime focus:outline-none focus:ring-4 focus:ring-voltage-lime/15"
+              onChange={setOtpCode}
+              disabled={submitting}
             />
           </div>
 
-          <p role="alert" className="mt-2 min-h-[18px] text-[13px] leading-[18px] text-red-500">
+          <p role="alert" className="mt-2 min-h-[18px] text-[12px] leading-[14px] text-red-500">
             {otpError ?? ""}
           </p>
 
           <button
             type="button"
             onClick={handleVerifyOtp}
-            disabled={otpCode.length !== 6}
+            disabled={otpCode.length !== 6 || submitting}
             className={`${primaryBtnClass} mt-1`}
           >
-            {t("auth.verifyAndContinue")}
+            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : t("auth.verifyAndContinue")}
           </button>
 
           <button

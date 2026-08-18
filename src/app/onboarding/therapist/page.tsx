@@ -1,0 +1,446 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { HeartPulse, Clock, CheckCircle2, AlertCircle, Loader2, ArrowLeft, ArrowRight } from "lucide-react";
+import { useAuth } from "@/context/auth";
+import { useLang } from "@/context/i18n";
+import { toast } from "sonner";
+import {
+  getApplicationStatus,
+  getApplicationSections,
+  updateApplication,
+  type ApplicationStatusData,
+  type ApplicationSectionsData,
+} from "@/services/api/therapists";
+import { StepProgress } from "@/components/auth/StepProgress";
+import { DocumentUploader, type UploadedDoc } from "@/components/auth/DocumentUploader";
+import { CITIES, SPECIALTIES } from "@/constants";
+
+type Step = "personal" | "professional" | "documents" | "review";
+
+const STEPS: { key: Step; label: string }[] = [
+  { key: "personal", label: "Personal" },
+  { key: "professional", label: "Professional" },
+  { key: "documents", label: "Documents" },
+  { key: "review", label: "Review" },
+];
+
+const inputClass =
+  "h-11 w-full rounded-[7px] border border-[#d8dadd] bg-white px-3.5 text-[14px] text-text placeholder:text-[14px] placeholder:text-text-light/60 transition-colors focus:border-voltage-lime focus:outline-none focus:ring-4 focus:ring-voltage-lime/15";
+
+const labelClass = "block text-[13px] font-medium text-[#555] mb-2";
+
+const primaryBtnClass =
+  "inline-flex h-11 items-center justify-center gap-2 rounded-[7px] bg-mid-abyss px-7 text-[14px] font-semibold text-white transition-colors hover:bg-[#0a3a3e] active:bg-[#031a1d] disabled:cursor-not-allowed disabled:opacity-50";
+
+export default function TherapistOnboardingPage() {
+  const { t } = useLang();
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  const [applicationStatus, setApplicationStatus] = useState<ApplicationStatusData | null>(null);
+  const [loadingState, setLoadingState] = useState(true);
+  const [step, setStep] = useState<Step>("personal");
+  const [submitting, setSubmitting] = useState(false);
+
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    phone: "",
+    city: "",
+    gender: "",
+    specialty: "",
+    experience: "",
+    fee: "",
+    bio: "",
+    license: "",
+  });
+
+  const [docs, setDocs] = useState<Record<string, UploadedDoc[]>>({
+    license: [],
+    cert: [],
+  });
+
+  const redirected = useRef(false);
+
+  useEffect(() => {
+    if (redirected.current) return;
+    if (!loading && !user) {
+      redirected.current = true;
+      router.replace("/access");
+    }
+  }, [loading, user, router]);
+
+  // Load application status and sections
+  useEffect(() => {
+    if (!user) return;
+
+    async function loadStatus() {
+      try {
+        const [status, sections] = await Promise.all([
+          getApplicationStatus(),
+          getApplicationSections(),
+        ]);
+
+        setApplicationStatus(status);
+
+        // If approved, redirect to dashboard
+        if (status.status === "APPROVED") {
+          router.replace("/therapist");
+          return;
+        }
+
+        // If rejected, show blocked state (handled below)
+        if (status.status === "REJECTED") {
+          setLoadingState(false);
+          return;
+        }
+
+        // Populate form with existing data for resume
+        if (sections.personal) {
+          const nameParts = sections.personal.name?.split(" ") || [];
+          setForm({
+            firstName: nameParts[0] || "",
+            lastName: nameParts.slice(1).join(" ") || "",
+            phone: sections.personal.phone || "",
+            city: sections.personal.city || "",
+            gender: sections.personal.gender || "",
+            specialty: sections.professional?.specialty || "",
+            experience: sections.professional?.experience?.toString() || "",
+            fee: sections.professional?.fee?.toString() || "",
+            bio: sections.professional?.bio || "",
+            license: sections.professional?.license || "",
+          });
+        }
+      } catch {
+        // Continue with empty form
+      } finally {
+        setLoadingState(false);
+      }
+    }
+
+    loadStatus();
+  }, [user, router]);
+
+  const currentIdx = STEPS.findIndex((s) => s.key === step);
+
+  const goNext = () => {
+    if (currentIdx < STEPS.length - 1) {
+      setStep(STEPS[currentIdx + 1].key);
+    }
+  };
+
+  const goBack = () => {
+    if (currentIdx > 0) {
+      setStep(STEPS[currentIdx - 1].key);
+    }
+  };
+
+  const handleSubmit = async () => {
+    setError(null);
+    if (!form.firstName.trim() || !form.specialty.trim()) {
+      setError("Please fill all required fields.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await updateApplication({
+        personal: {
+          name: `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
+          phone: form.phone || undefined,
+          city: form.city || undefined,
+          gender: form.gender || undefined,
+        },
+        professional: {
+          specialty: form.specialty,
+          experience: form.experience ? Number(form.experience) : undefined,
+          fee: form.fee ? Number(form.fee) : undefined,
+          license: form.license || undefined,
+          bio: form.bio || undefined,
+        },
+      });
+
+      toast.success("Application submitted! We'll review it within 24 hours.");
+      setApplicationStatus({ status: "SUBMITTED", feedback: [] });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to submit application. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const [error, setError] = useState<string | null>(null);
+
+  if (loading || !user || loadingState) return null;
+
+  // Rejected state
+  if (applicationStatus?.status === "REJECTED") {
+    return (
+      <div className="auth-bg flex min-h-[100svh] w-full flex-col items-center px-5">
+        <div className="w-full pt-[9vh] max-w-[420px]">
+          <Link href="/" aria-label={t("header.brand")} className="block w-fit mx-auto">
+            <span className="grid h-11 w-11 place-items-center rounded-lg bg-voltage-lime text-carbon-ink transition-transform duration-150 hover:-translate-y-0.5">
+              <HeartPulse size={22} strokeWidth={2.25} />
+            </span>
+          </Link>
+
+          <div className="mt-8 text-center">
+            <div className="w-16 h-16 rounded-full bg-red-50 border-2 border-red-200 flex items-center justify-center mx-auto mb-5">
+              <AlertCircle size={28} className="text-red-500" />
+            </div>
+            <h1 className="text-[24px] font-semibold leading-tight tracking-[-0.01em] text-text">
+              Application Not Approved
+            </h1>
+            <p className="mt-3 text-[14px] leading-[1.5] text-text-light max-w-[340px] mx-auto">
+              Your application was not approved. Please contact support for more information.
+            </p>
+            <Link
+              href="/access"
+              className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-[7px] border border-[#d8dadd] bg-white px-7 text-[14px] font-semibold text-text transition-colors hover:bg-neutral-50"
+            >
+              Back to Login
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Submitted/pending state
+  if (applicationStatus?.status === "SUBMITTED") {
+    return (
+      <div className="auth-bg flex min-h-[100svh] w-full flex-col items-center px-5">
+        <div className="w-full pt-[9vh] max-w-[420px]">
+          <Link href="/" aria-label={t("header.brand")} className="block w-fit mx-auto">
+            <span className="grid h-11 w-11 place-items-center rounded-lg bg-voltage-lime text-carbon-ink transition-transform duration-150 hover:-translate-y-0.5">
+              <HeartPulse size={22} strokeWidth={2.25} />
+            </span>
+          </Link>
+
+          <div className="mt-8 text-center">
+            <div className="w-16 h-16 rounded-full bg-amber-50 border-2 border-amber-200 flex items-center justify-center mx-auto mb-5">
+              <Clock size={28} className="text-amber-500" />
+            </div>
+            <h1 className="text-[24px] font-semibold leading-tight tracking-[-0.01em] text-text">
+              Application Under Review
+            </h1>
+            <p className="mt-3 text-[14px] leading-[1.5] text-text-light max-w-[340px] mx-auto">
+              Thank you for applying! Our team is reviewing your application and credentials. This usually takes 24 hours.
+            </p>
+            <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
+              <p className="text-[13px] text-amber-800">
+                We&apos;ll notify you via email once your application is reviewed. You can check back here anytime.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="auth-bg flex min-h-[100svh] w-full flex-col items-center px-5">
+      <div className="w-full pt-[9vh] max-w-[480px]">
+        <Link href="/" aria-label={t("header.brand")} className="block w-fit mx-auto">
+          <span className="grid h-11 w-11 place-items-center rounded-lg bg-voltage-lime text-carbon-ink transition-transform duration-150 hover:-translate-y-0.5">
+            <HeartPulse size={22} strokeWidth={2.25} />
+          </span>
+        </Link>
+
+        <h1 className="mt-7 text-[24px] font-semibold leading-tight tracking-[-0.01em] text-text text-center">
+          Complete your profile
+        </h1>
+        <p className="mt-2 text-[14px] leading-[1.5] text-text-light text-center">
+          Tell us about your professional background.
+        </p>
+
+        {/* Show reviewer feedback if changes required */}
+        {applicationStatus?.status === "CHANGES_REQUIRED" && applicationStatus.feedback.length > 0 && (
+          <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4">
+            <h3 className="text-[13px] font-semibold text-red-800 mb-2">Changes Required</h3>
+            {applicationStatus.feedback.map((f, i) => (
+              <div key={i} className="text-[12px] text-red-700 mb-1">
+                <span className="font-medium">{f.section}:</span> {f.message}
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-6">
+          <StepProgress steps={STEPS} current={currentIdx} />
+        </div>
+
+        <div className="mt-2">
+          {step === "personal" && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelClass}>{t("auth.labelFirstName")}</label>
+                  <input type="text" value={form.firstName} onChange={(e) => setForm((f) => ({ ...f, firstName: e.target.value }))} placeholder={t("auth.placeholderFirstName")} className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>{t("auth.labelLastName")}</label>
+                  <input type="text" value={form.lastName} onChange={(e) => setForm((f) => ({ ...f, lastName: e.target.value }))} placeholder={t("auth.placeholderLastName")} className={inputClass} />
+                </div>
+              </div>
+              <div>
+                <label className={labelClass}>{t("auth.labelPhone")}</label>
+                <input type="tel" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} placeholder={t("auth.placeholderPhone")} className={inputClass} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelClass}>{t("auth.labelCity")}</label>
+                  <select value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} className={inputClass}>
+                    <option value="">{t("auth.selectOption")}</option>
+                    {CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className={labelClass}>{t("auth.labelGender")}</label>
+                  <select value={form.gender} onChange={(e) => setForm((f) => ({ ...f, gender: e.target.value }))} className={inputClass}>
+                    <option value="">{t("auth.selectOption")}</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+              <button type="button" onClick={goNext} className={`${primaryBtnClass} w-full`}>
+                Continue <ArrowRight size={16} />
+              </button>
+            </div>
+          )}
+
+          {step === "professional" && (
+            <div className="space-y-4">
+              <button type="button" onClick={goBack} className="text-xs text-secondary flex items-center gap-1 cursor-pointer">
+                <ArrowLeft size={12} /> {t("auth.backBtn")}
+              </button>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelClass}>{t("auth.labelSpecialty")}</label>
+                  <select value={form.specialty} onChange={(e) => setForm((f) => ({ ...f, specialty: e.target.value }))} className={inputClass}>
+                    <option value="">{t("auth.selectOption")}</option>
+                    {SPECIALTIES.map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className={labelClass}>{t("auth.labelExperience")}</label>
+                  <input type="number" value={form.experience} onChange={(e) => setForm((f) => ({ ...f, experience: e.target.value }))} placeholder={t("auth.placeholderExperience")} className={inputClass} />
+                </div>
+              </div>
+              <div>
+                <label className={labelClass}>{t("auth.labelFee")}</label>
+                <input type="number" value={form.fee} onChange={(e) => setForm((f) => ({ ...f, fee: e.target.value }))} placeholder={t("auth.placeholderFee")} className={inputClass} />
+              </div>
+              <div>
+                <label className={labelClass}>{t("auth.labelLicense")}</label>
+                <input type="text" value={form.license} onChange={(e) => setForm((f) => ({ ...f, license: e.target.value }))} placeholder={t("auth.placeholderLicense")} className={inputClass} />
+              </div>
+              <div>
+                <label className={labelClass}>Bio</label>
+                <textarea
+                  value={form.bio}
+                  onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}
+                  placeholder="Tell patients about your approach and experience..."
+                  rows={20}
+                  className={`${inputClass}`}
+                />
+              </div>
+              <button type="button" onClick={goNext} className={`${primaryBtnClass} w-full`}>
+                Continue <ArrowRight size={16} />
+              </button>
+            </div>
+          )}
+
+          {step === "documents" && (
+            <div className="space-y-4">
+              <button type="button" onClick={goBack} className="text-xs text-secondary flex items-center gap-1 cursor-pointer">
+                <ArrowLeft size={12} /> {t("auth.backBtn")}
+              </button>
+              <h2 className="text-2xl font-display">Upload Documents</h2>
+              <p className="text-text-light text-sm">Your NMC license and certifications are required for verification.</p>
+              <DocumentUploader
+                label={t("auth.labelUploadLicense")}
+                documentType="NMC license"
+                docs={docs.license}
+                onChange={(updater) => setDocs((prev) => ({ ...prev, license: typeof updater === "function" ? updater(prev.license) : updater }))}
+                required
+                maxFiles={3}
+              />
+              <DocumentUploader
+                label={t("auth.labelUploadCert")}
+                documentType="Certification"
+                docs={docs.cert}
+                onChange={(updater) => setDocs((prev) => ({ ...prev, cert: typeof updater === "function" ? updater(prev.cert) : updater }))}
+                required
+                maxFiles={3}
+              />
+              <button type="button" onClick={goNext} className={`${primaryBtnClass} w-full`}>
+                Continue <ArrowRight size={16} />
+              </button>
+            </div>
+          )}
+
+          {step === "review" && (
+            <div className="space-y-4">
+              <button type="button" onClick={goBack} className="text-xs text-secondary flex items-center gap-1 cursor-pointer">
+                <ArrowLeft size={12} /> {t("auth.backBtn")}
+              </button>
+              <h2 className="text-2xl font-display">Review Application</h2>
+              <p className="text-text-light text-sm">Please review your details before submitting.</p>
+
+              <div className="rounded-lg border border-[#d8dadd] bg-white p-4 space-y-3">
+                <h3 className="text-[13px] font-semibold text-text">Personal Information</h3>
+                <div className="grid grid-cols-2 gap-2 text-[13px]">
+                  <div><span className="text-text-light">Name:</span> {[form.firstName, form.lastName].filter(Boolean).join(" ") || "—"}</div>
+                  <div><span className="text-text-light">Phone:</span> {form.phone || "—"}</div>
+                  <div><span className="text-text-light">City:</span> {form.city || "—"}</div>
+                  <div><span className="text-text-light">Gender:</span> {form.gender || "—"}</div>
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-[#d8dadd] bg-white p-4 space-y-3">
+                <h3 className="text-[13px] font-semibold text-text">Professional Details</h3>
+                <div className="grid grid-cols-2 gap-2 text-[13px]">
+                  <div><span className="text-text-light">Specialty:</span> {form.specialty || "—"}</div>
+                  <div><span className="text-text-light">Experience:</span> {form.experience ? `${form.experience} years` : "—"}</div>
+                  <div><span className="text-text-light">Fee:</span> {form.fee ? `NPR ${form.fee}` : "—"}</div>
+                  <div><span className="text-text-light">License:</span> {form.license || "—"}</div>
+                </div>
+                {form.bio && <div className="text-[13px]"><span className="text-text-light">Bio:</span> {form.bio}</div>}
+              </div>
+
+              <div className="rounded-lg border border-[#d8dadd] bg-white p-4 space-y-3">
+                <h3 className="text-[13px] font-semibold text-text">Documents</h3>
+                <div className="text-[13px] text-text-light">
+                  <div>NMC License: {docs.license.length > 0 ? <span className="text-green-600">Uploaded</span> : <span className="text-red-500">Required</span>}</div>
+                  <div>Certification: {docs.cert.length > 0 ? <span className="text-green-600">Uploaded</span> : <span className="text-red-500">Required</span>}</div>
+                </div>
+              </div>
+
+              <p className="text-[12px] leading-[1.5] text-[#666]">
+                By submitting, I confirm my credentials are accurate and agree to the{" "}
+                <Link href="/terms" className="underline hover:text-text">Terms of Service</Link>{" "}
+                and <Link href="/privacy" className="underline hover:text-text">Privacy Policy</Link>.
+              </p>
+
+              {error && <p className="text-[12px] text-red-500">{error}</p>}
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={submitting}
+                className={`${primaryBtnClass} w-full`}
+              >
+                {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit application"}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
