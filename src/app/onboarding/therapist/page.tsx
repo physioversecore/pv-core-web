@@ -35,6 +35,22 @@ const labelClass = "block text-[13px] font-medium text-[#555] mb-2";
 const primaryBtnClass =
   "inline-flex h-11 items-center justify-center gap-2 rounded-[7px] bg-mid-abyss px-7 text-[14px] font-semibold text-white transition-colors hover:bg-[#0a3a3e] active:bg-[#031a1d] disabled:cursor-not-allowed disabled:opacity-50";
 
+const secondaryBtnClass =
+  "inline-flex h-11 items-center justify-center gap-2 rounded-[7px] border border-[#d8dadd] bg-white px-7 text-[14px] font-semibold text-text transition-colors hover:bg-neutral-50 active:bg-neutral-100";
+
+function toUploadedDocs(backendDocs: ApplicationSectionsData["documents"]): UploadedDoc[] {
+  if (!backendDocs || !Array.isArray(backendDocs)) return [];
+  return backendDocs.map((d) => ({
+    id: d.id || `backend-${d.documentUrl}`,
+    documentType: d.documentType || "",
+    file: new File([], d.fileName || "document"),
+    status: "done" as const,
+    progress: 100,
+    url: d.documentUrl,
+    fileName: d.fileName,
+  }));
+}
+
 export default function TherapistOnboardingPage() {
   const { t } = useLang();
   const { user, loading } = useAuth();
@@ -44,6 +60,7 @@ export default function TherapistOnboardingPage() {
   const [loadingState, setLoadingState] = useState(true);
   const [step, setStep] = useState<Step>("personal");
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     firstName: "",
@@ -73,7 +90,6 @@ export default function TherapistOnboardingPage() {
     }
   }, [loading, user, router]);
 
-  // Load application status and sections
   useEffect(() => {
     if (!user) return;
 
@@ -86,19 +102,16 @@ export default function TherapistOnboardingPage() {
 
         setApplicationStatus(status);
 
-        // If approved, redirect to dashboard
         if (status.status === "APPROVED") {
           router.replace("/therapist");
           return;
         }
 
-        // If rejected, show blocked state (handled below)
         if (status.status === "REJECTED") {
           setLoadingState(false);
           return;
         }
 
-        // Populate form with existing data for resume
         if (sections.personal) {
           const nameParts = sections.personal.name?.split(" ") || [];
           setForm({
@@ -113,6 +126,22 @@ export default function TherapistOnboardingPage() {
             bio: sections.professional?.bio || "",
             license: sections.professional?.license || "",
           });
+        }
+
+        if (sections.documents && sections.documents.length > 0) {
+          const backendDocs = toUploadedDocs(sections.documents);
+          const licenseDocs = backendDocs.filter(
+            (d) => d.documentType === "NMC license" || d.documentType === "license"
+          );
+          const certDocs = backendDocs.filter(
+            (d) => d.documentType === "Certification" || d.documentType === "cert"
+          );
+          if (licenseDocs.length > 0 || certDocs.length > 0) {
+            setDocs((prev) => ({
+              license: licenseDocs.length > 0 ? licenseDocs : prev.license,
+              cert: certDocs.length > 0 ? certDocs : prev.cert,
+            }));
+          }
         }
       } catch {
         // Continue with empty form
@@ -137,6 +166,21 @@ export default function TherapistOnboardingPage() {
       setStep(STEPS[currentIdx - 1].key);
     }
   };
+
+  const isStepValid = (() => {
+    switch (step) {
+      case "personal":
+        return form.firstName.trim().length > 0;
+      case "professional":
+        return form.specialty.trim().length > 0;
+      case "documents":
+        return docs.license.length > 0 || docs.cert.length > 0;
+      case "review":
+        return true;
+      default:
+        return false;
+    }
+  })();
 
   const handleSubmit = async () => {
     setError(null);
@@ -172,11 +216,8 @@ export default function TherapistOnboardingPage() {
     }
   };
 
-  const [error, setError] = useState<string | null>(null);
-
   if (loading || !user || loadingState) return null;
 
-  // Rejected state
   if (applicationStatus?.status === "REJECTED") {
     return (
       <div className="auth-bg flex min-h-[100svh] w-full flex-col items-center px-5">
@@ -186,7 +227,6 @@ export default function TherapistOnboardingPage() {
               <HeartPulse size={22} strokeWidth={2.25} />
             </span>
           </Link>
-
           <div className="mt-8 text-center">
             <div className="w-16 h-16 rounded-full bg-red-50 border-2 border-red-200 flex items-center justify-center mx-auto mb-5">
               <AlertCircle size={28} className="text-red-500" />
@@ -209,7 +249,6 @@ export default function TherapistOnboardingPage() {
     );
   }
 
-  // Submitted/pending state
   if (applicationStatus?.status === "SUBMITTED") {
     return (
       <div className="auth-bg flex min-h-[100svh] w-full flex-col items-center px-5">
@@ -219,7 +258,6 @@ export default function TherapistOnboardingPage() {
               <HeartPulse size={22} strokeWidth={2.25} />
             </span>
           </Link>
-
           <div className="mt-8 text-center">
             <div className="w-16 h-16 rounded-full bg-amber-50 border-2 border-amber-200 flex items-center justify-center mx-auto mb-5">
               <Clock size={28} className="text-amber-500" />
@@ -257,7 +295,6 @@ export default function TherapistOnboardingPage() {
           Tell us about your professional background.
         </p>
 
-        {/* Show reviewer feedback if changes required */}
         {applicationStatus?.status === "CHANGES_REQUIRED" && applicationStatus.feedback.length > 0 && (
           <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4">
             <h3 className="text-[13px] font-semibold text-red-800 mb-2">Changes Required</h3>
@@ -278,7 +315,7 @@ export default function TherapistOnboardingPage() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className={labelClass}>{t("auth.labelFirstName")}</label>
+                  <label className={labelClass}>{t("auth.labelFirstName")} <span className="text-red-500">*</span></label>
                   <input type="text" value={form.firstName} onChange={(e) => setForm((f) => ({ ...f, firstName: e.target.value }))} placeholder={t("auth.placeholderFirstName")} className={inputClass} />
                 </div>
                 <div>
@@ -308,20 +345,19 @@ export default function TherapistOnboardingPage() {
                   </select>
                 </div>
               </div>
-              <button type="button" onClick={goNext} className={`${primaryBtnClass} w-full`}>
-                Continue <ArrowRight size={16} />
-              </button>
+              <div className="flex justify-end pt-2">
+                <button type="button" onClick={goNext} disabled={!isStepValid} className={primaryBtnClass}>
+                  Continue <ArrowRight size={16} />
+                </button>
+              </div>
             </div>
           )}
 
           {step === "professional" && (
             <div className="space-y-4">
-              <button type="button" onClick={goBack} className="text-xs text-secondary flex items-center gap-1 cursor-pointer">
-                <ArrowLeft size={12} /> {t("auth.backBtn")}
-              </button>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className={labelClass}>{t("auth.labelSpecialty")}</label>
+                  <label className={labelClass}>{t("auth.labelSpecialty")} <span className="text-red-500">*</span></label>
                   <select value={form.specialty} onChange={(e) => setForm((f) => ({ ...f, specialty: e.target.value }))} className={inputClass}>
                     <option value="">{t("auth.selectOption")}</option>
                     {SPECIALTIES.map((s) => <option key={s} value={s}>{s}</option>)}
@@ -346,23 +382,25 @@ export default function TherapistOnboardingPage() {
                   value={form.bio}
                   onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}
                   placeholder="Tell patients about your approach and experience..."
-                  rows={20}
-                  className={`${inputClass}`}
+                  rows={8}
+                  className={`${inputClass} h-auto min-h-[160px] py-3 resize-y`}
                 />
               </div>
-              <button type="button" onClick={goNext} className={`${primaryBtnClass} w-full`}>
-                Continue <ArrowRight size={16} />
-              </button>
+              <div className="flex justify-between pt-2">
+                <button type="button" onClick={goBack} className={secondaryBtnClass}>
+                  <ArrowLeft size={16} /> {t("auth.backBtn")}
+                </button>
+                <button type="button" onClick={goNext} disabled={!isStepValid} className={primaryBtnClass}>
+                  Continue <ArrowRight size={16} />
+                </button>
+              </div>
             </div>
           )}
 
           {step === "documents" && (
             <div className="space-y-4">
-              <button type="button" onClick={goBack} className="text-xs text-secondary flex items-center gap-1 cursor-pointer">
-                <ArrowLeft size={12} /> {t("auth.backBtn")}
-              </button>
-              <h2 className="text-2xl font-display">Upload Documents</h2>
-              <p className="text-text-light text-sm">Your NMC license and certifications are required for verification.</p>
+              <h2 className="text-[18px] font-semibold text-text">Upload Documents</h2>
+              <p className="text-text-light text-[13px]">Your NMC license and certifications are required for verification.</p>
               <DocumentUploader
                 label={t("auth.labelUploadLicense")}
                 documentType="NMC license"
@@ -379,19 +417,21 @@ export default function TherapistOnboardingPage() {
                 required
                 maxFiles={3}
               />
-              <button type="button" onClick={goNext} className={`${primaryBtnClass} w-full`}>
-                Continue <ArrowRight size={16} />
-              </button>
+              <div className="flex justify-between pt-2">
+                <button type="button" onClick={goBack} className={secondaryBtnClass}>
+                  <ArrowLeft size={16} /> {t("auth.backBtn")}
+                </button>
+                <button type="button" onClick={goNext} disabled={!isStepValid} className={primaryBtnClass}>
+                  Continue <ArrowRight size={16} />
+                </button>
+              </div>
             </div>
           )}
 
           {step === "review" && (
             <div className="space-y-4">
-              <button type="button" onClick={goBack} className="text-xs text-secondary flex items-center gap-1 cursor-pointer">
-                <ArrowLeft size={12} /> {t("auth.backBtn")}
-              </button>
-              <h2 className="text-2xl font-display">Review Application</h2>
-              <p className="text-text-light text-sm">Please review your details before submitting.</p>
+              <h2 className="text-[18px] font-semibold text-text">Review Application</h2>
+              <p className="text-text-light text-[13px]">Please review your details before submitting.</p>
 
               <div className="rounded-lg border border-[#d8dadd] bg-white p-4 space-y-3">
                 <h3 className="text-[13px] font-semibold text-text">Personal Information</h3>
@@ -416,9 +456,9 @@ export default function TherapistOnboardingPage() {
 
               <div className="rounded-lg border border-[#d8dadd] bg-white p-4 space-y-3">
                 <h3 className="text-[13px] font-semibold text-text">Documents</h3>
-                <div className="text-[13px] text-text-light">
-                  <div>NMC License: {docs.license.length > 0 ? <span className="text-green-600">Uploaded</span> : <span className="text-red-500">Required</span>}</div>
-                  <div>Certification: {docs.cert.length > 0 ? <span className="text-green-600">Uploaded</span> : <span className="text-red-500">Required</span>}</div>
+                <div className="text-[13px] text-text-light space-y-1">
+                  <div>NMC License: {docs.license.length > 0 ? <span className="text-green-600">{docs.license.length} uploaded</span> : <span className="text-red-500">Required</span>}</div>
+                  <div>Certification: {docs.cert.length > 0 ? <span className="text-green-600">{docs.cert.length} uploaded</span> : <span className="text-red-500">Required</span>}</div>
                 </div>
               </div>
 
@@ -429,14 +469,20 @@ export default function TherapistOnboardingPage() {
               </p>
 
               {error && <p className="text-[12px] text-red-500">{error}</p>}
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={submitting}
-                className={`${primaryBtnClass} w-full`}
-              >
-                {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit application"}
-              </button>
+
+              <div className="flex justify-between pt-2">
+                <button type="button" onClick={goBack} className={secondaryBtnClass}>
+                  <ArrowLeft size={16} /> {t("auth.backBtn")}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={submitting}
+                  className={primaryBtnClass}
+                >
+                  {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit application"}
+                </button>
+              </div>
             </div>
           )}
         </div>
