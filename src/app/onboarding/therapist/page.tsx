@@ -30,6 +30,9 @@ const STEPS: { key: Step; label: string }[] = [
 const inputClass =
   "h-11 w-full rounded-[7px] border border-[#d8dadd] bg-white px-3.5 text-[14px] text-text placeholder:text-[14px] placeholder:text-text-light/60 transition-colors focus:border-voltage-lime focus:outline-none focus:ring-4 focus:ring-voltage-lime/15";
 
+const inputDisabledClass =
+  "h-11 w-full rounded-[7px] border border-[#e5e5e5] bg-[#f5f5f5] px-3.5 text-[14px] text-text-light cursor-not-allowed";
+
 const labelClass = "block text-[13px] font-medium text-[#555] mb-2";
 
 const primaryBtnClass =
@@ -37,6 +40,8 @@ const primaryBtnClass =
 
 const secondaryBtnClass =
   "inline-flex h-11 items-center justify-center gap-2 rounded-[7px] border border-[#d8dadd] bg-white px-7 text-[14px] font-semibold text-text transition-colors hover:bg-neutral-50 active:bg-neutral-100";
+
+const requiredMark = <span className="text-red-500 ml-0.5">*</span>;
 
 function toUploadedDocs(backendDocs: ApplicationSectionsData["documents"]): UploadedDoc[] {
   if (!backendDocs || !Array.isArray(backendDocs)) return [];
@@ -65,6 +70,7 @@ export default function TherapistOnboardingPage() {
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
+    email: "",
     phone: "",
     city: "",
     gender: "",
@@ -93,6 +99,8 @@ export default function TherapistOnboardingPage() {
   useEffect(() => {
     if (!user) return;
 
+    setForm((f) => ({ ...f, email: user.email || "" }));
+
     async function loadStatus() {
       try {
         const [status, sections] = await Promise.all([
@@ -114,7 +122,8 @@ export default function TherapistOnboardingPage() {
 
         if (sections.personal) {
           const nameParts = sections.personal.name?.split(" ") || [];
-          setForm({
+          setForm((f) => ({
+            ...f,
             firstName: nameParts[0] || "",
             lastName: nameParts.slice(1).join(" ") || "",
             phone: sections.personal.phone || "",
@@ -125,7 +134,7 @@ export default function TherapistOnboardingPage() {
             fee: sections.professional?.fee?.toString() || "",
             bio: sections.professional?.bio || "",
             license: sections.professional?.license || "",
-          });
+          }));
         }
 
         if (sections.documents && sections.documents.length > 0) {
@@ -170,11 +179,21 @@ export default function TherapistOnboardingPage() {
   const isStepValid = (() => {
     switch (step) {
       case "personal":
-        return form.firstName.trim().length > 0;
+        return (
+          form.firstName.trim().length > 0 &&
+          form.phone.trim().length > 0 &&
+          form.city.trim().length > 0 &&
+          form.gender.trim().length > 0
+        );
       case "professional":
-        return form.specialty.trim().length > 0;
+        return (
+          form.specialty.trim().length > 0 &&
+          form.experience.trim().length > 0 &&
+          form.fee.trim().length > 0 &&
+          form.license.trim().length > 0
+        );
       case "documents":
-        return docs.license.length > 0 || docs.cert.length > 0;
+        return docs.license.length > 0;
       case "review":
         return true;
       default:
@@ -184,7 +203,17 @@ export default function TherapistOnboardingPage() {
 
   const handleSubmit = async () => {
     setError(null);
-    if (!form.firstName.trim() || !form.specialty.trim()) {
+    if (
+      !form.firstName.trim() ||
+      !form.phone.trim() ||
+      !form.city.trim() ||
+      !form.gender.trim() ||
+      !form.specialty.trim() ||
+      !form.experience.trim() ||
+      !form.fee.trim() ||
+      !form.license.trim() ||
+      docs.license.length === 0
+    ) {
       setError("Please fill all required fields.");
       return;
     }
@@ -194,15 +223,15 @@ export default function TherapistOnboardingPage() {
       await updateApplication({
         personal: {
           name: `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
-          phone: form.phone || undefined,
-          city: form.city || undefined,
-          gender: form.gender || undefined,
+          phone: form.phone,
+          city: form.city,
+          gender: form.gender,
         },
         professional: {
           specialty: form.specialty,
-          experience: form.experience ? Number(form.experience) : undefined,
-          fee: form.fee ? Number(form.fee) : undefined,
-          license: form.license || undefined,
+          experience: Number(form.experience),
+          fee: Number(form.fee),
+          license: form.license,
           bio: form.bio || undefined,
         },
       });
@@ -315,7 +344,7 @@ export default function TherapistOnboardingPage() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className={labelClass}>{t("auth.labelFirstName")} <span className="text-red-500">*</span></label>
+                  <label className={labelClass}>{t("auth.labelFirstName")}{requiredMark}</label>
                   <input type="text" value={form.firstName} onChange={(e) => setForm((f) => ({ ...f, firstName: e.target.value }))} placeholder={t("auth.placeholderFirstName")} className={inputClass} />
                 </div>
                 <div>
@@ -324,19 +353,23 @@ export default function TherapistOnboardingPage() {
                 </div>
               </div>
               <div>
-                <label className={labelClass}>{t("auth.labelPhone")}</label>
+                <label className={labelClass}>Email{requiredMark}</label>
+                <input type="email" value={form.email} readOnly className={inputDisabledClass} />
+              </div>
+              <div>
+                <label className={labelClass}>{t("auth.labelPhone")}{requiredMark}</label>
                 <input type="tel" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} placeholder={t("auth.placeholderPhone")} className={inputClass} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className={labelClass}>{t("auth.labelCity")}</label>
+                  <label className={labelClass}>{t("auth.labelCity")}{requiredMark}</label>
                   <select value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} className={inputClass}>
                     <option value="">{t("auth.selectOption")}</option>
                     {CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className={labelClass}>{t("auth.labelGender")}</label>
+                  <label className={labelClass}>{t("auth.labelGender")}{requiredMark}</label>
                   <select value={form.gender} onChange={(e) => setForm((f) => ({ ...f, gender: e.target.value }))} className={inputClass}>
                     <option value="">{t("auth.selectOption")}</option>
                     <option value="Male">Male</option>
@@ -357,23 +390,23 @@ export default function TherapistOnboardingPage() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className={labelClass}>{t("auth.labelSpecialty")} <span className="text-red-500">*</span></label>
+                  <label className={labelClass}>{t("auth.labelSpecialty")}{requiredMark}</label>
                   <select value={form.specialty} onChange={(e) => setForm((f) => ({ ...f, specialty: e.target.value }))} className={inputClass}>
                     <option value="">{t("auth.selectOption")}</option>
                     {SPECIALTIES.map((s) => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className={labelClass}>{t("auth.labelExperience")}</label>
+                  <label className={labelClass}>{t("auth.labelExperience")}{requiredMark}</label>
                   <input type="number" value={form.experience} onChange={(e) => setForm((f) => ({ ...f, experience: e.target.value }))} placeholder={t("auth.placeholderExperience")} className={inputClass} />
                 </div>
               </div>
               <div>
-                <label className={labelClass}>{t("auth.labelFee")}</label>
+                <label className={labelClass}>{t("auth.labelFee")}{requiredMark}</label>
                 <input type="number" value={form.fee} onChange={(e) => setForm((f) => ({ ...f, fee: e.target.value }))} placeholder={t("auth.placeholderFee")} className={inputClass} />
               </div>
               <div>
-                <label className={labelClass}>{t("auth.labelLicense")}</label>
+                <label className={labelClass}>{t("auth.labelLicense")}{requiredMark}</label>
                 <input type="text" value={form.license} onChange={(e) => setForm((f) => ({ ...f, license: e.target.value }))} placeholder={t("auth.placeholderLicense")} className={inputClass} />
               </div>
               <div>
@@ -400,7 +433,7 @@ export default function TherapistOnboardingPage() {
           {step === "documents" && (
             <div className="space-y-4">
               <h2 className="text-[18px] font-semibold text-text">Upload Documents</h2>
-              <p className="text-text-light text-[13px]">Your NMC license and certifications are required for verification.</p>
+              <p className="text-text-light text-[13px]">Your NMC license is required for verification. Certifications are optional but recommended.</p>
               <DocumentUploader
                 label={t("auth.labelUploadLicense")}
                 documentType="NMC license"
@@ -414,7 +447,6 @@ export default function TherapistOnboardingPage() {
                 documentType="Certification"
                 docs={docs.cert}
                 onChange={(updater) => setDocs((prev) => ({ ...prev, cert: typeof updater === "function" ? updater(prev.cert) : updater }))}
-                required
                 maxFiles={3}
               />
               <div className="flex justify-between pt-2">
@@ -436,7 +468,9 @@ export default function TherapistOnboardingPage() {
               <div className="rounded-lg border border-[#d8dadd] bg-white p-4 space-y-3">
                 <h3 className="text-[13px] font-semibold text-text">Personal Information</h3>
                 <div className="grid grid-cols-2 gap-2 text-[13px]">
-                  <div><span className="text-text-light">Name:</span> {[form.firstName, form.lastName].filter(Boolean).join(" ") || "—"}</div>
+                  <div><span className="text-text-light">First Name:</span> {form.firstName || "—"}</div>
+                  <div><span className="text-text-light">Last Name:</span> {form.lastName || "—"}</div>
+                  <div className="col-span-2"><span className="text-text-light">Email:</span> {form.email || "—"}</div>
                   <div><span className="text-text-light">Phone:</span> {form.phone || "—"}</div>
                   <div><span className="text-text-light">City:</span> {form.city || "—"}</div>
                   <div><span className="text-text-light">Gender:</span> {form.gender || "—"}</div>
@@ -449,7 +483,7 @@ export default function TherapistOnboardingPage() {
                   <div><span className="text-text-light">Specialty:</span> {form.specialty || "—"}</div>
                   <div><span className="text-text-light">Experience:</span> {form.experience ? `${form.experience} years` : "—"}</div>
                   <div><span className="text-text-light">Fee:</span> {form.fee ? `NPR ${form.fee}` : "—"}</div>
-                  <div><span className="text-text-light">License:</span> {form.license || "—"}</div>
+                  <div><span className="text-text-light">License No:</span> {form.license || "—"}</div>
                 </div>
                 {form.bio && <div className="text-[13px]"><span className="text-text-light">Bio:</span> {form.bio}</div>}
               </div>
@@ -458,7 +492,7 @@ export default function TherapistOnboardingPage() {
                 <h3 className="text-[13px] font-semibold text-text">Documents</h3>
                 <div className="text-[13px] text-text-light space-y-1">
                   <div>NMC License: {docs.license.length > 0 ? <span className="text-green-600">{docs.license.length} uploaded</span> : <span className="text-red-500">Required</span>}</div>
-                  <div>Certification: {docs.cert.length > 0 ? <span className="text-green-600">{docs.cert.length} uploaded</span> : <span className="text-red-500">Required</span>}</div>
+                  <div>Certification: {docs.cert.length > 0 ? <span className="text-green-600">{docs.cert.length} uploaded</span> : <span className="text-text-light">Optional</span>}</div>
                 </div>
               </div>
 
