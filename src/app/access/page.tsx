@@ -225,8 +225,13 @@ export default function AccessPage() {
           setResendAfter(res.resend_after);
           setOtpCode("");
           setStep("otp");
-        } catch {
-          setOtpError(t("auth.couldntSendCode"));
+        } catch (sendOtpErr) {
+          const sendOtpStatus = (sendOtpErr as { status?: number } | null)?.status;
+          if (sendOtpStatus === 409) {
+            setOtpError(t("auth.accountExistsUsePassword"));
+          } else {
+            setOtpError(t("auth.couldntSendCode"));
+          }
         }
       } else {
         setOtpError(t("auth.couldntSendCode"));
