@@ -191,9 +191,6 @@ export default function PatientOnboardingPage() {
         </div>
 
         <div className="mt-2">
-          {stepErrors && (
-            <p role="alert" className="mb-3 text-[13px] text-red-500">{stepErrors}</p>
-          )}
           {step === "personal" && (
             <div className="space-y-4">
               <div>
@@ -480,7 +477,11 @@ export default function PatientOnboardingPage() {
           )}
         </div>
 
-        <div className="mt-6 flex items-center gap-3">
+      <div className="w-full flex flex-col mt-2">
+        {stepErrors && (
+          <p role="alert" className=" mt-4 text-center text-[13px] text-red-500">{stepErrors}</p>
+        )}
+        <div className="mt-2 flex items-center gap-3">
           {currentIdx > 0 && (
             <button
               type="button"
@@ -512,7 +513,7 @@ export default function PatientOnboardingPage() {
             )}
           </button>
         </div>
-
+      </div>
         {/* Skip button for optional steps */}
         {(step === "health" || step === "emergency" || step === "family") && (
           <button
