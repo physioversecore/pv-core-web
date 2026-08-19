@@ -35,11 +35,13 @@ export default function PatientOnboardingPage() {
   const [step, setStep] = useState<Step>("personal");
   const [submitting, setSubmitting] = useState(false);
   const [loadingState, setLoadingState] = useState(true);
+  const [stepErrors, setStepErrors] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     name: user?.name ?? "",
     phone: user?.phone ?? "",
     city: user?.city ?? "",
+    email:user?.email,
     address: "",
     dob: "",
     gender: "",
@@ -95,16 +97,39 @@ export default function PatientOnboardingPage() {
     loadStatus();
   }, [user, router]);
 
-  const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const set = (k: string, v: string) => {
+    setForm((f) => ({ ...f, [k]: v }));
+    if (stepErrors) setStepErrors(null);
+  };
 
   const currentIdx = STEPS.findIndex((s) => s.key === step);
 
+  const validateStep = (): string | null => {
+    if (step === "personal") {
+      if (!form.name.trim()) return "Full name is required";
+      if (!form.dob) return "Date of birth is required";
+      if (!form.gender) return "Gender is required";
+    }
+    if (step === "contact") {
+      if (!form.phone.trim()) return "Phone number is required";
+      if (!form.city) return "City is required";
+      if (!form.address.trim()) return "Address is required";
+    }
+    return null;
+  };
+
   const goNext = async () => {
-    // Save progress before moving to next step
+    const err = validateStep();
+    if (err) {
+      setStepErrors(err);
+      return;
+    }
+    setStepErrors(null);
+
     try {
       await saveOnboardingProgress(step, form);
     } catch {
-      // Silent fail - progress will be lost on refresh but we continue
+      // Silent fail
     }
 
     if (currentIdx < STEPS.length - 1) {
@@ -166,6 +191,9 @@ export default function PatientOnboardingPage() {
         </div>
 
         <div className="mt-2">
+          {stepErrors && (
+            <p role="alert" className="mb-3 text-[13px] text-red-500">{stepErrors}</p>
+          )}
           {step === "personal" && (
             <div className="space-y-4">
               <div>
