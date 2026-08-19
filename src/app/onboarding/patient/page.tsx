@@ -169,6 +169,15 @@ export default function PatientOnboardingPage() {
           {step === "personal" && (
             <div className="space-y-4">
               <div>
+                <label className={labelClass}>Email</label>
+                <input
+                  type="email"
+                  value={user?.email ?? ""}
+                  readOnly
+                  className={`${inputClass} bg-neutral-50 text-text-light cursor-not-allowed`}
+                />
+              </div>
+              <div>
                 <label className={labelClass}>Full name</label>
                 <input
                   type="text"

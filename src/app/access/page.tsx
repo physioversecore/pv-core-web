@@ -51,7 +51,7 @@ type Step = "email" | "welcome" | "otp";
 
 export default function AccessPage() {
   const { t } = useLang();
-  const { user, loading, login, loginWithGoogle, loginWithOtp } = useAuth();
+  const { user, loading, login, loginWithGoogle, loginWithOtp, refreshSession } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl");
@@ -252,6 +252,7 @@ export default function AccessPage() {
         });
         toast.success(t("auth.successWelcome") + ", " + u.name);
         redirected.current = true;
+        await refreshSession();
         router.replace("/onboarding/patient");
       } else {
         const u = await loginWithOtp(email.trim(), otpCode);
@@ -264,7 +265,7 @@ export default function AccessPage() {
     } finally {
       setSubmitting(false);
     }
-  }, [otpCode, email, isNewSignup, loginWithOtp, routeAfterAuth, t]);
+  }, [otpCode, email, isNewSignup, loginWithOtp, routeAfterAuth, refreshSession, t]);
 
   const handleResendOtp = async () => {
     if (resendAfter > 0) return;
