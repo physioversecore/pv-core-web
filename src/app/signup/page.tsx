@@ -26,7 +26,7 @@ const EMAIL_RE = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
 
 export default function SignupPage() {
   const { t } = useLang();
-  const { user, loading } = useAuth();
+  const { user, loading, refreshSession } = useAuth();
   const router = useRouter();
 
   const [step, setStep] = useState<Step>("account");
@@ -168,9 +168,10 @@ export default function SignupPage() {
           role: "THERAPIST",
         });
 
-        toast.success("Account created! Now complete your professional profile.");
         redirected.current = true;
-        router.replace("/onboarding/therapist");
+        await refreshSession();
+        toast.success("Account created! Now complete your professional profile.");
+        router.push("/onboarding/therapist");
       } else {
         setOtpError(t("auth.errorOtpFailed"));
       }
@@ -184,7 +185,7 @@ export default function SignupPage() {
     } finally {
       setSubmitting(false);
     }
-  }, [otpCode, email, firstName, lastName, password, router, t]);
+  }, [otpCode, email, firstName, lastName, password, router, t, refreshSession]);
 
   const handleResendOtp = async () => {
     if (resendAfter > 0) return;
