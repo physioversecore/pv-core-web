@@ -131,20 +131,16 @@ export function SiteHeader({
               <>
                 <Link
                   href="/access"
-                  className={`h-9 inline-flex items-center px-4 rounded-lg text-sm font-medium transition-colors ${
-                    darkText
-                      ? "text-text border border-border hover:bg-surface"
-                      : "text-white border border-white/70 hover:bg-white/10"
-                  }`}
+                  className={`h-9 inline-flex items-center px-4 rounded-lg bg-voltage-lime text-text text-sm font-semibold transition-colors }`}
                 >
                   {t("header.logIn")}
                 </Link>
-                <Link
+                {/*<Link
                   href="/access"
                   className="h-9 inline-flex items-center px-4 rounded-lg bg-voltage-lime text-carbon-ink text-sm font-semibold transition hover:opacity-90"
                 >
                   {t("header.signUp")}
-                </Link>
+                </Link>*/}
               </>
             )}
           </div>

@@ -217,7 +217,7 @@ const ne = {
     googleComingSoon: "गुगल लगइन चाँडै उपलब्ध हुनेछ",
     emailAddress: "इमेल ठेगाना",
     invalidEmail: "कृपया मान्य इमेल ठेगाना प्रविष्ट गर्नुहोस्।",
-    physioPrompt: "चिकित्सक ? Sign up as ",
+    physioPrompt: "चिकित्सक? Register as a",
     welcomeTo: "स्वागत छ",
     noPassword: "नयाँ हुनुहुन्छ वा पासवर्ड बिर्सनुभयो? एकपटक प्रयोग हुने कोड प्रयोग गर्नुहोस्।",
     willEmailCodeTo: "आफ्नो कोड यहाँ प्राप्त गर्नुहोस्",

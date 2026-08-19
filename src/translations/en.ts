@@ -220,7 +220,7 @@ const en = {
     googleComingSoon: "Google sign-in is coming soon",
     emailAddress: "Email address",
     invalidEmail: "Please enter a valid email address.",
-    physioPrompt: "Doctor ? Sign up as ",
+    physioPrompt: "Doctor? Register as a",
     welcomeTo: "Welcome to",
     noPassword: "New here or forgot your password? Try one-time code.",
     willEmailCodeTo: "Receive yours at",
