@@ -211,27 +211,22 @@ export default function AccessPage() {
     setOtpError(null);
     setSending(true);
     try {
-      const res = await sendLoginOtp(email.trim(), emailName());
-      setIsNewSignup(false);
+      const res = await sendOtp(email.trim(), emailName());
+      setIsNewSignup(true);
       setResendAfter(res.resend_after);
       setOtpCode("");
       setStep("otp");
     } catch (err) {
       const status = (err as { status?: number } | null)?.status;
-      if (status === 404) {
+      if (status === 409) {
         try {
-          const res = await sendOtp(email.trim(), emailName());
-          setIsNewSignup(true);
+          const res = await sendLoginOtp(email.trim(), emailName());
+          setIsNewSignup(false);
           setResendAfter(res.resend_after);
           setOtpCode("");
           setStep("otp");
-        } catch (sendOtpErr) {
-          const sendOtpStatus = (sendOtpErr as { status?: number } | null)?.status;
-          if (sendOtpStatus === 409) {
-            setOtpError(t("auth.accountExistsUsePassword"));
-          } else {
-            setOtpError(t("auth.couldntSendCode"));
-          }
+        } catch {
+          setOtpError(t("auth.couldntSendCode"));
         }
       } else {
         setOtpError(t("auth.couldntSendCode"));
@@ -257,7 +252,7 @@ export default function AccessPage() {
         });
         toast.success(t("auth.successWelcome") + ", " + u.name);
         redirected.current = true;
-        await routeAfterAuth(u);
+        router.replace("/onboarding/patient");
       } else {
         const u = await loginWithOtp(email.trim(), otpCode);
         toast.success(t("auth.successWelcome") + ", " + u.name);
