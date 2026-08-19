@@ -10,7 +10,7 @@ export function StepProgress({
   current: number;
 }) {
   return (
-    <div className="flex items-center gap-2 mb-8 -ml-1">
+    <div className="flex items-center gap-2 justify-between mb-6 md:-ml-25">
       {steps.map((s, i) => {
         const done = i < current;
         const active = i === current;
@@ -35,7 +35,7 @@ export function StepProgress({
               {s.label}
             </span>
             {i < steps.length - 1 && (
-              <div className="w-6 h-px bg-border mx-1 hidden sm:block" />
+              <div className="w-4 sm:w-5 h-px bg-border mx-1 " />
             )}
           </div>
         );

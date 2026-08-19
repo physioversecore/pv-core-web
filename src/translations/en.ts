@@ -233,7 +233,6 @@ const en = {
     changeEmail: "Change email",
     verifyToJoin: "Verify to create account",
     verifyToJoinDesc: "No account found — we'll set one up for you. Enter the code sent to",
-    accountExistsUsePassword: "Account already exists. Please log in with your password.",
   },
 
   cart: {

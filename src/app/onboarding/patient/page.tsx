@@ -23,7 +23,7 @@ const STEPS: { key: Step; label: string }[] = [
 ];
 
 const inputClass =
-  "h-11 w-full rounded-[7px] border border-[#d8dadd] bg-white px-3.5 text-[14px] text-text placeholder:text-[14px] placeholder:text-text-light/60 transition-colors focus:border-voltage-lime focus:outline-none focus:ring-4 focus:ring-voltage-lime/15";
+  "h-11 w-full rounded-[7px] border border-[#d8dadd] px-3.5 text-[14px] text-text placeholder:text-[14px] placeholder:text-text-light/60 transition-colors focus:border-voltage-lime focus:outline-none focus:ring-4 focus:ring-voltage-lime/15";
 
 const labelClass = "block text-[13px] font-medium text-[#555] mb-2";
 
@@ -174,7 +174,7 @@ export default function PatientOnboardingPage() {
                   type="email"
                   value={user?.email ?? ""}
                   readOnly
-                  className={`${inputClass} bg-neutral-50 text-text-light cursor-not-allowed`}
+                  className={`${inputClass} bg-ash/70 text-text-light cursor-not-allowed `}
                 />
               </div>
               <div>
