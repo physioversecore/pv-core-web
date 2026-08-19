@@ -231,6 +231,8 @@ const en = {
     couldntSendCode: "Couldn't send the code. Please try again.",
     checkYourEmail: "Check your email",
     changeEmail: "Change email",
+    verifyToJoin: "Verify to create account",
+    verifyToJoinDesc: "No account found — we'll set one up for you. Enter the code sent to",
   },
 
   cart: {

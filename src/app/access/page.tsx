@@ -7,7 +7,7 @@ import { ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/auth";
 import { useLang } from "@/context/i18n";
 import { toast } from "sonner";
-import { sendLoginOtp } from "@/services/auth-flow";
+import { sendLoginOtp, sendOtp, verifyOtp, signup as signupPatient } from "@/services/auth-flow";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { GoogleIcon } from "@/components/auth/GoogleIcon";
 import { OtpInput } from "@/components/auth/OtpInput";
@@ -69,6 +69,7 @@ export default function AccessPage() {
   const [otpError, setOtpError] = useState<string | null>(null);
   const [otpCode, setOtpCode] = useState("");
   const [resendAfter, setResendAfter] = useState(0);
+  const [isNewSignup, setIsNewSignup] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const redirected = useRef(false);
@@ -211,13 +212,22 @@ export default function AccessPage() {
     setSending(true);
     try {
       const res = await sendLoginOtp(email.trim(), emailName());
+      setIsNewSignup(false);
       setResendAfter(res.resend_after);
       setOtpCode("");
       setStep("otp");
     } catch (err) {
       const status = (err as { status?: number } | null)?.status;
       if (status === 404) {
-        setOtpError("No account found with this email.");
+        try {
+          const res = await sendOtp(email.trim(), emailName());
+          setIsNewSignup(true);
+          setResendAfter(res.resend_after);
+          setOtpCode("");
+          setStep("otp");
+        } catch {
+          setOtpError(t("auth.couldntSendCode"));
+        }
       } else {
         setOtpError(t("auth.couldntSendCode"));
       }
@@ -231,22 +241,38 @@ export default function AccessPage() {
     setOtpError(null);
     setSubmitting(true);
     try {
-      const u = await loginWithOtp(email.trim(), otpCode);
-      toast.success(t("auth.successWelcome") + ", " + u.name);
-      redirected.current = true;
-      await routeAfterAuth(u);
+      if (isNewSignup) {
+        await verifyOtp(email.trim(), otpCode, "signup");
+        const tempPw = `Pvc${Date.now().toString(36)}!`;
+        const u = await signupPatient({
+          name: emailName(),
+          email: email.trim(),
+          password: tempPw,
+          role: "patient",
+        });
+        toast.success(t("auth.successWelcome") + ", " + u.name);
+        redirected.current = true;
+        await routeAfterAuth(u);
+      } else {
+        const u = await loginWithOtp(email.trim(), otpCode);
+        toast.success(t("auth.successWelcome") + ", " + u.name);
+        redirected.current = true;
+        await routeAfterAuth(u);
+      }
     } catch {
       setOtpError(t("auth.errorOtpFailed"));
     } finally {
       setSubmitting(false);
     }
-  }, [otpCode, email, loginWithOtp, routeAfterAuth, t]);
+  }, [otpCode, email, isNewSignup, loginWithOtp, routeAfterAuth, t]);
 
   const handleResendOtp = async () => {
     if (resendAfter > 0) return;
     setOtpError(null);
     try {
-      const res = await sendLoginOtp(email.trim(), emailName());
+      const res = isNewSignup
+        ? await sendOtp(email.trim(), emailName())
+        : await sendLoginOtp(email.trim(), emailName());
       setResendAfter(res.resend_after);
       setOtpCode("");
       toast.success(t("auth.otpSentTo"));
@@ -398,17 +424,17 @@ export default function AccessPage() {
       {step === "otp" && (
         <div className="flex flex-col items-center text-center">
           <h1 className="text-[24px] font-semibold leading-tight tracking-[-0.01em] text-text">
-            {t("auth.checkYourEmail")}
+            {isNewSignup ? t("auth.verifyToJoin") : t("auth.checkYourEmail")}
           </h1>
           <p className="mt-3 max-w-[330px] text-[14px] leading-[1.5] text-text-light">
-            {t("auth.otpSentTo")}{" "}
-              <span className="font-medium text-text">{email}</span>
-              <button
-                type="button"
-                onClick={() => setStep("email")}
-                className="ml-1.5 cursor-pointer text-[13px] font-medium text-blue-400 hover:underline"
-              >{t("common.edit")}
-              </button>
+            {isNewSignup ? t("auth.verifyToJoinDesc") : <>{t("auth.otpSentTo")}{" "}</>}
+            <span className="font-medium text-text">{email}</span>
+            <button
+              type="button"
+              onClick={() => setStep("email")}
+              className="ml-1.5 cursor-pointer text-[13px] font-medium text-blue-400 hover:underline"
+            >{t("common.edit")}
+            </button>
           </p>
 
           <div className="mt-6 w-full">
