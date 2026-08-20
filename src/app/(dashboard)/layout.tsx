@@ -79,6 +79,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (loading || !user) return null;
   if (user.role === "therapist" && user.status === "PENDING") return null;
 
+  const userPrefix = ROLE_ROUTES[user.role];
+  if (userPrefix && !pathname.startsWith(userPrefix)) return null;
+
   const labelToKey: Record<string, string> = {
     "Overview": "nav.overview",
     "My Sessions": "nav.mySessions",

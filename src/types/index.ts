@@ -44,6 +44,7 @@ export interface PatientProfile {
   name: string;
   phone: string;
   city: string;
+  photo?: string;
   address?: string;
   history?: string;
   dob?: string;

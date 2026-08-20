@@ -441,15 +441,17 @@ export default function PatientOnboardingPage() {
               <div className="rounded-lg border border-[#d8dadd] bg-white p-4 space-y-3">
                 <h3 className="text-[13px] font-semibold text-text">Personal Information</h3>
                 <div className="grid grid-cols-2 gap-2 text-[13px]">
+
+                  <div className="col-span-2"><span className="text-text-light">Email:</span> {user.email||form.email || "—"}</div>
                   <div><span className="text-text-light">Name:</span> {form.name || "—"}</div>
                   <div><span className="text-text-light">DOB:</span> {form.dob || "—"}</div>
                   <div><span className="text-text-light">Gender:</span> {form.gender || "—"}</div>
-                  <div><span className="text-text-light">Phone:</span> {form.phone || "—"}</div>
                 </div>
               </div>
               <div className="rounded-lg border border-[#d8dadd] bg-white p-4 space-y-3">
                 <h3 className="text-[13px] font-semibold text-text">Contact & Address</h3>
                 <div className="grid grid-cols-2 gap-2 text-[13px]">
+                  <div><span className="text-text-light">Phone:</span> {form.phone || "—"}</div>
                   <div><span className="text-text-light">City:</span> {form.city || "—"}</div>
                   <div><span className="text-text-light">Address:</span> {form.address || "—"}</div>
                 </div>
