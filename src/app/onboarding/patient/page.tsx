@@ -305,8 +305,8 @@ export default function PatientOnboardingPage() {
                   value={form.medicalHistory}
                   onChange={(e) => set("medicalHistory", e.target.value)}
                   placeholder="Surgeries, chronic conditions, allergies, medications..."
-                  rows={4}
-                  className={`${inputClass} resize-none`}
+                  rows={8}
+                  className={"w-full min-h-[180px] rounded-[7px] border border-[#d8dadd] px-3.5 text-[14px] text-text placeholder:text-[14px] placeholder:text-text-light/60 transition-colors focus:border-voltage-lime focus:outline-none focus:ring-4 focus:ring-voltage-lime/15"}
                 />
               </div>
             </div>
