@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifySession } from "@/services/api/auth-session";
-import { getRoleForPath, isPublicPath, ROLE_ROUTE } from "@/services/api/auth-constants";
+import { getRoleForPath, isPublicPath, ROLE_ROUTE, type UserRole } from "@/services/api/auth-constants";
 
 const SESSION_COOKIE = "sahayatri.session";
+
+const ONBOARDING_ROLE_MAP: Record<string, UserRole> = {
+  "/onboarding/therapist": "therapist",
+  "/onboarding/patient": "patient",
+};
 
 function clearSessionAndRedirect(request: NextRequest, target: string): NextResponse {
   const url = new URL(target, request.url);
@@ -25,9 +30,28 @@ function isSafeCallbackPath(path: string): boolean {
   return true;
 }
 
+function getOnboardingRole(pathname: string): UserRole | null {
+  for (const [prefix, role] of Object.entries(ONBOARDING_ROLE_MAP)) {
+    if (pathname === prefix || pathname.startsWith(`${prefix}/`)) return role;
+  }
+  return null;
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const token = request.cookies.get(SESSION_COOKIE)?.value;
+
+  const onboardingRole = getOnboardingRole(pathname);
+  if (onboardingRole) {
+    if (!token) return redirectToAccess(request);
+
+    const result = await verifySession(token);
+    if (!result.ok) return clearSessionAndRedirect(request, "/access");
+    if (result.payload.role !== onboardingRole) {
+      return NextResponse.redirect(new URL(ROLE_ROUTE[result.payload.role], request.url));
+    }
+    return NextResponse.next();
+  }
 
   if (!isPublicPath(pathname) && getRoleForPath(pathname) !== null) {
     if (!token) {
