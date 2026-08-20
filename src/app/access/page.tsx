@@ -51,7 +51,7 @@ type Step = "email" | "welcome" | "otp";
 
 export default function AccessPage() {
   const { t } = useLang();
-  const { user, loading, login, loginWithGoogle, loginWithOtp, refreshSession } = useAuth();
+  const { user, loading, login, loginWithGoogle, loginWithOtp } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl");
@@ -244,6 +244,7 @@ export default function AccessPage() {
       if (isNewSignup) {
         await verifyOtp(email.trim(), otpCode, "signup");
         const tempPw = `Pvc${Date.now().toString(36)}!`;
+        redirected.current = true;
         const u = await signupPatient({
           name: emailName(),
           email: email.trim(),
@@ -251,13 +252,11 @@ export default function AccessPage() {
           role: "patient",
         });
         toast.success(t("auth.successWelcome") + ", " + u.name);
-        redirected.current = true;
-        await refreshSession();
         router.replace("/onboarding/patient");
       } else {
+        redirected.current = true;
         const u = await loginWithOtp(email.trim(), otpCode);
         toast.success(t("auth.successWelcome") + ", " + u.name);
-        redirected.current = true;
         await routeAfterAuth(u);
       }
     } catch {
@@ -265,7 +264,7 @@ export default function AccessPage() {
     } finally {
       setSubmitting(false);
     }
-  }, [otpCode, email, isNewSignup, loginWithOtp, routeAfterAuth, refreshSession, t]);
+  }, [otpCode, email, isNewSignup, loginWithOtp, routeAfterAuth, t]);
 
   const handleResendOtp = async () => {
     if (resendAfter > 0) return;

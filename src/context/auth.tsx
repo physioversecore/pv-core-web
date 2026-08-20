@@ -137,7 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshSession = async () => {
     const session = await AuthService.getSession();
-    setUser(session as User | null);
+    if (session) setUser(session as User);
   };
 
   return (

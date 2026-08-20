@@ -26,7 +26,7 @@ const EMAIL_RE = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
 
 export default function SignupPage() {
   const { t } = useLang();
-  const { user, loading, refreshSession } = useAuth();
+  const { user, loading, signupTherapist } = useAuth();
   const router = useRouter();
 
   const [step, setStep] = useState<Step>("account");
@@ -160,16 +160,14 @@ export default function SignupPage() {
     try {
       const result = await verifyOtp(email.trim(), otpCode, "signup");
       if (result.verified) {
-        const { signup } = await import("@/services/auth-flow");
-        const u = await signup({
+        redirected.current = true;
+        await signupTherapist({
           name: `${firstName.trim()} ${lastName.trim()}`,
           email: email.trim(),
           password,
-          role: "THERAPIST",
+          specialty: "",
         });
 
-        redirected.current = true;
-        await refreshSession();
         toast.success("Account created! Now complete your professional profile.");
         router.push("/onboarding/therapist");
       } else {
@@ -185,7 +183,7 @@ export default function SignupPage() {
     } finally {
       setSubmitting(false);
     }
-  }, [otpCode, email, firstName, lastName, password, router, t, refreshSession]);
+  }, [otpCode, email, firstName, lastName, password, router, t, signupTherapist]);
 
   const handleResendOtp = async () => {
     if (resendAfter > 0) return;
