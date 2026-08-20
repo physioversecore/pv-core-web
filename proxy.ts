@@ -1,66 +1,60 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifySession } from "@/services/api/auth-session";
+import { getRoleForPath, isPublicPath, ROLE_ROUTE } from "@/services/api/auth-constants";
 
 const SESSION_COOKIE = "sahayatri.session";
 
-const ROLE_ROUTE: Record<string, string> = {
-  patient: "/patient",
-  therapist: "/therapist",
-  admin: "/admin",
-};
-
-const PUBLIC_PREFIXES = ["/access", "/signup", "/forgot-password", "/reset-password", "/onboarding"];
-
-function isProtectedPath(pathname: string): boolean {
-  if (PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))) return false;
-  return Object.values(ROLE_ROUTE).some((p) => pathname === p || pathname.startsWith(p + "/"));
+function clearSessionAndRedirect(request: NextRequest, target: string): NextResponse {
+  const url = new URL(target, request.url);
+  const response = NextResponse.redirect(url);
+  response.cookies.delete(SESSION_COOKIE);
+  return response;
 }
 
-function decodeJwtPayload(token: string): Record<string, unknown> | null {
-  try {
-    const parts = token.split(".");
-    if (parts.length !== 3) return null;
-    const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-    return JSON.parse(atob(base64));
-  } catch {
-    return null;
+function redirectToAccess(request: NextRequest, callbackUrl?: string): NextResponse {
+  const url = new URL("/access", request.url);
+  if (callbackUrl) {
+    url.searchParams.set("callbackUrl", callbackUrl);
   }
+  return NextResponse.redirect(url);
 }
 
-export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+function isSafeCallbackPath(path: string): boolean {
+  if (!path.startsWith("/")) return false;
+  if (path.startsWith("//")) return false;
+  return true;
+}
+
+export async function proxy(request: NextRequest) {
+  const { pathname, search } = request.nextUrl;
   const token = request.cookies.get(SESSION_COOKIE)?.value;
 
-  if (isProtectedPath(pathname)) {
+  if (!isPublicPath(pathname) && getRoleForPath(pathname) !== null) {
     if (!token) {
-      const accessUrl = new URL("/access", request.url);
-      accessUrl.searchParams.set("callbackUrl", pathname);
-      return NextResponse.redirect(accessUrl);
+      const callback = isSafeCallbackPath(pathname + search) ? pathname + search : undefined;
+      return redirectToAccess(request, callback);
     }
 
-    const payload = decodeJwtPayload(token);
-    if (!payload) {
-      const accessUrl = new URL("/access", request.url);
-      accessUrl.searchParams.set("callbackUrl", pathname);
-      return NextResponse.redirect(accessUrl);
+    const result = await verifySession(token);
+    if (!result.ok) {
+      return clearSessionAndRedirect(request, "/access");
     }
 
-    if (payload.exp && Date.now() >= (payload.exp as number) * 1000) {
-      const accessUrl = new URL("/access", request.url);
-      accessUrl.searchParams.set("callbackUrl", pathname);
-      return NextResponse.redirect(accessUrl);
-    }
-
-    const role = payload.role as string | undefined;
-    if (role && ROLE_ROUTE[role] && !pathname.startsWith(ROLE_ROUTE[role])) {
+    const { role } = result.payload;
+    const requiredRole = getRoleForPath(pathname);
+    if (requiredRole && role !== requiredRole) {
       return NextResponse.redirect(new URL(ROLE_ROUTE[role], request.url));
     }
   }
 
   if (pathname === "/access" && token) {
-    const payload = decodeJwtPayload(token);
-    if (payload && !(payload.exp && Date.now() >= (payload.exp as number) * 1000)) {
-      return NextResponse.redirect(new URL("/", request.url));
+    const result = await verifySession(token);
+    if (result.ok) {
+      return NextResponse.redirect(new URL(ROLE_ROUTE[result.payload.role], request.url));
     }
+    const response = NextResponse.next();
+    response.cookies.delete(SESSION_COOKIE);
+    return response;
   }
 
   return NextResponse.next();

@@ -11,11 +11,7 @@ import { useLang, type TKey } from "@/context/i18n";
 import { useBookingBadge } from "@/context/booking-badge";
 import { useComplaintBadge } from "@/context/complaint-badge";
 
-const ROLE_ROUTES: Record<string, string> = {
-  patient: "/patient",
-  therapist: "/therapist",
-  admin: "/admin",
-};
+import { ROLE_ROUTE, type UserRole } from "@/services/api/auth-constants";
 
 const rolePrefixes = [
   { prefix: "/patient", nav: patientNav },
@@ -41,8 +37,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       router.replace("/onboarding/therapist");
       return;
     }
-    const expectedPrefix = ROLE_ROUTES[user.role];
-    if (!pathname.startsWith(expectedPrefix)) {
+    const expectedPrefix = ROLE_ROUTE[user.role as UserRole];
+    if (expectedPrefix && !pathname.startsWith(expectedPrefix)) {
       router.replace(expectedPrefix);
     }
   }, [loading, user, pathname, router]);
@@ -79,7 +75,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (loading || !user) return null;
   if (user.role === "therapist" && user.status === "PENDING") return null;
 
-  const userPrefix = ROLE_ROUTES[user.role];
+  const userPrefix = ROLE_ROUTE[user.role as UserRole];
   if (userPrefix && !pathname.startsWith(userPrefix)) return null;
 
   const labelToKey: Record<string, string> = {
