@@ -9,7 +9,7 @@ import { useLang } from "@/context/i18n";
 import { toast } from "sonner";
 import { completeOnboarding, saveOnboardingProgress, getOnboardingStatus } from "@/services/api/patients";
 import { StepProgress } from "@/components/auth/StepProgress";
-import { CITIES } from "@/constants";
+import { DatePicker } from "@/components/ui/date-picker";
 
 type Step = "personal" | "contact" | "health" | "emergency" | "family" | "review";
 
@@ -35,10 +35,10 @@ export default function PatientOnboardingPage() {
   const [step, setStep] = useState<Step>("personal");
   const [submitting, setSubmitting] = useState(false);
   const [loadingState, setLoadingState] = useState(true);
-  const [stepErrors, setStepErrors] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const [form, setForm] = useState({
-    name: user?.name ?? "",
+    name:"",
     phone: user?.phone ?? "",
     city: user?.city ?? "",
     email:user?.email,
@@ -99,32 +99,39 @@ export default function PatientOnboardingPage() {
 
   const set = (k: string, v: string) => {
     setForm((f) => ({ ...f, [k]: v }));
-    if (stepErrors) setStepErrors(null);
+    if (fieldErrors[k]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[k];
+        return next;
+      });
+    }
   };
 
   const currentIdx = STEPS.findIndex((s) => s.key === step);
 
-  const validateStep = (): string | null => {
+  const validateStep = (): Record<string, string> => {
+    const errors: Record<string, string> = {};
     if (step === "personal") {
-      if (!form.name.trim()) return "Full name is required";
-      if (!form.dob) return "Date of birth is required";
-      if (!form.gender) return "Gender is required";
+      if (!form.name.trim()) errors.name = "Full name is required";
+      if (!form.dob) errors.dob = "Date of birth is required";
+      if (!form.gender) errors.gender = "Gender is required";
     }
     if (step === "contact") {
-      if (!form.phone.trim()) return "Phone number is required";
-      if (!form.city) return "City is required";
-      if (!form.address.trim()) return "Address is required";
+      if (!form.phone.trim()) errors.phone = "Phone number is required";
+      if (!form.city.trim()) errors.city = "City is required";
+      if (!form.address.trim()) errors.address = "Address is required";
     }
-    return null;
+    return errors;
   };
 
   const goNext = async () => {
-    const err = validateStep();
-    if (err) {
-      setStepErrors(err);
+    const errors = validateStep();
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
       return;
     }
-    setStepErrors(null);
+    setFieldErrors({});
 
     try {
       await saveOnboardingProgress(step, form);
@@ -203,37 +210,40 @@ export default function PatientOnboardingPage() {
                 />
               </div>
               <div>
-                <label className={labelClass}>Full name</label>
+                <label className={labelClass}>Full name <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   value={form.name}
                   onChange={(e) => set("name", e.target.value)}
                   placeholder="Your full name"
-                  className={inputClass}
+                  className={`${inputClass} ${fieldErrors.name ? "border-red-500" : ""}`}
                 />
+                {fieldErrors.name && <p className="mt-1 text-[12px] text-red-500">{fieldErrors.name}</p>}
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className={labelClass}>Date of birth</label>
-                  <input
-                    type="date"
+                  <label className={labelClass}>Date of birth <span className="text-red-500">*</span></label>
+                  <DatePicker
                     value={form.dob}
-                    onChange={(e) => set("dob", e.target.value)}
-                    className={inputClass}
+                    onChange={(d) => set("dob", d)}
+                    placeholder="Pick a date"
+                    className={`${fieldErrors.dob ? "border-red-500" : ""} h-11 rounded-[7px] border-[#d8dadd] text-text hover:bg-transparent focus:border-voltage-lime focus:outline-none focus:ring-4 focus:ring-voltage-lime/15`}
                   />
+                  {fieldErrors.dob && <p className="mt-1 text-[12px] text-red-500">{fieldErrors.dob}</p>}
                 </div>
                 <div>
-                  <label className={labelClass}>Gender</label>
+                  <label className={labelClass}>Gender <span className="text-red-500">*</span></label>
                   <select
                     value={form.gender}
                     onChange={(e) => set("gender", e.target.value)}
-                    className={inputClass}
+                    className={`${inputClass} ${fieldErrors.gender ? "border-red-500" : ""}`}
                   >
                     <option value="">Select</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
                     <option value="Other">Other</option>
                   </select>
+                  {fieldErrors.gender && <p className="mt-1 text-[12px] text-red-500">{fieldErrors.gender}</p>}
                 </div>
               </div>
             </div>
@@ -242,37 +252,37 @@ export default function PatientOnboardingPage() {
           {step === "contact" && (
             <div className="space-y-4">
               <div>
-                <label className={labelClass}>Phone number</label>
+                <label className={labelClass}>Phone number <span className="text-red-500">*</span></label>
                 <input
                   type="tel"
                   value={form.phone}
                   onChange={(e) => set("phone", e.target.value)}
                   placeholder="98XXXXXXXX"
-                  className={inputClass}
+                  className={`${inputClass} ${fieldErrors.phone ? "border-red-500" : ""}`}
                 />
+                {fieldErrors.phone && <p className="mt-1 text-[12px] text-red-500">{fieldErrors.phone}</p>}
               </div>
               <div>
-                <label className={labelClass}>City</label>
-                <select
+                <label className={labelClass}>City <span className="text-red-500">*</span></label>
+                <input
+                  type="text"
                   value={form.city}
                   onChange={(e) => set("city", e.target.value)}
-                  className={inputClass}
-                >
-                  <option value="">Select city</option>
-                  {CITIES.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
+                  placeholder="e.g. Kathmandu, Pokhara"
+                  className={`${inputClass} ${fieldErrors.city ? "border-red-500" : ""}`}
+                />
+                {fieldErrors.city && <p className="mt-1 text-[12px] text-red-500">{fieldErrors.city}</p>}
               </div>
               <div>
-                <label className={labelClass}>Address</label>
+                <label className={labelClass}>Address <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   value={form.address}
                   onChange={(e) => set("address", e.target.value)}
                   placeholder="House number, street, area"
-                  className={inputClass}
+                  className={`${inputClass} ${fieldErrors.address ? "border-red-500" : ""}`}
                 />
+                {fieldErrors.address && <p className="mt-1 text-[12px] text-red-500">{fieldErrors.address}</p>}
               </div>
             </div>
           )}
@@ -478,9 +488,6 @@ export default function PatientOnboardingPage() {
         </div>
 
       <div className="w-full flex flex-col mt-2">
-        {stepErrors && (
-          <p role="alert" className=" mt-4 text-center text-[13px] text-red-500">{stepErrors}</p>
-        )}
         <div className="mt-2 flex items-center gap-3">
           {currentIdx > 0 && (
             <button
@@ -519,15 +526,15 @@ export default function PatientOnboardingPage() {
           <button
             type="button"
             onClick={handleSkip}
-            className="mt-4 w-full text-center text-[13px] text-text-light hover:text-text transition-colors"
+            className="mt-4 w-full text-center text-[13px] text-text-light hover:text-text transition-colors cursor-pointer"
           >
             Skip for now
           </button>
         )}
 
-        <p className="mt-4 text-center text-[12px] text-text-light/60">
+        {step != "personal" && step != "contact" && (<p className="mt-4 text-center text-[12px] text-text-light/60">
           You can skip this and complete your profile later from Settings.
-        </p>
+        </p>)}
       </div>
     </div>
   );
