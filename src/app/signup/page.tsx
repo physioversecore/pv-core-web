@@ -198,7 +198,16 @@ export default function SignupPage() {
     }
   };
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <AuthShell maxWidth={504}>
+        <div className="mt-7 flex flex-col items-center gap-3 py-16">
+          <Loader2 className="h-6 w-6 animate-spin text-mid-abyss" />
+          <p className="text-[13px] text-text-light">Creating your account…</p>
+        </div>
+      </AuthShell>
+    );
+  }
 
   return (
     <AuthShell maxWidth={504}>

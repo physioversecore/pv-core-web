@@ -7,7 +7,7 @@ import { ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/auth";
 import { useLang } from "@/context/i18n";
 import { toast } from "sonner";
-import { sendLoginOtp, sendOtp, verifyOtp, signup as signupPatient } from "@/services/auth-flow";
+import { sendLoginOtp, sendOtp, verifyOtp } from "@/services/auth-flow";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { GoogleIcon } from "@/components/auth/GoogleIcon";
 import { OtpInput } from "@/components/auth/OtpInput";
@@ -51,7 +51,7 @@ type Step = "email" | "welcome" | "otp";
 
 export default function AccessPage() {
   const { t } = useLang();
-  const { user, loading, login, loginWithGoogle, loginWithOtp } = useAuth();
+  const { user, loading, login, signupPatient, loginWithGoogle, loginWithOtp } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl");
@@ -249,7 +249,6 @@ export default function AccessPage() {
           name: emailName(),
           email: email.trim(),
           password: tempPw,
-          role: "patient",
         });
         toast.success(t("auth.successWelcome") + ", " + u.name);
         router.replace("/onboarding/patient");
@@ -264,7 +263,7 @@ export default function AccessPage() {
     } finally {
       setSubmitting(false);
     }
-  }, [otpCode, email, isNewSignup, loginWithOtp, routeAfterAuth, t]);
+  }, [otpCode, email, isNewSignup, loginWithOtp, signupPatient, routeAfterAuth, t]);
 
   const handleResendOtp = async () => {
     if (resendAfter > 0) return;
