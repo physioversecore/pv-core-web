@@ -23,8 +23,8 @@ Browser → Next.js Server (Server Components / Server Actions) → FastAPI Back
 4. Therapist documents upload immediately via XHR to the public proxy `POST /api/uploads/therapist-application` (session=`therapist-signup`) — WhatsApp-style previews, progress bars, retry. The returned relative URLs are held in `SignupFlow` state until the final submit
 5. On submit → `sendOtp(email, name)` → backend sends branded HTML email with 6-digit OTP
 6. OTP input screen → user enters 6-digit code → `verifyOtp(email, code)`
-7. On verification → `signupPatient()` or `signupTherapist()`. For therapists the payload includes `gender/license/experience/fee/documents`; the backend creates the `Therapist` profile + a `Verification` row per document (status `Pending review`) → JWT cookie set
-8. Success screen → redirect to `/patient` or `/therapist`
+7. On verification → `signupPatient()` or `signupTherapist()` in AuthProvider calls server-side `AuthService.signup()` → `setToken()` sets the JWT cookie directly on the server. For therapists the payload includes `gender/license/experience/fee/documents`; the backend creates the `Therapist` profile + a `Verification` row per document (status `Pending review`)
+8. Redirect to `/onboarding/therapist` (therapist) or `/onboarding/patient` (patient) to complete profile
 
 **Shared component**: `SignupFlow` (`src/components/auth/SignupFlow.tsx`) is used by both `/signup` page and `AuthModal`. The page renders it inline; the modal wraps it with overlay/close button.
 
@@ -147,7 +147,7 @@ Defined in `src/app/providers.tsx`:
 QueryClientProvider
   └─ DesignTokensProvider     # Dynamic theme (localStorage + server sync)
       └─ LangProvider          # Nepali/English toggle (localStorage)
-          └─ AuthProvider       # User state (server-driven via getSession)
+          └─ AuthProvider       # User state (server-driven via getSession, server-side signup via AuthService)
               └─ CartProvider   # Shopping cart (API-driven, optimistic updates)
                   └─ BookingBadgeProvider   # Admin booking notification count
                       └─ ComplaintBadgeProvider  # Admin complaint notification count

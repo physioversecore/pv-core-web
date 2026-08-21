@@ -36,7 +36,7 @@ src/
     error.tsx                       # Root error boundary
     not-found.tsx
     login/page.tsx                  # Login page (/login)
-    signup/page.tsx                 # Signup page (/signup) — therapist-only signup: account form → OTP → redirect to /onboarding/therapist
+    signup/page.tsx                 # Signup page (/signup) — therapist-only signup: account form → OTP → account creation (server-side) → loading spinner → redirect to /onboarding/therapist
     access/page.tsx                 # Unified login page (/access) — email+password or OTP, role-aware redirect
     book/                           # Booking route
     (public)/                       # Route group — all public pages (header/footer persist across nav)
@@ -164,9 +164,9 @@ src/
 
 - **Auth is API-driven** — JWT tokens stored in HTTP-only cookie `sahayatri.session`.
 - **Login**: `/login` page — email + password, no role selector. On success, `router.replace()` navigates to `/${user.role}` or `callbackUrl`.
-- **Signup**: `/signup` page — therapist-only signup: account form (first name, last name, email, password) → OTP email verification → account creation → `refreshSession()` syncs auth context → `router.push("/onboarding/therapist")`. Uses `redirected.current = true` guard before `refreshSession()` to prevent the redirect `useEffect` from firing a competing `router.replace`.
+- **Signup**: `/signup` page — therapist-only signup: account form (first name, last name, email, password) → OTP email verification → account creation (server-side `AuthService.signup()` → `setToken()` sets cookie directly) → loading spinner → `router.push("/onboarding/therapist")`. Uses `redirected.current = true` guard before `signupTherapist()` to prevent the redirect `useEffect` from firing a competing `router.replace`.
 - **Therapist approval gate**: Therapist signup issues a JWT token. Account is created with `status = PENDING` ("under review") and a branded "application received" email is sent to their email (templates/`application_received.html`) stating it will be verified within 24 hours. The therapist is redirected to `/onboarding/therapist` to complete their profile. Admin verifies their documents in `/admin/verification` (Approve → verification `Verified` → user `status = APPROVED`). Approving also fires an account-verified email; rejecting fires a rejection email that includes the admin's `note` reason. Non-approved therapist login → 403 (toast shows `auth.loginUnderReview`/`auth.loginRejected`). Backend `get_current_user` also rejects non-`APPROVED` therapists (401).
-- **Therapist success screen**: after signup, therapist is issued a token, auth context is synced via `refreshSession()`, and navigated to `/onboarding/therapist` to complete their professional profile (4-step wizard: Personal → Professional → Documents → Review → Submit application). Patients still get a token and auto-login.
+- **Therapist success screen**: after signup, therapist is issued a token, auth context is synced via `signupTherapist()` (which calls `setToken()` server-side), and navigated to `/onboarding/therapist` to complete their professional profile (4-step wizard: Personal → Professional → Documents → Review → Submit application). Patients still get a token and auto-login.
 - **Therapist documents**: Before submitting the therapist application, `SignupFlow` renders two `DocumentUploader` instances (NMC license + certification). Files upload via XHR to the public proxy `POST /api/uploads/therapist-application` (session=`therapist-signup`); returned relative URLs are embedded in the signup payload as `documents: [{documentType, url, fileName, fileSize}]`. Backend creates a `Verification` row per document (status `Pending review`) → shown in admin `/admin/verification` with preview/download (served via `GET /api/v1/uploads/applications/{session}/{filename}`, proxied by the frontend route handler which adds the bearer cookie).
 - **Admin document review**: `/admin/verification` and the therapist detail sheet (`TherapistDetailSheet.tsx`) let the admin view documents in-app via a `DocumentViewer` Dialog (`<img>` for image extensions, `<iframe>` otherwise, "Open in new tab" link). `AdminVerificationData`/`AdminTherapistDocument` carry an optional `note` (rejection reason); the Review drawer requires a reason before rejecting, and it's shown in a red "Rejection reason" box in the detail sheet + preview modal. `useAdminVerifications.ts` optimistically patches the list with `queryClient.setQueriesData` on approve/reject/edit and invalidates the query on success, so the table refreshes immediately after an action.
 - **AuthModal**: Global modal (triggered by `openAuth()`) for login/signup from any page. "Book Now" opens modal with patient role pre-selected. "Apply to Join" opens modal with therapist role pre-selected.
@@ -203,7 +203,9 @@ interface AuthCtx {
 - `User`: `{ id, name, email, role: Role, city?, phone?, specialty?, status? }`
 - On mount, calls `AuthService.getSession()` to restore session from cookie
 - `login()` and `signup*()` return `Promise<User>` — caller uses returned user for redirect
-- `refreshSession()` re-fetches `GET /auth/me` and updates the user state — used after client-side token storage (e.g. therapist signup) to sync auth context
+- `signupPatient()` and `signupTherapist()` call server-side `AuthService.signup()` → `setToken()` sets the JWT cookie directly on the server, guaranteeing the cookie is available to subsequent server actions (e.g. onboarding page API calls like `getApplicationStatus`)
+- `refreshSession()` re-fetches `GET /auth/me` and updates the user state **only if the response is non-null** (prevents clobbering user with null on transient failures or blocked therapists)
+- `loginWithGoogle()` and `loginWithOtp()` use client-side `auth-flow.ts` functions that go through Next.js route handlers (which set the cookie via `Set-Cookie` header)
 - Context variable named `Ctx`, provider `AuthProvider`, hook `useAuth()`
 
 ### Provider Tree Order
