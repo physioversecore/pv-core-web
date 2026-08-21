@@ -5,24 +5,36 @@
 Nepal's home-visit physiotherapy platform connecting patients with verified physiotherapists. Patients book sessions, buy/rent equipment, track recovery; therapists manage schedules, upload reports, track earnings; admin manages users, bookings, payments.
 
 **Repos**:
-- `pvc-web/` — Next.js 15 frontend (this repo)
+- `pvc-web/` — Next.js 16 frontend (this repo)
 - `pvc-api/` — Python 3.13 FastAPI backend, Prisma ORM, PostgreSQL 16, Redis 7
 
 ---
 
 ## Frontend — pvc-web
 
-**Framework**: Next.js 15 (App Router), `output: "standalone"`  
+**Framework**: Next.js 16.3.1 (App Router, React 19.2), `output: "standalone"`  
 **Language**: TypeScript 5.8.3 (strict)  
 **Styling**: Tailwind CSS v4.2.1 (`@tailwindcss/postcss`), CSS custom properties  
 **State**: React Context (7 providers) + `@tanstack/react-query` v5.101.1  
-**UI**: shadcn/ui 47 primitives (`src/components/ui/`, new-york style) + Radix UI  
+**UI**: shadcn/ui 49 primitives (`src/components/ui/`, new-york style) + Radix UI  
+**JWT**: jose v6 (edge/node JWT verification in `proxy.ts`)  
 **Icons**: lucide-react v0.575.0  
 **Notifications**: sonner v2.0.7  
 **Charts**: recharts v2.15.4  
 **Forms**: react-hook-form v7.71.2 + @hookform/resolvers + zod v3.24.2  
 **CSS Utilities**: class-variance-authority v0.7.1, clsx v2.1.1, tailwind-merge v3.5.0  
 **Other**: date-fns, cmdk, embla-carousel-react, input-otp, react-day-picker, react-resizable-panels, vaul (drawer)
+
+### Docs Map (this repo)
+
+| File | Status | Contents |
+|---|---|---|
+| `README.md` | Current | Getting started, commands, roles, theme tokens |
+| `ARCHITECTURE.md` | **Current — trust this** | Auth flows, data fetching, provider stack, error handling, badges/evidence uploads |
+| `APIGUIDELINE.md` | Current | Decision tree for how the frontend talks to the backend (Server Component vs Server Action vs Route Handler) + non-negotiables |
+| `PROXY-CONVENTION.md` | Applied | Next.js 16 `middleware.ts` → `proxy.ts` migration reference. The migration is DONE (`proxy.ts` at repo root) |
+| `SEEDDATA.md` | Current | Seed users/products/sessions for the backend + API quick reference |
+| `ARCHITECT.md` | ⚠️ STALE | Describes the old localStorage/mock era. Do not follow; kept for history only |
 
 ### Project Structure
 
@@ -31,19 +43,21 @@ src/
   app/                              # Next.js App Router
     layout.tsx                      # Root layout (fonts via <link>, <Providers>)
     providers.tsx                   # "use client" — QueryClient, DesignTokens, Lang, Auth, Cart, BookingBadge, ComplaintBadge, AuthModal, Toaster
-    page.tsx                        # Landing page (hero, features, CTA)
     globals.css                     # Tailwind v4 + theme tokens + utilities
     error.tsx                       # Root error boundary
     not-found.tsx
-    login/page.tsx                  # Login page (/login)
     signup/page.tsx                 # Signup page (/signup) — therapist-only signup: account form → OTP → account creation (server-side) → loading spinner → redirect to /onboarding/therapist
-    access/page.tsx                 # Unified login page (/access) — email+password or OTP, role-aware redirect
+    access/page.tsx                 # Unified login page (/access) — email+password, OTP, or Google; role-aware redirect
+    forgot-password/page.tsx        # Forgot password flow (/forgot-password)
+    onboarding/                     # Post-signup profile wizards
+      therapist/page.tsx            # Therapist 4-step application wizard
+      patient/page.tsx              # Patient profile completion
     book/                           # Booking route
     (public)/                       # Route group — all public pages (header/footer persist across nav)
       layout.tsx                    # Wraps with SiteHeader + SiteFooter, hero/solid variant by path
       page.tsx                      # Landing page
       about/, app/, blog/, contact/, clinics/, faq/, find-a-therapist/,
-      how-it-works/, services/, testimonials/
+      how-it-works/, packages/, services/, testimonials/
     (dashboard)/                    # Route group — all authenticated pages
       layout.tsx                    # "use client" — role guard + ErrorBoundary + DashboardShell
       error.tsx                     # Dashboard-scoped error boundary
@@ -65,15 +79,17 @@ src/
         refunds/page.tsx, safety-incidents/page.tsx, schedules/page.tsx,
         service-areas/page.tsx, settings/page.tsx, therapists/page.tsx,
         verification/page.tsx
-    api/                            # Next.js API routes (proxy layer for uploads + admin settings)
+    api/                            # Next.js API routes (proxy layer for auth + uploads + admin settings)
       reports/route.ts              # POST — proxies FormData to backend /api/v1/reports
       uploads/therapist-application/route.ts  # POST — public XHR upload for signup documents (session=therapist-signup)
       uploads/complaint-evidence/route.ts     # POST — public XHR proxy for complaint evidence (session keyed)
       uploads/[patientId]/route.ts
+      v1/auth/                      # send-otp, verify-otp, signup, send-login-otp,
+                                    #   login-otp, check-email — set the JWT cookie via Set-Cookie
       v1/admin/settings/            # Design tokens GET/PUT
       v1/uploads/applications/[session]/[filename]/route.ts  # GET — serves signup docs, adds bearer from cookie
       v1/uploads/evidence/[session]/[filename]/route.ts      # GET — serves complaint evidence, adds bearer from cookie
-      v1/uploads/
+      v1/uploads/therapists/[therapistId]/…                  # GET/POST therapist photo + documents
 
   components/
     layout/                         # Layout shells
@@ -84,10 +100,12 @@ src/
     modals/                         # Modal/drawer components
       AuthModal.tsx                 # Login/signup modal (can be triggered from any page)
       BookingModal.tsx              # Session booking
-      CancelConfirmModal.tsx, CartDrawer.tsx, RescheduleModal.tsx, SessionDrawer.tsx
+      CancelConfirmModal.tsx, CartDrawer.tsx, RescheduleModal.tsx, SessionDrawer.tsx,
+      TherapistDetailSheet.tsx, PatientDetailSheet.tsx
     auth/                           # Shared auth components
       SignupFlow.tsx                # Multi-step signup (role → form → OTP → account)
       DocumentUploader.tsx          # WhatsApp-style drag/drop document uploader (XHR w/ progress, previews, retry)
+      AuthShell.tsx, GoogleIcon.tsx, OtpInput.tsx, PasswordRules.tsx, StepProgress.tsx
     common/                         # Shared components
       Avatar.tsx, LangSwitcher.tsx, NotificationBell.tsx, Reveal.tsx,
       TherapistCard.tsx, TherapistFilters.tsx, BookButton.tsx, HeroStat.tsx,
@@ -102,7 +120,7 @@ src/
     schedule/, sessions/, availability/, booking/, tables/
     ErrorBoundary.tsx               # Reusable class-based error boundary
     SuspenseFallback.tsx            # Skeleton components (StatsSkeleton, CardSkeleton, etc.)
-    ui/                             # 47 shadcn/ui primitives (new-york style)
+    ui/                             # 49 shadcn/ui primitives (new-york style)
       accordion, alert-dialog, alert, aspect-ratio, avatar, badge,
       breadcrumb, button, calendar, card, carousel, chart, checkbox,
       collapsible, command, context-menu, date-picker, dialog, drawer,
@@ -121,13 +139,16 @@ src/
     i18n.tsx                        # Internationalization (Nepali/English)
     design-tokens.tsx               # Runtime theme customization (colors, fonts, radii)
 
-  hooks/                            # 42 custom hooks
+  hooks/                            # 45 custom hooks
     useAuth.ts, useCart.ts, useAuthModal.ts  # Re-exports from context
-    usePatientDashboard.ts, usePatientReferral.ts, usePatientComplaints.ts
-    useTherapistDashboard.ts, useTherapistEarnings.ts, useTherapistSchedule.ts
+    usePatientDashboard.ts, usePatientReferral.ts, usePatientComplaints.ts,
+    usePatientReports.ts
+    useTherapistDashboard.ts, useTherapistEarnings.ts, useTherapistSchedule.ts,
+    useTherapistProfile.ts
     useTherapistPatients.ts, useTherapistComplaints.ts, useTherapists.ts
     useTherapistsToRate.ts, useSessions.ts, useBooking.ts, useProducts.ts
     useClinics.ts                   # React Query hook for clinic data
+    usePackages.ts, useServices.ts  # Packages + service catalog hooks
     useManageAvailability.ts        # Availability management (578 lines, largest hook)
     useAdmin*.ts                    # 18 admin hooks (activity-log, analytics, bookings,
                                     #   complaints, dashboard, incidents, leaves,
@@ -147,12 +168,19 @@ src/
     landing-data.ts                 # Landing page static data
     error-capture.ts, error-page.ts, lovable-error-reporting.ts
 
-  services/api/                     # API service layer (16 files, all "use server")
+  services/api/                     # API service layer (21 files, all "use server")
     client.ts                       # Fetch client with Bearer token → backend /api/v1
     session.ts                      # Cookie get/set/remove (sahayatri.session)
+    auth-constants.ts               # UserRole type, ROLE_ROUTE map, public prefixes, path helpers
+    auth-session.ts                 # verifySession() — jose jwtVerify used by proxy.ts
+    session-client.ts               # Client-side cookie removal (logout from browser)
     auth.ts, patients.ts, sessions.ts, therapists.ts, products.ts,
     cart.ts, admin.ts, availability.ts, earnings.ts, profile.ts,
-    reports.ts, reviews.ts, settings.ts, clinics.ts
+    reports.ts, reviews.ts, settings.ts, clinics.ts, packages.ts, services.ts
+
+  services/
+    auth-flow.ts                    # Client-side auth calls → Next.js route handlers
+                                    #   (sendOtp, verifyOtp, sendLoginOtp, loginWithOtp, googleAuth)
 
   constants/                        # CITIES, SPECIALTIES, navigation (patientNav 9, therapistNav 9, adminNav 17 grouped)
   types/                            # TypeScript types (Therapist, Product, Session, Role, User, NavItem, Complaint, etc.)
@@ -163,7 +191,7 @@ src/
 ### Auth & Signup Flow
 
 - **Auth is API-driven** — JWT tokens stored in HTTP-only cookie `sahayatri.session`.
-- **Login**: `/login` page — email + password, no role selector. On success, `router.replace()` navigates to `/${user.role}` or `callbackUrl`.
+- **Login**: `/access` page — unified login (email + password, email OTP, or Google). No role selector. On success, `router.replace()` navigates to `/${user.role}` or `callbackUrl`. Logged-in users hitting `/access` are redirected to their role home by `proxy.ts`.
 - **Signup**: `/signup` page — therapist-only signup: account form (first name, last name, email, password) → OTP email verification → account creation (server-side `AuthService.signup()` → `setToken()` sets cookie directly) → loading spinner → `router.push("/onboarding/therapist")`. Uses `redirected.current = true` guard before `signupTherapist()` to prevent the redirect `useEffect` from firing a competing `router.replace`.
 - **Therapist approval gate**: Therapist signup issues a JWT token. Account is created with `status = PENDING` ("under review") and a branded "application received" email is sent to their email (templates/`application_received.html`) stating it will be verified within 24 hours. The therapist is redirected to `/onboarding/therapist` to complete their profile. Admin verifies their documents in `/admin/verification` (Approve → verification `Verified` → user `status = APPROVED`). Approving also fires an account-verified email; rejecting fires a rejection email that includes the admin's `note` reason. Non-approved therapist login → 403 (toast shows `auth.loginUnderReview`/`auth.loginRejected`). Backend `get_current_user` also rejects non-`APPROVED` therapists (401).
 - **Therapist success screen**: after signup, therapist is issued a token, auth context is synced via `signupTherapist()` (which calls `setToken()` server-side), and navigated to `/onboarding/therapist` to complete their professional profile (4-step wizard: Personal → Professional → Documents → Review → Submit application). Patients still get a token and auto-login.
@@ -173,8 +201,12 @@ src/
 - **OTP Verification**: Signup requires email verification via 6-digit OTP code. Backend sends branded HTML email, validates code before allowing account creation.
 - **Logout**: `DashboardShell`'s `handleLogout` is `async` — always `await logout()` before redirect.
 - **Redirect strategy**: Always `router.replace()` or `router.push()` — never `window.location.href`.
-- **Role guard**: `(dashboard)/layout.tsx` checks `user.role` against path prefix. If no user, redirects to `/login?callbackUrl=...`.
-- **Middleware** (`middleware.ts`): Checks JWT expiration via base64 decode. Protected prefixes: `/patient`, `/therapist`, `/admin`. Without valid token → redirect `/login?callbackUrl=...`.
+- **Role guard**: `(dashboard)/layout.tsx` checks `user.role` against path prefix. If no user, redirects to `/access?callbackUrl=...`.
+- **Proxy** (`proxy.ts` at repo root — Next.js 16 convention, replaces `middleware.ts`): Verifies the JWT **signature** (not just expiry) via `verifySession()` (`src/services/api/auth-session.ts`, jose `jwtVerify` with `SECRET_KEY`/`JWT_SECRET` env — must match the backend's `SECRET_KEY`). Behavior:
+  - Protected prefixes `/patient`, `/therapist`, `/admin` — no token or invalid → redirect `/access?callbackUrl=...`; role mismatch → redirect to the user's own role home.
+  - `/onboarding/*` is gated by role (`ONBOARDING_ROLE_MAP`) — a therapist token can't open `/onboarding/patient` and vice versa.
+  - `/access`, `/signup`, `/forgot-password`, `/reset-password` are public; logged-in users on `/access` are redirected to their role home (invalid cookie is cleared).
+  - Callback paths must start with a single `/` (`isSafeCallbackPath` blocks protocol-relative `//`).
 
 ### Complaints (Patient / Therapist / Admin)
 
@@ -299,6 +331,40 @@ Mutations invalidate related queries on success. `AuthError` caught in service l
 - Duplicate files: `src/lib/api.ts` ≈ `src/services/api/client.ts`, `src/lib/session.ts` ≈ `src/services/api/session.ts`. Prefer `src/services/api/`
 - Admin hooks provide hardcoded fallback data when API calls fail — intentional for resilience
 
+### API Calling Guidelines (from `APIGUIDELINE.md`)
+
+Core principle: **never call the backend directly from client-side JavaScript**. All backend calls go through the Next.js server layer.
+
+Decision order for every new feature:
+
+1. **Data needed to render the page on initial load?** → Server Component with direct `fetch()` (`cache: "no-store"` for time-sensitive data like slots/availability).
+2. **User action that mutates data** (book, cancel, reschedule, submit form)? → Server Action. Re-check auth inside the action; let the backend do the final availability/lock check (double-booking safety); `revalidatePath`/`revalidateTag` after success; return structured `{ success, error }`.
+3. **External caller** (payment webhook, mobile app, partner)? → Route Handler (`app/api/...`). Verify webhook signatures.
+4. **Genuinely live/real-time** (map tracking, chat)? → Client fetch allowed but **only against our own Route Handler**, never the raw backend URL.
+
+Non-negotiables:
+- No non-`NEXT_PUBLIC_` env vars or secrets in `"use client"` files
+- Auth/session validated server-side on every render/action — never trust the UI
+- PHI/health-intake data only flows through Server Components/Actions
+- Booking/scheduling mutations via Server Actions (slot-locking server-side)
+- Revalidate after every mutation
+
+### Seed Data & Dev Credentials (from `SEEDDATA.md`)
+
+Backend seeds 14 users + 8 therapist profiles (`pvc-api/scripts/seed-users.py`; `seed-all.py` covers products/sessions/reports/etc.). All passwords: `password123`.
+
+| Account | Email | Role |
+|---|---|---|
+| John Doe | `patient@test.com` | PATIENT |
+| Dr. Jane Smith | `therapist@test.com` | THERAPIST |
+| Admin User | `admin@test.com` | ADMIN |
+
+Other patients: `ramesh@`, `sita@`, `hari@test.com`. Other therapists: `aarati@`, `bibek@`, `sushmita@`, `nirajan@`, `sabina@`, `rajan@`, `priya@`, `anil@test.com`.
+
+Seed run: `cd pvc-api && uv sync && docker compose up -d db && uv run python scripts/seed-users.py`
+
+Static UI constants: cities = Kathmandu, Lalitpur, Bhaktapur, Pokhara, Chitwan, Biratnagar; specialties are free-text strings (not DB enums).
+
 ---
 
 ## Backend — pvc-api
@@ -323,9 +389,9 @@ Mutations invalidate related queries on success. `AuthError` caught in service l
 routers/ → services/ → Prisma ORM
 ```
 
-- **Routers** (15 files) — Handle HTTP concerns (parsing, validation, status codes, response shapes). Delegate all logic to services.
-- **Services** (19 files) — Business logic and Prisma queries. No HTTP awareness.
-- **Models** (18 files) — Pure Pydantic request/response schemas. No DB or HTTP logic.
+- **Routers** (19 files) — Handle HTTP concerns (parsing, validation, status codes, response shapes). Delegate all logic to services.
+- **Services** (26 files) — Business logic and Prisma queries. No HTTP awareness.
+- **Models** (23 files) — Pure Pydantic request/response schemas. No DB or HTTP logic.
 - **Re-exports**: `app/__init__.py` re-exports all public symbols. Consumers always `from app import X`.
 
 ### Project Structure
@@ -340,14 +406,24 @@ app/
   exceptions.py             # Global exception handlers
   logging_config.py         # Structured (JSON) + Dev (colored) formatters
   middleware.py             # RequestIDMiddleware (X-Request-ID, X-Response-Time)
-  models/                   # Pydantic request/response schemas (18 files)
-  routers/                  # API route handlers (15 files)
-  services/                 # Business logic layer (19 files)
-  services/email/           # Email provider system (abstract base + SMTP + log fallback)
+  models/                   # Pydantic request/response schemas (23 files)
+  routers/                  # API route handlers (19 files: auth, patients,
+                            #   therapist_application, therapists, earnings, sessions,
+                            #   products, cart, payments, admin, admin_extras, reports,
+                            #   uploads, reviews, settings, availability, service,
+                            #   clinics, packages)
+  services/                 # Business logic layer (26 files, incl. google_auth,
+                            #   onboarding, complaint, refund, service_area,
+                            #   verification, activity_log, clinic, package)
+  services/email/           # Email provider system (abstract base + SMTP + log fallback
+                            #   + fire-and-forget dispatch + notifications)
     base.py                 # Abstract EmailProvider + get_email_provider() factory
     smtp.py                 # SMTPEmailProvider (production)
     log.py                  # LogEmailProvider (dev — logs OTP to console)
-  templates/                # Jinja2 email templates (OTP verification HTML)
+    dispatch.py             # dispatch_email() — background send, never raises
+    notifications.py        # application received / verified / rejected emails
+  templates/                # Jinja2 email templates (otp_email, application_received,
+                            #   account_verified, application_rejected)
   rate_limit/               # Distributed rate limiting system (12 files)
     config.py               # Rate limit rules & configuration
     storage.py              # RedisStorage + MemoryStorage
@@ -358,9 +434,9 @@ app/
     access_list.py          # Whitelist/blacklist with TTL
     metrics.py              # Prometheus-compatible metrics
 prisma/
-  schema.prisma             # ORM schema (23 models, 509 lines, 17 migrations)
-scripts/                    # Seed scripts (12 total)
-test/                       # Test suite (14 files, fully mocked)
+  schema.prisma             # ORM schema (27 models, 22 migrations)
+scripts/                    # Seed scripts (17 total, incl. seed-all.py)
+test/                       # Test suite (16 files, fully mocked)
 Dockerfile, Dockerfile.dev, docker-compose.yml, docker-compose.prod.yml
 ```
 
@@ -377,6 +453,7 @@ Dockerfile, Dockerfile.dev, docker-compose.yml, docker-compose.prod.yml
 
 **Auth**: send-otp, verify-otp, signup, login, me (GET/PUT), change-password, logout  
 **Therapists**: CRUD, me/dashboard, me/profile, {id}/slots  
+**Therapist application**: me/application-status, me/application-sections, PUT me/application (onboarding wizard)  
 **Sessions**: CRUD, {id}/reschedule  
 **Products**: CRUD (Admin for mutations)  
 **Cart**: CRUD (Patient only)  
@@ -388,20 +465,25 @@ Dockerfile, Dockerfile.dev, docker-compose.yml, docker-compose.prod.yml
 **Availability** (24+ endpoints): working-hours, slots, recurring, block, unblock, audit-log, block-requests (approve/reject)  
 **Admin** (60+ endpoints): users, therapists, patients, bookings, complaints, service-areas, performance, verifications, refunds, activity-log, payments, payouts, notifications, team, leaves, incidents, analytics  
 **Settings**: design-tokens (GET/PUT), currencies, payment-methods  
-**Uploads**: patient reports, therapist media, therapist-application (public pre-signup docs) + applications/{session}/{filename} (authenticated serving)  
+**Catalog**: services CRUD (`/services`), packages CRUD (`/packages`), clinics CRUD (`/clinics`) — public reads, admin writes  
+**Uploads**: patient reports, therapist media, therapist-application (public pre-signup docs) + applications/{session}/{filename} (authenticated serving), complaint-evidence + evidence/{session}/{filename}  
 **Health**: `/health` (DB + Redis), `/live`, `/ready`
 
-### Database Schema (20+ models)
+### Database Schema (27 models)
 
-Key models: `User` (role enum), `PatientProfile`, `Therapist` (1:1 with User), `Verification`, `Product`, `Session`, `Review`, `Report`, `Payment`, `CartItem`, `Setting` (key-value store), `AvailabilitySlot`, `RecurringPattern`, `AvailabilityBlock`, `AuditLogEntry`, `ScheduleBlockRequest`, `Complaint`, `Refund`, `ServiceArea`, `TherapistServiceArea` (M2M), `ActivityLog`, `EmailVerification`.
+Key models: `User` (role enum), `PatientProfile`, `FamilyMember`, `Therapist` (1:1 with User), `Verification`, `Product`, `Session`, `Review`, `Report`, `Payment`, `CartItem`, `Setting` (key-value store), `AvailabilitySlot`, `RecurringPattern`, `AvailabilityBlock`, `AuditLogEntry`, `ScheduleBlockRequest`, `Complaint`, `Refund`, `ServiceArea`, `TherapistServiceArea` (M2M), `ActivityLog`, `EmailVerification`, `Service`, `Clinic`, `Package`, `TherapistApplicationFeedback`.
 
-Enums: `Role` (PATIENT/THERAPIST/ADMIN), `UserStatus` (PENDING/APPROVED/REJECTED), `SessionStatus` (SCHEDULED/IN_PROGRESS/COMPLETED/CANCELLED/RESCHEDULE_REQUESTED/DECLINE_REQUESTED), `SessionType` (HOME_VISIT/CLINIC), `ProductCategory` (EQUIPMENT/MEDICINE/NUTRITION), `CartItemType` (BUY/RENT/MEDICINE/NUTRITION), `RefundStatus` (PENDING/APPROVED/DENIED), etc.
+Enums: `Role` (PATIENT/THERAPIST/ADMIN), `UserStatus` (PENDING/APPROVED/REJECTED), `ApplicationStatus`, `SessionStatus` (SCHEDULED/IN_PROGRESS/COMPLETED/CANCELLED/RESCHEDULE_REQUESTED/DECLINE_REQUESTED), `SessionType` (HOME_VISIT/CLINIC), `ProductCategory` (EQUIPMENT/MEDICINE/NUTRITION), `CartItemType` (BUY/RENT/MEDICINE/NUTRITION), `CaseSource` (PATIENT_SUBMITTED/THERAPIST_SUBMITTED/ADMIN_MANUAL), `RefundReason`, `RefundStatus` (PENDING/APPROVED/DENIED), `ServiceCategory`.
 
 ### Email Provider System
 
-Pluggable: abstract `EmailProvider` base → `SMTPEmailProvider` (production) or `LogEmailProvider` (dev — logs OTP to console). Auto-selected based on whether `SMTP_USER` and `SMTP_PASSWORD` are set. Supports branded HTML email via Jinja2 templates.
+Pluggable: abstract `EmailProvider` base → `SMTPEmailProvider` (production) or `LogEmailProvider` (dev — logs OTP to console). Auto-selected based on whether `SMTP_USER` and `SMTP_PASSWORD` are set. Supports branded HTML email via Jinja2 templates. All sends are **fire-and-forget** via `dispatch_email()` on FastAPI `BackgroundTasks` — a slow/failing SMTP server never blocks signup, OTP verification, or admin approval.
 
 **OTP Flow**: send-otp → verify-otp → signup. OTP stored in `EmailVerification` with TTL (5 min), max attempts (5), and `used` flag. Signup requires prior verified OTP record.
+
+**Transactional emails**: OTP code (`send-otp`), "application received" (therapist signup), account verified + rejection-with-reason (admin verification actions).
+
+**Google auth**: `app/services/google_auth.py` verifies the Google ID token credential and find-or-creates the user; frontend calls it via the Next.js route handler in `src/services/auth-flow.ts` (`googleAuth(credential, role)`).
 
 ### Rate Limiting
 
@@ -421,8 +503,17 @@ docker compose -f docker-compose.prod.yml up --build -d  # Production (+ Redis)
 
 ### Environment Notes
 
-- `SECRET_KEY` — JWT signing key (change in production)
-- `DATABASE_URL` — PostgreSQL connection string
-- `REDIS_URL` — Redis connection (for rate limiting)
-- `SMTP_*` — Email config (empty = OTP logged to console)
-- Swagger at `:8000/docs`, ReDoc at `:8000/redoc`
+| Variable | Default | Purpose |
+|---|---|---|
+| `DATABASE_URL` | `postgresql://postgres:postgres@localhost:5432/physioversecore` | PostgreSQL connection |
+| `SECRET_KEY` | `super-secret-key-change-in-production` | JWT signing key — **must match frontend** (`SECRET_KEY`/`JWT_SECRET` in pvc-web `.env`) |
+| `ALGORITHM` / `ACCESS_TOKEN_EXPIRE_MINUTES` | HS256 / 1440 | JWT algorithm + 24h expiry |
+| `REDIS_URL` | `redis://localhost:6379/0` | Redis (rate limiting) |
+| `RATE_LIMIT_*` | enabled, 100 req/60s | Rate limit config; storage backend `redis` or `memory` |
+| `SMTP_HOST/PORT/USER/PASSWORD/FROM_NAME/FROM_EMAIL/USE_TLS` | gmail defaults, user/pass empty | Email config — empty user/password = OTP logged to console |
+| `OTP_EXPIRE_MINUTES` / `OTP_LENGTH` / `OTP_MAX_ATTEMPTS` | 5 / 6 / 5 | OTP policy |
+| `CORS_ORIGINS` | `["*"]` | Allowed origins (JSON array) |
+
+Frontend `.env`: `BACKEND_URL` (default `http://localhost:8000`) + `SECRET_KEY` (must match backend for proxy JWT verification).
+
+Swagger at `:8000/docs`, ReDoc at `:8000/redoc`. Health check at `/health` (DB + Redis).

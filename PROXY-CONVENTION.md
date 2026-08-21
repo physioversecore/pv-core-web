@@ -1,6 +1,6 @@
 # Proxy.js — Next.js 16 Route Protection Convention
 
-> **Status for this project**: Not yet applicable. Our project uses **Next.js 15.5.20**, where `middleware.ts` is the correct convention. This document serves as a migration reference for when we upgrade to **Next.js 16+**.
+> **Status for this project**: ✅ **APPLIED**. The project runs **Next.js 16.3.1** and route protection lives in `proxy.ts` at the repo root (`middleware.ts` is gone). This document is now a reference for how our proxy works and what changed during the migration.
 
 ## What Changed
 
@@ -22,7 +22,7 @@ In Next.js 16, `middleware.ts` is **deprecated** and renamed to `proxy.ts`. The 
 
 ## Migration Command
 
-When upgrading to Next.js 16+:
+Used when upgrading to Next.js 16+ (already done for this project):
 
 ```bash
 npx @next/codemod@canary middleware-to-proxy .
@@ -89,67 +89,140 @@ export const config = {
 
 ## Our Current Implementation
 
-Our `middleware.ts` at project root:
+Our `proxy.ts` at the project root (post-migration):
 
 ```ts
 import { NextRequest, NextResponse } from "next/server";
+import { verifySession } from "@/services/api/auth-session";
+import { getRoleForPath, isPublicPath, ROLE_ROUTE, type UserRole } from "@/services/api/auth-constants";
 
 const SESSION_COOKIE = "sahayatri.session";
-const PROTECTED_PREFIXES = ["/patient", "/therapist", "/admin"];
-const PUBLIC_PREFIXES = ["/login", "/api"];
 
-function isProtectedPath(pathname: string): boolean {
-  if (PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))) return false;
-  return PROTECTED_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"));
+const ONBOARDING_ROLE_MAP: Record<string, UserRole> = {
+  "/onboarding/therapist": "therapist",
+  "/onboarding/patient": "patient",
+};
+
+function clearSessionAndRedirect(request: NextRequest, target: string): NextResponse {
+  const url = new URL(target, request.url);
+  const response = NextResponse.redirect(url);
+  response.cookies.delete(SESSION_COOKIE);
+  return response;
 }
 
-function isJwtExpired(token: string): boolean {
-  try {
-    const parts = token.split(".");
-    if (parts.length !== 3) return true;
-    const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString());
-    if (!payload.exp) return false;
-    return Date.now() >= payload.exp * 1000;
-  } catch {
-    return true;
+function redirectToAccess(request: NextRequest, callbackUrl?: string): NextResponse {
+  const url = new URL("/access", request.url);
+  if (callbackUrl) {
+    url.searchParams.set("callbackUrl", callbackUrl);
   }
+  return NextResponse.redirect(url);
 }
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+function isSafeCallbackPath(path: string): boolean {
+  if (!path.startsWith("/")) return false;
+  if (path.startsWith("//")) return false;
+  return true;
+}
+
+function getOnboardingRole(pathname: string): UserRole | null {
+  for (const [prefix, role] of Object.entries(ONBOARDING_ROLE_MAP)) {
+    if (pathname === prefix || pathname.startsWith(`${prefix}/`)) return role;
+  }
+  return null;
+}
+
+export async function proxy(request: NextRequest) {
+  const { pathname, search } = request.nextUrl;
   const token = request.cookies.get(SESSION_COOKIE)?.value;
 
-  if (isProtectedPath(pathname)) {
-    if (!token || isJwtExpired(token)) {
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("callbackUrl", pathname);
-      return NextResponse.redirect(loginUrl);
+  const onboardingRole = getOnboardingRole(pathname);
+  if (onboardingRole) {
+    if (!token) return redirectToAccess(request);
+
+    const result = await verifySession(token);
+    if (!result.ok) return clearSessionAndRedirect(request, "/access");
+    if (result.payload.role !== onboardingRole) {
+      return NextResponse.redirect(new URL(ROLE_ROUTE[result.payload.role], request.url));
+    }
+    return NextResponse.next();
+  }
+
+  if (!isPublicPath(pathname) && getRoleForPath(pathname) !== null) {
+    if (!token) {
+      const callback = isSafeCallbackPath(pathname + search) ? pathname + search : undefined;
+      return redirectToAccess(request, callback);
+    }
+
+    const result = await verifySession(token);
+    if (!result.ok) {
+      return clearSessionAndRedirect(request, "/access");
+    }
+
+    const { role } = result.payload;
+    const requiredRole = getRoleForPath(pathname);
+    if (requiredRole && role !== requiredRole) {
+      return NextResponse.redirect(new URL(ROLE_ROUTE[role], request.url));
     }
   }
 
-  if (pathname === "/login" && token && !isJwtExpired(token)) {
-    return NextResponse.redirect(new URL("/", request.url));
+  if (pathname === "/access" && token) {
+    const result = await verifySession(token);
+    if (result.ok) {
+      return NextResponse.redirect(new URL(ROLE_ROUTE[result.payload.role], request.url));
+    }
+    const response = NextResponse.next();
+    response.cookies.delete(SESSION_COOKIE);
+    return response;
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/patient/:path*", "/therapist/:path*", "/admin/:path*", "/login"],
+  matcher: [
+    "/patient/:path*",
+    "/therapist/:path*",
+    "/admin/:path*",
+    "/access",
+    "/signup",
+    "/forgot-password",
+    "/reset-password",
+    "/onboarding/:path*",
+  ],
 };
 ```
 
-### When Upgrading to Next.js 16
+### Supporting Files
 
-After running the codemod, the only change is:
+| File | Purpose |
+|---|---|
+| `src/services/api/auth-session.ts` | `verifySession()` — jose `jwtVerify` against `SECRET_KEY`/`JWT_SECRET` env (must match the backend's signing key). Returns a typed result: `{ ok: true, payload }` or `{ ok: false, reason: "missing" \| "expired" \| "invalid_signature" \| "invalid_role" \| "invalid_payload" }`. Validates the `role` claim against known roles. |
+| `src/services/api/auth-constants.ts` | `UserRole` type, `ROLE_ROUTE` map (`/patient`, `/therapist`, `/admin`), `PUBLIC_PREFIXES` (`/access`, `/signup`, `/forgot-password`, `/reset-password`, `/onboarding`), plus path helpers (`getRoleForPath`, `isPublicPath`, `isPathWithinRoute`). |
+| `src/services/api/session-client.ts` | Client-side cookie removal for logout (the proxy only runs server-side). |
 
-```diff
-- // middleware.ts → renamed to proxy.ts
-- export function middleware(request: NextRequest) {
-+ export function proxy(request: NextRequest) {
-```
+### Behavior Summary
 
-Everything else — matcher config, cookie logic, JWT decoding, redirects — stays identical.
+| Situation | Result |
+|---|---|
+| No token on a protected prefix | Redirect `/access?callbackUrl=<path+query>` |
+| Invalid/expired token | Clear cookie → redirect `/access` |
+| Role mismatch (e.g. patient on `/admin`) | Redirect to the user's own role home |
+| Therapist token on `/onboarding/patient` (or vice versa) | Redirect to the user's own role home |
+| Logged-in user opens `/access` | Redirect to their role home |
+| Invalid cookie while opening `/access` | Cookie cleared, page renders normally |
+| Callback URL safety | Must start with a single `/` — protocol-relative `//` paths are rejected |
+
+## What Changed Beyond the Codemod
+
+The codemod only renames the file/function. We also reworked the logic during the migration:
+
+1. **Real signature verification** — the old middleware base64-decoded the payload and compared `exp`. The proxy now verifies the HMAC signature with jose (`jwtVerify`) using the shared `SECRET_KEY`, so forged tokens are rejected, not just expired ones.
+2. **Async function** — `export async function proxy()` because `jwtVerify` returns a promise.
+3. **Role-aware redirects** — role mismatch sends users to their own role home instead of a generic page.
+4. **Onboarding gating** — `/onboarding/therapist` and `/onboarding/patient` each require the matching role.
+5. **Unified login** — all redirects point to `/access` (the old `/login` route no longer exists).
+6. **Cookie hygiene** — invalid sessions are actively cleared via `response.cookies.delete()` instead of being left in the browser.
+7. **Safe callback paths** — `isSafeCallbackPath` blocks open-redirect vectors (protocol-relative URLs).
 
 ## Version History
 
