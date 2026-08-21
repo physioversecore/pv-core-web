@@ -1,8 +1,6 @@
 export { HeroSection } from "./HeroSection";
 export { PartnersMarquee } from "./PartnersMarquee";
-export { ImpactStats } from "./ImpactStats";
 export { HowItWorksSection } from "./HowItWorksSection";
 export { ServicesSection } from "./ServicesSection";
-export { FeaturedTherapists } from "./FeaturedTherapists";
 export { FindTherapistSection } from "./FindTherapistSection";
 export { TherapistCTA } from "./TherapistCTA";

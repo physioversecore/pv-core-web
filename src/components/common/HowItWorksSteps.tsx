@@ -50,16 +50,15 @@ export function HowItWorksSteps({ steps: stepsProp, variant = "light" }: HowItWo
                   {s.n}
                 </div>
                 <h3
-                  className="mt-4 font-sans font-medium tracking-[-0.02em]"
-                  style={{ fontSize: "clamp(24px, 2.2vw, 32px)", lineHeight: 1.15 }}
+                  className="mt-2 font-sans text-lg font-medium"
                 >
                   {s.t}
                 </h3>
-                <p className={cn("mt-4 text-[15px] leading-[1.6]", dark ? "text-ink-muted" : "text-text-light")}>{s.d}</p>
+                <p className={cn("mt-2 text-xs leading-[1.6]", dark ? "text-ink-muted" : "text-text-light")}>{s.d}</p>
                 {s.cta && s.href && (
                   <Link
                     href={s.href}
-                    className="mt-7 inline-flex items-center gap-2 rounded-full bg-voltage-lime px-5 py-2.5 text-sm font-semibold text-carbon-ink transition-all duration-150 hover:-translate-y-0.5 hover:brightness-110"
+                    className="mt-5 inline-flex items-center gap-2 rounded-full bg-voltage-lime px-5 py-2.5 text-sm font-semibold text-carbon-ink transition-all duration-150 hover:-translate-y-0.5 hover:brightness-110"
                   >
                     {s.cta}
                     <ArrowRight size={15} />

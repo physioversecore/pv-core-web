@@ -78,7 +78,7 @@ src/
   app/                          # Next.js App Router
     (public)/                   # Route group — public pages (SiteHeader + SiteFooter persist)
       layout.tsx                # Header/footer wrapper, hero/solid variant by path
-      page.tsx                  # Landing page (hero → services → partners → stats → how-it-works → featured → CTA)
+      page.tsx                  # Landing page (hero → featured-therapist carousel → services → partners → how-it-works → CTA)
       about/, app/, blog/, contact/, faq/, find-a-therapist/,
       how-it-works/, services/, testimonials/, therapist/
     book/                       # Booking route (standalone)

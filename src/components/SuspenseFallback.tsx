@@ -113,22 +113,3 @@ export function HeroLiveSkeleton() {
   );
 }
 
-export function FeaturedTherapistsSkeleton({ count = 3 }: { count?: number }) {
-  return (
-    <div className="grid md:grid-cols-3 gap-6">
-      {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="rounded-3xl overflow-hidden p-6 h-72 flex flex-col justify-between border border-white/10 bg-white/5 animate-pulse">
-          <div className="flex items-center gap-2">
-            <div className="h-4 w-14 bg-white/15 rounded" />
-            <div className="h-4 w-10 bg-white/15 rounded" />
-          </div>
-          <div className="space-y-3">
-            <div className="h-6 w-2/3 bg-white/15 rounded" />
-            <div className="h-4 w-1/2 bg-white/15 rounded" />
-            <div className="h-8 w-24 bg-white/15 rounded" />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}

@@ -21,6 +21,7 @@ Nepal's home-visit physiotherapy platform connecting patients with verified phys
 **Icons**: lucide-react v0.575.0  
 **Notifications**: sonner v2.0.7  
 **Charts**: recharts v2.15.4  
+**Animation**: motion v13 (`motion/react`)  
 **Forms**: react-hook-form v7.71.2 + @hookform/resolvers + zod v3.24.2  
 **CSS Utilities**: class-variance-authority v0.7.1, clsx v2.1.1, tailwind-merge v3.5.0  
 **Other**: date-fns, cmdk, embla-carousel-react, input-otp, react-day-picker, react-resizable-panels, vaul (drawer)
@@ -114,8 +115,8 @@ src/
       DashboardStat.tsx, EmptyTableRow.tsx, ReferralCard.tsx,
       SectionHeader.tsx, StatusBadge.tsx
     sections/                       # Landing page sections
-      HeroSection.tsx, PartnersMarquee.tsx, ImpactStats.tsx,
-      HowItWorksStep.tsx, ServicesSection.tsx, FeaturedTherapists.tsx,
+      HeroSection.tsx, PartnersMarquee.tsx,
+      HowItWorksStep.tsx, ServicesSection.tsx,
       FindTherapistSection.tsx, AppDownloadSection.tsx, TherapistCTA.tsx
     schedule/, sessions/, availability/, booking/, tables/
     ErrorBoundary.tsx               # Reusable class-based error boundary
@@ -284,7 +285,8 @@ Mutations invalidate related queries on success. `AuthError` caught in service l
 - Legacy brutalist class names kept but re-skinned: `btn-volt` (lime solid), `btn-carbon` (carbon-ink solid), `btn-outline-ink` (ghost 1px ink border), `card-neo` (white + hairline + 24px), `chip-volt/mint/sand` (pills), `input-neo` (24px radius), `label-ink` (sans medium), `grid-bg` (subtle 32px grid)
 - Utility classes in `globals.css`: `btn-primary`, `btn-secondary`, `btn-outline`, `card-soft`, `chip`, `eyebrow`, `badge-*`, `tabs-filter`, `stats-grid`, `table-header`, `hatch-past`, `hatch-blocked`, `home-background` (shared hero+services dark canvas w/ lime glow, content z-index 1)
 - **Feature visual system**: `.feature-visual` containers (`.feature-visual-a`, `-b`, `-c`) with `overflow: hidden`, `width: 100%; max-width: 100%`, rounded corners, layered radial gradient `::before` backgrounds, subtle grid overlay (`.feature-visual-grid`). Used by `ServiceStackVisual`, `SearchVisual`, `BookingVisual`, `RecoveryVisual`
-- Landing order: `HeroSection` → `ServicesSection` (`.home-background` wrapper, premium dark "opportunity grid", 4-col, lime CTA → `/services`) → `PartnersMarquee` → `ImpactStats` → `HowItWorksSection` → `FeaturedTherapists` → `TherapistCTA`
+- Landing order: `HeroSection` → i18n heading (`landing.featuredTherapistsEyebrow`/`Title`) + `FeatureCarousel` → `ServicesSection` (all inside `.home-background`; services = premium dark "opportunity grid", 4-col, lime CTA → `/services`) → `PartnersMarquee` → `HowItWorksSection` → `TherapistCTA`
+- **FeatureCarousel** (`src/components/ui/feature-carousel.tsx`, uses `motion/react`): therapist showcase carousel fed by the landing page query — server-side paginated (`getTherapists({ skip: 0, limit: 10 })`, scoped cache key `["therapists", "featured-carousel", 10]` so the shared full-list key stays untouched). Desktop (lg+): left `mid-abyss` wheel panel with name chips (click to jump); below lg the panel is hidden (`hidden lg:flex`). Cards show therapist photo (Unsplash fallback), specialty badge (top-left), price-per-session + rating pill, and name + Book button wired to `useBooking` → `BookingModal`. Autoplay (3s) pauses on hover over chips or cards
 - Hero search: `HeroSection` `router.push()`es to `/find-a-therapist?q=<query>` on submit; specialty pills push `?q=<value>&specialty=<value>`. The find page reads `useSearchParams()` (wrapped in `<Suspense>`) to seed `q`/`spec`
 
 ### Hero Section (Restructured)

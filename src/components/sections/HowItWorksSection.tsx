@@ -15,12 +15,12 @@ export function HowItWorksSection() {
             <p className="eyebrow !text-white/50 mb-0">{t("landing.howItWorksEyebrow")}</p>
           </div>
           <h2
-            className="font-display text-heading-sm sm:text-heading-lg font-medium leading-snug tracking-[-0.02em] text-white"
+            className="font-display text-heading-sm font-medium leading-snug tracking-[-0.02em] text-white sm:text-2xl"
           >
             {t("landing.howItWorksTitle")}
           </h2>
         </Reveal>
-        <div className="mt-20 lg:mt-28">
+        <div className="mt-12">
           <HowItWorksSteps variant="dark" />
         </div>
       </div>

@@ -58,7 +58,7 @@ export function TherapistCTA() {
   const route = useRouter();
 
   return (
-    <section className="py-24 lg:py-32">
+    <section className="pb-18 lg:pb-26">
       <div className="max-w-7xl mx-auto px-5 lg:px-8">
         <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] lg:gap-20">
           <Reveal className="lg:order-1">
@@ -68,12 +68,11 @@ export function TherapistCTA() {
                 <p className="eyebrow !text-voltage-lime mb-0">{t("landing.therapistCtaEyebrow")}</p>
               </div>
               <h2
-                className="font-sans font-medium tracking-[-0.02em] text-white"
-                style={{ fontSize: "clamp(28px, 3.4vw, 48px)", lineHeight: 1.1 }}
+                className="font-display text-heading-sm font-medium leading-snug tracking-[-0.02em] text-white sm:text-2xl"
               >
                 {t("landing.therapistCtaTitle")}
               </h2>
-              <p className="mt-4 max-w-[400px] text-[15px] leading-[1.6] text-ink-muted">{t("landing.therapistCtaDesc")}</p>
+              <p className="mt-2 max-w-[400px] text-sm font-sans text-ink-muted">{t("landing.therapistCtaDesc")}</p>
               <button
                 onClick={()=>route.push("/signup")}
                 className="mt-7 inline-flex items-center gap-2 rounded-full bg-voltage-lime px-5 py-2.5 text-sm font-semibold text-carbon-ink transition-all duration-150 hover:-translate-y-0.5 hover:brightness-110"
