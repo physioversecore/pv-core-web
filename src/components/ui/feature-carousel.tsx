@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { npr } from "@/utils/format";
 import { useLang } from "@/context/i18n";
 import type { Therapist } from "@/types";
+import Image from "next/image";
 
 const UNSPLASH_FALLBACK = [
   "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=1200&q=80",
@@ -147,7 +148,6 @@ export function FeatureCarousel({ therapists, onBook, loading }: FeatureCarousel
           </div>
           </div>
 
-
         <div
           className="flex-1 min-h-[500px] md:min-h-[600px] lg:h-full relative bg-secondary/30 flex items-center justify-center py-16 md:py-24 lg:py-16 px-6 md:px-12 lg:px-10 overflow-hidden border-t lg:border-t-0 lg:border-l border-border/20"
           onMouseEnter={() => setIsPaused(true)}
@@ -181,19 +181,23 @@ export function FeatureCarousel({ therapists, onBook, loading }: FeatureCarousel
                     damping: 25,
                     mass: 0.8,
                   }}
-                  className="absolute inset-0 rounded-[2rem] md:rounded-[2.8rem] overflow-hidden border-4 md:border-8 border-background bg-background origin-center"
+                  className="absolute inset-0 rounded-[2rem] md:rounded-[2.8rem] overflow-hidden border-2 md:border-4 origin-center"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={photo || fallback}
-                    alt={therapist.name}
-                    className={cn(
-                      "w-full h-full object-cover transition-all duration-700",
-                      isActive
-                        ? "grayscale-0 blur-0"
-                        : "grayscale blur-[2px] brightness-75"
-                    )}
-                  />
+                  <div className="relative w-full h-full">
+                    <Image
+                      src={photo || fallback}
+                      alt={therapist.name}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                      className={cn(
+                        "object-cover transition-all duration-700",
+                        isActive
+                          ? "grayscale-0 blur-0"
+                          : "grayscale blur-[2px] brightness-75"
+                      )}
+                    />
+                  </div>
 
                   <AnimatePresence>
                     {isActive && (
@@ -203,7 +207,7 @@ export function FeatureCarousel({ therapists, onBook, loading }: FeatureCarousel
                         exit={{ opacity: 0, y: 10 }}
                         className="absolute inset-x-0 bottom-0 p-8 md:p-10 pt-32 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end"
                       >
-                        <div className="bg-background text-foreground px-4 py-1.5 rounded-full text-[11px] font-normal uppercase tracking-[0.2em] w-fit shadow-lg mb-3 border border-border/50 flex items-center gap-2">
+                        <div className="bg-background text-foreground px-2 py-1 rounded-full text-[11px] font-normal uppercase tracking-[0.1em] w-fit shadow-lg mb-3 border border-border/50 flex items-center gap-2">
                           <span>{npr(therapist.price)}</span>
                           <span className="text-foreground/40">•</span>
                           <span>per session</span>
@@ -234,8 +238,8 @@ export function FeatureCarousel({ therapists, onBook, loading }: FeatureCarousel
                       isActive ? "opacity-100" : "opacity-0"
                     )}
                   >
-                    <div className="w-2 h-2 rounded-full bg-white shadow-[0_0_10px_white]" />
-                    <span className="text-white/80 text-[10px] font-normal uppercase tracking-[0.3em] font-mono">
+                    <div className="w-2 h-2 rounded-full bg-white/75 shadow-[0_0_10px_white]" />
+                    <span className="text-white/75 text-[10px] font-normal uppercase tracking-[0.3em] font-mono">
                       {therapist.specialty}
                     </span>
                   </div>
