@@ -5,12 +5,12 @@ import Image from "next/image";
 import {
   Activity,
   Bell,
+  CalendarDays,
   Camera,
   Check,
   CheckCircle2,
   ClipboardList,
   HeartHandshake,
-  Loader2,
   Mail,
   MapPin,
   Pencil,
@@ -33,6 +33,7 @@ import {
   updateFamilyMember,
   deleteFamilyMember,
 } from "@/services/api/patients";
+import { formatDate } from "@/lib/format";
 import type { PatientProfile } from "@/types";
 
 type TabKey = "personal" | "medical" | "emergency" | "family";
@@ -45,6 +46,7 @@ interface Draft {
   history: string;
   dob: string;
   gender: "Any" | "Male" | "Female";
+  condition: string;
   notifEmail: boolean;
   notifSms: boolean;
   emergencyName: string;
@@ -70,6 +72,7 @@ const EMPTY_DRAFT: Draft = {
   history: "",
   dob: "",
   gender: "Any",
+  condition: "",
   notifEmail: true,
   notifSms: false,
   emergencyName: "",
@@ -77,11 +80,11 @@ const EMPTY_DRAFT: Draft = {
   emergencyPhone: "",
 };
 
-const TABS: { key: TabKey; label: string; inactive: string }[] = [
-  { key: "personal", label: "Personal", inactive: "text-text-light" },
-  { key: "medical", label: "Medical", inactive: "text-primary" },
-  { key: "emergency", label: "Emergency", inactive: "text-danger" },
-  { key: "family", label: "Family", inactive: "text-secondary" },
+const TABS: { key: TabKey; labelKey: TKey; inactive: string }[] = [
+  { key: "personal", labelKey: "patient_dashboard.profileTabPersonal", inactive: "text-text-light" },
+  { key: "medical", labelKey: "patient_dashboard.profileTabMedical", inactive: "text-primary" },
+  { key: "emergency", labelKey: "patient_dashboard.profileTabEmergency", inactive: "text-danger" },
+  { key: "family", labelKey: "patient_dashboard.profileTabFamily", inactive: "text-secondary" },
 ];
 
 const ALLOWED_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -169,14 +172,14 @@ export default function Profile() {
     if (!file) return;
     if (!ALLOWED_PHOTO_TYPES.includes(file.type)) {
       setPhotoStatus("error");
-      setPhotoError("Only JPG, PNG, and WebP images are allowed.");
-      toast.error("Only JPG, PNG, and WebP images are allowed.");
+      setPhotoError(t("patient_dashboard.invalidPhotoType"));
+      toast.error(t("patient_dashboard.invalidPhotoType"));
       return;
     }
     if (file.size > MAX_PHOTO_SIZE) {
       setPhotoStatus("error");
-      setPhotoError("Photo must be under 5MB.");
-      toast.error("Photo must be under 5MB.");
+      setPhotoError(t("patient_dashboard.photoTooLarge"));
+      toast.error(t("patient_dashboard.photoTooLarge"));
       return;
     }
     setPhotoFile(file);
@@ -214,25 +217,25 @@ export default function Profile() {
             setPhotoStatus("success");
             setProfile((prev) => (prev ? { ...prev, photo: url } : prev));
             void refreshSession();
-            toast.success("Photo uploaded successfully!");
+            toast.success(t("patient_dashboard.photoUploaded"));
           } else {
             setPhotoStatus("error");
-            setPhotoError("Upload failed.");
+            setPhotoError(t("patient_dashboard.uploadFailedGeneric"));
           }
         } catch {
           setPhotoStatus("error");
-          setPhotoError("Upload failed.");
+          setPhotoError(t("patient_dashboard.uploadFailedGeneric"));
         }
       } else {
         setPhotoStatus("error");
-        setPhotoError("Upload failed.");
+        setPhotoError(t("patient_dashboard.uploadFailedGeneric"));
       }
     };
 
     xhr.onerror = () => {
       setPhotoProgress(0);
       setPhotoStatus("error");
-      setPhotoError("Upload failed.");
+      setPhotoError(t("patient_dashboard.uploadFailedGeneric"));
     };
 
     xhr.send(formData);
@@ -253,13 +256,13 @@ export default function Profile() {
         if (photoInputRef.current) photoInputRef.current.value = "";
         setProfile((prev) => (prev ? { ...prev, photo: undefined } : prev));
         void refreshSession();
-        toast.success("Photo removed.");
+        toast.success(t("patient_dashboard.photoRemoved"));
       } else {
-        toast.error("Failed to remove photo.");
+        toast.error(t("patient_dashboard.photoRemoveFailed"));
       }
     };
 
-    xhr.onerror = () => toast.error("Failed to remove photo.");
+    xhr.onerror = () => toast.error(t("patient_dashboard.photoRemoveFailed"));
     xhr.send();
   }
 
@@ -279,6 +282,7 @@ export default function Profile() {
       } else if (tab === "medical") {
         payload.history = draft.history || undefined;
         payload.gender = draft.gender;
+        payload.condition = draft.condition;
         payload.notifEmail = draft.notifEmail;
         payload.notifSms = draft.notifSms;
       } else {
@@ -303,16 +307,16 @@ export default function Profile() {
 
   async function handleAddFamily() {
     if (!familyDraft.name.trim() || !familyDraft.relationship.trim()) {
-      toast.error("Name and relationship are required.");
+      toast.error(t("patient_dashboard.familyRequiredError"));
       return;
     }
     try {
       const member = await addFamilyMember(familyDraft);
       setFamilyMembers((prev) => [...prev, member]);
       resetFamilyDraft();
-      toast.success("Family member added.");
+      toast.success(t("patient_dashboard.familyAdded"));
     } catch {
-      toast.error("Failed to add family member.");
+      toast.error(t("patient_dashboard.familyAddFailed"));
     }
   }
 
@@ -325,9 +329,9 @@ export default function Profile() {
       setFamilyMembers((prev) => prev.map((m, i) => (i === familyEditingIdx ? updated : m)));
       setFamilyEditingIdx(null);
       resetFamilyDraft();
-      toast.success("Family member updated.");
+      toast.success(t("patient_dashboard.familyUpdated"));
     } catch {
-      toast.error("Failed to update family member.");
+      toast.error(t("patient_dashboard.familyUpdateFailed"));
     }
   }
 
@@ -335,9 +339,9 @@ export default function Profile() {
     try {
       await deleteFamilyMember(id);
       setFamilyMembers((prev) => prev.filter((m) => m.id !== id));
-      toast.success("Family member removed.");
+      toast.success(t("patient_dashboard.familyRemoved"));
     } catch {
-      toast.error("Failed to remove family member.");
+      toast.error(t("patient_dashboard.familyRemoveFailed"));
     }
   }
 
@@ -370,7 +374,7 @@ export default function Profile() {
         ? t("patient_dashboard.profileMedicalInfo")
         : tab === "emergency"
           ? t("patient_dashboard.profileEmergencyInfo")
-          : "Family Members";
+          : t("patient_dashboard.familyTitle");
 
   return (
     <div className="card-soft max-w-2xl overflow-hidden">
@@ -493,7 +497,7 @@ export default function Profile() {
                   : `bg-transparent border-transparent hover:text-text ${tb.inactive}`
               }`}
             >
-              {tb.label}
+              {t(tb.labelKey)}
             </button>
           );
         })}
@@ -554,20 +558,14 @@ export default function Profile() {
               )}
               {tab === "medical" && (
                 <>
-                  {conditions.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {conditions.map((c, i) => (
-                        <span
-                          key={c}
-                          className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-                            i % 2 === 0 ? "bg-warn-bg text-warn-ink" : "bg-danger-bg text-danger-ink"
-                          }`}
-                        >
-                          {c}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  <Field label={t("patient_dashboard.profileCondition")}>
+                    <input
+                      className={inputCls}
+                      value={draft.condition}
+                      onChange={(e) => setDraft({ ...draft, condition: e.target.value })}
+                      placeholder={t("patient_dashboard.profileConditionPlaceholder")}
+                    />
+                  </Field>
                   <Field label={t("patient_dashboard.medicalHistory")}>
                     <textarea className={inputCls} rows={3} value={draft.history} onChange={(e) => setDraft({ ...draft, history: e.target.value })} />
                   </Field>
@@ -618,7 +616,13 @@ export default function Profile() {
               {tab === "personal" && (
                 <>
                   <Row icon={<UserIcon size={14} />} label={t("patient_dashboard.fullName")} value={profile?.name ?? "—"} />
+                  <Row
+                    icon={<CalendarDays size={14} />}
+                    label={t("patient_dashboard.profileDateOfBirth")}
+                    value={dobLine(profile, t("patient_dashboard.profileYrs"))}
+                  />
                   <Row icon={<MapPin size={14} />} label={t("patient_dashboard.homeAddress")} value={fullAddress(profile)} />
+                  <Row icon={<MapPin size={14} />} label={t("patient_dashboard.city")} value={profile?.city || "—"} />
                   <Row icon={<Phone size={14} />} label={t("patient_dashboard.phone")} value={profile?.phone ?? "—"} />
                   <Row icon={<Mail size={14} />} label={t("patient_dashboard.profileEmail")} value={user?.email ?? "—"} />
                 </>
@@ -660,48 +664,48 @@ export default function Profile() {
         {tab === "family" && (
           <div className="flex flex-col gap-3.5">
             <p className="text-xs text-text-light">
-              Add family members who also need physiotherapy.
+              {t("patient_dashboard.familyHint")}
             </p>
 
             {familyLoading ? (
-              <div className="text-xs text-text-light py-4 text-center">Loading...</div>
+              <div className="text-xs text-text-light py-4 text-center">{t("common.loading")}</div>
             ) : (
               familyMembers.map((fm, i) => (
                 <div key={fm.id} className="rounded-lg border border-border bg-surface/50 p-3 space-y-2">
                   {familyEditingIdx === i ? (
                     <div className="space-y-2">
                       <div className="grid grid-cols-2 gap-2">
-                        <Field label="Name">
+                        <Field label={t("patient_dashboard.fullName")}>
                           <input className={inputCls} value={familyDraft.name} onChange={(e) => setFamilyDraft({ ...familyDraft, name: e.target.value })} required />
                         </Field>
-                        <Field label="Relationship">
+                        <Field label={t("patient_dashboard.relationshipLabel")}>
                           <select className={inputCls} value={familyDraft.relationship} onChange={(e) => setFamilyDraft({ ...familyDraft, relationship: e.target.value })} required>
-                            <option value="">Select</option>
-                            <option value="Spouse">Spouse</option>
-                            <option value="Parent">Parent</option>
-                            <option value="Sibling">Sibling</option>
-                            <option value="Child">Child</option>
-                            <option value="Other">Other</option>
+                            <option value="">{t("auth.selectOption")}</option>
+                            <option value="Spouse">{t("patient_dashboard.relSpouse")}</option>
+                            <option value="Parent">{t("patient_dashboard.relParent")}</option>
+                            <option value="Sibling">{t("patient_dashboard.relSibling")}</option>
+                            <option value="Child">{t("patient_dashboard.relChild")}</option>
+                            <option value="Other">{t("patient_dashboard.relOther")}</option>
                           </select>
                         </Field>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
-                        <Field label="Date of birth">
+                        <Field label={t("patient_dashboard.profileDateOfBirth")}>
                           <input type="date" className={inputCls} value={familyDraft.dob} onChange={(e) => setFamilyDraft({ ...familyDraft, dob: e.target.value })} />
                         </Field>
-                        <Field label="Phone">
+                        <Field label={t("patient_dashboard.phone")}>
                           <input className={inputCls} value={familyDraft.phone} onChange={(e) => setFamilyDraft({ ...familyDraft, phone: e.target.value })} />
                         </Field>
                       </div>
-                      <Field label="Condition (optional)">
-                        <input className={inputCls} value={familyDraft.condition} onChange={(e) => setFamilyDraft({ ...familyDraft, condition: e.target.value })} placeholder="What they need help with" />
+                      <Field label={t("patient_dashboard.conditionOptional")}>
+                        <input className={inputCls} value={familyDraft.condition} onChange={(e) => setFamilyDraft({ ...familyDraft, condition: e.target.value })} placeholder={t("patient_dashboard.profileConditionPlaceholder")} />
                       </Field>
                       <div className="flex gap-2">
                         <button type="button" onClick={handleUpdateFamily} className="btn-secondary !py-1.5 !px-3 text-xs">
-                          <Check size={12} /> Save
+                          <Check size={12} /> {t("patient_dashboard.familySave")}
                         </button>
                         <button type="button" onClick={resetFamilyDraft} className="text-xs text-text-light hover:text-text cursor-pointer">
-                          Cancel
+                          {t("patient_dashboard.familyCancel")}
                         </button>
                       </div>
                     </div>
@@ -711,7 +715,7 @@ export default function Profile() {
                         <div className="text-sm font-medium text-text">{fm.name}</div>
                         <div className="text-xs text-text-light">{fm.relationship}</div>
                         {fm.phone && <div className="text-xs text-text-light">{fm.phone}</div>}
-                        {fm.condition && <div className="text-xs text-text-light italic">Condition: {fm.condition}</div>}
+                        {fm.condition && <div className="text-xs text-text-light italic">{t("patient_dashboard.profileCondition")}: {fm.condition}</div>}
                       </div>
                       <div className="flex gap-1.5 shrink-0">
                         <button type="button" onClick={() => startEditFamily(i)} className="p-1 rounded-md hover:bg-surface text-text-light hover:text-text transition-colors cursor-pointer">
@@ -730,32 +734,32 @@ export default function Profile() {
             {/* Add new family member form */}
             {familyEditingIdx === null && (
               <div className="rounded-lg border-2 border-dashed border-border p-3 space-y-2">
-                <div className="text-xs font-medium text-text-light">Add family member</div>
+                <div className="text-xs font-medium text-text-light">{t("patient_dashboard.familyTitle")}</div>
                 <div className="grid grid-cols-2 gap-2">
-                  <Field label="Name">
-                    <input className={inputCls} value={familyDraft.name} onChange={(e) => setFamilyDraft({ ...familyDraft, name: e.target.value })} placeholder="Full name" />
+                  <Field label={t("patient_dashboard.fullName")}>
+                    <input className={inputCls} value={familyDraft.name} onChange={(e) => setFamilyDraft({ ...familyDraft, name: e.target.value })} placeholder={t("patient_dashboard.fullName")} />
                   </Field>
-                  <Field label="Relationship">
+                  <Field label={t("patient_dashboard.relationshipLabel")}>
                     <select className={inputCls} value={familyDraft.relationship} onChange={(e) => setFamilyDraft({ ...familyDraft, relationship: e.target.value })}>
-                      <option value="">Select</option>
-                      <option value="Spouse">Spouse</option>
-                      <option value="Parent">Parent</option>
-                      <option value="Sibling">Sibling</option>
-                      <option value="Child">Child</option>
-                      <option value="Other">Other</option>
+                      <option value="">{t("auth.selectOption")}</option>
+                      <option value="Spouse">{t("patient_dashboard.relSpouse")}</option>
+                      <option value="Parent">{t("patient_dashboard.relParent")}</option>
+                      <option value="Sibling">{t("patient_dashboard.relSibling")}</option>
+                      <option value="Child">{t("patient_dashboard.relChild")}</option>
+                      <option value="Other">{t("patient_dashboard.relOther")}</option>
                     </select>
                   </Field>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <Field label="Date of birth">
+                  <Field label={t("patient_dashboard.profileDateOfBirth")}>
                     <input type="date" className={inputCls} value={familyDraft.dob} onChange={(e) => setFamilyDraft({ ...familyDraft, dob: e.target.value })} />
                   </Field>
-                  <Field label="Phone">
-                    <input className={inputCls} value={familyDraft.phone} onChange={(e) => setFamilyDraft({ ...familyDraft, phone: e.target.value })} placeholder="Optional" />
+                  <Field label={t("patient_dashboard.phone")}>
+                    <input className={inputCls} value={familyDraft.phone} onChange={(e) => setFamilyDraft({ ...familyDraft, phone: e.target.value })} placeholder={t("patient_dashboard.conditionOptional")} />
                   </Field>
                 </div>
-                <Field label="Condition (optional)">
-                  <input className={inputCls} value={familyDraft.condition} onChange={(e) => setFamilyDraft({ ...familyDraft, condition: e.target.value })} placeholder="What they need help with" />
+                <Field label={t("patient_dashboard.conditionOptional")}>
+                  <input className={inputCls} value={familyDraft.condition} onChange={(e) => setFamilyDraft({ ...familyDraft, condition: e.target.value })} placeholder={t("patient_dashboard.profileConditionPlaceholder")} />
                 </Field>
                 <button
                   type="button"
@@ -763,7 +767,7 @@ export default function Profile() {
                   disabled={!familyDraft.name.trim() || !familyDraft.relationship.trim()}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary/40 text-primary text-xs font-medium hover:bg-primary/10 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  <Plus size={12} /> Add member
+                  <Plus size={12} /> {t("patient_dashboard.familyAdd")}
                 </button>
               </div>
             )}
@@ -783,6 +787,7 @@ function draftFromProfile(p: PatientProfile): Draft {
     history: p.history ?? "",
     dob: p.dob ? p.dob.slice(0, 10) : "",
     gender: p.gender,
+    condition: p.condition ?? "",
     notifEmail: p.notifEmail,
     notifSms: p.notifSms,
     emergencyName: p.emergencyName ?? "",
@@ -799,6 +804,12 @@ function patientCode(p: PatientProfile | null): string {
 function fullAddress(p: PatientProfile | null): string {
   if (!p) return "—";
   return [p.address, p.city].filter(Boolean).join(", ") || "—";
+}
+
+function dobLine(p: PatientProfile | null, yrsLabel: string): string {
+  if (!p?.dob) return "—";
+  const date = formatDate(p.dob.slice(0, 10));
+  return p.age ? `${date} (${p.age} ${yrsLabel})` : date;
 }
 
 function genderKey(g: "Any" | "Male" | "Female"): TKey {

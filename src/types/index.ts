@@ -79,6 +79,7 @@ export interface TherapistProfile {
   city: string;
   specialty: string;
   gender: string;
+  licenseNumber?: string;
   price: number;
   experience: number;
   bio: string;

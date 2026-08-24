@@ -14,7 +14,7 @@ import {
   Download,
   Eye,
   CheckCircle2,
-  X,
+  Mail,
 } from "lucide-react";
 import { getTherapistProfile, updateTherapistProfile } from "@/services/api/profile";
 import type { TherapistProfile, TherapistProfileDocument } from "@/types";
@@ -37,6 +37,8 @@ const DOC_TYPES = [
   "Other",
 ];
 
+const GENDERS = ["Male", "Female", "Other"];
+
 function formatFileSize(bytes?: number): string {
   if (bytes == null) return "";
   if (bytes < 1024) return `${bytes} B`;
@@ -56,6 +58,7 @@ export default function TProfile() {
 
   const [f, setF] = useState({
     name: user?.name ?? "",
+    email: user?.email ?? "",
     phone: user?.phone ?? "",
     bio: "",
     specialty: user?.specialty ?? "General",
@@ -63,6 +66,7 @@ export default function TProfile() {
     price: 1200,
     city: user?.city ?? "Kathmandu",
     gender: "Male",
+    licenseNumber: "",
   });
 
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -87,13 +91,15 @@ export default function TProfile() {
         setPhotoPreview(profile.photo ?? null);
         setF({
           name: profile.name,
+          email: profile.email,
           phone: profile.phone,
           bio: profile.bio ?? "",
           specialty: profile.specialty,
           experience: profile.experience,
           price: profile.price,
           city: profile.city,
-          gender: profile.gender,
+          gender: profile.gender || "Male",
+          licenseNumber: profile.licenseNumber ?? "",
         });
       })
       .catch((err) => {
@@ -108,7 +114,7 @@ export default function TProfile() {
     e.preventDefault();
     setSaving(true);
     try {
-      await updateTherapistProfile({
+      const updated = await updateTherapistProfile({
         name: f.name,
         phone: f.phone,
         bio: f.bio || "",
@@ -117,7 +123,12 @@ export default function TProfile() {
         price: f.price,
         city: f.city,
         gender: f.gender,
+        licenseNumber: f.licenseNumber || undefined,
       });
+      setProfile((prev) =>
+        prev ? { ...prev, ...updated, documents: prev.documents } : updated,
+      );
+      void refreshSession();
       toast.success(t("therapist_dashboard.profileSaved"));
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Something went wrong";
@@ -353,168 +364,195 @@ export default function TProfile() {
   }
 
   return (
-    <form onSubmit={save} className="card-soft p-6 max-w-2xl space-y-6">
-      {/* ─── Photo Upload ─── */}
-      <div className="space-y-2">
-        <label className="text-xs font-medium text-text-light">
-          {t("therapist_dashboard.profilePhoto")}
-        </label>
-        <div className="flex items-center gap-4">
-          <div className="relative group">
-            {photoPreview ? (
-              <Image
-                src={photoPreview}
-                alt="Profile"
-                width={80}
-                height={80}
-                unoptimized
-                className="w-20 h-20 rounded-full object-cover border-2 border-border"
-              />
-            ) : (
-              <div className="w-20 h-20 rounded-full bg-surface grid place-items-center text-secondary font-display text-2xl">
-                {f.name[0] ?? "T"}
-              </div>
-            )}
+    <form onSubmit={save} className="card-soft p-6 max-w-2xl space-y-8">
+      {/* ─── Header: Photo + identity ─── */}
+      <div className="flex items-start gap-4 pb-2">
+        <div className="relative group shrink-0">
+          {photoPreview ? (
+            <Image
+              src={photoPreview}
+              alt="Profile"
+              width={80}
+              height={80}
+              unoptimized
+              className="w-20 h-20 rounded-full object-cover border-2 border-border"
+            />
+          ) : (
+            <div className="w-20 h-20 rounded-full bg-surface grid place-items-center text-secondary font-display text-2xl">
+              {f.name[0] ?? "T"}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => photoInputRef.current?.click()}
+            className="absolute inset-0 rounded-full bg-text/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+          >
+            <Camera className="w-5 h-5 text-white" />
+          </button>
+        </div>
+
+        <div className="flex-1 min-w-0 pt-1">
+          <h2 className="font-display text-lg font-semibold text-text truncate">
+            {f.name || "—"}
+          </h2>
+          <p className="text-xs text-text-light mt-0.5 flex items-center gap-1.5">
+            <Mail className="w-3 h-3 shrink-0" />
+            <span className="truncate">{f.email || "—"}</span>
+          </p>
+          {f.licenseNumber && (
+            <p className="text-[10px] font-mono text-text-light mt-1">
+              {f.licenseNumber}
+            </p>
+          )}
+
+          <div className="flex gap-2 mt-2">
             <button
               type="button"
               onClick={() => photoInputRef.current?.click()}
-              className="absolute inset-0 rounded-full bg-text/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+              className="btn-outline !py-1.5 !px-3 text-xs flex items-center gap-1.5"
             >
-              <Camera className="w-5 h-5 text-white" />
+              <Upload className="w-3.5 h-3.5" />
+              {photoPreview ? t("therapist_dashboard.replacePhoto") : t("therapist_dashboard.uploadPhoto")}
             </button>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <div className="flex gap-2">
+            {photoPreview && (
               <button
                 type="button"
-                onClick={() => photoInputRef.current?.click()}
-                className="btn-outline !py-1.5 !px-3 text-xs flex items-center gap-1.5"
+                onClick={removePhoto}
+                className="btn-outline !py-1.5 !px-3 text-xs flex items-center gap-1.5 !border-danger !text-danger hover:!bg-danger/10"
               >
-                <Upload className="w-3.5 h-3.5" />
-                {photoPreview ? t("therapist_dashboard.replacePhoto") : t("therapist_dashboard.uploadPhoto")}
+                <Trash2 className="w-3.5 h-3.5" />
+                {t("therapist_dashboard.removePhoto")}
               </button>
-              {photoPreview && (
-                <button
-                  type="button"
-                  onClick={removePhoto}
-                  className="btn-outline !py-1.5 !px-3 text-xs flex items-center gap-1.5 !border-danger !text-danger hover:!bg-danger/10"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  {t("therapist_dashboard.removePhoto")}
-                </button>
-              )}
-            </div>
-
-            {photoStatus === "uploading" && (
-              <div className="w-48">
-                <div className="h-1.5 bg-surface rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary rounded-full transition-all duration-300"
-                    style={{ width: `${photoProgress}%` }}
-                  />
-                </div>
-                <span className="text-[10px] text-text-light mt-0.5 block">
-                  {t("therapist_dashboard.uploading")} {photoProgress}%
-                </span>
-              </div>
             )}
-            {photoStatus === "success" && (
-              <span className="text-[10px] text-success flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3" /> {t("therapist_dashboard.photoUploaded")}
-              </span>
-            )}
-            {photoStatus === "error" && (
-              <span className="text-[10px] text-danger">{photoError}</span>
-            )}
-
-            <input
-              ref={photoInputRef}
-              type="file"
-              accept=".jpg,.jpeg,.png,.webp"
-              onChange={handlePhotoSelect}
-              className="hidden"
-            />
           </div>
+
+          {photoStatus === "uploading" && (
+            <div className="w-48 mt-1.5">
+              <div className="h-1.5 bg-surface rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary rounded-full transition-all duration-300"
+                  style={{ width: `${photoProgress}%` }}
+                />
+              </div>
+              <span className="text-[10px] text-text-light mt-0.5 block">
+                {t("therapist_dashboard.uploading")} {photoProgress}%
+              </span>
+            </div>
+          )}
+          {photoStatus === "success" && (
+            <span className="text-[10px] text-success flex items-center gap-1 mt-1">
+              <CheckCircle2 className="w-3 h-3" /> {t("therapist_dashboard.photoUploaded")}
+            </span>
+          )}
+          {photoStatus === "error" && (
+            <span className="text-[10px] text-danger mt-1 block">{photoError}</span>
+          )}
+
+          <input
+            ref={photoInputRef}
+            type="file"
+            accept=".jpg,.jpeg,.png,.webp"
+            onChange={handlePhotoSelect}
+            className="hidden"
+          />
+
+          {photoFile && photoStatus !== "success" && photoStatus !== "uploading" && (
+            <button
+              type="button"
+              onClick={uploadPhoto}
+              className="btn-secondary !py-1.5 !px-4 text-xs mt-1.5"
+            >
+              {t("therapist_dashboard.savePhoto")}
+            </button>
+          )}
         </div>
-
-        {photoFile && photoStatus !== "success" && photoStatus !== "uploading" && (
-          <button
-            type="button"
-            onClick={uploadPhoto}
-            className="btn-secondary !py-1.5 !px-4 text-xs mt-1"
-          >
-            {t("therapist_dashboard.savePhoto")}
-          </button>
-        )}
       </div>
 
-      {/* ─── Personal Fields ─── */}
-      <Field
-        label={t("therapist_dashboard.fullName")}
-        value={f.name}
-        onChange={(v) => setF({ ...f, name: v })}
-      />
-      <Field
-        label={t("therapist_dashboard.phone")}
-        value={f.phone}
-        onChange={(v) => setF({ ...f, phone: v })}
-      />
-      <div>
-        <label className="text-xs font-medium text-text-light">
-          {t("therapist_dashboard.bio")}
-        </label>
-        <textarea
-          value={f.bio}
-          onChange={(e) => setF({ ...f, bio: e.target.value })}
-          rows={3}
-          className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary"
-        />
-      </div>
-      <div className="grid sm:grid-cols-2 gap-4">
-        <SelectField
-          label={t("therapist_dashboard.specialty")}
-          value={f.specialty}
-          onChange={(v) => setF({ ...f, specialty: v })}
-          options={[...SPECIALTIES]}
+      {/* ─── Section: Personal ─── */}
+      <section className="space-y-4">
+        <SectionTitle title={t("therapist_dashboard.sectionPersonal")} />
+        <Field
+          label={t("therapist_dashboard.fullName")}
+          value={f.name}
+          onChange={(v) => setF({ ...f, name: v })}
         />
         <Field
-          label={t("therapist_dashboard.yearsExperience")}
-          type="number"
-          value={String(f.experience)}
-          onChange={(v) => setF({ ...f, experience: +v })}
+          label={t("therapist_dashboard.emailLabel")}
+          value={f.email}
+          onChange={() => {}}
+          disabled
         />
-      </div>
-      <div className="grid sm:grid-cols-2 gap-4">
-        <Field
-          label={t("therapist_dashboard.feePerSession")}
-          type="number"
-          value={String(f.price)}
-          onChange={(v) => setF({ ...f, price: +v })}
-        />
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Field
+            label={t("therapist_dashboard.phone")}
+            value={f.phone}
+            onChange={(v) => setF({ ...f, phone: v })}
+          />
+          <SelectField
+            label={t("therapist_dashboard.primaryCity")}
+            value={f.city}
+            onChange={(v) => setF({ ...f, city: v })}
+            options={[...CITIES]}
+          />
+        </div>
         <SelectField
-          label={t("therapist_dashboard.primaryCity")}
-          value={f.city}
-          onChange={(v) => setF({ ...f, city: v })}
-          options={[...CITIES]}
+          label={t("therapist_dashboard.genderLabel")}
+          value={f.gender}
+          onChange={(v) => setF({ ...f, gender: v })}
+          options={GENDERS}
         />
-      </div>
+      </section>
 
-      <div className="p-3 rounded-xl bg-surface/60 text-xs text-text-light">
-        {t("therapist_dashboard.nmcLicense")}{" "}
-        <span className="font-mono text-secondary">NMC-PT-2018-XXXX</span> ·{" "}
-        <span className="chip !bg-secondary !text-white">
-          {t("therapist_dashboard.verified")}
-        </span>
-      </div>
-
-      {/* ─── Document Upload Section ─── */}
-      <div className="space-y-3 pt-2 border-t border-border">
+      {/* ─── Section: Professional ─── */}
+      <section className="space-y-4">
+        <SectionTitle title={t("therapist_dashboard.sectionProfessional")} />
+        <div className="grid sm:grid-cols-2 gap-4">
+          <SelectField
+            label={t("therapist_dashboard.specialty")}
+            value={f.specialty}
+            onChange={(v) => setF({ ...f, specialty: v })}
+            options={[...SPECIALTIES]}
+          />
+          <Field
+            label={t("therapist_dashboard.yearsExperience")}
+            type="number"
+            value={String(f.experience)}
+            onChange={(v) => setF({ ...f, experience: +v })}
+          />
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Field
+            label={t("therapist_dashboard.feePerSession")}
+            type="number"
+            value={String(f.price)}
+            onChange={(v) => setF({ ...f, price: +v })}
+          />
+          <Field
+            label={t("therapist_dashboard.licenseNumber")}
+            placeholder={t("therapist_dashboard.licenseNumberPlaceholder")}
+            value={f.licenseNumber}
+            onChange={(v) => setF({ ...f, licenseNumber: v })}
+          />
+        </div>
         <div>
-          <h3 className="font-display text-base font-semibold text-text">
-            {t("therapist_dashboard.verifiedDocuments")}
-          </h3>
-          <p className="text-xs text-text-light mt-0.5">
+          <label className="text-xs font-medium text-text-light">
+            {t("therapist_dashboard.bio")}
+          </label>
+          <textarea
+            value={f.bio}
+            onChange={(e) => setF({ ...f, bio: e.target.value })}
+            rows={4}
+            placeholder="Tell patients about your approach and experience..."
+            className={`${inputCls} resize-y`}
+          />
+        </div>
+      </section>
+
+      {/* ─── Section: Documents ─── */}
+      <section className="space-y-3 pt-2 border-t border-border">
+        <div>
+          <SectionTitle title={t("therapist_dashboard.verifiedDocuments")} />
+          <p className="text-xs text-text-light -mt-1">
             {t("therapist_dashboard.verifiedDocumentsHint")}
           </p>
         </div>
@@ -629,7 +667,7 @@ export default function TProfile() {
             {t("therapist_dashboard.docsReviewHint")}
           </p>
         </div>
-      </div>
+      </section>
 
       <button type="submit" disabled={saving} className="btn-secondary disabled:opacity-50">
         {saving ? t("common.submitting") : t("common.saveChanges")}
@@ -638,16 +676,29 @@ export default function TProfile() {
   );
 }
 
+function SectionTitle({ title }: { title: string }) {
+  return (
+    <h3 className="font-display text-base font-semibold text-text">{title}</h3>
+  );
+}
+
+const inputCls =
+  "w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary";
+
 function Field({
   label,
   value,
   onChange,
   type = "text",
+  disabled = false,
+  placeholder,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   type?: string;
+  disabled?: boolean;
+  placeholder?: string;
 }) {
   return (
     <div>
@@ -655,8 +706,10 @@ function Field({
       <input
         type={type}
         value={value}
+        placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary"
+        disabled={disabled}
+        className={`${inputCls} ${disabled ? "!bg-surface !text-text-light cursor-not-allowed" : ""}`}
       />
     </div>
   );
@@ -679,8 +732,9 @@ function SelectField({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white"
+        className={`${inputCls} ${options.includes(value) ? "" : "!text-text-light"}`}
       >
+        {!options.includes(value) && value && <option value={value}>{value}</option>}
         {options.map((o) => (
           <option key={o}>{o}</option>
         ))}
