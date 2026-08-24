@@ -1,6 +1,6 @@
 # Proxy.js — Next.js 16 Route Protection Convention
 
-> **Status for this project**: ✅ **APPLIED**. The project runs **Next.js 16.3.1** and route protection lives in `proxy.ts` at the repo root (`middleware.ts` is gone). This document is now a reference for how our proxy works and what changed during the migration.
+> **Status for this project**: ✅ **APPLIED**. The project runs **Next.js 16.3.1** and route protection lives in `src/proxy.ts` (`middleware.ts` is gone). Because this project uses a `src/` directory, the file MUST live inside `src/` — a `proxy.ts` at the repo root is silently ignored (see "Placement gotcha" below). This document is now a reference for how our proxy works and what changed during the migration.
 
 ## What Changed
 
@@ -34,12 +34,14 @@ This renames the file and function automatically.
 
 ### File Location
 
-Same as middleware — project root or `src/`:
+Same level as `pages`/`app` — **inside `src/` when using a `src` directory**:
 
 ```
-proxy.ts          # project root
-src/proxy.ts      # if using src/
+src/proxy.ts       # ✅ our location (project uses src/app)
+proxy.ts           # ❌ silently ignored when src/app exists
 ```
+
+> ⚠️ **Placement gotcha**: With `src/app`, a root-level `proxy.ts` compiles without errors but is never registered — `.next/server/middleware-manifest.json` shows `"sorted_middleware": []` and NO route protection runs. There is no warning; the only symptom is guards not firing. Keep the file in `src/`.
 
 ### Function Export
 
@@ -89,7 +91,7 @@ export const config = {
 
 ## Our Current Implementation
 
-Our `proxy.ts` at the project root (post-migration):
+Our `src/proxy.ts` (post-migration, moved from repo root into `src/` — see Placement gotcha above):
 
 ```ts
 import { NextRequest, NextResponse } from "next/server";

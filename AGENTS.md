@@ -33,7 +33,7 @@ Nepal's home-visit physiotherapy platform connecting patients with verified phys
 | `README.md` | Current | Getting started, commands, roles, theme tokens |
 | `ARCHITECTURE.md` | **Current — trust this** | Auth flows, data fetching, provider stack, error handling, badges/evidence uploads |
 | `APIGUIDELINE.md` | Current | Decision tree for how the frontend talks to the backend (Server Component vs Server Action vs Route Handler) + non-negotiables |
-| `PROXY-CONVENTION.md` | Applied | Next.js 16 `middleware.ts` → `proxy.ts` migration reference. The migration is DONE (`proxy.ts` at repo root) |
+| `PROXY-CONVENTION.md` | Applied | Next.js 16 `middleware.ts` → `proxy.ts` migration reference. The migration is DONE (`src/proxy.ts` — must sit inside `src/` next to `app/`, a root-level file is silently ignored) |
 | `SEEDDATA.md` | Current | Seed users/products/sessions for the backend + API quick reference |
 | `ARCHITECT.md` | ⚠️ STALE | Describes the old localStorage/mock era. Do not follow; kept for history only |
 
@@ -41,6 +41,7 @@ Nepal's home-visit physiotherapy platform connecting patients with verified phys
 
 ```
 src/
+  proxy.ts                          # Route protection (Next.js 16 proxy convention — MUST be inside src/)
   app/                              # Next.js App Router
     layout.tsx                      # Root layout (fonts via <link>, <Providers>)
     providers.tsx                   # "use client" — QueryClient, DesignTokens, Lang, Auth, Cart, BookingBadge, ComplaintBadge, AuthModal, Toaster
@@ -203,7 +204,7 @@ src/
 - **Logout**: `DashboardShell`'s `handleLogout` is `async` — always `await logout()` before redirect.
 - **Redirect strategy**: Always `router.replace()` or `router.push()` — never `window.location.href`.
 - **Role guard**: `(dashboard)/layout.tsx` checks `user.role` against path prefix. If no user, redirects to `/access?callbackUrl=...`.
-- **Proxy** (`proxy.ts` at repo root — Next.js 16 convention, replaces `middleware.ts`): Verifies the JWT **signature** (not just expiry) via `verifySession()` (`src/services/api/auth-session.ts`, jose `jwtVerify` with `SECRET_KEY`/`JWT_SECRET` env — must match the backend's `SECRET_KEY`). Behavior:
+- **Proxy** (`src/proxy.ts` — Next.js 16 convention replacing `middleware.ts`; must sit inside `src/` next to `app/`, a root-level file is silently ignored): Verifies the JWT **signature** (not just expiry) via `verifySession()` (`src/services/api/auth-session.ts`, jose `jwtVerify` with `SECRET_KEY`/`JWT_SECRET` env — must match the backend's `SECRET_KEY`). Behavior:
   - Protected prefixes `/patient`, `/therapist`, `/admin` — no token or invalid → redirect `/access?callbackUrl=...`; role mismatch → redirect to the user's own role home.
   - `/onboarding/*` is gated by role (`ONBOARDING_ROLE_MAP`) — a therapist token can't open `/onboarding/patient` and vice versa.
   - `/access`, `/signup`, `/forgot-password`, `/reset-password` are public; logged-in users on `/access` are redirected to their role home (invalid cookie is cleared).
