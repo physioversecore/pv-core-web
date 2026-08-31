@@ -953,6 +953,7 @@ const ne = {
     dateTime: "मिति र समय",
     type: "प्रकार",
     status: "स्थिति",
+    forWhom: "को लागि",
     confirmed: "पुष्टि भयो",
     pending: "विचाराधीन",
     cancel: "रद्द गर्नुहोस्",

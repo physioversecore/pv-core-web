@@ -952,6 +952,7 @@ const en = {
     dateTime: "Date & time",
     type: "Type",
     status: "Status",
+    forWhom: "For",
     confirmed: "Confirmed",
     pending: "Pending",
     cancel: "Cancel",
