@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { HeartPulse, Loader2, ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { useAuth } from "@/context/auth";
@@ -31,6 +31,8 @@ export default function PatientOnboardingPage() {
   const { t } = useLang();
   const { user, loading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl");
 
   const [step, setStep] = useState<Step>("personal");
   const [submitting, setSubmitting] = useState(false);
@@ -167,7 +169,7 @@ export default function PatientOnboardingPage() {
     try {
       await completeOnboarding(form);
       toast.success("Profile completed!");
-      router.replace("/patient");
+      router.replace(callbackUrl && callbackUrl.startsWith("/") ? callbackUrl : "/patient");
     } catch {
       toast.error("Failed to save profile. Please try again.");
     } finally {

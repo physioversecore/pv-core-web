@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, Suspense } from "react";
+import { useState, useMemo, Suspense, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Search, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { TherapistCard } from "@/components/TherapistCard";
@@ -28,7 +29,7 @@ import {
 import { useTherapistsToRate } from "@/hooks/useTherapistsToRate";
 import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import { useLang } from "@/context/i18n";
-import { getTherapists } from "@/services/api/therapists";
+import { getTherapists, getTherapist } from "@/services/api/therapists";
 import { isPast } from "@/lib/format";
 import { useDebounce } from "@/hooks/useDebounce";
 import { CITIES, SPECIALTIES } from "@/constants";
@@ -44,6 +45,8 @@ const isScheduled = (s: SessionData) =>
 
 function SessionsContent() {
   const { t } = useLang();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [tab, setTab] = useState<(typeof TABS)[number]>("sessionsUpcoming");
   const [view, setView] = useState<ViewMode>("compact");
   const [search, setSearch] = useState("");
@@ -54,6 +57,24 @@ function SessionsContent() {
   const [cancelTarget, setCancelTarget] = useState<SessionData | null>(null);
   const [rescheduleTarget, setRescheduleTarget] = useState<SessionData | null>(null);
   const [rateTarget, setRateTarget] = useState<SessionData | null>(null);
+
+  // Deep-link booking: /patient/sessions?book={therapistId} opens that therapist's booking modal.
+  // Clear the book param from the URL once opened so closing the modal isn't re-triggered.
+  const bookParam = searchParams.get("book");
+  const { data: bookParamTherapist } = useQuery({
+    queryKey: ["therapist", bookParam],
+    queryFn: () => getTherapist(bookParam!),
+    enabled: !!bookParam,
+  });
+  useEffect(() => {
+    if (bookParam && bookParamTherapist) {
+      setBookTherapist({
+        ...bookParamTherapist,
+        gender: bookParamTherapist.gender as Therapist["gender"],
+      });
+      router.replace("/patient/sessions", { scroll: false });
+    }
+  }, [bookParam, bookParamTherapist, router]);
 
   // Therapist picker state (server-side filters + pagination)
   const [pickerQ, setPickerQ] = useState("");

@@ -13,7 +13,11 @@ export function useBooking() {
   const book = useCallback(
     (t: Therapist) => {
       if (!user) {
-        router.push(`/access?callbackUrl=/book/${encodeURIComponent(t.id)}`);
+        router.push(
+          `/access?callbackUrl=${encodeURIComponent(
+            `/patient/sessions?book=${encodeURIComponent(t.id)}`,
+          )}`,
+        );
         return;
       }
       setBooking(t);

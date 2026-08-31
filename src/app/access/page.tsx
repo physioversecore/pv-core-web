@@ -20,14 +20,16 @@ const ROLE_HOME: Record<string, string> = {
 
 function resolveCallbackUrl(callbackUrl: string | null, role: string): string {
   if (callbackUrl && callbackUrl.startsWith("/") && !callbackUrl.startsWith("//")) {
-    const allowedPrefixes = ["/patient", "/therapist", "/admin", "/book"];
-    if (allowedPrefixes.some((p) => callbackUrl === p || callbackUrl.startsWith(p + "/"))) {
-      if (callbackUrl.startsWith("/book") && role !== "patient") {
-        return ROLE_HOME[role] ?? "/";
+    const allowed: Record<string, string> = {
+      "/patient": "patient",
+      "/therapist": "therapist",
+      "/admin": "admin",
+    };
+    for (const [prefix, requiredRole] of Object.entries(allowed)) {
+      if (callbackUrl === prefix || callbackUrl.startsWith(prefix + "/")) {
+        if (role === requiredRole) return callbackUrl;
+        break;
       }
-      const requiredRole = callbackUrl.startsWith("/patient") ? "patient" : callbackUrl.startsWith("/therapist") ? "therapist" : "admin";
-      if (!callbackUrl.startsWith("/book") && role === requiredRole) return callbackUrl;
-      if (callbackUrl.startsWith("/book")) return callbackUrl;
     }
   }
   return ROLE_HOME[role] ?? "/";
@@ -79,6 +81,7 @@ export default function AccessPage() {
   const redirected = useRef(false);
 
   const routeAfterAuth = useCallback(async (u: { role: string; status?: string }) => {
+    const dest = resolveCallbackUrl(callbackUrl, u.role);
     if (u.role === "patient") {
       try {
         const { getOnboardingStatus } = await import("@/services/api/patients");
@@ -90,7 +93,7 @@ export default function AccessPage() {
       } catch {
         // proceed to dashboard
       }
-      router.replace(ROLE_HOME[u.role] ?? "/");
+      router.replace(dest);
     } else if (u.role === "therapist") {
       try {
         const { getApplicationStatus } = await import("@/services/api/therapists");
@@ -102,11 +105,11 @@ export default function AccessPage() {
       } catch {
         // proceed to dashboard
       }
-      router.replace(ROLE_HOME[u.role] ?? "/");
+      router.replace(dest);
     } else {
-      router.replace(ROLE_HOME[u.role] ?? "/");
+      router.replace(dest);
     }
-  }, [router]);
+  }, [router, callbackUrl]);
 
   useEffect(() => {
     if (redirected.current) return;
@@ -255,7 +258,11 @@ export default function AccessPage() {
           password: tempPw,
         });
         toast.success(t("auth.successWelcome") + ", " + u.name);
-        router.replace("/onboarding/patient");
+        if (callbackUrl) {
+          router.replace(`/onboarding/patient?callbackUrl=${encodeURIComponent(callbackUrl)}`);
+        } else {
+          router.replace("/onboarding/patient");
+        }
       } else {
         redirected.current = true;
         const u = await loginWithOtp(email.trim(), otpCode);
@@ -267,7 +274,7 @@ export default function AccessPage() {
     } finally {
       setSubmitting(false);
     }
-  }, [otpCode, email, isNewSignup, loginWithOtp, signupPatient, routeAfterAuth, t]);
+  }, [otpCode, email, isNewSignup, loginWithOtp, signupPatient, routeAfterAuth, callbackUrl, t]);
 
   const handleResendOtp = async () => {
     if (resendAfter > 0) return;
