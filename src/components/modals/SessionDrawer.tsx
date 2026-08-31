@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Calendar, MapPin, Clock, CreditCard, FileText } from "lucide-react";
+import { X, Calendar, MapPin, Clock, CreditCard, FileText, User } from "lucide-react";
 import { Avatar } from "@/components/common/Avatar";
 import { SmartBadge } from "@/components/sessions/SmartBadge";
 import { formatDate, formatType, mapSessionStatus, npr, isPast, isOverdueSession } from "@/lib/format";
@@ -64,6 +64,13 @@ export function SessionDrawer({
           <div className="rounded-xl border border-border divide-y divide-border overflow-hidden">
             <DetailRow icon={<Calendar size={16} />} label="Date" value={formatDate(session.date)} />
             <DetailRow icon={<Clock size={16} />} label="Time" value={session.time} />
+            {session.familyMemberName && (
+              <DetailRow
+                icon={<User size={16} />}
+                label="Booked for"
+                value={session.familyMemberName}
+              />
+            )}
             <DetailRow icon={<MapPin size={16} />} label="Address" value={session.address} />
             <DetailRow icon={<CreditCard size={16} />} label="Fee" value={npr(session.fee)} />
             {session.notes && (

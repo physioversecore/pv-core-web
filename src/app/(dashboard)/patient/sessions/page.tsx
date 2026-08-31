@@ -174,7 +174,7 @@ function SessionsContent() {
           ))}
         </div>
         <button
-          onClick={() => { setPickerOpen(true); setSpecialtyFilter("General"); }}
+          onClick={() => { setPickerOpen(true); setSpecialtyFilter("all"); }}
           className="btn-primary !py-2 !px-4 text-sm hidden md:inline-flex"
         >
           {t("patient_dashboard.bookNewSession")}
@@ -183,7 +183,7 @@ function SessionsContent() {
 
       {/* Mobile FAB */}
       <button
-        onClick={() => { setPickerOpen(true); setSpecialtyFilter("General"); }}
+        onClick={() => { setPickerOpen(true); setSpecialtyFilter("all"); }}
         className="fixed bottom-6 right-6 z-50 md:hidden w-14 h-14 rounded-full bg-primary text-white shadow-lg flex items-center justify-center hover:bg-primary-hover active:scale-95 fab-float"
       >
         <Plus size={24} />

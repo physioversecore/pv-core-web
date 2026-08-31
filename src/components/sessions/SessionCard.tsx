@@ -3,7 +3,7 @@ import { Avatar } from "@/components/common/Avatar";
 import { SmartBadge } from "./SmartBadge";
 import { formatWhen, formatType, mapSessionStatus, npr, isPast, isOverdueSession } from "@/lib/format";
 import type { SessionData } from "@/services/api/sessions";
-import { Clock, RotateCcw, X, Star } from "lucide-react";
+import { Clock, RotateCcw, X, Star, User } from "lucide-react";
 
 interface SessionCardProps {
   session: SessionData;
@@ -50,6 +50,13 @@ export function SessionCard({ session, onCancel, onReschedule, onRate, onClick, 
         <Clock size={13} className="shrink-0 opacity-70" />
         <span className="truncate">{formatWhen(session.date, session.time)}</span>
       </div>
+
+      {session.familyMemberName && (
+        <div className="flex items-center gap-1.5 text-xs text-text-light/90 bg-border/30 rounded-lg px-2.5 py-1.5 leading-relaxed">
+          <User size={13} className="shrink-0 opacity-70" />
+          <span className="truncate">For: {session.familyMemberName}</span>
+        </div>
+      )}
 
       <div className="flex items-center justify-between pt-3 border-t border-border">
         <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-text">

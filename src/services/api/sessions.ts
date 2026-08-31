@@ -9,6 +9,8 @@ export interface SessionData {
   patientId: string;
   patientName?: string;
   patientPhone?: string;
+  familyMemberId?: string;
+  familyMemberName?: string;
   date: string;
   time: string;
   type: string;
@@ -87,6 +89,7 @@ export interface BookingPaymentPayload {
   address: string;
   fee: number;
   notes?: string;
+  familyMemberId?: string;
   currency: string;
   paymentMethod: string;
   paymentType: string;

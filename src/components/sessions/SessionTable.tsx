@@ -3,7 +3,7 @@
 import { SmartBadge } from "./SmartBadge";
 import { formatWhen, formatType, npr, mapSessionStatus, isPast, isOverdueSession } from "@/lib/format";
 import type { SessionData } from "@/services/api/sessions";
-import { CheckCircle2, XCircle, AlertTriangle, RefreshCw, X, Clock, IndianRupee, Star } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle, RefreshCw, X, Clock, IndianRupee, Star, User } from "lucide-react";
 
 interface SessionTableProps {
   sessions: SessionData[];
@@ -37,6 +37,7 @@ export function SessionTable({ sessions, onCancel, onReschedule, onRate, onClick
         <thead>
           <tr className="text-[11px] uppercase tracking-wide font-mono text-text-light text-left border-b border-border bg-surface/60">
             <th className="py-2.5 px-3 md:px-4 font-medium">Therapist</th>
+            <th className="py-2.5 px-3 md:px-4 font-medium hidden sm:table-cell">For</th>
             <th className="py-2.5 px-3 md:px-4 font-medium">Date & time</th>
             <th className="py-2.5 px-3 md:px-4 font-medium hidden md:table-cell">Type</th>
             <th className="py-2.5 px-3 md:px-4 font-medium hidden md:table-cell">Fee</th>
@@ -60,6 +61,12 @@ export function SessionTable({ sessions, onCancel, onReschedule, onRate, onClick
                 <td className="py-3.5 px-3 md:px-4 max-w-[140px] md:max-w-none">
                   <div className="text-sm font-medium text-secondary truncate">{s.therapistName || "Therapist"}</div>
                   <div className="text-[10px] text-text-light truncate md:hidden">{formatType(s.type)}</div>
+                </td>
+                <td className="py-3.5 px-3 md:px-4 text-text-light whitespace-nowrap hidden sm:table-cell">
+                  <span className="inline-flex items-center gap-1">
+                    <User size={12} className="opacity-60 shrink-0" />
+                    {s.familyMemberName || "Self"}
+                  </span>
                 </td>
                 <td className="py-3.5 px-3 md:px-4 text-text-light whitespace-nowrap">
                   <span className="inline-flex items-center gap-1.5">
