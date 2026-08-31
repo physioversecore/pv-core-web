@@ -248,11 +248,11 @@ export default function LeavePage() {
             <label className="text-[0.65rem] uppercase font-mono text-text-light">
               Date
             </label>
-            <input
-              type="date"
+            <DatePicker
               value={dateFrom}
-              onChange={(e) => handleFilterChange("dateFrom", e.target.value)}
-              className="h-9 w-40 rounded-full border border-border bg-background px-3 text-sm"
+              onChange={(value) => handleFilterChange("dateFrom", value)}
+              placeholder="Pick a date"
+              className="h-9 w-40 rounded-full bg-background"
             />
           </div>
 

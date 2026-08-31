@@ -28,6 +28,7 @@ import {
   type ActionItem,
 } from "@/components/tables";
 import type { AdminPerformanceData } from "@/services/api/admin";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Sheet,
   SheetContent,
@@ -693,11 +694,10 @@ function ScheduleReviewModal({
         </DialogHeader>
         <div>
           <label className="eyebrow mb-1 block">Review date</label>
-          <input
-            type="date"
+          <DatePicker
             value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className={inputClass}
+            onChange={setDate}
+            placeholder="Select a date"
           />
         </div>
         <div className="flex justify-end gap-2 pt-2">

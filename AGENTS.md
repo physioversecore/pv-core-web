@@ -277,6 +277,7 @@ Mutations invalidate related queries on success. `AuthError` caught in service l
 ### Styling
 
 - **Editorial design system** (monochrome canvas + voltage lime accent, pillow radii, no drop shadows — hairline `#e5e5e5` borders only, `#14151c` carbon ink text on white `#ffffff`)
+- **Date inputs**: Never use native `<input type="date">`. Always use the custom `DatePicker` component from `@/components/ui/date-picker` (Popover + Calendar from react-day-picker). It uses `"YYYY-MM-DD"` strings for `value`/`onChange` — no Date object conversion needed. Props: `value`, `onChange`, `min?`, `max?`, `placeholder?`, `className?`, `disabled?`, `dropdowns?`. **Always pass `dropdowns` for DOB fields** — this enables year + month `<select>` dropdowns in the calendar header so users can jump to any year/month without clicking through months one by one. Date ranges use `DateRangePicker` from the same file.
 - Brand tokens (`globals.css` `@theme` → Tailwind utilities): `voltage-lime` (#d3fb52), `cyan-spark` (#7af3ff), `mid-abyss` (#052326), `carbon-ink` (#14151c), `pure-white` (#ffffff), `true-black` (#000000), `ash` (#666666), `hairline` (#e5e5e5)
 - Dark-canvas tokens: `abyss-soft` (#1e3a2b), `abyss-mid` (#112720), `abyss-deep` (#0a1815) — the landing page wraps `HeroSection` + `ServicesSection` in `.home-background`: one shared continuous atmosphere (vh-anchored olive-charcoal vertical base `abyss-soft → abyss-mid → abyss-deep → mid-abyss` + a green radial glow centered on hero content fading out ~110–120vh past the hero boundary). Both sections are transparent; no seam, no clipped glow
 - Dark-section text hierarchy: `ink-soft` (#e7e7ea), `ink-muted` (#9a9aa3), `ink-faint` (#85858d), `ink-dim` (#b0b0b7)
@@ -327,6 +328,7 @@ Mutations invalidate related queries on success. `AuthError` caught in service l
 
 - No `window.location.href` — use `router.replace()` or `router.push()`
 - Always `await logout()` before redirect
+- **Never use native `<input type="date">`** — always use `DatePicker` from `@/components/ui/date-picker` (Popover + react-day-picker Calendar). All date values are `"YYYY-MM-DD"` strings, not `Date` objects.
 - Guard `useEffect` redirects with `useRef` to prevent double-redirect races. When explicitly navigating from a handler (e.g. after signup), set `redirected.current = true` before the async call so the `useEffect` guard does not fire a competing `router.replace`.
 - Wrap data-fetching sections in `<ErrorBoundary><Suspense fallback={...}>`
 - Session status mapping: backend returns `SCHEDULED`/`COMPLETED`/`CANCELLED`; use `mapSessionStatus()` from `src/lib/format.ts`

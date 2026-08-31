@@ -28,6 +28,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { useLang, type TKey } from "@/context/i18n";
 import { CITIES } from "@/lib/constants";
+import { DatePicker } from "@/components/ui/date-picker";
 import { getPatientProfile, updatePatientProfile } from "@/services/api/profile";
 import {
   getFamilyMembers,
@@ -578,7 +579,7 @@ export default function Profile() {
                       </Field>
                       <div className="grid sm:grid-cols-2 gap-4">
                         <Field label={t("patient_dashboard.profileDateOfBirth")}>
-                          <input type="date" className={inputCls} value={draft.dob} onChange={(e) => setDraft({ ...draft, dob: e.target.value })} />
+                          <DatePicker value={draft.dob} onChange={(v) => setDraft({ ...draft, dob: v })} placeholder={t("patient_dashboard.profileDateOfBirth")} dropdowns />
                         </Field>
                         <Field label={t("patient_dashboard.phone")}>
                           <input className={inputCls} value={draft.phone} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} required />
@@ -738,7 +739,7 @@ export default function Profile() {
                               </div>
                               <div className="grid sm:grid-cols-2 gap-3">
                                 <Field label={t("patient_dashboard.profileDateOfBirth")}>
-                                  <input type="date" className={inputCls} value={familyDraft.dob} onChange={(e) => setFamilyDraft({ ...familyDraft, dob: e.target.value })} />
+                                  <DatePicker value={familyDraft.dob} onChange={(v) => setFamilyDraft({ ...familyDraft, dob: v })} placeholder={t("patient_dashboard.profileDateOfBirth")} dropdowns />
                                 </Field>
                                 <Field label={t("patient_dashboard.phone")}>
                                   <input className={inputCls} value={familyDraft.phone} onChange={(e) => setFamilyDraft({ ...familyDraft, phone: e.target.value })} />
@@ -819,7 +820,7 @@ export default function Profile() {
                     </div>
                     <div className="grid sm:grid-cols-2 gap-3">
                       <Field label={t("patient_dashboard.profileDateOfBirth")}>
-                        <input type="date" className={inputCls} value={familyDraft.dob} onChange={(e) => setFamilyDraft({ ...familyDraft, dob: e.target.value })} />
+                        <DatePicker value={familyDraft.dob} onChange={(v) => setFamilyDraft({ ...familyDraft, dob: v })} placeholder={t("patient_dashboard.profileDateOfBirth")} dropdowns />
                       </Field>
                       <Field label={t("patient_dashboard.phone")}>
                         <input className={inputCls} value={familyDraft.phone} onChange={(e) => setFamilyDraft({ ...familyDraft, phone: e.target.value })} placeholder={t("patient_dashboard.conditionOptional")} />
