@@ -229,6 +229,7 @@ export default function PatientOnboardingPage() {
                     value={form.dob}
                     onChange={(d) => set("dob", d)}
                     placeholder="Pick a date"
+                    dropdowns
                     className={`${fieldErrors.dob ? "border-red-500" : ""} h-11 rounded-[7px] border-[#d8dadd] text-text hover:bg-transparent focus:border-voltage-lime focus:outline-none focus:ring-4 focus:ring-voltage-lime/15`}
                   />
                   {fieldErrors.dob && <p className="mt-1 text-[12px] text-red-500">{fieldErrors.dob}</p>}
