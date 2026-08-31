@@ -20,10 +20,14 @@ const ROLE_HOME: Record<string, string> = {
 
 function resolveCallbackUrl(callbackUrl: string | null, role: string): string {
   if (callbackUrl && callbackUrl.startsWith("/") && !callbackUrl.startsWith("//")) {
-    const allowedPrefixes = ["/patient", "/therapist", "/admin"];
+    const allowedPrefixes = ["/patient", "/therapist", "/admin", "/book"];
     if (allowedPrefixes.some((p) => callbackUrl === p || callbackUrl.startsWith(p + "/"))) {
+      if (callbackUrl.startsWith("/book") && role !== "patient") {
+        return ROLE_HOME[role] ?? "/";
+      }
       const requiredRole = callbackUrl.startsWith("/patient") ? "patient" : callbackUrl.startsWith("/therapist") ? "therapist" : "admin";
-      if (role === requiredRole) return callbackUrl;
+      if (!callbackUrl.startsWith("/book") && role === requiredRole) return callbackUrl;
+      if (callbackUrl.startsWith("/book")) return callbackUrl;
     }
   }
   return ROLE_HOME[role] ?? "/";
