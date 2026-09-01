@@ -668,7 +668,14 @@ const en = {
     perSession: "/session",
   },
 
+  therapist_profile: {
+    whereToVisit: "Where to visit",
+    infoOnlyNote:
+      "This therapist is listed for information only — visit them at their workplace rather than booking a home visit.",
+    noWorkplaceYet: "Their workplace details have not been added yet.",
+  },
   find: {
+    atClinic: "At clinic",
     eyebrow: "Find a therapist",
     title: "Browse verified physiotherapists.",
     subtitle: "Filter by city, specialty, and gender — every therapist is NMC-verified with real patient reviews.",
@@ -701,6 +708,11 @@ const en = {
   },
 
   therapist_dashboard: {
+    latitude: "Latitude",
+    longitude: "Longitude",
+    serviceRadius: "Service radius (km)",
+    coverageHint:
+      "Add your coordinates so patients searching their area can find you by distance.",
     today: "Today",
     greeting: "Good morning. Here's your day.",
     sessionsThisWeek: "Sessions this week",
@@ -1465,7 +1477,33 @@ const en = {
     deletePermanent: "This complaint will be permanently deleted. This action cannot be undone.",
   },
 
+  rewards: {
+    title: "Rewards & Referrals",
+    yourBalance: "Your balance",
+    pts: "pts",
+    inCredit: "in credit",
+    pendingNote: "{n} points are still being held and will unlock shortly.",
+    earned: "Earned",
+    used: "Used",
+    referred: "Referred",
+    referAFriend: "Refer a friend",
+    giveGet: "Give {give}, get {get}",
+    referDesc:
+      "When your friend completes their first session, you both earn credit towards a booking.",
+    codeCopied: "Code copied",
+    linkCopied: "Invite link copied",
+    yourReferrals: "Your referrals",
+    stateInvited: "Invited",
+    stateJoined: "Joined",
+    statePending: "Pending",
+    stateRewarded: "Rewarded",
+    stateReversed: "Reversed",
+    recentActivity: "Recent activity",
+    noActivity: "No points activity yet.",
+  },
+
   notifications: {
+    unreadCount: "{n} unread",
     title: "Notifications",
     subtitle: "Every cancellation, reschedule, payment and complaint, in one feed.",
     markAllRead: "Mark all as read",

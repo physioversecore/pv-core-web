@@ -4,7 +4,7 @@ import {
   Stethoscope, Upload, Users, Wallet, Settings, Shield, CreditCard,
   AlertTriangle, Bell, CalendarClock, UserCog, MapPin, ClipboardCheck,
   BadgeCheck, BarChart3, ShieldAlert, ScrollText, LineChart, RotateCcw, Palette,
-  MessageSquareWarning, Clock,
+  MessageSquareWarning, Clock, Gift,
 } from "lucide-react";
 
 export interface NavItem {
@@ -32,6 +32,8 @@ export const patientNav: NavItem[] = [
   { to: "/patient", label: "Overview", icon: <LayoutDashboard size={16} /> },
   { to: "/patient/sessions", label: "My Sessions", icon: <Calendar size={16} /> },
   { to: "/patient/reports", label: "Reports & Files", icon: <FileText size={16} /> },
+  { to: "/patient/rewards", label: "Rewards & Referrals", icon: <Gift size={16} /> },
+  { to: "/patient/notifications", label: "Notifications", icon: <Bell size={16} /> },
   { to: "/patient/complaints", label: "Complaints & Feedback", icon: <MessageSquareWarning size={16} /> },
   { to: "/patient/profile", label: "My Profile", icon: <User size={16} /> },
   { to: "/patient/help", label: "Help", icon: <HelpCircle size={16} /> },
@@ -45,6 +47,7 @@ export const therapistNav: NavItem[] = [
   { to: "/therapist/reports", label: "Upload Reports", icon: <Upload size={16} /> },
   { to: "/therapist/patients", label: "My Patients", icon: <Users size={16} /> },
   { to: "/therapist/earnings", label: "Earnings", icon: <Wallet size={16} /> },
+  { to: "/therapist/notifications", label: "Notifications", icon: <Bell size={16} /> },
   { to: "/therapist/complaints", label: "Complaints & Feedback", icon: <MessageSquareWarning size={16} /> },
   { to: "/therapist/profile", label: "My Profile", icon: <Stethoscope size={16} /> },
   { to: "/therapist/settings", label: "Settings", icon: <Settings size={16} /> },

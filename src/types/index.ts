@@ -11,6 +11,16 @@ export interface Therapist {
   bio: string;
   userId?: string;
   mediaUrls?: string;
+  /**
+   * BOOKABLE therapists take bookings through the app. INFO_ONLY ones are
+   * directory entries visited at their workplace — the API rejects a booking
+   * for them with a 400, so the UI must not offer one.
+   */
+  listingType?: "BOOKABLE" | "INFO_ONLY";
+  clinic?: Clinic | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  serviceRadiusKm?: number | null;
 }
 
 export interface Clinic {
@@ -86,6 +96,12 @@ export interface TherapistProfile {
   mediaUrls?: string;
   photo?: string;
   documents?: TherapistProfileDocument[];
+  /** Read-only here — only an admin can change it. */
+  listingType?: "BOOKABLE" | "INFO_ONLY";
+  /** The therapist's own home-visit coverage. */
+  latitude?: number | null;
+  longitude?: number | null;
+  serviceRadiusKm?: number | null;
 }
 
 export interface Product {

@@ -5,6 +5,7 @@ import { Avatar } from "./Avatar";
 import { npr } from "@/utils/format";
 import { useLang } from "@/context/i18n";
 import type { Therapist } from "@/types";
+import Link from "next/link";
 
 export function TherapistJobCard({
   t: therapist,
@@ -47,12 +48,23 @@ export function TherapistJobCard({
           <ShieldCheck size={14} />
           {t("find.verified")}
         </span>
-        <button
-          onClick={() => onBook(therapist)}
-          className="px-3.5 py-1.5 rounded-full border border-border text-sm font-semibold text-text transition-colors hover:border-secondary hover:text-secondary"
-        >
-          {t("common.book")}
-        </button>
+        {therapist.listingType === "INFO_ONLY" ? (
+          // Booking one of these returns a 400, so the card sends people to
+          // the profile — where the workplace to visit is shown instead.
+          <Link
+            href={`/therapist/${therapist.id}`}
+            className="px-3.5 py-1.5 rounded-full border border-border text-sm font-semibold text-text-muted transition-colors hover:border-secondary hover:text-secondary"
+          >
+            {t("find.atClinic")}
+          </Link>
+        ) : (
+          <button
+            onClick={() => onBook(therapist)}
+            className="px-3.5 py-1.5 rounded-full border border-border text-sm font-semibold text-text transition-colors hover:border-secondary hover:text-secondary"
+          >
+            {t("common.book")}
+          </button>
+        )}
       </div>
     </div>
   );

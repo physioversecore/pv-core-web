@@ -71,6 +71,9 @@ export default function TProfile() {
     city: user?.city ?? "Kathmandu",
     gender: "Male",
     licenseNumber: "",
+    latitude: "",
+    longitude: "",
+    serviceRadiusKm: "",
   });
 
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -104,6 +107,10 @@ export default function TProfile() {
           city: profile.city,
           gender: profile.gender || "Male",
           licenseNumber: profile.licenseNumber ?? "",
+          latitude: profile.latitude != null ? String(profile.latitude) : "",
+          longitude: profile.longitude != null ? String(profile.longitude) : "",
+          serviceRadiusKm:
+            profile.serviceRadiusKm != null ? String(profile.serviceRadiusKm) : "",
         });
       })
       .catch((err) => {
@@ -128,6 +135,10 @@ export default function TProfile() {
         city: f.city,
         gender: f.gender,
         licenseNumber: f.licenseNumber || undefined,
+        latitude: f.latitude.trim() === "" ? null : Number(f.latitude),
+        longitude: f.longitude.trim() === "" ? null : Number(f.longitude),
+        serviceRadiusKm:
+          f.serviceRadiusKm.trim() === "" ? null : Number(f.serviceRadiusKm),
       });
       setProfile((prev) =>
         prev ? { ...prev, ...updated, documents: prev.documents } : updated,
@@ -598,6 +609,32 @@ export default function TProfile() {
                   onChange={(v) => setF({ ...f, licenseNumber: v })}
                 />
               </div>
+              <div className="grid sm:grid-cols-3 gap-4">
+                <Field
+                  label={t("therapist_dashboard.latitude")}
+                  value={f.latitude}
+                  onChange={(v) => setF({ ...f, latitude: v })}
+                  placeholder="27.6893"
+                />
+                <Field
+                  label={t("therapist_dashboard.longitude")}
+                  value={f.longitude}
+                  onChange={(v) => setF({ ...f, longitude: v })}
+                  placeholder="85.3436"
+                />
+                <Field
+                  label={t("therapist_dashboard.serviceRadius")}
+                  type="number"
+                  value={f.serviceRadiusKm}
+                  onChange={(v) => setF({ ...f, serviceRadiusKm: v })}
+                  placeholder="5"
+                />
+              </div>
+              {(!f.latitude.trim() || !f.longitude.trim()) && (
+                <p className="text-xs text-text-light">
+                  {t("therapist_dashboard.coverageHint")}
+                </p>
+              )}
               <label className="block">
                 <FieldLabel>{t("therapist_dashboard.bio")}</FieldLabel>
                 <textarea
