@@ -355,6 +355,14 @@ Non-negotiables:
 - Booking/scheduling mutations via Server Actions (slot-locking server-side)
 - Revalidate after every mutation
 
+### Session booking — double-booking conflict
+
+A therapist's `(therapistId, date, time)` slot can never be booked twice. The frontend has two layers of protection:
+
+1. **UX guard** — `BookingModal` (`buildTimeSlots`) renders slots whose backend status is `"booked"`/`"off"` as disabled, so an already-taken slot can't be picked in the first place.
+2. **Runtime error surfacing** — as a race/defense-in-depth fallback, `createMutation`'s `onError` (and `updateMutation`'s) shows the backend's `detail` message verbatim. When the backend returns **HTTP 409** (`"That time slot was just booked — please choose another."`), the user sees that specific message via `toast.error(error.message)` instead of a generic "Booking failed.", so they can pick another slot.
+
+
 ### Seed Data & Dev Credentials (from `SEEDDATA.md`)
 
 Backend seeds 14 users + 8 therapist profiles (`pvc-api/scripts/seed-users.py`; `seed-all.py` covers products/sessions/reports/etc.). All passwords: `password123`.

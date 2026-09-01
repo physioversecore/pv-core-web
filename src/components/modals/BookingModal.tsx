@@ -1172,8 +1172,12 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
       });
       setCurrentStep(3);
     },
-    onError: () => {
-      toast.error("Booking failed. Please try again.");
+    onError: (error) => {
+      const msg =
+        error instanceof Error && error.message
+          ? error.message
+          : "Booking failed. Please try again.";
+      toast.error(msg);
     },
   });
 
@@ -1199,8 +1203,12 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
       });
       setCurrentStep(3);
     },
-    onError: () => {
-      toast.error("Failed to update booking. Please try again.");
+    onError: (error) => {
+      const msg =
+        error instanceof Error && error.message
+          ? error.message
+          : "Failed to update booking. Please try again.";
+      toast.error(msg);
     },
   });
 
