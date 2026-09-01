@@ -98,6 +98,17 @@ export async function updateProfile(data: Partial<UserData>) {
   return api.put<UserData>("/auth/me", data);
 }
 
+export async function changePassword(currentPassword: string, newPassword: string) {
+  return api.post<void>("/auth/change-password", {
+    current_password: currentPassword,
+    new_password: newPassword,
+  });
+}
+
+export async function deleteAccount(password?: string) {
+  return api.post<void>("/auth/delete-account", password ? { password } : {});
+}
+
 export async function checkEmail(email: string) {
   return api.post<{ exists: boolean; role?: string }>("/auth/check-email", { email });
 }
