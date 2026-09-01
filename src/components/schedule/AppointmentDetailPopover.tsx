@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Clock, MapPin, Phone, Calendar, AlertTriangle } from "lucide-react";
+import { Clock, MapPin, Phone, Calendar, AlertTriangle, User } from "lucide-react";
 import { to12h } from "@/lib/format";
 import { isDateInPast } from "@/lib/availability-utils";
 import type { ScheduleAppointment, ScheduleAppointmentStatus } from "@/hooks/useTherapistSchedule";
@@ -75,6 +75,12 @@ export function AppointmentDetailPopover({
       </div>
 
       <div className="space-y-2 mt-3 text-xs text-text-light">
+        {a.familyMemberName && (
+          <div className="flex items-center gap-2">
+            <User className="w-3.5 h-3.5 text-text-muted flex-shrink-0" />
+            <span>For: {a.familyMemberName}</span>
+          </div>
+        )}
         {a.phone && (
           <div className="flex items-center gap-2">
             <Phone className="w-3.5 h-3.5 text-text-muted flex-shrink-0" />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { HeartPulse, Loader2, ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { useAuth } from "@/context/auth";
@@ -31,6 +31,8 @@ export default function PatientOnboardingPage() {
   const { t } = useLang();
   const { user, loading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl");
 
   const [step, setStep] = useState<Step>("personal");
   const [submitting, setSubmitting] = useState(false);
@@ -167,7 +169,7 @@ export default function PatientOnboardingPage() {
     try {
       await completeOnboarding(form);
       toast.success("Profile completed!");
-      router.replace("/patient");
+      router.replace(callbackUrl && callbackUrl.startsWith("/") ? callbackUrl : "/patient");
     } catch {
       toast.error("Failed to save profile. Please try again.");
     } finally {
@@ -227,6 +229,7 @@ export default function PatientOnboardingPage() {
                     value={form.dob}
                     onChange={(d) => set("dob", d)}
                     placeholder="Pick a date"
+                    dropdowns
                     className={`${fieldErrors.dob ? "border-red-500" : ""} h-11 rounded-[7px] border-[#d8dadd] text-text hover:bg-transparent focus:border-voltage-lime focus:outline-none focus:ring-4 focus:ring-voltage-lime/15`}
                   />
                   {fieldErrors.dob && <p className="mt-1 text-[12px] text-red-500">{fieldErrors.dob}</p>}

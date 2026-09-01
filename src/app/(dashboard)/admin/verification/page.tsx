@@ -53,6 +53,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Select,
   SelectContent,
@@ -1176,11 +1177,11 @@ function EditDrawer({
             <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
               Expiry Date
             </label>
-            <Input
-              type="date"
+            <DatePicker
               value={form.expires}
-              onChange={(e) => onFormChange({ ...form, expires: e.target.value })}
-              className="h-9 w-full rounded-full border-border text-sm"
+              onChange={(v) => onFormChange({ ...form, expires: v })}
+              placeholder="Expiry date"
+              className="h-9 w-full"
             />
           </div>
 
@@ -1292,11 +1293,11 @@ function CreateVerificationDrawer({
             <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
               Expiry Date
             </label>
-            <Input
-              type="date"
+            <DatePicker
               value={form.expires ?? ""}
-              onChange={(e) => onFormChange({ ...form, expires: e.target.value || null })}
-              className="h-9 w-full rounded-full border-border text-sm"
+              onChange={(v) => onFormChange({ ...form, expires: v || null })}
+              placeholder="Expiry date"
+              className="h-9 w-full"
             />
           </div>
 

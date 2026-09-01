@@ -22,22 +22,32 @@ interface DatePickerProps {
   value: string | null | undefined;
   onChange: (date: string) => void;
   min?: string;
+  max?: string;
   placeholder?: string;
   className?: string;
   disabled?: boolean;
+  /** Show year + month dropdown selectors for quick navigation (ideal for DOB fields). */
+  dropdowns?: boolean;
 }
 
 export function DatePicker({
   value,
   onChange,
   min,
+  max,
   placeholder = "Pick a date",
   className,
   disabled,
+  dropdowns,
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false);
   const selected = toDate(value);
   const minDate = toDate(min);
+  const maxDate = toDate(max);
+
+  const currentYear = new Date().getFullYear();
+  const fromYear = minDate ? minDate.getFullYear() : currentYear - 100;
+  const toYear = maxDate ? maxDate.getFullYear() : currentYear;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -59,13 +69,20 @@ export function DatePicker({
         <Calendar
           mode="single"
           selected={selected}
+          captionLayout={dropdowns ? "dropdown" : "label"}
+          fromYear={fromYear}
+          toYear={toYear}
           onSelect={(day) => {
             if (day) {
               onChange(toDateString(day));
               setOpen(false);
             }
           }}
-          disabled={(date) => (minDate ? date < minDate : false)}
+          disabled={(date) => {
+            if (minDate && date < minDate) return true;
+            if (maxDate && date > maxDate) return true;
+            return false;
+          }}
         />
       </PopoverContent>
     </Popover>

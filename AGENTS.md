@@ -33,7 +33,7 @@ Nepal's home-visit physiotherapy platform connecting patients with verified phys
 | `README.md` | Current | Getting started, commands, roles, theme tokens |
 | `ARCHITECTURE.md` | **Current — trust this** | Auth flows, data fetching, provider stack, error handling, badges/evidence uploads |
 | `APIGUIDELINE.md` | Current | Decision tree for how the frontend talks to the backend (Server Component vs Server Action vs Route Handler) + non-negotiables |
-| `PROXY-CONVENTION.md` | Applied | Next.js 16 `middleware.ts` → `proxy.ts` migration reference. The migration is DONE (`proxy.ts` at repo root) |
+| `PROXY-CONVENTION.md` | Applied | Next.js 16 `middleware.ts` → `proxy.ts` migration reference. The migration is DONE (`src/proxy.ts` — must sit inside `src/` next to `app/`, a root-level file is silently ignored) |
 | `SEEDDATA.md` | Current | Seed users/products/sessions for the backend + API quick reference |
 | `ARCHITECT.md` | ⚠️ STALE | Describes the old localStorage/mock era. Do not follow; kept for history only |
 
@@ -41,6 +41,7 @@ Nepal's home-visit physiotherapy platform connecting patients with verified phys
 
 ```
 src/
+  proxy.ts                          # Route protection (Next.js 16 proxy convention — MUST be inside src/)
   app/                              # Next.js App Router
     layout.tsx                      # Root layout (fonts via <link>, <Providers>)
     providers.tsx                   # "use client" — QueryClient, DesignTokens, Lang, Auth, Cart, BookingBadge, ComplaintBadge, AuthModal, Toaster
@@ -195,6 +196,7 @@ src/
 - **Login**: `/access` page — unified login (email + password, email OTP, or Google). No role selector. On success, `router.replace()` navigates to `/${user.role}` or `callbackUrl`. Logged-in users hitting `/access` are redirected to their role home by `proxy.ts`.
 - **Signup**: `/signup` page — therapist-only signup: account form (first name, last name, email, password) → OTP email verification → account creation (server-side `AuthService.signup()` → `setToken()` sets cookie directly) → loading spinner → `router.push("/onboarding/therapist")`. Uses `redirected.current = true` guard before `signupTherapist()` to prevent the redirect `useEffect` from firing a competing `router.replace`.
 - **Therapist approval gate**: Therapist signup issues a JWT token. Account is created with `status = PENDING` ("under review") and a branded "application received" email is sent to their email (templates/`application_received.html`) stating it will be verified within 24 hours. The therapist is redirected to `/onboarding/therapist` to complete their profile. Admin verifies their documents in `/admin/verification` (Approve → verification `Verified` → user `status = APPROVED`). Approving also fires an account-verified email; rejecting fires a rejection email that includes the admin's `note` reason. Non-approved therapist login → 403 (toast shows `auth.loginUnderReview`/`auth.loginRejected`). Backend `get_current_user` also rejects non-`APPROVED` therapists (401).
+- **Public therapist listings are verified-only** (server-side filter, no frontend flag): `GET /therapists` returns only therapists whose linked user is `APPROVED`, so the FeatureCarousel, hero "Available today" strip, `/find-a-therapist`, and patient booking selects never show under-review/suspended therapists. `GET /therapists/{id}` returns 404 for unverified profiles unless the caller is the owner or an Admin (anonymous browsing still works for approved ones).
 - **Therapist success screen**: after signup, therapist is issued a token, auth context is synced via `signupTherapist()` (which calls `setToken()` server-side), and navigated to `/onboarding/therapist` to complete their professional profile (4-step wizard: Personal → Professional → Documents → Review → Submit application). Patients still get a token and auto-login.
 - **Therapist documents**: Before submitting the therapist application, `SignupFlow` renders two `DocumentUploader` instances (NMC license + certification). Files upload via XHR to the public proxy `POST /api/uploads/therapist-application` (session=`therapist-signup`); returned relative URLs are embedded in the signup payload as `documents: [{documentType, url, fileName, fileSize}]`. Backend creates a `Verification` row per document (status `Pending review`) → shown in admin `/admin/verification` with preview/download (served via `GET /api/v1/uploads/applications/{session}/{filename}`, proxied by the frontend route handler which adds the bearer cookie).
 - **Admin document review**: `/admin/verification` and the therapist detail sheet (`TherapistDetailSheet.tsx`) let the admin view documents in-app via a `DocumentViewer` Dialog (`<img>` for image extensions, `<iframe>` otherwise, "Open in new tab" link). `AdminVerificationData`/`AdminTherapistDocument` carry an optional `note` (rejection reason); the Review drawer requires a reason before rejecting, and it's shown in a red "Rejection reason" box in the detail sheet + preview modal. `useAdminVerifications.ts` optimistically patches the list with `queryClient.setQueriesData` on approve/reject/edit and invalidates the query on success, so the table refreshes immediately after an action.
@@ -203,7 +205,7 @@ src/
 - **Logout**: `DashboardShell`'s `handleLogout` is `async` — always `await logout()` before redirect.
 - **Redirect strategy**: Always `router.replace()` or `router.push()` — never `window.location.href`.
 - **Role guard**: `(dashboard)/layout.tsx` checks `user.role` against path prefix. If no user, redirects to `/access?callbackUrl=...`.
-- **Proxy** (`proxy.ts` at repo root — Next.js 16 convention, replaces `middleware.ts`): Verifies the JWT **signature** (not just expiry) via `verifySession()` (`src/services/api/auth-session.ts`, jose `jwtVerify` with `SECRET_KEY`/`JWT_SECRET` env — must match the backend's `SECRET_KEY`). Behavior:
+- **Proxy** (`src/proxy.ts` — Next.js 16 convention replacing `middleware.ts`; must sit inside `src/` next to `app/`, a root-level file is silently ignored): Verifies the JWT **signature** (not just expiry) via `verifySession()` (`src/services/api/auth-session.ts`, jose `jwtVerify` with `SECRET_KEY`/`JWT_SECRET` env — must match the backend's `SECRET_KEY`). Behavior:
   - Protected prefixes `/patient`, `/therapist`, `/admin` — no token or invalid → redirect `/access?callbackUrl=...`; role mismatch → redirect to the user's own role home.
   - `/onboarding/*` is gated by role (`ONBOARDING_ROLE_MAP`) — a therapist token can't open `/onboarding/patient` and vice versa.
   - `/access`, `/signup`, `/forgot-password`, `/reset-password` are public; logged-in users on `/access` are redirected to their role home (invalid cookie is cleared).
@@ -275,6 +277,7 @@ Mutations invalidate related queries on success. `AuthError` caught in service l
 ### Styling
 
 - **Editorial design system** (monochrome canvas + voltage lime accent, pillow radii, no drop shadows — hairline `#e5e5e5` borders only, `#14151c` carbon ink text on white `#ffffff`)
+- **Date inputs**: Never use native `<input type="date">`. Always use the custom `DatePicker` component from `@/components/ui/date-picker` (Popover + Calendar from react-day-picker). It uses `"YYYY-MM-DD"` strings for `value`/`onChange` — no Date object conversion needed. Props: `value`, `onChange`, `min?`, `max?`, `placeholder?`, `className?`, `disabled?`, `dropdowns?`. **Always pass `dropdowns` for DOB fields** — this enables year + month `<select>` dropdowns in the calendar header so users can jump to any year/month without clicking through months one by one. Date ranges use `DateRangePicker` from the same file.
 - Brand tokens (`globals.css` `@theme` → Tailwind utilities): `voltage-lime` (#d3fb52), `cyan-spark` (#7af3ff), `mid-abyss` (#052326), `carbon-ink` (#14151c), `pure-white` (#ffffff), `true-black` (#000000), `ash` (#666666), `hairline` (#e5e5e5)
 - Dark-canvas tokens: `abyss-soft` (#1e3a2b), `abyss-mid` (#112720), `abyss-deep` (#0a1815) — the landing page wraps `HeroSection` + `ServicesSection` in `.home-background`: one shared continuous atmosphere (vh-anchored olive-charcoal vertical base `abyss-soft → abyss-mid → abyss-deep → mid-abyss` + a green radial glow centered on hero content fading out ~110–120vh past the hero boundary). Both sections are transparent; no seam, no clipped glow
 - Dark-section text hierarchy: `ink-soft` (#e7e7ea), `ink-muted` (#9a9aa3), `ink-faint` (#85858d), `ink-dim` (#b0b0b7)
@@ -325,6 +328,7 @@ Mutations invalidate related queries on success. `AuthError` caught in service l
 
 - No `window.location.href` — use `router.replace()` or `router.push()`
 - Always `await logout()` before redirect
+- **Never use native `<input type="date">`** — always use `DatePicker` from `@/components/ui/date-picker` (Popover + react-day-picker Calendar). All date values are `"YYYY-MM-DD"` strings, not `Date` objects.
 - Guard `useEffect` redirects with `useRef` to prevent double-redirect races. When explicitly navigating from a handler (e.g. after signup), set `redirected.current = true` before the async call so the `useEffect` guard does not fire a competing `router.replace`.
 - Wrap data-fetching sections in `<ErrorBoundary><Suspense fallback={...}>`
 - Session status mapping: backend returns `SCHEDULED`/`COMPLETED`/`CANCELLED`; use `mapSessionStatus()` from `src/lib/format.ts`
@@ -350,6 +354,14 @@ Non-negotiables:
 - PHI/health-intake data only flows through Server Components/Actions
 - Booking/scheduling mutations via Server Actions (slot-locking server-side)
 - Revalidate after every mutation
+
+### Session booking — double-booking conflict
+
+A therapist's `(therapistId, date, time)` slot can never be booked twice. The frontend has two layers of protection:
+
+1. **UX guard** — `BookingModal` (`buildTimeSlots`) renders slots whose backend status is `"booked"`/`"off"` as disabled, so an already-taken slot can't be picked in the first place.
+2. **Runtime error surfacing** — as a race/defense-in-depth fallback, `createMutation`'s `onError` (and `updateMutation`'s) shows the backend's `detail` message verbatim. When the backend returns **HTTP 409** (`"That time slot was just booked — please choose another."`), the user sees that specific message via `toast.error(error.message)` instead of a generic "Booking failed.", so they can pick another slot.
+
 
 ### Seed Data & Dev Credentials (from `SEEDDATA.md`)
 

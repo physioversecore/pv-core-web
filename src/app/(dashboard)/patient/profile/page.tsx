@@ -5,12 +5,13 @@ import Image from "next/image";
 import {
   Activity,
   Bell,
+  CalendarDays,
   Camera,
   Check,
   CheckCircle2,
+  ChevronDown,
   ClipboardList,
   HeartHandshake,
-  Loader2,
   Mail,
   MapPin,
   Pencil,
@@ -20,12 +21,14 @@ import {
   Upload,
   User as UserIcon,
   UserRound,
+  Users,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { useLang, type TKey } from "@/context/i18n";
 import { CITIES } from "@/lib/constants";
+import { DatePicker } from "@/components/ui/date-picker";
 import { getPatientProfile, updatePatientProfile } from "@/services/api/profile";
 import {
   getFamilyMembers,
@@ -33,6 +36,7 @@ import {
   updateFamilyMember,
   deleteFamilyMember,
 } from "@/services/api/patients";
+import { formatDate } from "@/lib/format";
 import type { PatientProfile } from "@/types";
 
 type TabKey = "personal" | "medical" | "emergency" | "family";
@@ -45,6 +49,7 @@ interface Draft {
   history: string;
   dob: string;
   gender: "Any" | "Male" | "Female";
+  condition: string;
   notifEmail: boolean;
   notifSms: boolean;
   emergencyName: string;
@@ -70,6 +75,7 @@ const EMPTY_DRAFT: Draft = {
   history: "",
   dob: "",
   gender: "Any",
+  condition: "",
   notifEmail: true,
   notifSms: false,
   emergencyName: "",
@@ -77,11 +83,11 @@ const EMPTY_DRAFT: Draft = {
   emergencyPhone: "",
 };
 
-const TABS: { key: TabKey; label: string; inactive: string }[] = [
-  { key: "personal", label: "Personal", inactive: "text-text-light" },
-  { key: "medical", label: "Medical", inactive: "text-primary" },
-  { key: "emergency", label: "Emergency", inactive: "text-danger" },
-  { key: "family", label: "Family", inactive: "text-secondary" },
+const TABS: { key: TabKey; labelKey: TKey; icon: ReactNode }[] = [
+  { key: "personal", labelKey: "patient_dashboard.profileTabPersonal", icon: <UserIcon size={13} /> },
+  { key: "medical", labelKey: "patient_dashboard.profileTabMedical", icon: <Activity size={13} /> },
+  { key: "emergency", labelKey: "patient_dashboard.profileTabEmergency", icon: <HeartHandshake size={13} /> },
+  { key: "family", labelKey: "patient_dashboard.profileTabFamily", icon: <Users size={13} /> },
 ];
 
 const ALLOWED_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -169,14 +175,14 @@ export default function Profile() {
     if (!file) return;
     if (!ALLOWED_PHOTO_TYPES.includes(file.type)) {
       setPhotoStatus("error");
-      setPhotoError("Only JPG, PNG, and WebP images are allowed.");
-      toast.error("Only JPG, PNG, and WebP images are allowed.");
+      setPhotoError(t("patient_dashboard.invalidPhotoType"));
+      toast.error(t("patient_dashboard.invalidPhotoType"));
       return;
     }
     if (file.size > MAX_PHOTO_SIZE) {
       setPhotoStatus("error");
-      setPhotoError("Photo must be under 5MB.");
-      toast.error("Photo must be under 5MB.");
+      setPhotoError(t("patient_dashboard.photoTooLarge"));
+      toast.error(t("patient_dashboard.photoTooLarge"));
       return;
     }
     setPhotoFile(file);
@@ -214,25 +220,25 @@ export default function Profile() {
             setPhotoStatus("success");
             setProfile((prev) => (prev ? { ...prev, photo: url } : prev));
             void refreshSession();
-            toast.success("Photo uploaded successfully!");
+            toast.success(t("patient_dashboard.photoUploaded"));
           } else {
             setPhotoStatus("error");
-            setPhotoError("Upload failed.");
+            setPhotoError(t("patient_dashboard.uploadFailedGeneric"));
           }
         } catch {
           setPhotoStatus("error");
-          setPhotoError("Upload failed.");
+          setPhotoError(t("patient_dashboard.uploadFailedGeneric"));
         }
       } else {
         setPhotoStatus("error");
-        setPhotoError("Upload failed.");
+        setPhotoError(t("patient_dashboard.uploadFailedGeneric"));
       }
     };
 
     xhr.onerror = () => {
       setPhotoProgress(0);
       setPhotoStatus("error");
-      setPhotoError("Upload failed.");
+      setPhotoError(t("patient_dashboard.uploadFailedGeneric"));
     };
 
     xhr.send(formData);
@@ -253,13 +259,13 @@ export default function Profile() {
         if (photoInputRef.current) photoInputRef.current.value = "";
         setProfile((prev) => (prev ? { ...prev, photo: undefined } : prev));
         void refreshSession();
-        toast.success("Photo removed.");
+        toast.success(t("patient_dashboard.photoRemoved"));
       } else {
-        toast.error("Failed to remove photo.");
+        toast.error(t("patient_dashboard.photoRemoveFailed"));
       }
     };
 
-    xhr.onerror = () => toast.error("Failed to remove photo.");
+    xhr.onerror = () => toast.error(t("patient_dashboard.photoRemoveFailed"));
     xhr.send();
   }
 
@@ -279,6 +285,7 @@ export default function Profile() {
       } else if (tab === "medical") {
         payload.history = draft.history || undefined;
         payload.gender = draft.gender;
+        payload.condition = draft.condition;
         payload.notifEmail = draft.notifEmail;
         payload.notifSms = draft.notifSms;
       } else {
@@ -303,16 +310,16 @@ export default function Profile() {
 
   async function handleAddFamily() {
     if (!familyDraft.name.trim() || !familyDraft.relationship.trim()) {
-      toast.error("Name and relationship are required.");
+      toast.error(t("patient_dashboard.familyRequiredError"));
       return;
     }
     try {
       const member = await addFamilyMember(familyDraft);
       setFamilyMembers((prev) => [...prev, member]);
       resetFamilyDraft();
-      toast.success("Family member added.");
+      toast.success(t("patient_dashboard.familyAdded"));
     } catch {
-      toast.error("Failed to add family member.");
+      toast.error(t("patient_dashboard.familyAddFailed"));
     }
   }
 
@@ -325,9 +332,9 @@ export default function Profile() {
       setFamilyMembers((prev) => prev.map((m, i) => (i === familyEditingIdx ? updated : m)));
       setFamilyEditingIdx(null);
       resetFamilyDraft();
-      toast.success("Family member updated.");
+      toast.success(t("patient_dashboard.familyUpdated"));
     } catch {
-      toast.error("Failed to update family member.");
+      toast.error(t("patient_dashboard.familyUpdateFailed"));
     }
   }
 
@@ -335,9 +342,9 @@ export default function Profile() {
     try {
       await deleteFamilyMember(id);
       setFamilyMembers((prev) => prev.filter((m) => m.id !== id));
-      toast.success("Family member removed.");
+      toast.success(t("patient_dashboard.familyRemoved"));
     } catch {
-      toast.error("Failed to remove family member.");
+      toast.error(t("patient_dashboard.familyRemoveFailed"));
     }
   }
 
@@ -360,7 +367,15 @@ export default function Profile() {
   }
 
   if (loading) {
-    return <div className="p-6 text-text-light">{t("common.loading")}</div>;
+    return (
+      <div className="grid lg:grid-cols-[320px_1fr] gap-6 items-start">
+        <div className="h-96 rounded-2xl bg-surface animate-pulse" />
+        <div className="space-y-4">
+          <div className="h-11 w-72 rounded-full bg-surface animate-pulse" />
+          <div className="h-80 rounded-2xl bg-surface animate-pulse" />
+        </div>
+      </div>
+    );
   }
 
   const panelTitle =
@@ -370,405 +385,464 @@ export default function Profile() {
         ? t("patient_dashboard.profileMedicalInfo")
         : tab === "emergency"
           ? t("patient_dashboard.profileEmergencyInfo")
-          : "Family Members";
+          : t("patient_dashboard.familyTitle");
 
   return (
-    <div className="card-soft max-w-2xl overflow-hidden">
-      {/* ─── Header with photo ─── */}
-      <div className="flex items-center gap-3.5 px-5 py-5 bg-surface border-b border-border">
-        <div className="relative group shrink-0">
-          {photoPreview ? (
-            <Image
-              src={photoPreview}
-              alt="Profile"
-              width={64}
-              height={64}
-              unoptimized
-              className="w-16 h-16 rounded-full object-cover border-2 border-border"
-            />
-          ) : (
-            <div className="w-16 h-16 rounded-full bg-primary/15 text-primary grid place-items-center text-lg font-medium">
-              {initials || <UserIcon size={20} />}
-            </div>
-          )}
-          <button
-            type="button"
-            onClick={() => photoInputRef.current?.click()}
-            className="absolute inset-0 rounded-full bg-text/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-          >
-            <Camera className="w-5 h-5 text-white" />
-          </button>
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="text-lg font-medium text-text">{profile?.name}</div>
-          <div className="text-xs text-text-light mt-px">
-            {[ageLine, `Patient #${patientCode(profile)}`].filter(Boolean).join(" · ")}
-          </div>
-          {conditions.length > 0 && (
-            <div className="flex gap-1.5 mt-2 flex-wrap">
-              {conditions.map((c, i) => (
-                <span
-                  key={c}
-                  className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-                    i % 2 === 0 ? "bg-warn-bg text-warn-ink" : "bg-danger-bg text-danger-ink"
-                  }`}
-                >
-                  {c}
-                </span>
-              ))}
-            </div>
-          )}
-          <div className="flex gap-2 mt-2">
-            <button
-              type="button"
-              onClick={() => photoInputRef.current?.click()}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border border-border text-[11px] font-medium text-text-light hover:bg-white transition-colors cursor-pointer"
-            >
-              <Upload className="w-3 h-3" />
-              {photoPreview ? "Replace photo" : "Upload photo"}
-            </button>
-            {photoPreview && (
-              <button
-                type="button"
-                onClick={removePhoto}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border border-red-200 text-[11px] font-medium text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
-              >
-                <Trash2 className="w-3 h-3" />
-                Remove
-              </button>
-            )}
-            <input
-              ref={photoInputRef}
-              type="file"
-              accept=".jpg,.jpeg,.png,.webp"
-              onChange={handlePhotoSelect}
-              className="hidden"
-            />
-          </div>
-          {photoStatus === "uploading" && (
-            <div className="mt-2 w-48">
-              <div className="h-1.5 bg-surface rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-primary rounded-full transition-all duration-300"
-                  style={{ width: `${photoProgress}%` }}
-                />
-              </div>
-              <span className="text-[10px] text-text-light mt-0.5 block">
-                Uploading {photoProgress}%
-              </span>
-            </div>
-          )}
-          {photoStatus === "success" && (
-            <span className="text-[10px] text-green-600 flex items-center gap-1 mt-1">
-              <CheckCircle2 className="w-3 h-3" /> Uploaded
-            </span>
-          )}
-          {photoStatus === "error" && (
-            <span className="text-[10px] text-red-500 mt-1 block">{photoError}</span>
-          )}
-          {photoFile && photoStatus !== "success" && photoStatus !== "uploading" && (
-            <button
-              type="button"
-              onClick={uploadPhoto}
-              className="mt-2 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary text-white text-[11px] font-medium hover:bg-primary/90 transition-colors cursor-pointer"
-            >
-              <Upload className="w-3 h-3" /> Save photo
-            </button>
-          )}
-        </div>
-      </div>
+    <div className="pb-4">
+      <div className="grid lg:grid-cols-[320px_1fr] gap-6 items-start">
+        {/* ─────────── Identity rail (signature panel) ─────────── */}
+        <aside className="lg:sticky lg:top-6">
+          <div className="rounded-2xl bg-secondary text-text-inverse overflow-hidden shadow-sm">
+            <div className="h-1 bg-primary" />
 
-      {/* ─── Tabs ─── */}
-      <div className="flex gap-1 px-3 mt-3">
-        {TABS.map((tb) => {
-          const isActive = tab === tb.key;
-          return (
-            <button
-              key={tb.key}
-              type="button"
-              onClick={() => switchTab(tb.key)}
-              className={`flex-1 text-center py-2.5 rounded-t-xl border text-xs font-medium transition-colors relative top-px cursor-pointer ${
-                isActive
-                  ? "bg-card border-border text-text"
-                  : `bg-transparent border-transparent hover:text-text ${tb.inactive}`
-              }`}
-            >
-              {tb.label}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* ─── Content panel ─── */}
-      <div className="border border-border rounded-b-xl mx-3 mb-4 bg-card p-4">
-        <div className="flex items-center justify-between mb-3.5">
-          <span className="text-[13px] font-medium text-text-light">{panelTitle}</span>
-          {tab !== "family" && (
-            !editing ? (
-              <button
-                type="button"
-                onClick={() => setEditing(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary/40 text-primary bg-transparent text-xs font-medium hover:bg-primary/10 transition-colors cursor-pointer"
-              >
-                <Pencil size={12} />
-                {t("patient_dashboard.profileEdit")}
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  setEditing(false);
-                  if (profile) setDraft(draftFromProfile(profile));
-                }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-text-light bg-transparent text-xs font-medium hover:bg-surface transition-colors cursor-pointer"
-              >
-                <X size={12} />
-                {t("patient_dashboard.profileCancel")}
-              </button>
-            )
-          )}
-        </div>
-
-        {/* ─── Personal / Medical / Emergency tabs ─── */}
-        {tab !== "family" && (
-          editing ? (
-            <form onSubmit={save} className="flex flex-col gap-3.5">
-              {tab === "personal" && (
-                <>
-                  <Field label={t("patient_dashboard.fullName")}>
-                    <input className={inputCls} value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} required />
-                  </Field>
-                  <Field label={t("patient_dashboard.profileDateOfBirth")}>
-                    <input type="date" className={inputCls} value={draft.dob} onChange={(e) => setDraft({ ...draft, dob: e.target.value })} />
-                  </Field>
-                  <Field label={t("patient_dashboard.homeAddress")}>
-                    <input className={inputCls} value={draft.address} onChange={(e) => setDraft({ ...draft, address: e.target.value })} />
-                  </Field>
-                  <Field label={t("patient_dashboard.city")}>
-                    <input className={inputCls} value={draft.city} onChange={(e) => setDraft({ ...draft, city: e.target.value })} placeholder="e.g. Kathmandu, Pokhara" />
-                  </Field>
-                  <Field label={t("patient_dashboard.phone")}>
-                    <input className={inputCls} value={draft.phone} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} required />
-                  </Field>
-                </>
-              )}
-              {tab === "medical" && (
-                <>
-                  {conditions.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {conditions.map((c, i) => (
-                        <span
-                          key={c}
-                          className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-                            i % 2 === 0 ? "bg-warn-bg text-warn-ink" : "bg-danger-bg text-danger-ink"
-                          }`}
-                        >
-                          {c}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  <Field label={t("patient_dashboard.medicalHistory")}>
-                    <textarea className={inputCls} rows={3} value={draft.history} onChange={(e) => setDraft({ ...draft, history: e.target.value })} />
-                  </Field>
-                  <Field label={t("patient_dashboard.preferredGender")}>
-                    <select className={inputCls} value={draft.gender} onChange={(e) => setDraft({ ...draft, gender: e.target.value as "Any" | "Male" | "Female" })}>
-                      <option value="Any">{t("patient_dashboard.any")}</option>
-                      <option value="Male">{t("patient_dashboard.male")}</option>
-                      <option value="Female">{t("patient_dashboard.female")}</option>
-                    </select>
-                  </Field>
-                  <div>
-                    <label className="text-xs font-medium text-text-light">{t("patient_dashboard.notifications")}</label>
-                    <div className="mt-1.5 flex gap-5 text-sm text-text">
-                      <label className="flex items-center gap-2">
-                        <input type="checkbox" checked={draft.notifEmail} onChange={(e) => setDraft({ ...draft, notifEmail: e.target.checked })} />
-                        {t("patient_dashboard.email")}
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input type="checkbox" checked={draft.notifSms} onChange={(e) => setDraft({ ...draft, notifSms: e.target.checked })} />
-                        {t("patient_dashboard.sms")}
-                      </label>
-                    </div>
+            <div className="px-6 pt-7 pb-6 text-center">
+              <div className="relative group inline-block">
+                {photoPreview ? (
+                  <Image
+                    src={photoPreview}
+                    alt="Profile"
+                    width={112}
+                    height={112}
+                    unoptimized
+                    className="w-28 h-28 rounded-full object-cover ring-2 ring-text-inverse/15"
+                  />
+                ) : (
+                  <div className="w-28 h-28 rounded-full bg-text-inverse/10 ring-2 ring-text-inverse/15 grid place-items-center font-display text-3xl text-primary">
+                    {initials || <UserIcon size={30} />}
                   </div>
-                </>
-              )}
-              {tab === "emergency" && (
-                <>
-                  <p className="text-xs text-text-muted">{t("patient_dashboard.profileEmergencyHint")}</p>
-                  <Field label={t("patient_dashboard.profileEmergencyName")}>
-                    <input className={inputCls} value={draft.emergencyName} onChange={(e) => setDraft({ ...draft, emergencyName: e.target.value })} />
-                  </Field>
-                  <Field label={t("patient_dashboard.profileEmergencyRelation")}>
-                    <input className={inputCls} value={draft.emergencyRelation} onChange={(e) => setDraft({ ...draft, emergencyRelation: e.target.value })} />
-                  </Field>
-                  <Field label={t("patient_dashboard.profileEmergencyPhone")}>
-                    <input className={inputCls} value={draft.emergencyPhone} onChange={(e) => setDraft({ ...draft, emergencyPhone: e.target.value })} placeholder="+977 ..." />
-                  </Field>
-                </>
-              )}
-              <button type="submit" disabled={saving} className="btn-secondary disabled:opacity-50 self-start">
-                {saving ? t("common.submitting") : (
-                  <><Check size={14} /> {t("common.saveChanges")}</>
                 )}
-              </button>
-            </form>
-          ) : (
-            <div className="flex flex-col gap-3.5">
-              {tab === "personal" && (
-                <>
-                  <Row icon={<UserIcon size={14} />} label={t("patient_dashboard.fullName")} value={profile?.name ?? "—"} />
-                  <Row icon={<MapPin size={14} />} label={t("patient_dashboard.homeAddress")} value={fullAddress(profile)} />
-                  <Row icon={<Phone size={14} />} label={t("patient_dashboard.phone")} value={profile?.phone ?? "—"} />
-                  <Row icon={<Mail size={14} />} label={t("patient_dashboard.profileEmail")} value={user?.email ?? "—"} />
-                </>
-              )}
-              {tab === "medical" && (
-                <>
-                  <Row
-                    icon={<Activity size={14} />}
-                    label={t("patient_dashboard.profileConditions")}
-                    value={conditions.length ? conditions.join(", ") : t("patient_dashboard.profileNoConditions")}
-                  />
-                  <Row icon={<ClipboardList size={14} />} label={t("patient_dashboard.medicalHistory")} value={profile?.history || t("patient_dashboard.profileNoConditions")} />
-                  <Row
-                    icon={<UserRound size={14} />}
-                    label={t("patient_dashboard.preferredGender")}
-                    value={profile ? t(genderKey(profile.gender)) : "—"}
-                  />
-                  <Row
-                    icon={<Bell size={14} />}
-                    label={t("patient_dashboard.notifications")}
-                    value={[profile?.notifEmail ? t("patient_dashboard.email") : null, profile?.notifSms ? t("patient_dashboard.sms") : null]
-                      .filter(Boolean)
-                      .join(", ") || "—"}
-                  />
-                </>
-              )}
-              {tab === "emergency" && (
-                <>
-                  <Row icon={<UserRound size={14} />} label={t("patient_dashboard.profileEmergencyName")} value={profile?.emergencyName || t("patient_dashboard.profileNoEmergency")} />
-                  <Row icon={<HeartHandshake size={14} />} label={t("patient_dashboard.profileEmergencyRelation")} value={profile?.emergencyRelation || "—"} />
-                  <Row icon={<Phone size={14} />} label={t("patient_dashboard.profileEmergencyPhone")} value={profile?.emergencyPhone || "—"} />
-                </>
-              )}
-            </div>
-          )
-        )}
-
-        {/* ─── Family tab ─── */}
-        {tab === "family" && (
-          <div className="flex flex-col gap-3.5">
-            <p className="text-xs text-text-light">
-              Add family members who also need physiotherapy.
-            </p>
-
-            {familyLoading ? (
-              <div className="text-xs text-text-light py-4 text-center">Loading...</div>
-            ) : (
-              familyMembers.map((fm, i) => (
-                <div key={fm.id} className="rounded-lg border border-border bg-surface/50 p-3 space-y-2">
-                  {familyEditingIdx === i ? (
-                    <div className="space-y-2">
-                      <div className="grid grid-cols-2 gap-2">
-                        <Field label="Name">
-                          <input className={inputCls} value={familyDraft.name} onChange={(e) => setFamilyDraft({ ...familyDraft, name: e.target.value })} required />
-                        </Field>
-                        <Field label="Relationship">
-                          <select className={inputCls} value={familyDraft.relationship} onChange={(e) => setFamilyDraft({ ...familyDraft, relationship: e.target.value })} required>
-                            <option value="">Select</option>
-                            <option value="Spouse">Spouse</option>
-                            <option value="Parent">Parent</option>
-                            <option value="Sibling">Sibling</option>
-                            <option value="Child">Child</option>
-                            <option value="Other">Other</option>
-                          </select>
-                        </Field>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Field label="Date of birth">
-                          <input type="date" className={inputCls} value={familyDraft.dob} onChange={(e) => setFamilyDraft({ ...familyDraft, dob: e.target.value })} />
-                        </Field>
-                        <Field label="Phone">
-                          <input className={inputCls} value={familyDraft.phone} onChange={(e) => setFamilyDraft({ ...familyDraft, phone: e.target.value })} />
-                        </Field>
-                      </div>
-                      <Field label="Condition (optional)">
-                        <input className={inputCls} value={familyDraft.condition} onChange={(e) => setFamilyDraft({ ...familyDraft, condition: e.target.value })} placeholder="What they need help with" />
-                      </Field>
-                      <div className="flex gap-2">
-                        <button type="button" onClick={handleUpdateFamily} className="btn-secondary !py-1.5 !px-3 text-xs">
-                          <Check size={12} /> Save
-                        </button>
-                        <button type="button" onClick={resetFamilyDraft} className="text-xs text-text-light hover:text-text cursor-pointer">
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="text-sm font-medium text-text">{fm.name}</div>
-                        <div className="text-xs text-text-light">{fm.relationship}</div>
-                        {fm.phone && <div className="text-xs text-text-light">{fm.phone}</div>}
-                        {fm.condition && <div className="text-xs text-text-light italic">Condition: {fm.condition}</div>}
-                      </div>
-                      <div className="flex gap-1.5 shrink-0">
-                        <button type="button" onClick={() => startEditFamily(i)} className="p-1 rounded-md hover:bg-surface text-text-light hover:text-text transition-colors cursor-pointer">
-                          <Pencil size={12} />
-                        </button>
-                        <button type="button" onClick={() => handleDeleteFamily(fm.id)} className="p-1 rounded-md hover:bg-red-50 text-text-light hover:text-red-500 transition-colors cursor-pointer">
-                          <Trash2 size={12} />
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))
-            )}
-
-            {/* Add new family member form */}
-            {familyEditingIdx === null && (
-              <div className="rounded-lg border-2 border-dashed border-border p-3 space-y-2">
-                <div className="text-xs font-medium text-text-light">Add family member</div>
-                <div className="grid grid-cols-2 gap-2">
-                  <Field label="Name">
-                    <input className={inputCls} value={familyDraft.name} onChange={(e) => setFamilyDraft({ ...familyDraft, name: e.target.value })} placeholder="Full name" />
-                  </Field>
-                  <Field label="Relationship">
-                    <select className={inputCls} value={familyDraft.relationship} onChange={(e) => setFamilyDraft({ ...familyDraft, relationship: e.target.value })}>
-                      <option value="">Select</option>
-                      <option value="Spouse">Spouse</option>
-                      <option value="Parent">Parent</option>
-                      <option value="Sibling">Sibling</option>
-                      <option value="Child">Child</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </Field>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <Field label="Date of birth">
-                    <input type="date" className={inputCls} value={familyDraft.dob} onChange={(e) => setFamilyDraft({ ...familyDraft, dob: e.target.value })} />
-                  </Field>
-                  <Field label="Phone">
-                    <input className={inputCls} value={familyDraft.phone} onChange={(e) => setFamilyDraft({ ...familyDraft, phone: e.target.value })} placeholder="Optional" />
-                  </Field>
-                </div>
-                <Field label="Condition (optional)">
-                  <input className={inputCls} value={familyDraft.condition} onChange={(e) => setFamilyDraft({ ...familyDraft, condition: e.target.value })} placeholder="What they need help with" />
-                </Field>
                 <button
                   type="button"
-                  onClick={handleAddFamily}
-                  disabled={!familyDraft.name.trim() || !familyDraft.relationship.trim()}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary/40 text-primary text-xs font-medium hover:bg-primary/10 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                  onClick={() => photoInputRef.current?.click()}
+                  aria-label="Upload photo"
+                  className="absolute inset-0 rounded-full bg-black/45 grid place-items-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity cursor-pointer"
                 >
-                  <Plus size={12} /> Add member
+                  <Camera className="w-6 h-6 text-white" />
                 </button>
+              </div>
+
+              <h2 className="font-display text-xl font-semibold mt-4 leading-tight break-words">
+                {profile?.name || "—"}
+              </h2>
+
+              <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-text-inverse/70 mt-2">
+                {[ageLine, `#${patientCode(profile)}`].filter(Boolean).join(" · ")}
+              </p>
+
+              {conditions.length > 0 && (
+                <div className="flex gap-1.5 mt-3.5 flex-wrap justify-center">
+                  {conditions.map((c) => (
+                    <span
+                      key={c}
+                      className="text-[10px] font-medium px-2.5 py-1 rounded-full bg-text-inverse/10 text-text-inverse ring-1 ring-text-inverse/15"
+                    >
+                      {c}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Quick facts */}
+            <dl className="border-t border-text-inverse/10 divide-y divide-text-inverse/10">
+              <RailStat label={t("patient_dashboard.city")} value={profile?.city || "—"} />
+              <RailStat label={t("patient_dashboard.phone")} value={profile?.phone || "—"} />
+              <RailStat label={t("patient_dashboard.profileEmail")} value={user?.email || "—"} />
+            </dl>
+
+            {/* Photo controls */}
+            <div className="px-6 py-5 border-t border-text-inverse/10 space-y-2">
+              <button
+                type="button"
+                onClick={() => photoInputRef.current?.click()}
+                className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-full bg-text-inverse text-secondary text-xs font-semibold hover:bg-text-inverse/90 transition-colors cursor-pointer"
+              >
+                <Upload className="w-3.5 h-3.5" />
+                {photoPreview ? "Replace photo" : "Upload photo"}
+              </button>
+
+              {photoPreview && (
+                <button
+                  type="button"
+                  onClick={removePhoto}
+                  className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-full border border-text-inverse/20 text-text-inverse/75 text-xs font-medium hover:bg-danger/25 hover:text-text-inverse hover:border-transparent transition-colors cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Remove
+                </button>
+              )}
+
+              {photoFile && photoStatus !== "success" && photoStatus !== "uploading" && (
+                <button
+                  type="button"
+                  onClick={uploadPhoto}
+                  className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-full bg-primary text-white text-xs font-semibold hover:brightness-95 transition cursor-pointer"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Save photo
+                </button>
+              )}
+
+              {photoStatus === "uploading" && (
+                <div className="pt-1">
+                  <div className="h-1.5 bg-text-inverse/15 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary rounded-full transition-all duration-300"
+                      style={{ width: `${photoProgress}%` }}
+                    />
+                  </div>
+                  <span className="font-mono text-[10px] text-text-inverse/75 mt-1 block">
+                    Uploading {photoProgress}%
+                  </span>
+                </div>
+              )}
+              {photoStatus === "success" && (
+                <span className="text-[10px] text-text-inverse flex items-center gap-1 pt-0.5">
+                  <CheckCircle2 className="w-3 h-3" /> Uploaded
+                </span>
+              )}
+              {photoStatus === "error" && (
+                <span className="text-[10px] text-red-200 block pt-0.5">{photoError}</span>
+              )}
+
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept=".jpg,.jpeg,.png,.webp"
+                onChange={handlePhotoSelect}
+                className="hidden"
+              />
+            </div>
+          </div>
+        </aside>
+
+        {/* ─────────── Tabs + panel ─────────── */}
+        <div className="min-w-0 space-y-4">
+          <div className="tabs-filter !mb-0 !w-full sm:!w-fit overflow-x-auto no-scrollbar">
+            {TABS.map((tb) => {
+              const isActive = tab === tb.key;
+              return (
+                <button
+                  key={tb.key}
+                  type="button"
+                  onClick={() => switchTab(tb.key)}
+                  aria-current={isActive}
+                  className={`inline-flex items-center justify-center gap-1.5 flex-1 sm:flex-none px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                    isActive ? "tab-active" : "text-text-light hover:text-text"
+                  }`}
+                >
+                  {tb.icon}
+                  {t(tb.labelKey)}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="card-soft p-6 lg:p-7">
+            <div className="flex items-center justify-between gap-3 pb-4 mb-5 border-b border-border">
+              <h2 className="font-display text-lg font-semibold text-text leading-tight">
+                {panelTitle}
+              </h2>
+              {tab !== "family" && (
+                !editing ? (
+                  <button
+                    type="button"
+                    onClick={() => setEditing(true)}
+                    className="btn-outline !py-2 !px-4 text-xs shrink-0 cursor-pointer"
+                  >
+                    <Pencil size={13} />
+                    {t("patient_dashboard.profileEdit")}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditing(false);
+                      if (profile) setDraft(draftFromProfile(profile));
+                    }}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-border text-text-light text-xs font-semibold hover:bg-surface transition-colors cursor-pointer shrink-0"
+                  >
+                    <X size={13} />
+                    {t("patient_dashboard.profileCancel")}
+                  </button>
+                )
+              )}
+            </div>
+
+            {/* ─── Personal / Medical / Emergency ─── */}
+            {tab !== "family" && (
+              editing ? (
+                <form onSubmit={save} className="space-y-4">
+                  {tab === "personal" && (
+                    <>
+                      <Field label={t("patient_dashboard.fullName")}>
+                        <input className={inputCls} value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} required />
+                      </Field>
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        <Field label={t("patient_dashboard.profileDateOfBirth")}>
+                          <DatePicker value={draft.dob} onChange={(v) => setDraft({ ...draft, dob: v })} placeholder={t("patient_dashboard.profileDateOfBirth")} dropdowns />
+                        </Field>
+                        <Field label={t("patient_dashboard.phone")}>
+                          <input className={inputCls} value={draft.phone} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} required />
+                        </Field>
+                      </div>
+                      <Field label={t("patient_dashboard.homeAddress")}>
+                        <input className={inputCls} value={draft.address} onChange={(e) => setDraft({ ...draft, address: e.target.value })} />
+                      </Field>
+                      <Field label={t("patient_dashboard.city")}>
+                        <input className={inputCls} value={draft.city} onChange={(e) => setDraft({ ...draft, city: e.target.value })} placeholder="e.g. Kathmandu, Pokhara" list="pv-cities" />
+                        <datalist id="pv-cities">
+                          {CITIES.map((c) => <option key={c} value={c} />)}
+                        </datalist>
+                      </Field>
+                    </>
+                  )}
+                  {tab === "medical" && (
+                    <>
+                      <Field label={t("patient_dashboard.profileCondition")}>
+                        <input
+                          className={inputCls}
+                          value={draft.condition}
+                          onChange={(e) => setDraft({ ...draft, condition: e.target.value })}
+                          placeholder={t("patient_dashboard.profileConditionPlaceholder")}
+                        />
+                      </Field>
+                      <Field label={t("patient_dashboard.medicalHistory")}>
+                        <textarea className={`${inputCls} resize-y leading-relaxed`} rows={4} value={draft.history} onChange={(e) => setDraft({ ...draft, history: e.target.value })} />
+                      </Field>
+                      <Field label={t("patient_dashboard.preferredGender")}>
+                        <SelectInput value={draft.gender} onChange={(e) => setDraft({ ...draft, gender: e.target.value as "Any" | "Male" | "Female" })}>
+                          <option value="Any">{t("patient_dashboard.any")}</option>
+                          <option value="Male">{t("patient_dashboard.male")}</option>
+                          <option value="Female">{t("patient_dashboard.female")}</option>
+                        </SelectInput>
+                      </Field>
+                      <div>
+                        <FieldLabel>{t("patient_dashboard.notifications")}</FieldLabel>
+                        <div className="flex flex-wrap gap-2">
+                          <label className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-border bg-white text-sm text-text cursor-pointer hover:border-primary/50 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                            <input type="checkbox" className="w-4 h-4 accent-primary" checked={draft.notifEmail} onChange={(e) => setDraft({ ...draft, notifEmail: e.target.checked })} />
+                            {t("patient_dashboard.email")}
+                          </label>
+                          <label className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-border bg-white text-sm text-text cursor-pointer hover:border-primary/50 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                            <input type="checkbox" className="w-4 h-4 accent-primary" checked={draft.notifSms} onChange={(e) => setDraft({ ...draft, notifSms: e.target.checked })} />
+                            {t("patient_dashboard.sms")}
+                          </label>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  {tab === "emergency" && (
+                    <>
+                      <p className="rounded-xl bg-warn-bg text-warn-ink text-xs leading-relaxed px-3.5 py-3">
+                        {t("patient_dashboard.profileEmergencyHint")}
+                      </p>
+                      <Field label={t("patient_dashboard.profileEmergencyName")}>
+                        <input className={inputCls} value={draft.emergencyName} onChange={(e) => setDraft({ ...draft, emergencyName: e.target.value })} />
+                      </Field>
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        <Field label={t("patient_dashboard.profileEmergencyRelation")}>
+                          <input className={inputCls} value={draft.emergencyRelation} onChange={(e) => setDraft({ ...draft, emergencyRelation: e.target.value })} />
+                        </Field>
+                        <Field label={t("patient_dashboard.profileEmergencyPhone")}>
+                          <input className={inputCls} value={draft.emergencyPhone} onChange={(e) => setDraft({ ...draft, emergencyPhone: e.target.value })} placeholder="+977 ..." />
+                        </Field>
+                      </div>
+                    </>
+                  )}
+                  <div className="pt-1">
+                    <button type="submit" disabled={saving} className="btn-secondary disabled:opacity-50">
+                      {saving ? t("common.submitting") : (
+                        <><Check size={14} /> {t("common.saveChanges")}</>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <dl className="divide-y divide-border">
+                  {tab === "personal" && (
+                    <>
+                      <Row icon={<UserIcon size={14} />} label={t("patient_dashboard.fullName")} value={profile?.name ?? "—"} />
+                      <Row
+                        icon={<CalendarDays size={14} />}
+                        label={t("patient_dashboard.profileDateOfBirth")}
+                        value={dobLine(profile, t("patient_dashboard.profileYrs"))}
+                      />
+                      <Row icon={<MapPin size={14} />} label={t("patient_dashboard.homeAddress")} value={fullAddress(profile)} />
+                      <Row icon={<MapPin size={14} />} label={t("patient_dashboard.city")} value={profile?.city || "—"} />
+                      <Row icon={<Phone size={14} />} label={t("patient_dashboard.phone")} value={profile?.phone ?? "—"} />
+                      <Row icon={<Mail size={14} />} label={t("patient_dashboard.profileEmail")} value={user?.email ?? "—"} />
+                    </>
+                  )}
+                  {tab === "medical" && (
+                    <>
+                      <Row
+                        icon={<Activity size={14} />}
+                        label={t("patient_dashboard.profileConditions")}
+                        value={conditions.length ? conditions.join(", ") : t("patient_dashboard.profileNoConditions")}
+                      />
+                      <Row icon={<ClipboardList size={14} />} label={t("patient_dashboard.medicalHistory")} value={profile?.history || t("patient_dashboard.profileNoConditions")} />
+                      <Row
+                        icon={<UserRound size={14} />}
+                        label={t("patient_dashboard.preferredGender")}
+                        value={profile ? t(genderKey(profile.gender)) : "—"}
+                      />
+                      <Row
+                        icon={<Bell size={14} />}
+                        label={t("patient_dashboard.notifications")}
+                        value={[profile?.notifEmail ? t("patient_dashboard.email") : null, profile?.notifSms ? t("patient_dashboard.sms") : null]
+                          .filter(Boolean)
+                          .join(", ") || "—"}
+                      />
+                    </>
+                  )}
+                  {tab === "emergency" && (
+                    <>
+                      <Row icon={<UserRound size={14} />} label={t("patient_dashboard.profileEmergencyName")} value={profile?.emergencyName || t("patient_dashboard.profileNoEmergency")} />
+                      <Row icon={<HeartHandshake size={14} />} label={t("patient_dashboard.profileEmergencyRelation")} value={profile?.emergencyRelation || "—"} />
+                      <Row icon={<Phone size={14} />} label={t("patient_dashboard.profileEmergencyPhone")} value={profile?.emergencyPhone || "—"} />
+                    </>
+                  )}
+                </dl>
+              )
+            )}
+
+            {/* ─── Family tab ─── */}
+            {tab === "family" && (
+              <div className="space-y-4">
+                <p className="text-xs text-text-light leading-relaxed">
+                  {t("patient_dashboard.familyHint")}
+                </p>
+
+                {familyLoading ? (
+                  <div className="text-xs text-text-light py-6 text-center">{t("common.loading")}</div>
+                ) : (
+                  familyMembers.length > 0 && (
+                    <ul className="rounded-xl border border-border divide-y divide-border overflow-hidden">
+                      {familyMembers.map((fm, i) => (
+                        <li key={fm.id} className="p-3.5 bg-white">
+                          {familyEditingIdx === i ? (
+                            <div className="space-y-3">
+                              <div className="grid sm:grid-cols-2 gap-3">
+                                <Field label={t("patient_dashboard.fullName")}>
+                                  <input className={inputCls} value={familyDraft.name} onChange={(e) => setFamilyDraft({ ...familyDraft, name: e.target.value })} required />
+                                </Field>
+                                <Field label={t("patient_dashboard.relationshipLabel")}>
+                                  <SelectInput value={familyDraft.relationship} onChange={(e) => setFamilyDraft({ ...familyDraft, relationship: e.target.value })} required>
+                                    <option value="">{t("auth.selectOption")}</option>
+                                    <option value="Spouse">{t("patient_dashboard.relSpouse")}</option>
+                                    <option value="Parent">{t("patient_dashboard.relParent")}</option>
+                                    <option value="Sibling">{t("patient_dashboard.relSibling")}</option>
+                                    <option value="Child">{t("patient_dashboard.relChild")}</option>
+                                    <option value="Other">{t("patient_dashboard.relOther")}</option>
+                                  </SelectInput>
+                                </Field>
+                              </div>
+                              <div className="grid sm:grid-cols-2 gap-3">
+                                <Field label={t("patient_dashboard.profileDateOfBirth")}>
+                                  <DatePicker value={familyDraft.dob} onChange={(v) => setFamilyDraft({ ...familyDraft, dob: v })} placeholder={t("patient_dashboard.profileDateOfBirth")} dropdowns />
+                                </Field>
+                                <Field label={t("patient_dashboard.phone")}>
+                                  <input className={inputCls} value={familyDraft.phone} onChange={(e) => setFamilyDraft({ ...familyDraft, phone: e.target.value })} />
+                                </Field>
+                              </div>
+                              <Field label={t("patient_dashboard.conditionOptional")}>
+                                <input className={inputCls} value={familyDraft.condition} onChange={(e) => setFamilyDraft({ ...familyDraft, condition: e.target.value })} placeholder={t("patient_dashboard.profileConditionPlaceholder")} />
+                              </Field>
+                              <div className="flex items-center gap-3 pt-0.5">
+                                <button type="button" onClick={handleUpdateFamily} className="btn-secondary !py-2 !px-4 text-xs">
+                                  <Check size={13} /> {t("patient_dashboard.familySave")}
+                                </button>
+                                <button type="button" onClick={resetFamilyDraft} className="text-xs font-medium text-text-light hover:text-text cursor-pointer">
+                                  {t("patient_dashboard.familyCancel")}
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-start gap-3">
+                              <div className="w-10 h-10 rounded-full bg-surface text-secondary grid place-items-center shrink-0 font-display text-sm font-semibold">
+                                {fm.name.trim()[0]?.toUpperCase() ?? "?"}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="text-sm font-medium text-text">{fm.name}</span>
+                                  <span className="font-mono text-[10px] uppercase tracking-[0.1em] px-2 py-0.5 rounded-full bg-surface text-secondary">
+                                    {fm.relationship}
+                                  </span>
+                                </div>
+                                {fm.phone && <div className="text-xs text-text-light mt-1">{fm.phone}</div>}
+                                {fm.condition && (
+                                  <div className="text-xs text-text-light mt-0.5">
+                                    {t("patient_dashboard.profileCondition")}: {fm.condition}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex gap-1 shrink-0">
+                                <button type="button" onClick={() => startEditFamily(i)} aria-label={t("patient_dashboard.profileEdit")} className="p-2 rounded-lg hover:bg-surface text-text-light hover:text-secondary transition-colors cursor-pointer">
+                                  <Pencil size={13} />
+                                </button>
+                                <button type="button" onClick={() => handleDeleteFamily(fm.id)} aria-label={t("patient_dashboard.familyRemoved")} className="p-2 rounded-lg hover:bg-danger/10 text-text-light hover:text-danger transition-colors cursor-pointer">
+                                  <Trash2 size={13} />
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )
+                )}
+
+                {/* Add new family member */}
+                {familyEditingIdx === null && (
+                  <div className="rounded-xl border border-dashed border-border bg-background p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="w-7 h-7 rounded-lg bg-primary/10 text-primary grid place-items-center shrink-0">
+                        <Plus size={14} />
+                      </span>
+                      <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-text-light">
+                        {t("patient_dashboard.familyTitle")}
+                      </span>
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <Field label={t("patient_dashboard.fullName")}>
+                        <input className={inputCls} value={familyDraft.name} onChange={(e) => setFamilyDraft({ ...familyDraft, name: e.target.value })} placeholder={t("patient_dashboard.fullName")} />
+                      </Field>
+                      <Field label={t("patient_dashboard.relationshipLabel")}>
+                        <SelectInput value={familyDraft.relationship} onChange={(e) => setFamilyDraft({ ...familyDraft, relationship: e.target.value })}>
+                          <option value="">{t("auth.selectOption")}</option>
+                          <option value="Spouse">{t("patient_dashboard.relSpouse")}</option>
+                          <option value="Parent">{t("patient_dashboard.relParent")}</option>
+                          <option value="Sibling">{t("patient_dashboard.relSibling")}</option>
+                          <option value="Child">{t("patient_dashboard.relChild")}</option>
+                          <option value="Other">{t("patient_dashboard.relOther")}</option>
+                        </SelectInput>
+                      </Field>
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <Field label={t("patient_dashboard.profileDateOfBirth")}>
+                        <DatePicker value={familyDraft.dob} onChange={(v) => setFamilyDraft({ ...familyDraft, dob: v })} placeholder={t("patient_dashboard.profileDateOfBirth")} dropdowns />
+                      </Field>
+                      <Field label={t("patient_dashboard.phone")}>
+                        <input className={inputCls} value={familyDraft.phone} onChange={(e) => setFamilyDraft({ ...familyDraft, phone: e.target.value })} placeholder={t("patient_dashboard.conditionOptional")} />
+                      </Field>
+                    </div>
+                    <Field label={t("patient_dashboard.conditionOptional")}>
+                      <input className={inputCls} value={familyDraft.condition} onChange={(e) => setFamilyDraft({ ...familyDraft, condition: e.target.value })} placeholder={t("patient_dashboard.profileConditionPlaceholder")} />
+                    </Field>
+                    <button
+                      type="button"
+                      onClick={handleAddFamily}
+                      disabled={!familyDraft.name.trim() || !familyDraft.relationship.trim()}
+                      className="btn-outline-primary !py-2 !px-4 text-xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      <Plus size={13} /> {t("patient_dashboard.familyAdd")}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
@@ -783,6 +857,7 @@ function draftFromProfile(p: PatientProfile): Draft {
     history: p.history ?? "",
     dob: p.dob ? p.dob.slice(0, 10) : "",
     gender: p.gender,
+    condition: p.condition ?? "",
     notifEmail: p.notifEmail,
     notifSms: p.notifSms,
     emergencyName: p.emergencyName ?? "",
@@ -801,31 +876,88 @@ function fullAddress(p: PatientProfile | null): string {
   return [p.address, p.city].filter(Boolean).join(", ") || "—";
 }
 
+function dobLine(p: PatientProfile | null, yrsLabel: string): string {
+  if (!p?.dob) return "—";
+  const date = formatDate(p.dob.slice(0, 10));
+  return p.age ? `${date} (${p.age} ${yrsLabel})` : date;
+}
+
 function genderKey(g: "Any" | "Male" | "Female"): TKey {
   if (g === "Male") return "patient_dashboard.male";
   if (g === "Female") return "patient_dashboard.female";
   return "patient_dashboard.any";
 }
 
+/* ─────────── Presentational helpers ─────────── */
+
 const inputCls =
-  "w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary";
+  "w-full px-3.5 py-2.5 rounded-xl border border-border bg-white text-sm text-text placeholder:text-text-muted transition focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20";
+
+function FieldLabel({ children }: { children: ReactNode }) {
+  return (
+    <span className="block mb-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-text-light">
+      {children}
+    </span>
+  );
+}
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div>
-      <label className="text-xs font-medium text-text-light">{label}</label>
+    <label className="block">
+      <FieldLabel>{label}</FieldLabel>
       {children}
+    </label>
+  );
+}
+
+function SelectInput({
+  value,
+  onChange,
+  children,
+  required = false,
+}: {
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  children: ReactNode;
+  required?: boolean;
+}) {
+  return (
+    <div className="relative">
+      <select
+        value={value}
+        onChange={onChange}
+        required={required}
+        className={`${inputCls} appearance-none pr-9 cursor-pointer`}
+      >
+        {children}
+      </select>
+      <ChevronDown className="w-4 h-4 text-text-light absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+    </div>
+  );
+}
+
+function RailStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3 px-6 py-3">
+      <dt className="font-mono text-[10px] uppercase tracking-[0.12em] text-text-inverse/70 shrink-0">
+        {label}
+      </dt>
+      <dd className="text-sm font-medium text-text-inverse truncate">{value}</dd>
     </div>
   );
 }
 
 function Row({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
   return (
-    <div className="flex gap-3">
-      <div className="w-[30px] h-[30px] rounded-lg bg-surface text-text-muted grid place-items-center shrink-0">{icon}</div>
-      <div className="min-w-0">
-        <div className="text-[11px] uppercase tracking-wider text-text-muted">{label}</div>
-        <div className="text-sm text-text mt-0.5 break-words">{value}</div>
+    <div className="flex items-start gap-3 py-3.5">
+      <span className="w-8 h-8 rounded-lg bg-surface text-secondary grid place-items-center shrink-0">
+        {icon}
+      </span>
+      <div className="min-w-0 flex-1">
+        <dt className="font-mono text-[10px] uppercase tracking-[0.12em] text-text-light">
+          {label}
+        </dt>
+        <dd className="text-sm text-text mt-1 break-words leading-relaxed">{value}</dd>
       </div>
     </div>
   );

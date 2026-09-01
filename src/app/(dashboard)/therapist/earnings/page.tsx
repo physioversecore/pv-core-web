@@ -19,7 +19,8 @@ import {
   PaginationNext,
   PaginationEllipsis,
 } from "@/components/ui/pagination";
-import { X, Wallet, AlertCircle, CheckCircle2, ChevronDown, Calendar } from "lucide-react";
+import { X, Wallet, AlertCircle, CheckCircle2, ChevronDown } from "lucide-react";
+import { DatePicker } from "@/components/ui/date-picker";
 
 const TABS = [
   "earningsTabsThisMonth",
@@ -366,27 +367,21 @@ export default function Earnings() {
         >
           <div className="flex items-center gap-2">
             <span className="text-xs text-text-light whitespace-nowrap">From</span>
-            <div className="relative">
-              <input
-                type="date"
-                value={payoutDateFrom}
-                onChange={(e) => setPayoutDateFrom(e.target.value)}
-                className="pl-3 pr-8 py-2 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-              <Calendar className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-light pointer-events-none" />
-            </div>
+            <DatePicker
+              value={payoutDateFrom}
+              onChange={setPayoutDateFrom}
+              placeholder="Pick a date"
+              className="py-2"
+            />
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-text-light whitespace-nowrap">To</span>
-            <div className="relative">
-              <input
-                type="date"
-                value={payoutDateTo}
-                onChange={(e) => setPayoutDateTo(e.target.value)}
-                className="pl-3 pr-8 py-2 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-              <Calendar className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-light pointer-events-none" />
-            </div>
+            <DatePicker
+              value={payoutDateTo}
+              onChange={setPayoutDateTo}
+              placeholder="Pick a date"
+              className="py-2"
+            />
           </div>
           <div className="relative">
             <select
@@ -473,27 +468,21 @@ export default function Earnings() {
         >
           <div className="flex items-center gap-2">
             <span className="text-xs text-text-light whitespace-nowrap">From</span>
-            <div className="relative">
-              <input
-                type="date"
-                value={txDateFrom}
-                onChange={(e) => setTxDateFrom(e.target.value)}
-                className="pl-3 pr-8 py-2 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-              <Calendar className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-light pointer-events-none" />
-            </div>
+            <DatePicker
+              value={txDateFrom}
+              onChange={setTxDateFrom}
+              placeholder="Pick a date"
+              className="py-2"
+            />
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-text-light whitespace-nowrap">To</span>
-            <div className="relative">
-              <input
-                type="date"
-                value={txDateTo}
-                onChange={(e) => setTxDateTo(e.target.value)}
-                className="pl-3 pr-8 py-2 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-              <Calendar className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-light pointer-events-none" />
-            </div>
+            <DatePicker
+              value={txDateTo}
+              onChange={setTxDateTo}
+              placeholder="Pick a date"
+              className="py-2"
+            />
           </div>
           <div className="relative">
             <select

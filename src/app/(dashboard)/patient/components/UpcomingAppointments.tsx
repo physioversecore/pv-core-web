@@ -56,6 +56,7 @@ export function UpcomingAppointments() {
                 <tr className="text-xs uppercase font-mono text-text-light text-left border-b border-border">
                   <th className="py-2 pr-3">{t("patient_dashboard.therapist")}</th>
                   <th className="py-2 pr-3">{t("patient_dashboard.dateTime")}</th>
+                  <th className="py-2 pr-3">{t("patient_dashboard.forWhom")}</th>
                   <th className="py-2 pr-3">{t("patient_dashboard.type")}</th>
                   <th className="py-2 pr-3">{t("patient_dashboard.status")}</th>
                   <th className="py-2"></th>
@@ -66,6 +67,7 @@ export function UpcomingAppointments() {
                   <tr key={u.id}>
                     <td className="py-3 pr-3 font-medium text-secondary">{u.therapistName || "Therapist"}</td>
                     <td className="py-3 pr-3 text-text-light">{formatWhen(u.date, u.time)}</td>
+                    <td className="py-3 pr-3 text-text-light">{u.familyMemberName || "Self"}</td>
                     <td className="py-3 pr-3 text-text-light">{formatType(u.type)}</td>
                     <td className="py-3 pr-3">
                       <StatusBadge

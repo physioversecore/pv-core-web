@@ -17,6 +17,7 @@ export interface ScheduleAppointment {
   id: string;
   patient: string;
   patientId?: string;
+  familyMemberName?: string;
   date: string;
   time: string;
   type: string;
@@ -51,12 +52,13 @@ function toLocalDateKey(raw: string): string {
 }
 
 function mapSessionToAppointment(
-  s: { id: string; patientId: string; patientName?: string; patientPhone?: string; date: string; time: string; type: string; status: string; address: string; fee?: number; notes?: string; therapistId?: string; therapistName?: string },
+  s: { id: string; patientId: string; patientName?: string; patientPhone?: string; familyMemberName?: string; date: string; time: string; type: string; status: string; address: string; fee?: number; notes?: string; therapistId?: string; therapistName?: string },
 ): ScheduleAppointment {
   return {
     id: s.id,
     patient: s.patientName || s.notes?.split("|")[1]?.trim() || s.patientId,
     patientId: s.patientId,
+    familyMemberName: s.familyMemberName,
     date: toLocalDateKey(s.date),
     time: s.time,
     type: s.type,

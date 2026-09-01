@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo, Suspense } from "react";
-import { Search, Plus } from "lucide-react";
+import { useState, useMemo, Suspense, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Search, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { TherapistCard } from "@/components/TherapistCard";
 import { BookingModal } from "@/components/BookingModal";
@@ -28,8 +29,10 @@ import {
 import { useTherapistsToRate } from "@/hooks/useTherapistsToRate";
 import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import { useLang } from "@/context/i18n";
-import { getTherapists } from "@/services/api/therapists";
+import { getTherapists, getTherapist } from "@/services/api/therapists";
 import { isPast } from "@/lib/format";
+import { useDebounce } from "@/hooks/useDebounce";
+import { CITIES, SPECIALTIES } from "@/constants";
 import type { Therapist } from "@/types";
 import type { SessionData } from "@/services/api/sessions";
 import { X } from "lucide-react";
@@ -42,40 +45,71 @@ const isScheduled = (s: SessionData) =>
 
 function SessionsContent() {
   const { t } = useLang();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [tab, setTab] = useState<(typeof TABS)[number]>("sessionsUpcoming");
   const [view, setView] = useState<ViewMode>("compact");
   const [search, setSearch] = useState("");
   const pagination = usePagination({ pageSize: 10 });
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [specialtyFilter, setSpecialtyFilter] = useState("General");
   const [bookTherapist, setBookTherapist] = useState<Therapist | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [cancelTarget, setCancelTarget] = useState<SessionData | null>(null);
   const [rescheduleTarget, setRescheduleTarget] = useState<SessionData | null>(null);
   const [rateTarget, setRateTarget] = useState<SessionData | null>(null);
 
+  // Deep-link booking: /patient/sessions?book={therapistId} opens that therapist's booking modal.
+  // Clear the book param from the URL once opened so closing the modal isn't re-triggered.
+  const bookParam = searchParams.get("book");
+  const { data: bookParamTherapist } = useQuery({
+    queryKey: ["therapist", bookParam],
+    queryFn: () => getTherapist(bookParam!),
+    enabled: !!bookParam,
+  });
+  useEffect(() => {
+    if (bookParam && bookParamTherapist) {
+      setBookTherapist({
+        ...bookParamTherapist,
+        gender: bookParamTherapist.gender as Therapist["gender"],
+      });
+      router.replace("/patient/sessions", { scroll: false });
+    }
+  }, [bookParam, bookParamTherapist, router]);
+
+  // Therapist picker state (server-side filters + pagination)
+  const [pickerQ, setPickerQ] = useState("");
+  const [pickerCity, setPickerCity] = useState("");
+  const [pickerSpec, setPickerSpec] = useState("");
+  const [pickerGender, setPickerGender] = useState("");
+  const debouncedPickerQ = useDebounce(pickerQ, 300);
+  const pickerPagination = usePagination({ pageSize: 9 });
+
   const { sessions, isLoading, isRefetching, refetch, cancelSession, isCancelling, rescheduleSession, isRescheduling } = useSessions();
   const { therapistsToRate } = useTherapistsToRate();
-  const { data: therapistsData } = useQuery({
-    queryKey: ["therapists"],
-    queryFn: () => getTherapists(),
+
+  const { data: pickerData, isLoading: pickerLoading } = useQuery({
+    queryKey: ["therapists", "picker", pickerPagination.page, debouncedPickerQ, pickerCity, pickerSpec, pickerGender],
+    queryFn: () =>
+      getTherapists({
+        skip: pickerPagination.skip,
+        limit: pickerPagination.pageSize,
+        search: debouncedPickerQ || undefined,
+        city: pickerCity || undefined,
+        specialty: pickerSpec || undefined,
+        gender: pickerGender || undefined,
+      }),
+    enabled: pickerOpen,
+    placeholderData: (prev) => prev,
   });
+
+  const pickerTherapists: Therapist[] = (pickerData?.therapists ?? []).map((t) => ({
+    ...t,
+    gender: t.gender as "Male" | "Female",
+  }));
+  const pickerTotal = pickerData?.total ?? 0;
+  const pickerTotalPages = pickerPagination.totalPages(pickerTotal);
+
   const { data: detailSession } = useSessionDetail(selectedId);
-
-  const therapists = useMemo(
-    () => (therapistsData?.therapists ?? []).map((t) => ({ ...t, gender: t.gender as "Male" | "Female" })),
-    [therapistsData],
-  );
-
-  const specialties = useMemo(
-    () => Array.from(new Set(therapists.map((t) => t.specialty).filter(Boolean))),
-    [therapists],
-  );
-
-  const filteredTherapists = useMemo(
-    () => (specialtyFilter === "all" ? therapists : therapists.filter((t) => t.specialty === specialtyFilter)),
-    [therapists, specialtyFilter],
-  );
 
   const filtered = useMemo(() => {
     let list = [...sessions];
@@ -148,6 +182,26 @@ function SessionsContent() {
     pagination.reset();
   };
 
+  const hasPickerFilters = !!(pickerQ || pickerCity || pickerSpec || pickerGender);
+
+  const clearPickerFilters = () => {
+    setPickerQ("");
+    setPickerCity("");
+    setPickerSpec("");
+    setPickerGender("");
+    pickerPagination.reset();
+  };
+
+  const closePicker = () => {
+    setPickerOpen(false);
+    clearPickerFilters();
+  };
+
+  const openPicker = () => {
+    clearPickerFilters();
+    setPickerOpen(true);
+  };
+
   const rowProps = {
     onCancel: handleCancel,
     onReschedule: handleReschedule,
@@ -174,7 +228,7 @@ function SessionsContent() {
           ))}
         </div>
         <button
-          onClick={() => { setPickerOpen(true); setSpecialtyFilter("General"); }}
+          onClick={openPicker}
           className="btn-primary !py-2 !px-4 text-sm hidden md:inline-flex"
         >
           {t("patient_dashboard.bookNewSession")}
@@ -183,7 +237,7 @@ function SessionsContent() {
 
       {/* Mobile FAB */}
       <button
-        onClick={() => { setPickerOpen(true); setSpecialtyFilter("General"); }}
+        onClick={openPicker}
         className="fixed bottom-6 right-6 z-50 md:hidden w-14 h-14 rounded-full bg-primary text-white shadow-lg flex items-center justify-center hover:bg-primary-hover active:scale-95 fab-float"
       >
         <Plus size={24} />
@@ -223,7 +277,7 @@ function SessionsContent() {
               : "No cancelled or past sessions."}
           </p>
           {!search && tab === "sessionsUpcoming" && (
-            <button onClick={() => { setPickerOpen(true); setSpecialtyFilter("General"); }} className="btn-primary !py-2 !px-4 text-sm">
+            <button onClick={openPicker} className="btn-primary !py-2 !px-4 text-sm">
               {t("patient_dashboard.bookNewSession")}
             </button>
           )}
@@ -398,37 +452,131 @@ function SessionsContent() {
       {/* Therapist picker */}
       {pickerOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <button className="absolute inset-0 bg-text/60 backdrop-blur-sm" onClick={() => setPickerOpen(false)} />
-          <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-background rounded-3xl border border-border shadow-2xl p-6">
+          <button className="absolute inset-0 bg-text/60 backdrop-blur-sm" onClick={closePicker} />
+          <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-background rounded-3xl border border-border shadow-2xl p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-display text-xl">{t("patient_dashboard.pickTherapist")}</h3>
-              <button onClick={() => setPickerOpen(false)} className="p-2 rounded-full hover:bg-surface">✕</button>
+              <button onClick={closePicker} className="p-2 rounded-full hover:bg-surface">✕</button>
             </div>
+
+            {/* Filters */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-text-light mb-1">Specialty</label>
-              <select
-                value={specialtyFilter}
-                onChange={(e) => setSpecialtyFilter(e.target.value)}
-                className="w-full sm:w-auto px-3 py-2 rounded-xl border border-border bg-white text-sm"
-              >
-                <option value="all">All</option>
-                {specialties.map((s) => (
-                  <option key={s} value={s}>{s}</option>
+              <div className="flex items-center justify-between gap-3 mb-2">
+                <label className="block text-sm font-medium text-text-light">Filters</label>
+                {hasPickerFilters && (
+                  <button
+                    onClick={clearPickerFilters}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-light transition-colors hover:text-secondary"
+                  >
+                    <X size={14} />
+                    {t("common.clearFilters")}
+                  </button>
+                )}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                <div className="relative lg:col-span-1">
+                  <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-light" />
+                  <input
+                    value={pickerQ}
+                    onChange={(e) => { setPickerQ(e.target.value); pickerPagination.reset(); }}
+                    placeholder={t("find.placeholderSearch")}
+                    className="w-full pl-10 pr-3 h-12 rounded-xl border border-border bg-white text-sm"
+                  />
+                </div>
+                <select
+                  value={pickerCity}
+                  onChange={(e) => { setPickerCity(e.target.value); pickerPagination.reset(); }}
+                  className="px-3 h-12 rounded-xl border border-border bg-white text-sm"
+                >
+                  <option value="">{t("find.allCities")}</option>
+                  {CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+                <select
+                  value={pickerSpec}
+                  onChange={(e) => { setPickerSpec(e.target.value); pickerPagination.reset(); }}
+                  className="px-3 h-12 rounded-xl border border-border bg-white text-sm"
+                >
+                  <option value="">{t("find.allSpecialties")}</option>
+                  {SPECIALTIES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+                <select
+                  value={pickerGender}
+                  onChange={(e) => { setPickerGender(e.target.value); pickerPagination.reset(); }}
+                  className="px-3 h-12 rounded-xl border border-border bg-white text-sm"
+                >
+                  <option value="">{t("find.anyGender")}</option>
+                  <option value="Male">{t("find.male")}</option>
+                  <option value="Female">{t("find.female")}</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Therapist grid */}
+            {pickerLoading && pickerTherapists.length === 0 ? (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="h-40 rounded-2xl bg-surface animate-pulse" />
                 ))}
-              </select>
-            </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {filteredTherapists.map((th) => (
-                <TherapistCard
-                  key={th.id}
-                  t={th}
-                  onBook={(thr) => {
-                    setPickerOpen(false);
-                    setBookTherapist(thr);
-                  }}
-                />
-              ))}
-            </div>
+              </div>
+            ) : pickerTherapists.length === 0 ? (
+              <div className="text-center py-12 text-text-light">
+                <p>No therapists match your filters.</p>
+              </div>
+            ) : (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {pickerTherapists.map((th) => (
+                  <TherapistCard
+                    key={th.id}
+                    t={th}
+                    onBook={(thr) => {
+                      setPickerOpen(false);
+                      setBookTherapist(thr);
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Pagination */}
+            {pickerTotal > pickerPagination.pageSize && (
+              <div className="flex items-center justify-between gap-3 mt-6 pt-4 border-t border-border">
+                <div className="text-xs text-text-light whitespace-nowrap">
+                  {pickerPagination.skip + 1}–
+                  {Math.min(pickerPagination.skip + pickerPagination.pageSize, pickerTotal)} of {pickerTotal}
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => pickerPagination.prevPage()}
+                    disabled={!pickerPagination.canPrev}
+                    className="p-2 rounded-lg border border-border disabled:opacity-40 hover:bg-surface transition"
+                    aria-label="Previous page"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  {Array.from({ length: pickerTotalPages }, (_, i) => i + 1).map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => pickerPagination.goToPage(p)}
+                      className={`w-8 h-8 rounded-lg text-sm font-medium transition ${
+                        p === pickerPagination.page
+                          ? "bg-secondary text-white"
+                          : "hover:bg-surface text-text-light"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => pickerPagination.nextPage(pickerTotal)}
+                    disabled={!pickerPagination.canNext(pickerTotal)}
+                    className="p-2 rounded-lg border border-border disabled:opacity-40 hover:bg-surface transition"
+                    aria-label="Next page"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

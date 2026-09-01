@@ -10,6 +10,7 @@ import { useAuth } from "@/context/auth";
 import { createSession, updateSession, processBooking } from "@/services/api/sessions";
 import { getTherapistSlots } from "@/services/api/therapists";
 import { getCurrencies, getPaymentMethods } from "@/services/api/settings";
+import { getFamilyMembers, type FamilyMember } from "@/services/api/patients";
 import type { Currency, PaymentMethod } from "@/services/api/settings";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -183,6 +184,57 @@ function TherapistSummaryCard({ therapist, selectedCurrency, currencies, compact
   );
 }
 
+// ─── ForWhomSelector ──────────────────────────────────────────────────────────
+
+interface ForWhomSelectorProps {
+  familyMembers: FamilyMember[];
+  selectedName: string;
+  selectedId: string;
+  onSelect: (name: string, id: string) => void;
+}
+
+function ForWhomSelector({ familyMembers, selectedName, selectedId, onSelect }: ForWhomSelectorProps) {
+  if (familyMembers.length === 0) return null;
+
+  const options = [
+    { id: "", name: "Myself", subtitle: "The person logging in" },
+    ...familyMembers.map((m) => ({
+      id: m.id,
+      name: m.name,
+      subtitle: m.relationship || "Family member",
+    })),
+  ];
+
+  return (
+    <div>
+      <label className="text-sm font-semibold text-[#1E2A2E]">Who is this session for?</label>
+      <div className="grid grid-cols-2 gap-2 mt-1.5">
+        {options.map((opt) => {
+          const isSelected = opt.id === selectedId;
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => onSelect(opt.name, opt.id)}
+              className={cn(
+                "py-2.5 px-3 rounded-xl border text-left transition-all",
+                isSelected
+                  ? "border-[#2F5D50] bg-[#2F5D50]/10 ring-1 ring-[#2F5D50]/30"
+                  : "border-gray-200 bg-white hover:bg-gray-50"
+              )}
+            >
+              <div className={cn("text-sm font-medium", isSelected ? "text-[#2F5D50]" : "text-[#1E2A2E]")}>
+                {opt.name}
+              </div>
+              <div className="text-[11px] text-gray-400 truncate">{opt.subtitle}</div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── StepDateTime ───────────────────────────────────────────────────────────
 
 function formatDateLabel(iso: string): string {
@@ -225,6 +277,10 @@ interface StepDateTimeProps {
   address: string;
   slots: TimeSlot[];
   slotsLoading: boolean;
+  familyMembers: FamilyMember[];
+  selectedForWhomName: string;
+  selectedForWhomId: string;
+  onForWhomChange: (name: string, id: string) => void;
   onDateChange: (date: string) => void;
   onTimeChange: (time: string) => void;
   onAddressChange: (address: string) => void;
@@ -232,7 +288,7 @@ interface StepDateTimeProps {
   onBack?: () => void;
 }
 
-function StepDateTime({ selectedDate, selectedTime, address, slots, slotsLoading, onDateChange, onTimeChange, onAddressChange, onContinue, onBack }: StepDateTimeProps) {
+function StepDateTime({ selectedDate, selectedTime, address, slots, slotsLoading, familyMembers, selectedForWhomName, selectedForWhomId, onForWhomChange, onDateChange, onTimeChange, onAddressChange, onContinue, onBack }: StepDateTimeProps) {
   const todayStr = localDateStr();
   const canGoPrev = selectedDate > todayStr;
   const hasOpenSlots = slots.some((s) => s.status === "open");
@@ -254,11 +310,20 @@ function StepDateTime({ selectedDate, selectedTime, address, slots, slotsLoading
   return (
     <div className="space-y-5">
       <div>
-        {onBack && (
+        {/*{onBack && (
           <button onClick={onBack} className="text-sm text-gray-500 hover:text-[#1F3D2B] mb-2 flex items-center gap-1">
             ← Back
           </button>
-        )}
+        )}*/}
+        <ForWhomSelector
+          familyMembers={familyMembers}
+          selectedName={selectedForWhomName}
+          selectedId={selectedForWhomId}
+          onSelect={onForWhomChange}
+        />
+      </div>
+
+      <div>
         <label className="text-sm font-semibold text-[#1E2A2E]">Select date</label>
         <div className="flex items-center gap-2 mt-1.5">
           <button
@@ -1012,6 +1077,16 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
   const [esewaMobile, setEsewaMobile] = useState("");
   const [billingCountry, setBillingCountry] = useState("");
   const [address, setAddress] = useState(user?.city ?? "");
+  const [selectedForWhomId, setSelectedForWhomId] = useState("");
+  const [selectedForWhomName, setSelectedForWhomName] = useState("Myself");
+
+  // Fetch family members for "who is this for" selector
+  const { data: familyMembers = [] } = useQuery({
+    queryKey: ["family-members"],
+    queryFn: getFamilyMembers,
+    enabled: !isEdit,
+    staleTime: 60_000,
+  });
 
   // Fetch currencies from API
   const { data: currencies = [] } = useQuery({
@@ -1071,6 +1146,7 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
         type: "HOME_VISIT",
         address: address || user?.city || "",
         fee: displayPrice,
+        familyMemberId: selectedForWhomId || undefined,
         currency: selectedCurrency,
         paymentMethod: selectedPaymentMethod,
         paymentType: detectedType,
@@ -1096,8 +1172,12 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
       });
       setCurrentStep(3);
     },
-    onError: () => {
-      toast.error("Booking failed. Please try again.");
+    onError: (error) => {
+      const msg =
+        error instanceof Error && error.message
+          ? error.message
+          : "Booking failed. Please try again.";
+      toast.error(msg);
     },
   });
 
@@ -1123,8 +1203,12 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
       });
       setCurrentStep(3);
     },
-    onError: () => {
-      toast.error("Failed to update booking. Please try again.");
+    onError: (error) => {
+      const msg =
+        error instanceof Error && error.message
+          ? error.message
+          : "Failed to update booking. Please try again.";
+      toast.error(msg);
     },
   });
 
@@ -1193,6 +1277,13 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
               address={address}
               slots={timeSlots}
               slotsLoading={slotsLoading}
+              familyMembers={familyMembers}
+              selectedForWhomName={selectedForWhomName}
+              selectedForWhomId={selectedForWhomId}
+              onForWhomChange={(name, id) => {
+                setSelectedForWhomName(name);
+                setSelectedForWhomId(id);
+              }}
               onDateChange={setSelectedDate}
               onTimeChange={setSelectedTime}
               onAddressChange={setAddress}

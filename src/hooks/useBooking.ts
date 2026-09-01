@@ -1,34 +1,29 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth";
-import { useAuthModal } from "@/context/auth-modal";
 import type { Therapist } from "@/types";
 
 export function useBooking() {
   const { user } = useAuth();
-  const { openAuth, setOnLoginSuccess } = useAuthModal();
+  const router = useRouter();
   const [booking, setBooking] = useState<Therapist | null>(null);
-  const pendingRef = useRef<Therapist | null>(null);
 
   const book = useCallback(
     (t: Therapist) => {
       if (!user) {
-        pendingRef.current = t;
-        setOnLoginSuccess(() => {
-          setBooking(t);
-          pendingRef.current = null;
-        });
-        return openAuth("access");
+        router.push(
+          `/access?callbackUrl=${encodeURIComponent(
+            `/patient/sessions?book=${encodeURIComponent(t.id)}`,
+          )}`,
+        );
+        return;
       }
       setBooking(t);
     },
-    [user, openAuth, setOnLoginSuccess],
+    [user, router],
   );
-
-  useEffect(() => {
-    return () => setOnLoginSuccess(null);
-  }, [setOnLoginSuccess]);
 
   return { booking, book, closeBooking: () => setBooking(null) };
 }

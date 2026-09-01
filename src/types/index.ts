@@ -79,6 +79,7 @@ export interface TherapistProfile {
   city: string;
   specialty: string;
   gender: string;
+  licenseNumber?: string;
   price: number;
   experience: number;
   bio: string;
@@ -109,6 +110,8 @@ export interface Session {
   status: "Confirmed" | "Completed" | "Cancelled" | "Pending" | "SCHEDULED" | "COMPLETED" | "CANCELLED";
   patient?: string;
   patientId?: string;
+  familyMemberId?: string;
+  familyMemberName?: string;
   address?: string;
   fee?: number;
 }
