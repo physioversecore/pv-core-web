@@ -368,7 +368,7 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto grid lg:grid-cols-[320px_1fr] gap-6 items-start">
+      <div className="grid lg:grid-cols-[320px_1fr] gap-6 items-start">
         <div className="h-96 rounded-2xl bg-surface animate-pulse" />
         <div className="space-y-4">
           <div className="h-11 w-72 rounded-full bg-surface animate-pulse" />
@@ -388,7 +388,7 @@ export default function Profile() {
           : t("patient_dashboard.familyTitle");
 
   return (
-    <div className="max-w-5xl mx-auto pb-4">
+    <div className="pb-4">
       <div className="grid lg:grid-cols-[320px_1fr] gap-6 items-start">
         {/* ─────────── Identity rail (signature panel) ─────────── */}
         <aside className="lg:sticky lg:top-6">

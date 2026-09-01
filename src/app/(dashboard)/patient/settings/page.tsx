@@ -19,7 +19,6 @@ export default function Settings() {
   const { t } = useLang();
   const { logout } = useAuth();
   const router = useRouter();
-  const [msg, setMsg] = useState("");
   const [prefs, setPrefs] = useState({ emailNotif: true, smsNotif: true, marketing: false });
 
   // Change password state
@@ -70,20 +69,7 @@ export default function Settings() {
 
   return (
     <div>
-      <div className="grid lg:grid-cols-[1.3fr_1fr] gap-5">
-
-        <div className="space-y-5">
-          <div className="card-soft p-5">
-            <p className="eyebrow mb-2">{t("patient_dashboard.emergencyHotline")}</p>
-            <div className="font-display text-2xl text-secondary">+977-1-555-0100</div>
-            <p className="text-xs text-text-light mt-1">{t("patient_dashboard.urgentSupport")}</p>
-          </div>
-          <form onSubmit={(e) => { e.preventDefault(); toast.success(t("patient_dashboard.messageSent")); setMsg(""); }} className="card-soft p-5">
-            <p className="eyebrow mb-3">{t("patient_dashboard.contactSupport")}</p>
-            <textarea value={msg} onChange={(e) => setMsg(e.target.value)} rows={4} placeholder={t("patient_dashboard.supportPlaceholder")} className="w-full px-3 py-2.5 rounded-xl border border-border bg-white" />
-            <button type="submit" className="btn-secondary w-full mt-3">{t("common.send")}</button>
-          </form>
-        </div>
+      <div className="grid lg:grid-cols-[1fr_1fr] gap-5">
         <div className="space-y-5">
           <div className="card-soft p-5">
             <p className="eyebrow mb-3">{t("patient_dashboard.settingsNotificationPrefs")}</p>
@@ -92,7 +78,9 @@ export default function Settings() {
             <Toggle label={t("patient_dashboard.settingsMarketing")} v={prefs.marketing} on={(v) => setPrefs({ ...prefs, marketing: v })} />
             <button onClick={() => toast.success(t("common.savePreferences"))} className="btn-outline !py-1.5 !px-4 text-xs mt-2">{t("common.savePreferences")}</button>
           </div>
+        </div>
 
+        <div className="space-y-5">
           <div className="card-soft p-5">
             <p className="eyebrow mb-3">{t("patient_dashboard.settingsChangePassword")}</p>
             <form onSubmit={submitPassword} className="space-y-3">
