@@ -61,7 +61,13 @@ export function useAdminServiceAreas(params: UseAdminServiceAreasParams) {
   }, [fetchData]);
 
   const createArea = useCallback(
-    async (data: { name: string; localities: string[]; therapistIds?: string[] }) => {
+    async (data: {
+      name: string;
+      localities: string[];
+      therapistIds?: string[];
+      latitude?: number | null;
+      longitude?: number | null;
+    }) => {
       await createAdminServiceArea(data);
       await fetchData();
     },

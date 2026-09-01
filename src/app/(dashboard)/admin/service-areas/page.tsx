@@ -80,7 +80,7 @@ export default function ServiceAreasPage() {
   }, []);
 
   const handleCreate = useCallback(
-    async (data: { name: string; localities: string[]; therapistIds?: string[] }) => {
+    async (data: { name: string; localities: string[]; therapistIds?: string[]; latitude?: number | null; longitude?: number | null }) => {
       try {
         await createArea(data);
         toast.success("Zone created");
@@ -93,7 +93,7 @@ export default function ServiceAreasPage() {
   );
 
   const handleEditSave = useCallback(
-    async (data: { name: string; localities: string[] }) => {
+    async (data: { name: string; localities: string[]; latitude?: number | null; longitude?: number | null }) => {
       if (!editRow) return;
       try {
         await updateArea(editRow.id, data);
@@ -137,12 +137,24 @@ export default function ServiceAreasPage() {
         label: "Zone",
         sortable: true,
         render: (row) => (
-          <button
-            onClick={() => setDetailRow(row)}
-            className="font-medium text-secondary hover:underline cursor-pointer"
-          >
-            {row.name}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setDetailRow(row)}
+              className="font-medium text-secondary hover:underline cursor-pointer"
+            >
+              {row.name}
+            </button>
+            {(row.latitude == null || row.longitude == null) && (
+              // An ungeocoded zone matches nobody by distance, which is
+              // otherwise invisible until someone asks why coverage is empty.
+              <span
+                className="chip !text-[0.55rem] !bg-warning/10 !text-warning"
+                title="No coordinates set — distance-based coverage will not match anyone here"
+              >
+                Not geocoded
+              </span>
+            )}
+          </div>
         ),
       },
       {
@@ -327,10 +339,18 @@ function ZoneForm({
 }: {
   zone?: AdminServiceAreaData;
   onClose: () => void;
-  onSubmit: (data: { name: string; localities: string[]; therapistIds?: string[] }) => Promise<void>;
+  onSubmit: (data: {
+    name: string;
+    localities: string[];
+    therapistIds?: string[];
+    latitude?: number | null;
+    longitude?: number | null;
+  }) => Promise<void>;
 }) {
   const [name, setName] = useState(zone?.name ?? "");
   const [localities, setLocalities] = useState(zone?.localities.join(", ") ?? "");
+  const [latitude, setLatitude] = useState(zone?.latitude?.toString() ?? "");
+  const [longitude, setLongitude] = useState(zone?.longitude?.toString() ?? "");
   const [saving, setSaving] = useState(false);
 
   const handleSubmit = async () => {
@@ -339,6 +359,9 @@ function ZoneForm({
       await onSubmit({
         name,
         localities: localities.split(",").map((l) => l.trim()).filter(Boolean),
+        // Blank means "not geocoded yet", which is different from 0.
+        latitude: latitude.trim() === "" ? null : Number(latitude),
+        longitude: longitude.trim() === "" ? null : Number(longitude),
       });
     } finally {
       setSaving(false);
@@ -373,6 +396,34 @@ function ZoneForm({
               placeholder="e.g. Baneshwor, New Baneshwor, Koteshwor"
             />
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">Latitude</label>
+              <input
+                value={latitude}
+                onChange={(e) => setLatitude(e.target.value)}
+                inputMode="decimal"
+                className="w-full px-3 py-2 rounded-xl border border-border bg-background text-sm"
+                placeholder="e.g. 27.6893"
+              />
+            </div>
+            <div>
+              <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">Longitude</label>
+              <input
+                value={longitude}
+                onChange={(e) => setLongitude(e.target.value)}
+                inputMode="decimal"
+                className="w-full px-3 py-2 rounded-xl border border-border bg-background text-sm"
+                placeholder="e.g. 85.3436"
+              />
+            </div>
+          </div>
+          {(!latitude.trim() || !longitude.trim()) && (
+            <p className="text-xs text-text-light">
+              Without coordinates this zone matches no one by distance — only therapists
+              assigned to it explicitly will show as covering it.
+            </p>
+          )}
           <div className="flex gap-2 pt-2">
             <button
               onClick={handleSubmit}

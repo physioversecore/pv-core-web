@@ -43,6 +43,14 @@ export interface AdminTherapistData {
   bio?: string;
   mediaUrls?: string;
   documents?: AdminTherapistDocument[];
+  /** BOOKABLE therapists take bookings; INFO_ONLY ones are directory entries. */
+  listingType?: "BOOKABLE" | "INFO_ONLY";
+  clinicId?: string | null;
+  /** Read-only, denormalised for the table. */
+  clinicName?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  serviceRadiusKm?: number | null;
 }
 
 export interface AdminPaymentData {
@@ -575,6 +583,9 @@ export interface AdminServiceAreaData {
   assignedTherapists: number;
   bookingsThisMonth: number;
   status: "Active" | "Low coverage";
+  /** Null until geocoded — an area without these covers nobody by radius. */
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export interface AdminServiceAreaListParams extends AdminListParams {
@@ -592,7 +603,13 @@ export async function getAdminServiceAreas(params?: AdminServiceAreaListParams) 
   return api.get<ListResponse<AdminServiceAreaData>>(`/admin/service-areas?${sp.toString()}`);
 }
 
-export async function createAdminServiceArea(data: { name: string; localities: string[]; therapistIds?: string[] }) {
+export async function createAdminServiceArea(data: {
+  name: string;
+  localities: string[];
+  therapistIds?: string[];
+  latitude?: number | null;
+  longitude?: number | null;
+}) {
   return api.post<AdminServiceAreaData>("/admin/service-areas", data);
 }
 
