@@ -221,3 +221,50 @@ export async function rejectBlockRequest(
     adminNotes,
   });
 }
+
+export interface RateChangeRequest {
+  id: string;
+  therapistId: string;
+  therapistName?: string;
+  therapistEmail?: string;
+  rateFrom: number;
+  rateTo: number;
+  reason: string;
+  status: string;
+  adminNotes?: string | null;
+  createdAt: string;
+}
+
+export interface RateChangeListResponse {
+  items: RateChangeRequest[];
+  total: number;
+}
+
+export async function createRateChange(data: {
+  rate_to: number;
+  reason: string;
+}): Promise<{ id: string; status: string; rateFrom: number; rateTo: number }> {
+  return api.post("/rate-change", data);
+}
+
+export async function getRateChanges(): Promise<RateChangeListResponse> {
+  try {
+    return await api.get<RateChangeListResponse>("/rate-change");
+  } catch {
+    return { items: [], total: 0 };
+  }
+}
+
+export async function approveRateChange(
+  requestId: string,
+  adminNotes?: string,
+): Promise<{ success: boolean; newRate: number }> {
+  return api.put(`/rate-change/${requestId}/approve`, { adminNotes });
+}
+
+export async function rejectRateChange(
+  requestId: string,
+  adminNotes?: string,
+): Promise<{ success: boolean }> {
+  return api.put(`/rate-change/${requestId}/reject`, { adminNotes });
+}
