@@ -85,6 +85,11 @@ export async function logout() {
   await removeToken();
 }
 
+export async function logoutAllDevices() {
+  await api.post("/auth/logout-all");
+  await removeToken();
+}
+
 export async function getSession(): Promise<UserData | null> {
   try {
     const user = await api.get<UserData>("/auth/me");

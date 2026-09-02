@@ -365,7 +365,7 @@ export default function TProfile() {
 
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto grid lg:grid-cols-[320px_1fr] gap-6 items-start">
+      <div className="max-w-5xl mr-auto grid lg:grid-cols-[320px_1fr] gap-6 items-start">
         <div className="h-96 rounded-2xl bg-surface animate-pulse" />
         <div className="space-y-6">
           <div className="h-64 rounded-2xl bg-surface animate-pulse" />
@@ -378,7 +378,7 @@ export default function TProfile() {
   const verifiedCount = docs.filter((d) => d.status === "Verified").length;
 
   return (
-    <form onSubmit={save} className="max-w-5xl mx-auto pb-4">
+    <form onSubmit={save} className="max-w-5xl mr-auto pb-4">
       <div className="grid lg:grid-cols-[320px_1fr] gap-6 items-start">
         {/* ─────────── Identity rail (signature panel) ─────────── */}
         <aside className="lg:sticky lg:top-6">
