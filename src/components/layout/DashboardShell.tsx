@@ -81,7 +81,7 @@ export function DashboardShell({
                   title={collapsed ? n.label : undefined}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition ${
                     active ? "bg-text-inverse/15 text-text-inverse" : "text-text-inverse/70 hover:bg-text-inverse/10 hover:text-text-inverse"
-                  } ${collapsed ? "justify-center px-2" : ""}`}
+                  } ${collapsed ? "justify-center px-2 relative" : ""}`}
                 >
                   <span className="w-5 grid place-items-center shrink-0">{n.icon}</span>
                   {!collapsed && (
