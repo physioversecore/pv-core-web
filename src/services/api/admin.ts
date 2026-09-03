@@ -609,20 +609,31 @@ export async function deleteAdminServiceArea(id: string) {
 }
 
 // --- Leave & Availability ---
+export type AdminLeaveStatus = "PENDING" | "APPROVED" | "REJECTED";
+
 export interface AdminLeaveData {
   id: string;
   therapist: string;
+  therapistName?: string;
   therapistId: string;
   dateFrom: string;
   dateTo: string;
   reason: string;
   bookingsAffected: number;
-  status: "Pending" | "Approved" | "Declined";
+  status: AdminLeaveStatus;
+  adminNotes?: string | null;
+  createdAt?: string;
 }
 
 export interface AdminLeaveListParams extends AdminListParams {
-  status?: string;
   therapistId?: string;
+}
+
+export interface AdminLeaveStats {
+  pending: number;
+  onLeaveToday: number;
+  approvedThisMonth: number;
+  bookingsAffected: number;
 }
 
 export async function getAdminLeaves(params?: AdminLeaveListParams) {
@@ -639,12 +650,16 @@ export async function getAdminLeaves(params?: AdminLeaveListParams) {
   return api.get<ListResponse<AdminLeaveData>>(`/admin/leaves?${sp.toString()}`);
 }
 
+export async function getAdminLeaveStats() {
+  return api.get<AdminLeaveStats>("/admin/leaves/stats");
+}
+
 export async function approveLeave(id: string) {
-  return api.put<AdminLeaveData>(`/admin/leaves/${id}`, { status: "Approved" });
+  return api.put<AdminLeaveData>(`/admin/leaves/${id}`, { status: "APPROVED" });
 }
 
 export async function declineLeave(id: string, reason?: string) {
-  return api.put<AdminLeaveData>(`/admin/leaves/${id}`, { status: "Declined", reason });
+  return api.put<AdminLeaveData>(`/admin/leaves/${id}`, { status: "REJECTED", reason });
 }
 
 export async function updateLeave(id: string, data: Partial<Pick<AdminLeaveData, "dateFrom" | "dateTo" | "reason">>) {

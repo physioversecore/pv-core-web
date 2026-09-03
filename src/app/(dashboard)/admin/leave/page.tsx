@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { Check, X, Eye, Search, Pencil, Trash2 } from "lucide-react";
+import type { StatusType } from "@/components/tables/StatusChip";
 import { toast } from "sonner";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTableSort } from "@/hooks/useTableSort";
@@ -40,13 +41,14 @@ export default function LeavePage() {
   const [detailRow, setDetailRow] = useState<AdminLeaveData | null>(null);
   const [editRow, setEditRow] = useState<AdminLeaveData | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AdminLeaveData | null>(null);
+  const [declineTarget, setDeclineTarget] = useState<AdminLeaveData | null>(null);
   const [dateFrom, setDateFrom] = useState("");
 
   const debouncedSearch = useDebounce(search);
   const { sort, toggleSort, sortBy, sortOrder } = useTableSort({ defaultColumn: "therapist" });
   const pageSize = 10;
 
-  const { items, total, isLoading, approveLeaveRequest, declineLeaveRequest, updateLeaveRequest, deleteLeaveRequest } = useAdminLeaves({
+  const { items, total, stats, isLoading, approveLeaveRequest, declineLeaveRequest, updateLeaveRequest, deleteLeaveRequest } = useAdminLeaves({
     search: debouncedSearch,
     status,
     dateFrom,
@@ -83,6 +85,21 @@ export default function LeavePage() {
       toast.error("Something went wrong");
     }
   }, [deleteTarget, deleteLeaveRequest]);
+
+  const handleDecline = useCallback(
+    async (reason?: string) => {
+      if (!declineTarget) return;
+      try {
+        await declineLeaveRequest(declineTarget.id, reason);
+        toast.success("Leave request declined");
+      } catch {
+        toast.error("Something went wrong");
+      } finally {
+        setDeclineTarget(null);
+      }
+    },
+    [declineTarget, declineLeaveRequest],
+  );
 
   const handleEditSave = useCallback(
     async (data: Partial<Pick<AdminLeaveData, "dateFrom" | "dateTo" | "reason">>) => {
@@ -139,7 +156,7 @@ export default function LeavePage() {
       {
         key: "status",
         label: "Status",
-        render: (row) => <StatusChip status={row.status} />,
+        render: (row) => <StatusChip status={statusChipLabel(row.status)} />,
       },
     ],
     [],
@@ -149,7 +166,7 @@ export default function LeavePage() {
     (row: AdminLeaveData) => {
       const actions: ActionItem[] = [];
 
-      if (row.status === "Pending") {
+      if (row.status === "PENDING") {
         actions.push({
           key: "approve",
           label: "Approve",
@@ -161,7 +178,7 @@ export default function LeavePage() {
           label: "Decline",
           icon: <X size={14} />,
           variant: "destructive",
-          onClick: () => declineLeaveRequest(row.id),
+          onClick: () => setDeclineTarget(row),
         });
       }
 
@@ -202,10 +219,10 @@ export default function LeavePage() {
       </div>
 
       <div className="stats-grid">
-        <DashboardStat label="Pending requests" value="3" sub="Needs a decision" variant="amber" />
-        <DashboardStat label="On leave today" value="2" sub="Anita Tamang, Bikash Thapa" />
-        <DashboardStat label="Approved this month" value="9" sub="Across 7 therapists" />
-        <DashboardStat label="Bookings affected" value="5" sub="Need reassignment" variant="amber" />
+        <DashboardStat label="Pending requests" value={stats.pending} sub="Needs a decision" variant="amber" />
+        <DashboardStat label="On leave today" value={stats.onLeaveToday} sub="Therapists on leave today" />
+        <DashboardStat label="Approved this month" value={stats.approvedThisMonth} sub="Approved this month" />
+        <DashboardStat label="Bookings affected" value={stats.bookingsAffected} sub="Need reassignment" variant="amber" />
       </div>
 
       <div className="card-soft p-5">
@@ -237,9 +254,9 @@ export default function LeavePage() {
                 <SelectValue placeholder="All statuses" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Pending">Pending</SelectItem>
-                <SelectItem value="Approved">Approved</SelectItem>
-                <SelectItem value="Declined">Declined</SelectItem>
+                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="APPROVED">Approved</SelectItem>
+                <SelectItem value="REJECTED">Rejected</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -299,17 +316,85 @@ export default function LeavePage() {
         title="Delete leave request"
         description={`Are you sure you want to delete the leave request for ${deleteTarget?.therapist ?? ""}?`}
       />
+
+      {declineTarget && (
+        <DeclineLeaveDialog
+          leave={declineTarget}
+          onClose={() => setDeclineTarget(null)}
+          onConfirm={handleDecline}
+        />
+      )}
+    </div>
+  );
+}
+
+function statusChipLabel(status: AdminLeaveData["status"]): StatusType {
+  return status === "PENDING" ? "Pending" : status === "APPROVED" ? "Approved" : "Rejected";
+}
+
+function DeclineLeaveDialog({
+  leave,
+  onClose,
+  onConfirm,
+}: {
+  leave: AdminLeaveData;
+  onClose: () => void;
+  onConfirm: (reason?: string) => Promise<void>;
+}) {
+  const [reason, setReason] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await onConfirm(reason.trim() || undefined);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+      <div
+        className="bg-background rounded-lg border shadow-lg p-6 w-full max-w-md"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 className="font-display text-lg mb-1">Decline Leave Request</h3>
+        <p className="text-sm text-text-light mb-4">
+          {leave.therapist} · {formatDate(leave.dateFrom)}
+          {leave.dateTo !== leave.dateFrom ? ` – ${formatDate(leave.dateTo)}` : ""}
+        </p>
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div>
+            <label className="text-xs font-mono text-text-light uppercase">Reason (optional)</label>
+            <textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              rows={3}
+              placeholder="Optional note to the therapist"
+              className="w-full mt-1 px-3 py-2 rounded-md border border-input bg-transparent text-sm"
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" onClick={onClose} className="btn-outline !py-1.5 !px-4 text-xs cursor-pointer">
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="chip !bg-destructive !text-white cursor-pointer disabled:opacity-50"
+            >
+              {saving ? "Declining..." : "Decline"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
 
 function LeaveDetailDrawer({ leave, onClose }: { leave: AdminLeaveData; onClose: () => void }) {
-  const sampleBookings = [
-    { patient: "Hari Bahadur Rai", date: "Jul 15, 10:00 AM" },
-    { patient: "Nabin Khadka", date: "Jul 15, 2:00 PM" },
-    { patient: "Sita Gurung", date: "Jul 16, 11:00 AM" },
-  ];
-
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
@@ -319,7 +404,7 @@ function LeaveDetailDrawer({ leave, onClose }: { leave: AdminLeaveData; onClose:
         </DialogHeader>
         <div className="mt-6 space-y-5">
           <div className="flex items-center gap-3">
-            <StatusChip status={leave.status} />
+            <StatusChip status={statusChipLabel(leave.status)} />
           </div>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
@@ -336,17 +421,13 @@ function LeaveDetailDrawer({ leave, onClose }: { leave: AdminLeaveData; onClose:
             </div>
           </div>
           <div>
-            <span className="text-[0.65rem] uppercase font-mono text-text-light block mb-2">
-              Bookings affected ({leave.bookingsAffected})
+            <span className="text-[0.65rem] uppercase font-mono text-text-light block mb-1">
+              Bookings affected
             </span>
-            <div className="space-y-2">
-              {sampleBookings.slice(0, leave.bookingsAffected).map((b, i) => (
-                <div key={i} className="text-sm bg-surface rounded-xl p-3 flex items-center justify-between">
-                  <span>{b.patient}</span>
-                  <span className="font-mono text-xs text-text-light">{b.date}</span>
-                </div>
-              ))}
-            </div>
+            <span className="font-mono text-sm">{leave.bookingsAffected}</span>
+            <p className="text-xs text-text-light mt-1">
+              Scheduled sessions overlapping this leave window may need reassignment.
+            </p>
           </div>
         </div>
         <div className="mt-6 flex justify-end">
