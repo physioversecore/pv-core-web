@@ -48,6 +48,8 @@ export default function BookingModal(props: Props) {
   // Admin-only state
   const [selectedPatientId, setSelectedPatientId] = useState("");
   const [selectedTherapistId, setSelectedTherapistId] = useState("");
+  const [selectedPatient, setSelectedPatient] = useState<BookingPatient | null>(null);
+  const [selectedTherapist, setSelectedTherapist] = useState<BookingTherapist | null>(null);
   const [selectedPaymentId, setSelectedPaymentId] = useState("");
   const [cardDetails, setCardDetails] = useState({ number: "", expiry: "", cvv: "", name: "" });
   const [esewaMobile, setEsewaMobile] = useState("");
@@ -56,12 +58,25 @@ export default function BookingModal(props: Props) {
   const therapist = mode === "patient" && "therapist" in props && props.therapist
     ? props.therapist
     : mode === "admin"
-      ? MOCK_THERAPISTS_LIST.find((t) => t.id === selectedTherapistId) ?? MOCK_THERAPIST
+      ? selectedTherapist ?? MOCK_THERAPIST
       : MOCK_THERAPIST;
 
-  const patient = mode === "admin"
-    ? MOCK_PATIENTS.find((p) => p.id === selectedPatientId)
-    : null;
+  const patient = mode === "admin" ? selectedPatient : null;
+
+  const handleSelectPatient = useCallback((p: BookingPatient) => {
+    setSelectedPatientId(p.id);
+    setSelectedPatient(p);
+  }, []);
+
+  const handleSelectTherapist = useCallback((t: BookingTherapist) => {
+    setSelectedTherapistId(t.id);
+    setSelectedTherapist(t);
+  }, []);
+
+  const handleDateChange = useCallback((date: string) => {
+    setSelectedDate(date);
+    setSelectedTime("");
+  }, []);
 
   const formatDisplayDate = (iso: string) => {
     if (!iso) return "";
@@ -154,7 +169,7 @@ export default function BookingModal(props: Props) {
             <PatientSelectStep
               patients={MOCK_PATIENTS}
               selectedPatientId={selectedPatientId}
-              onSelect={(p) => setSelectedPatientId(p.id)}
+              onSelect={handleSelectPatient}
               onContinue={() => setCurrentStep(2)}
             />
           )}
@@ -163,7 +178,7 @@ export default function BookingModal(props: Props) {
             <TherapistSelectStep
               therapists={MOCK_THERAPISTS_LIST}
               selectedTherapistId={selectedTherapistId}
-              onSelect={(t) => setSelectedTherapistId(t.id)}
+              onSelect={handleSelectTherapist}
               onBack={() => setCurrentStep(1)}
               onContinue={() => setCurrentStep(3)}
             />
@@ -171,10 +186,11 @@ export default function BookingModal(props: Props) {
 
           {currentStep === 3 && (
             <StepDateTime
+              therapistId={mode === "admin" ? selectedTherapistId : undefined}
               selectedDate={selectedDate}
               selectedTime={selectedTime}
               slots={MOCK_TIME_SLOTS}
-              onDateChange={setSelectedDate}
+              onDateChange={handleDateChange}
               onTimeChange={setSelectedTime}
               onContinue={mode === "admin" ? () => setCurrentStep(4) : handlePatientPay}
             />

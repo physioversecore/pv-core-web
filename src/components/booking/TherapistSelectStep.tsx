@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
-import { Search, ChevronDown, Star } from "lucide-react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { Search, ChevronDown, Star, Loader2 } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { useDebounce } from "@/hooks/useDebounce";
+import { useQuery } from "@tanstack/react-query";
 import { Avatar } from "@/components/common/Avatar";
+import { getAdminTherapists } from "@/services/api/admin";
 import type { BookingTherapist } from "./types";
 
 interface Props {
@@ -12,6 +15,24 @@ interface Props {
   onSelect: (therapist: BookingTherapist) => void;
   onBack: () => void;
   onContinue: () => void;
+}
+
+function toBookingTherapist(t: {
+  id: string;
+  name: string;
+  specialty: string;
+  price?: number;
+  rating?: number;
+  sessions?: number;
+}): BookingTherapist {
+  return {
+    id: t.id,
+    name: t.name,
+    specialty: t.specialty,
+    price: t.price ?? 0,
+    rating: t.rating ?? 0,
+    reviews: t.sessions ?? 0,
+  };
 }
 
 export function TherapistSelectStep({
@@ -23,18 +44,41 @@ export function TherapistSelectStep({
 }: Props) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
+  const debouncedQuery = useDebounce(query, 300);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
 
-  const selected = therapists.find((t) => t.id === selectedTherapistId);
+  const { data: fetched, isLoading, isFetching } = useQuery({
+    queryKey: ["admin-therapists-search", debouncedQuery],
+    queryFn: () => getAdminTherapists({ search: debouncedQuery, limit: 50 }),
+    enabled: open,
+    staleTime: 30_000,
+  });
 
-  const filtered = therapists.filter(
-    (t) =>
-      t.name.toLowerCase().includes(query.toLowerCase()) ||
-      t.specialty.toLowerCase().includes(query.toLowerCase()),
+  const allTherapists: BookingTherapist[] = useMemo(() => {
+    const apiList = (fetched?.items ?? []).map(toBookingTherapist);
+    const merged = [...apiList];
+    const seen = new Set(merged.map((p) => p.id));
+    for (const t of therapists) {
+      if (!seen.has(t.id)) merged.push(t);
+    }
+    const q = debouncedQuery.trim().toLowerCase();
+    return q
+      ? merged.filter(
+          (t) =>
+            t.name.toLowerCase().includes(q) || t.specialty.toLowerCase().includes(q),
+        )
+      : merged;
+  }, [fetched, therapists, debouncedQuery]);
+
+  const selected = useMemo(
+    () => allTherapists.find((t) => t.id === selectedTherapistId),
+    [allTherapists, selectedTherapistId],
   );
+
+  const results = open ? allTherapists : [];
 
   const close = useCallback(() => {
     setOpen(false);
@@ -128,17 +172,24 @@ export function TherapistSelectStep({
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Type to search..."
-                  className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3D2B]/20 focus:border-[#1F3D2B]"
+                  className="w-full pl-9 pr-9 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3D2B]/20 focus:border-[#1F3D2B]"
                 />
+                {isFetching && (
+                  <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 animate-spin" />
+                )}
               </div>
             </div>
             <div className="max-h-64 overflow-y-auto">
-              {filtered.length === 0 ? (
+              {isLoading ? (
+                <div className="px-4 py-6 flex items-center justify-center gap-2 text-sm text-gray-400">
+                  <Loader2 size={16} className="animate-spin" /> Loading therapists...
+                </div>
+              ) : results.length === 0 ? (
                 <div className="px-4 py-6 text-center text-sm text-gray-400">
                   No therapists found
                 </div>
               ) : (
-                filtered.map((t) => (
+                results.map((t) => (
                   <button
                     key={t.id}
                     onClick={() => {
