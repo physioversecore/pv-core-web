@@ -440,7 +440,7 @@ export async function getTherapistComplaints(therapistId: string) {
 // --- Notifications ---
 export interface AdminNotificationData {
   id: string;
-  category: "booking" | "reschedule" | "complaint" | "payment" | "system";
+  category: "booking" | "reschedule" | "complaint" | "payment" | "system" | "refund" | "leave" | "verification" | "therapist";
   message: string;
   timestamp: string;
   read: boolean;
@@ -448,6 +448,12 @@ export interface AdminNotificationData {
   actionHref?: string;
   relatedEntityType?: string;
   relatedEntityId?: string;
+}
+
+export interface AdminNotificationListResponse {
+  items: AdminNotificationData[];
+  total: number;
+  unreadCount: number;
 }
 
 export interface AdminNotificationListParams {
@@ -464,7 +470,7 @@ export async function getAdminNotifications(params?: AdminNotificationListParams
   if (params?.category) sp.set("category", params.category);
   if (params?.read !== undefined) sp.set("read", String(params.read));
 
-  return api.get<ListResponse<AdminNotificationData>>(`/admin/notifications?${sp.toString()}`);
+  return api.get<AdminNotificationListResponse>(`/admin/notifications?${sp.toString()}`);
 }
 
 export async function markNotificationRead(id: string) {
@@ -472,7 +478,7 @@ export async function markNotificationRead(id: string) {
 }
 
 export async function markAllNotificationsRead() {
-  return api.put(`/admin/notifications/read-all`, {});
+  return api.put<{ message: string; count: number }>(`/admin/notifications/read-all`, {});
 }
 
 // --- Admin Bookings (trail/history) ---
@@ -609,20 +615,31 @@ export async function deleteAdminServiceArea(id: string) {
 }
 
 // --- Leave & Availability ---
+export type AdminLeaveStatus = "PENDING" | "APPROVED" | "REJECTED";
+
 export interface AdminLeaveData {
   id: string;
   therapist: string;
+  therapistName?: string;
   therapistId: string;
   dateFrom: string;
   dateTo: string;
   reason: string;
   bookingsAffected: number;
-  status: "Pending" | "Approved" | "Declined";
+  status: AdminLeaveStatus;
+  adminNotes?: string | null;
+  createdAt?: string;
 }
 
 export interface AdminLeaveListParams extends AdminListParams {
-  status?: string;
   therapistId?: string;
+}
+
+export interface AdminLeaveStats {
+  pending: number;
+  onLeaveToday: number;
+  approvedThisMonth: number;
+  bookingsAffected: number;
 }
 
 export async function getAdminLeaves(params?: AdminLeaveListParams) {
@@ -639,12 +656,26 @@ export async function getAdminLeaves(params?: AdminLeaveListParams) {
   return api.get<ListResponse<AdminLeaveData>>(`/admin/leaves?${sp.toString()}`);
 }
 
+export async function getAdminLeaveStats() {
+  return api.get<AdminLeaveStats>("/admin/leaves/stats");
+}
+
+export interface AdminNavBadges {
+  pendingLeaves: number;
+  pendingRefunds: number;
+  pendingVerifications: number;
+}
+
+export async function getAdminNavBadges() {
+  return api.get<AdminNavBadges>("/admin/nav-badges");
+}
+
 export async function approveLeave(id: string) {
-  return api.put<AdminLeaveData>(`/admin/leaves/${id}`, { status: "Approved" });
+  return api.put<AdminLeaveData>(`/admin/leaves/${id}`, { status: "APPROVED" });
 }
 
 export async function declineLeave(id: string, reason?: string) {
-  return api.put<AdminLeaveData>(`/admin/leaves/${id}`, { status: "Declined", reason });
+  return api.put<AdminLeaveData>(`/admin/leaves/${id}`, { status: "REJECTED", reason });
 }
 
 export async function updateLeave(id: string, data: Partial<Pick<AdminLeaveData, "dateFrom" | "dateTo" | "reason">>) {

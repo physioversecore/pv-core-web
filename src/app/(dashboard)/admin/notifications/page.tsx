@@ -1,20 +1,24 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-import { Calendar, CalendarClock, AlertTriangle, CreditCard, Settings, CheckCheck } from "lucide-react";
+import { Calendar, CalendarClock, AlertTriangle, CreditCard, Settings, CheckCheck, Banknote, Clock, ShieldCheck, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { useLang } from "@/context/i18n";
 import { useAdminNotifications } from "@/hooks/useAdminNotifications";
 import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import type { AdminNotificationData } from "@/services/api/admin";
 
-type CategoryFilter = "" | "booking" | "reschedule" | "complaint" | "payment" | "system";
+type CategoryFilter = "" | "booking" | "reschedule" | "complaint" | "payment" | "system" | "refund" | "leave" | "verification" | "therapist";
 
 const CATEGORY_CONFIG: Record<string, { icon: React.ReactNode; color: string; bg: string }> = {
   booking: { icon: <Calendar size={16} />, color: "text-info", bg: "bg-info/10" },
   reschedule: { icon: <CalendarClock size={16} />, color: "text-primary", bg: "bg-primary/10" },
   complaint: { icon: <AlertTriangle size={16} />, color: "text-danger", bg: "bg-danger/10" },
   payment: { icon: <CreditCard size={16} />, color: "text-success", bg: "bg-success/10" },
+  refund: { icon: <Banknote size={16} />, color: "text-warning", bg: "bg-warning/10" },
+  leave: { icon: <Clock size={16} />, color: "text-info", bg: "bg-info/10" },
+  verification: { icon: <ShieldCheck size={16} />, color: "text-success", bg: "bg-success/10" },
+  therapist: { icon: <UserRound size={16} />, color: "text-primary", bg: "bg-primary/10" },
   system: { icon: <Settings size={16} />, color: "text-text-light", bg: "bg-muted" },
 };
 
@@ -52,12 +56,16 @@ export default function AdminNotifications() {
 
   const categories = useMemo(() => [
     { key: "", label: t("admin_dashboard.filterAll") ?? "All", count: total },
-    { key: "booking", label: t("admin_dashboard.filterBookings") ?? "Bookings", count: items.filter((n) => n.category === "booking").length },
-    { key: "reschedule", label: t("admin_dashboard.filterReschedules") ?? "Reschedules", count: items.filter((n) => n.category === "reschedule").length },
-    { key: "complaint", label: t("admin_dashboard.filterComplaints") ?? "Complaints", count: items.filter((n) => n.category === "complaint").length },
-    { key: "payment", label: t("admin_dashboard.filterPayments") ?? "Payments", count: items.filter((n) => n.category === "payment").length },
-    { key: "system", label: t("admin_dashboard.filterSystem") ?? "System", count: items.filter((n) => n.category === "system").length },
-  ], [items, total, t]);
+    { key: "booking", label: t("admin_dashboard.filterBookings") ?? "Bookings" },
+    { key: "reschedule", label: t("admin_dashboard.filterReschedules") ?? "Reschedules" },
+    { key: "complaint", label: t("admin_dashboard.filterComplaints") ?? "Complaints" },
+    { key: "payment", label: t("admin_dashboard.filterPayments") ?? "Payments" },
+    { key: "refund", label: "Refunds" },
+    { key: "leave", label: "Leaves" },
+    { key: "verification", label: "Verification" },
+    { key: "therapist", label: "Therapists" },
+    { key: "system", label: t("admin_dashboard.filterSystem") ?? "System" },
+  ], [total, t]);
 
   return (
     <div>
@@ -65,7 +73,12 @@ export default function AdminNotifications() {
         <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
           <div>
             <h3 className="font-display text-xl">{t("notifications.title") ?? "Notifications"}</h3>
-            <p className="text-sm text-text-light mt-1">{t("notifications.subtitle") ?? "Every cancellation, reschedule, payment and complaint, in one feed."}</p>
+            <p className="text-sm text-text-light mt-1">
+              {unreadCount > 0
+                ? `${unreadCount} unread notification${unreadCount === 1 ? "" : "s"}`
+                : (t("notifications.subtitle") ?? "Every cancellation, reschedule, payment and complaint, in one feed.")
+              }
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
@@ -85,9 +98,6 @@ export default function AdminNotifications() {
               }`}
             >
               {cat.label}
-              {cat.count > 0 && (
-                <span className="ml-1.5 text-[10px] font-mono opacity-70">({cat.count})</span>
-              )}
             </button>
           ))}
         </div>
@@ -131,7 +141,6 @@ function NotificationItem({
   notification: AdminNotificationData;
   onMarkRead: (id: string) => void;
 }) {
-  const { t } = useLang();
   const config = CATEGORY_CONFIG[notification.category] ?? CATEGORY_CONFIG.system;
 
   const handleClick = () => {
@@ -169,9 +178,9 @@ function NotificationItem({
           <span className="text-xs text-text-light font-mono">
             {formatRelativeTime(notification.timestamp)}
           </span>
-          {notification.actionLabel && (
+          {notification.actionLabel && notification.actionHref && (
             <a
-              href={notification.actionHref ?? "#"}
+              href={notification.actionHref}
               onClick={(e) => e.stopPropagation()}
               className="text-xs text-secondary hover:underline font-medium"
             >

@@ -52,6 +52,20 @@ function applyTokens(t: DesignTokens) {
   r.setProperty("--color-warning", c.warning);
   r.setProperty("--color-info", c.info);
 
+  r.setProperty("--color-voltage-lime", c.voltageLime);
+  r.setProperty("--color-cyan-spark", c.cyanSpark);
+  r.setProperty("--color-mid-abyss", c.midAbyss);
+  r.setProperty("--color-carbon-ink", c.carbonInk);
+  r.setProperty("--color-pure-white", c.pureWhite);
+  r.setProperty("--color-ash", c.ash);
+  r.setProperty("--color-abyss-soft", c.abyssSoft);
+  r.setProperty("--color-abyss-mid", c.abyssMid);
+  r.setProperty("--color-abyss-deep", c.abyssDeep);
+  r.setProperty("--color-ink-soft", c.inkSoft);
+  r.setProperty("--color-ink-muted", c.inkMuted);
+  r.setProperty("--color-ink-faint", c.inkFaint);
+  r.setProperty("--color-ink-dim", c.inkDim);
+
   r.setProperty("--font-display", t.typography.fontDisplay);
   r.setProperty("--font-sans", t.typography.fontSans);
   r.setProperty("--font-mono", t.typography.fontMono);
@@ -168,9 +182,18 @@ export function DesignTokensProvider({ children }: { children: ReactNode }) {
   );
 
   const resetTokens = useCallback(() => {
-    persist(DEFAULT_TOKENS);
+    setTokens(DEFAULT_TOKENS);
+    applyTokens(DEFAULT_TOKENS);
     localStorage.removeItem(STORAGE_KEY);
-  }, [persist]);
+
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    pendingPayload.current = null;
+    fetch("/api/v1/admin/settings/design-tokens", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tokens: DEFAULT_TOKENS }),
+    }).catch(() => {});
+  }, []);
 
   return (
     <Ctx.Provider

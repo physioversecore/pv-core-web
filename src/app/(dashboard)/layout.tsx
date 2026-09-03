@@ -10,6 +10,7 @@ import type { NavItem } from "@/lib/nav";
 import { useLang, type TKey } from "@/context/i18n";
 import { useBookingBadge } from "@/context/booking-badge";
 import { useComplaintBadge } from "@/context/complaint-badge";
+import { useAdminNavBadge } from "@/context/admin-nav-badge";
 
 import { ROLE_ROUTE, type UserRole } from "@/services/api/auth-constants";
 
@@ -26,6 +27,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { user, loading } = useAuth();
   const { bookingCount } = useBookingBadge();
   const { complaintCount, resetComplaintCount } = useComplaintBadge();
+  const { pendingLeaves, pendingRefunds, pendingVerifications } = useAdminNavBadge();
 
   useEffect(() => {
     if (loading) return;
@@ -62,9 +64,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       if (item.to === "/admin/complaints") {
         return { ...item, badge: complaintCount > 0 ? complaintCount : undefined };
       }
+      if (item.to === "/admin/leave") {
+        return { ...item, badge: pendingLeaves > 0 ? pendingLeaves : undefined };
+      }
+      if (item.to === "/admin/refunds") {
+        return { ...item, badge: pendingRefunds > 0 ? pendingRefunds : undefined };
+      }
+      if (item.to === "/admin/verification") {
+        return { ...item, badge: pendingVerifications > 0 ? pendingVerifications : undefined };
+      }
       return item;
     });
-  }, [role, nav, bookingCount, complaintCount]);
+  }, [role, nav, bookingCount, complaintCount, pendingLeaves, pendingRefunds, pendingVerifications]);
 
   useEffect(() => {
     if (role === "admin" && pathname === "/admin/complaints") {
