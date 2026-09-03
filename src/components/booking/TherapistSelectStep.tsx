@@ -52,7 +52,7 @@ export function TherapistSelectStep({
 
   const { data: fetched, isLoading, isFetching } = useQuery({
     queryKey: ["admin-therapists-search", debouncedQuery],
-    queryFn: () => getAdminTherapists({ search: debouncedQuery, limit: 50 }),
+    queryFn: () => getAdminTherapists({ search: debouncedQuery, limit: 25 }),
     enabled: open,
     staleTime: 30_000,
   });

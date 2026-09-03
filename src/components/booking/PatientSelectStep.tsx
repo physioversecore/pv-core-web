@@ -36,7 +36,7 @@ export function PatientSelectStep({ patients, selectedPatientId, onSelect, onCon
 
   const { data: fetched, isLoading, isFetching } = useQuery({
     queryKey: ["admin-patients-search", debouncedQuery],
-    queryFn: () => getAdminPatients({ search: debouncedQuery, limit: 50 }),
+    queryFn: () => getAdminPatients({ search: debouncedQuery, limit: 25 }),
     enabled: open,
     staleTime: 30_000,
   });
