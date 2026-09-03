@@ -39,6 +39,7 @@ import {
   X,
   Eye,
   ExternalLink,
+  Loader2,
 } from "lucide-react";
 
 interface TherapistDetailSheetProps {
@@ -76,6 +77,7 @@ export function TherapistDetailSheet({
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectNote, setRejectNote] = useState("");
   const [rejecting, setRejecting] = useState(false);
+  const [verifying, setVerifying] = useState(false);
 
   const [form, setForm] = useState({
     name: therapist?.name ?? "",
@@ -143,12 +145,15 @@ export function TherapistDetailSheet({
 
   const handleVerify = useCallback(async () => {
     if (!therapist) return;
+    setVerifying(true);
     try {
       await approveTherapist(therapist.id);
       toast.success(t("admin_dashboard.therapistVerified"));
       onOpenChange(false);
     } catch {
       toast.error(t("common.tryAgain"));
+    } finally {
+      setVerifying(false);
     }
   }, [therapist, approveTherapist, t, onOpenChange]);
 
@@ -523,14 +528,16 @@ export function TherapistDetailSheet({
               <div className="flex gap-2 pt-2 pb-4">
                 <button
                   onClick={handleVerify}
-                  className="flex-1 btn-secondary !py-2 text-xs inline-flex items-center justify-center gap-1.5 cursor-pointer"
+                  disabled={verifying}
+                  className="flex-1 btn-secondary !py-2 text-xs inline-flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
-                  <ShieldCheck size={14} />
-                  {t("common.verify")}
+                  {verifying ? <Loader2 size={14} className="animate-spin" /> : <ShieldCheck size={14} />}
+                  {verifying ? t("admin_dashboard.verifying") : t("common.verify")}
                 </button>
                 <button
                   onClick={() => setRejectOpen(true)}
-                  className="flex-1 btn-outline !py-2 text-xs inline-flex items-center justify-center gap-1.5 !text-red-500 !border-red-500 hover:!bg-red-500 hover:!text-white cursor-pointer"
+                  disabled={verifying}
+                  className="flex-1 btn-outline !py-2 text-xs inline-flex items-center justify-center gap-1.5 !text-red-500 !border-red-500 hover:!bg-red-500 hover:!text-white cursor-pointer disabled:opacity-50"
                 >
                   <ShieldOff size={14} />
                   {t("admin_dashboard.reject")}

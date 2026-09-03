@@ -12,6 +12,7 @@ import { Avatar } from "@/components/Avatar";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useLang } from "@/context/i18n";
+import { useAdminPatients } from "@/hooks/useAdminPatients";
 import type { AdminPatientData } from "@/services/api/admin";
 import {
   Phone,
@@ -25,6 +26,7 @@ import {
   Camera,
   Save,
   X,
+  Loader2,
 } from "lucide-react";
 
 interface PatientDetailSheetProps {
@@ -43,7 +45,19 @@ export function PatientDetailSheet({
   onSave,
 }: PatientDetailSheetProps) {
   const { t } = useLang();
+  const { togglePatientStatus } = useAdminPatients({
+    search: "",
+    dateFrom: "",
+    dateTo: "",
+    status: "",
+    city: "",
+    sortBy: "name",
+    sortOrder: "asc",
+    page: 1,
+    pageSize: 10,
+  });
   const [saving, setSaving] = useState(false);
+  const [toggling, setToggling] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
   const [form, setForm] = useState({
@@ -79,9 +93,10 @@ export function PatientDetailSheet({
 
   const handleToggleStatus = useCallback(async () => {
     if (!patient) return;
+    setToggling(true);
     try {
       const nextActive = !patient.isActive;
-      await onSave?.({ isActive: nextActive });
+      await togglePatientStatus(patient.id, nextActive);
       toast.success(
         nextActive
           ? (t("admin_dashboard.patientActivated" as any) ?? "Patient activated")
@@ -90,8 +105,10 @@ export function PatientDetailSheet({
       onOpenChange(false);
     } catch {
       toast.error(t("common.tryAgain" as any) ?? "Something went wrong");
+    } finally {
+      setToggling(false);
     }
-  }, [patient, onSave, t, onOpenChange]);
+  }, [patient, togglePatientStatus, t, onOpenChange]);
 
   const handleSave = useCallback(async () => {
     if (!patient || !onSave) return;
@@ -210,16 +227,25 @@ export function PatientDetailSheet({
             <div className="flex gap-2 pt-2 pb-4">
               <button
                 onClick={handleToggleStatus}
-                className={`flex-1 !py-2 text-xs inline-flex items-center justify-center gap-1.5 cursor-pointer ${
+                disabled={toggling}
+                className={`flex-1 !py-2 text-xs inline-flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 ${
                   patient.isActive
                     ? "btn-outline !text-red-500 !border-red-500 hover:!bg-red-500 hover:!text-white"
                     : "btn-secondary"
                 }`}
               >
-                {patient.isActive ? <ShieldOff size={14} /> : <ShieldCheck size={14} />}
-                {patient.isActive
-                  ? (t("admin_dashboard.deactivate" as any) ?? "Deactivate")
-                  : (t("admin_dashboard.activate" as any) ?? "Activate")}
+                {toggling ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : patient.isActive ? (
+                  <ShieldOff size={14} />
+                ) : (
+                  <ShieldCheck size={14} />
+                )}
+                {toggling
+                  ? (t("admin_dashboard.updating" as any) ?? "Updating…")
+                  : patient.isActive
+                    ? (t("admin_dashboard.deactivate" as any) ?? "Deactivate")
+                    : (t("admin_dashboard.activate" as any) ?? "Activate")}
               </button>
             </div>
           )}
