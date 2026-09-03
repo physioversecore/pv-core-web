@@ -20,6 +20,19 @@ export interface DesignTokens {
     success: string;
     warning: string;
     info: string;
+    voltageLime: string;
+    cyanSpark: string;
+    midAbyss: string;
+    carbonInk: string;
+    pureWhite: string;
+    ash: string;
+    abyssSoft: string;
+    abyssMid: string;
+    abyssDeep: string;
+    inkSoft: string;
+    inkMuted: string;
+    inkFaint: string;
+    inkDim: string;
   };
   typography: {
     fontDisplay: string;
@@ -53,6 +66,19 @@ export const DEFAULT_TOKENS: DesignTokens = {
     success: "#16a34a",
     warning: "#f59e0b",
     info: "#0ea5e9",
+    voltageLime: "#d3fb52",
+    cyanSpark: "#7af3ff",
+    midAbyss: "#052326",
+    carbonInk: "#14151c",
+    pureWhite: "#ffffff",
+    ash: "#666666",
+    abyssSoft: "#1e3a2b",
+    abyssMid: "#112720",
+    abyssDeep: "#0a1815",
+    inkSoft: "#e7e7ea",
+    inkMuted: "#9a9aa3",
+    inkFaint: "#85858d",
+    inkDim: "#b0b0b7",
   },
   typography: {
     fontDisplay: '"Fraunces", ui-serif, Georgia, serif',
@@ -88,4 +114,17 @@ export const COLOR_LABELS: Record<TokenColorKey, string> = {
   success: "Success",
   warning: "Warning",
   info: "Info",
+  voltageLime: "Voltage Lime (Accent)",
+  cyanSpark: "Cyan Spark",
+  midAbyss: "Mid Abyss (Dark)",
+  carbonInk: "Carbon Ink",
+  pureWhite: "Pure White",
+  ash: "Ash",
+  abyssSoft: "Abyss Soft",
+  abyssMid: "Abyss Mid",
+  abyssDeep: "Abyss Deep",
+  inkSoft: "Ink Soft",
+  inkMuted: "Ink Muted",
+  inkFaint: "Ink Faint",
+  inkDim: "Ink Dim",
 };

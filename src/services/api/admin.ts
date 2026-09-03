@@ -440,7 +440,7 @@ export async function getTherapistComplaints(therapistId: string) {
 // --- Notifications ---
 export interface AdminNotificationData {
   id: string;
-  category: "booking" | "reschedule" | "complaint" | "payment" | "system";
+  category: "booking" | "reschedule" | "complaint" | "payment" | "system" | "refund" | "leave" | "verification" | "therapist";
   message: string;
   timestamp: string;
   read: boolean;
@@ -448,6 +448,12 @@ export interface AdminNotificationData {
   actionHref?: string;
   relatedEntityType?: string;
   relatedEntityId?: string;
+}
+
+export interface AdminNotificationListResponse {
+  items: AdminNotificationData[];
+  total: number;
+  unreadCount: number;
 }
 
 export interface AdminNotificationListParams {
@@ -464,7 +470,7 @@ export async function getAdminNotifications(params?: AdminNotificationListParams
   if (params?.category) sp.set("category", params.category);
   if (params?.read !== undefined) sp.set("read", String(params.read));
 
-  return api.get<ListResponse<AdminNotificationData>>(`/admin/notifications?${sp.toString()}`);
+  return api.get<AdminNotificationListResponse>(`/admin/notifications?${sp.toString()}`);
 }
 
 export async function markNotificationRead(id: string) {
@@ -472,7 +478,7 @@ export async function markNotificationRead(id: string) {
 }
 
 export async function markAllNotificationsRead() {
-  return api.put(`/admin/notifications/read-all`, {});
+  return api.put<{ message: string; count: number }>(`/admin/notifications/read-all`, {});
 }
 
 // --- Admin Bookings (trail/history) ---

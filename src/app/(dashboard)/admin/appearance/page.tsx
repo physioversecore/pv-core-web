@@ -30,6 +30,14 @@ const COLOR_GROUPS: { label: string; keys: TokenColorKey[] }[] = [
     label: "Semantic",
     keys: ["danger", "success", "warning", "info"],
   },
+  {
+    label: "Brand Accents",
+    keys: ["voltageLime", "cyanSpark", "ash", "pureWhite"],
+  },
+  {
+    label: "Editorial Canvas",
+    keys: ["midAbyss", "carbonInk", "abyssSoft", "abyssMid", "abyssDeep", "inkSoft", "inkMuted", "inkFaint", "inkDim"],
+  },
 ];
 
 function ColorInput({
@@ -60,7 +68,7 @@ function ColorInput({
 }
 
 export default function AppearancePage() {
-  const { tokens, updateColors, updateTypography, updateRadii, resetTokens } =
+  const { tokens, updateColors, updateTypography, updateRadii, resetTokens, isLoaded } =
     useDesignTokens();
   const [activeGroup, setActiveGroup] = useState(0);
 
@@ -72,6 +80,60 @@ export default function AppearancePage() {
     resetTokens();
     toast.success("Reset to defaults");
   };
+
+  if (!isLoaded) {
+    return (
+      <div className="max-w-4xl animate-pulse space-y-5">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <div className="h-3 w-24 bg-border rounded mb-2" />
+            <div className="h-6 w-72 bg-border rounded" />
+          </div>
+          <div className="h-8 w-32 bg-border rounded-lg" />
+        </div>
+        <div className="flex gap-2 mb-5">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="h-8 w-20 bg-border rounded-full" />
+          ))}
+        </div>
+        <div className="grid lg:grid-cols-2 gap-5">
+          <div className="card-soft p-5">
+            <div className="h-3 w-20 bg-border rounded mb-4" />
+            <div className="space-y-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-border" />
+                  <div className="flex-1 space-y-1.5">
+                    <div className="h-3.5 w-24 bg-border rounded" />
+                    <div className="h-2.5 w-16 bg-border rounded" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="card-soft p-5">
+            <div className="h-3 w-28 bg-border rounded mb-4" />
+            <div className="h-48 bg-border rounded-xl" />
+          </div>
+        </div>
+        <div className="card-soft p-5">
+          <div className="h-3 w-24 bg-border rounded mb-4" />
+          <div className="flex gap-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex-1 space-y-2">
+                <div className="h-3.5 w-32 bg-border rounded" />
+                <div className="h-10 bg-border rounded-xl" />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="card-soft p-5">
+          <div className="h-3 w-28 bg-border rounded mb-4" />
+          <div className="h-4 bg-border rounded-full" />
+        </div>
+      </div>
+    );
+  }
 
   const preview = tokens.colors;
 
