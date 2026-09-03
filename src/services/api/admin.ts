@@ -654,6 +654,16 @@ export async function getAdminLeaveStats() {
   return api.get<AdminLeaveStats>("/admin/leaves/stats");
 }
 
+export interface AdminNavBadges {
+  pendingLeaves: number;
+  pendingRefunds: number;
+  pendingVerifications: number;
+}
+
+export async function getAdminNavBadges() {
+  return api.get<AdminNavBadges>("/admin/nav-badges");
+}
+
 export async function approveLeave(id: string) {
   return api.put<AdminLeaveData>(`/admin/leaves/${id}`, { status: "APPROVED" });
 }
