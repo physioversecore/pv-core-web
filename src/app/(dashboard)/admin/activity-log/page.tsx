@@ -2,12 +2,14 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { Download, Filter } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTableSort } from "@/hooks/useTableSort";
 import { useAdminActivityLog } from "@/hooks/useAdminActivityLog";
 import { DataTable, FilterBar, type Column, type FilterConfig } from "@/components/tables";
 import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import { toast } from "sonner";
+import { getAdminStaffList } from "@/services/api/admin";
 import type { AdminActivityLogEntry } from "@/services/api/admin";
 
 function formatTimestamp(dateStr: string): string {
@@ -37,6 +39,20 @@ export default function ActivityLogPage() {
   const debouncedSearch = useDebounce(search);
   const { sort, toggleSort, sortBy, sortOrder } = useTableSort({ defaultColumn: "timestamp", defaultDirection: "desc" });
   const pageSize = 15;
+
+  const { data: adminList } = useQuery({
+    queryKey: ["admin-staff-for-log"],
+    queryFn: getAdminStaffList,
+    placeholderData: (prev) => prev,
+  });
+
+  const adminOptions = useMemo(
+    () =>
+      (adminList?.items ?? [])
+        .filter((a) => a.id && a.name)
+        .map((a) => ({ value: a.id, label: a.name })),
+    [adminList],
+  );
 
   const { items, total, isLoading, isRefetching, refetch } = useAdminActivityLog({
     search: debouncedSearch,
@@ -137,18 +153,13 @@ export default function ActivityLogPage() {
 
   const filterConfig: FilterConfig[] = useMemo(
     () => [
-      { key: "search", type: "search", label: "Search", placeholder: "Search admin or entity…" },
+      { key: "search", type: "search", label: "Search", placeholder: "Search action or entity…" },
       {
         key: "adminId",
         type: "select",
         label: "Admin",
         placeholder: "All admins",
-        options: [
-          { value: "a1", label: "Admin User" },
-          { value: "a2", label: "Roshani Sharma" },
-          { value: "a3", label: "Bikash Karki" },
-          { value: "system", label: "System" },
-        ],
+        options: adminOptions,
       },
       {
         key: "actionType",
@@ -156,18 +167,39 @@ export default function ActivityLogPage() {
         label: "Action type",
         placeholder: "All actions",
         options: [
-          { value: "Complaint resolved", label: "Complaint resolved" },
-          { value: "Therapist removed", label: "Therapist removed" },
-          { value: "Role changed", label: "Role changed" },
-          { value: "Performance review", label: "Performance review" },
-          { value: "Payout run", label: "Payout run" },
-          { value: "Refund issued", label: "Refund issued" },
+          { value: "APPROVE_THERAPIST", label: "Therapist verified" },
+          { value: "REJECT_THERAPIST", label: "Therapist rejected" },
+          { value: "CREATE_THERAPIST", label: "Therapist created" },
+          { value: "UPDATE_THERAPIST", label: "Therapist updated" },
+          { value: "DELETE_THERAPIST", label: "Therapist removed" },
+          { value: "TOGGLE_USER_STATUS", label: "User status updated" },
+          { value: "UPDATE_PATIENT", label: "Patient updated" },
+          { value: "DELETE_PATIENT", label: "Patient removed" },
+          { value: "APPROVE_VERIFICATION", label: "Verification approved" },
+          { value: "REJECT_VERIFICATION", label: "Verification rejected" },
+          { value: "SUSPEND_VERIFICATION", label: "Verification suspended" },
+          { value: "UPDATE_COMPLAINT", label: "Complaint updated" },
+          { value: "ASSIGN_COMPLAINT", label: "Complaint assigned" },
+          { value: "DELETE_COMPLAINT", label: "Complaint removed" },
+          { value: "CREATE_REFUND", label: "Refund created" },
+          { value: "UPDATE_REFUND", label: "Refund updated" },
+          { value: "ASSIGN_REFUND", label: "Refund assigned" },
+          { value: "DELETE_REFUND", label: "Refund removed" },
+          { value: "APPROVE_LEAVE", label: "Leave approved" },
+          { value: "REJECT_LEAVE", label: "Leave rejected" },
+          { value: "UPDATE_PAYMENT", label: "Payment updated" },
+          { value: "UPDATE_TEAM", label: "Team member updated" },
+          { value: "INVITE_TEAM", label: "Team member invited" },
+          { value: "UPDATE_SETTING", label: "Setting updated" },
+          { value: "SCHEDULE_REVIEW", label: "Performance review scheduled" },
+          { value: "RESOLVE_REVIEW", label: "Performance review resolved" },
+          { value: "UPDATE_PAYOUT", label: "Payout updated" },
         ],
       },
       { key: "dateFrom", type: "date", label: "From date" },
       { key: "dateTo", type: "date", label: "To date" },
     ],
-    [],
+    [adminOptions],
   );
 
   return (
