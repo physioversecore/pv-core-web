@@ -34,7 +34,7 @@ uv run pytest        # fully mocked, no DB needed
 **Framework**: Next.js 16.3.1 (App Router, React 19.2), `output: "standalone"`
 **Language**: TypeScript 5.8.3 (strict)
 **Styling**: Tailwind CSS v4.2.1 (`@tailwindcss/postcss`), CSS custom properties
-**State**: React Context (8 providers) + `@tanstack/react-query` v5.101.1
+**State**: React Context (9 providers) + `@tanstack/react-query` v5.101.1
 **UI**: shadcn/ui 49 primitives (`src/components/ui/`, new-york style) + Radix UI
 **JWT**: jose v6 (edge/node JWT verification in `proxy.ts`)
 **Icons**: lucide-react v0.575.0
@@ -128,7 +128,7 @@ src/
     useTherapistsToRate.ts, useSessions.ts, useBooking.ts, useProducts.ts
     useClinics.ts, usePackages.ts, useServices.ts  # React Query hooks for catalogs
     useManageAvailability.ts        # Availability management (578 lines, largest hook)
-    useAdmin*.ts                    # 18 admin hooks
+    useAdmin*.ts                    # 18 admin hooks — all backed by real backend APIs (verifications, incidents, performance, analytics, service-areas, team, bookings, complaints, leaves, refunds, payments, earnings, patients, therapists, notifications, activity-log, payment-stats, dashboard)
     usePagination.ts, useTableSort.ts, useDebounce.ts, use-mobile.ts / use-mobile.tsx
 
   lib/
@@ -189,6 +189,25 @@ src/
 - **Therapist form UX**: Patient select cascades into a patient-filtered booking select; a `submittingRef` guard prevents double submits; the form no longer unmounts to a confirmation screen (uses toasts instead). `useTherapistComplaints` is now `enabled` by default and `invalidateQueries` on success (the hardcoded `enabled: false` + `refetchQueries` + page-level toast were removed).
 - **Admin side**: `/admin/complaints` lists complaints in tabs (Patient/Therapist), with export CSV (no leading ID column). The sidebar `/admin/complaints` link shows a live badge (see `complaint-badge.tsx` below).
 - **Admin new-complaint badge**: `ComplaintBadgeProvider` (root provider) polls `getNewComplaintCount(since)` → `GET /admin/complaints/new-count?since=` every 30s for admins; `since` is `localStorage["admin_last_complaint_visit"]` (set on first admin login) and is reset via `resetComplaintCount()` when the admin opens `/admin/complaints` (`(dashboard)/layout.tsx`). The count is injected into the admin nav item via `navWithBadges` and rendered by `DashboardShell` as an amber pill. Mirrors `BookingBadgeProvider` exactly.
+
+### Dynamic Admin Pages (6 pages)
+
+All admin dashboard pages are **fully dynamic** — no mock/seed fallback in the frontend. Each page is backed by a real backend endpoint, consumed via a dedicated React Query hook. Seed data is provided by `scripts/seed-admin-data.py` on the backend.
+
+| Page | Backend endpoint(s) | Frontend hook | Notes |
+|---|---|---|---|
+| `/admin/safety-incidents` | `GET/PUT /admin/incidents` | `useAdminIncidents` | Complaints mapped to incident shape (severity, status, reportedBy). Escalate/resolve via `PUT`. |
+| `/admin/analytics` | `GET /admin/analytics/stats`, `revenue-trend`, `cancellation-rate`, `bookings-by-zone` | `useAdminAnalytics` | Stats from real DB (sessions, payments, reviews). Revenue as "Rs X.XL" strings. |
+| `/admin/admin-team` | `GET/POST/PUT /admin/team` | `useAdminTeam` | Email→role mapping (admin@test.com → Super, roshani → Support, bikash → Finance). Backend only stores `ADMIN` role; display roles are frontend-derived. |
+| `/admin/service-areas` | `GET/POST/PUT/DELETE /admin/service-areas` | `useAdminServiceAreas` | Full CRUD. Service area names + locality lists + assigned therapist names. |
+| `/admin/verification` | `GET/POST/PUT/DELETE /admin/verifications` | `useAdminVerifications` | Therapist document verifications (license, ID, certification). Approve/reject actions update user status. |
+| `/admin/performance` | `GET /admin/performance` | `useAdminPerformance` | Therapist metrics (avg rating, sessions, reviews, trend, linked complaints). Status: "Good standing" / "Needs review" / "Under probation". |
+
+**Key design decisions**:
+- Safety-incidents page removes all local mock state (no `INITIAL_INCIDENTS`, `MOCK_STAFF`, `sleep`, or `updateIncident`). Actions are real API calls with optimistic UI patching via `queryClient.setQueriesData`.
+- Analytics backend computes revenue from `COMPLETED` payments, repeat booking rate from `sessionsAsPatient`, and avg rating from `Review` model. Frontend consumes pre-formatted strings — no mapper needed.
+- Team admin roles are **display-only** (pretend-roles derived from email). The backend `User.role` enum only supports `ADMIN`. `updateAdminUserRole` is a no-op that avoids writing invalid enum values; the page reflects changes within-session but reverts on refetch.
+- Verifications seed 7 documents across mixed statuses (Pending review, Verified, Expiring soon, Expired) with realistic expiry dates.
 
 ### Auth Context (`src/context/auth.tsx`)
 
@@ -346,7 +365,19 @@ Backend seeds 14 users + 8 therapist profiles (`pvc-api/scripts/seed-users.py`; 
 
 Other patients: `ramesh@`, `sita@`, `hari@test.com`. Other therapists: `aarati@`, `bibek@`, `sushmita@`, `nirajan@`, `sabina@`, `rajan@`, `priya@`, `anil@test.com`.
 
-Seed run: `cd pvc-api && uv sync && docker compose up -d db && uv run python scripts/seed-users.py`
+Seed run (base users): `cd pvc-api && uv sync && docker compose up -d db && uv run python scripts/seed-users.py`
+
+**Admin page seed data** (`pvc-api/scripts/seed-admin-data.py`): idempotent script that populates all 6 dynamic admin pages. Run after `seed-users.py`. Seeded data:
+
+| Section | Count | Notes |
+|---|---|---|
+| Service Areas | 4 | Kathmandu Central, Lalitpur/Patan, Gongabu/Boudha, Bhaktapur — with therapist assignments |
+| Complaints (incidents) | 6 | Mixed patient/therapist reports, all statuses (Open, Investigating, Resolved, Escalated) |
+| Admin Team Users | 2 | Roshani Sharma (Support), Bikash Karki (Finance) — in addition to the seeded admin@test.com |
+| Payments (revenue trend) | 12 | Spread over 6 months, all `COMPLETED` status, both ESHOPPOS and CASH |
+| Verifications | 7 | Mixed document types (license, ID, certification), all statuses (Pending review, Verified, Expiring soon, Expired) |
+
+Seed run (admin data): `cd pvc-api && uv run python scripts/seed-admin-data.py`
 
 Static UI constants: cities = Kathmandu, Lalitpur, Bhaktapur, Pokhara, Chitwan, Biratnagar; specialties are free-text strings (not DB enums).
 
@@ -420,7 +451,7 @@ app/
     metrics.py              # Prometheus-compatible metrics
 prisma/
   schema.prisma             # ORM schema (27 models, 22 migrations)
-scripts/                    # Seed scripts (17 total, incl. seed-all.py)
+scripts/                    # Seed scripts (18 total, incl. seed-all.py, seed-admin-data.py)
 test/                       # Test suite (16 files, fully mocked)
 Dockerfile, Dockerfile.dev, docker-compose.yml, docker-compose.prod.yml
 ```
