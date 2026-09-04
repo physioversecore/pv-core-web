@@ -10,20 +10,39 @@ Nepal's home-visit physiotherapy platform connecting patients with verified phys
 
 ---
 
+## Quick Start
+
+```sh
+# Frontend (this repo)
+npm install
+npm run dev          # https://physiocore.com:3000 (custom hostname + experimental HTTPS)
+npm run lint         # eslint src/
+npm run format       # prettier --write .
+npm run build        # next build (includes TypeScript type-check; no separate tsc)
+
+# Backend (sibling pvc-api/)
+cd ../pvc-api && uv sync && docker compose up -d db && uv run python main.py
+uv run pytest        # fully mocked, no DB needed
+```
+
+**There are no frontend tests.** No test runner, no test files, no test script. Verification = lint + build.
+
+---
+
 ## Frontend — pvc-web
 
-**Framework**: Next.js 16.3.1 (App Router, React 19.2), `output: "standalone"`  
-**Language**: TypeScript 5.8.3 (strict)  
-**Styling**: Tailwind CSS v4.2.1 (`@tailwindcss/postcss`), CSS custom properties  
-**State**: React Context (7 providers) + `@tanstack/react-query` v5.101.1  
-**UI**: shadcn/ui 49 primitives (`src/components/ui/`, new-york style) + Radix UI  
-**JWT**: jose v6 (edge/node JWT verification in `proxy.ts`)  
-**Icons**: lucide-react v0.575.0  
-**Notifications**: sonner v2.0.7  
-**Charts**: recharts v2.15.4  
-**Animation**: motion v13 (`motion/react`)  
-**Forms**: react-hook-form v7.71.2 + @hookform/resolvers + zod v3.24.2  
-**CSS Utilities**: class-variance-authority v0.7.1, clsx v2.1.1, tailwind-merge v3.5.0  
+**Framework**: Next.js 16.3.1 (App Router, React 19.2), `output: "standalone"`
+**Language**: TypeScript 5.8.3 (strict)
+**Styling**: Tailwind CSS v4.2.1 (`@tailwindcss/postcss`), CSS custom properties
+**State**: React Context (8 providers) + `@tanstack/react-query` v5.101.1
+**UI**: shadcn/ui 49 primitives (`src/components/ui/`, new-york style) + Radix UI
+**JWT**: jose v6 (edge/node JWT verification in `proxy.ts`)
+**Icons**: lucide-react v0.575.0
+**Notifications**: sonner v2.0.7
+**Charts**: recharts v2.15.4
+**Animation**: motion v13 (`motion/react`)
+**Forms**: react-hook-form v7.71.2 + @hookform/resolvers + zod v3.24.2
+**CSS Utilities**: class-variance-authority v0.7.1, clsx v2.1.1, tailwind-merge v3.5.0
 **Other**: date-fns, cmdk, embla-carousel-react, input-otp, react-day-picker, react-resizable-panels, vaul (drawer)
 
 ### Docs Map (this repo)
@@ -42,21 +61,21 @@ Nepal's home-visit physiotherapy platform connecting patients with verified phys
 ```
 src/
   proxy.ts                          # Route protection (Next.js 16 proxy convention — MUST be inside src/)
-  app/                              # Next.js App Router
+  app/
     layout.tsx                      # Root layout (fonts via <link>, <Providers>)
-    providers.tsx                   # "use client" — QueryClient, DesignTokens, Lang, Auth, Cart, BookingBadge, ComplaintBadge, AuthModal, Toaster
-    globals.css                     # Tailwind v4 + theme tokens + utilities
+    providers.tsx                   # "use client" — 9 providers: QueryClient, DesignTokens, Lang, Auth, Cart, BookingBadge, ComplaintBadge, AdminNavBadge, AuthModal + Toaster
+    globals.css                     # Tailwind v4 + theme tokens + utilities (~1350 lines)
     error.tsx                       # Root error boundary
     not-found.tsx
-    signup/page.tsx                 # Signup page (/signup) — therapist-only signup: account form → OTP → account creation (server-side) → loading spinner → redirect to /onboarding/therapist
-    access/page.tsx                 # Unified login page (/access) — email+password, OTP, or Google; role-aware redirect
-    forgot-password/page.tsx        # Forgot password flow (/forgot-password)
-    onboarding/                     # Post-signup profile wizards
+    signup/page.tsx                 # Therapist-only signup → OTP → account creation → /onboarding/therapist
+    access/page.tsx                 # Unified login (email+password, OTP, or Google); role-aware redirect
+    forgot-password/page.tsx        # Forgot password flow
+    onboarding/
       therapist/page.tsx            # Therapist 4-step application wizard
       patient/page.tsx              # Patient profile completion
     book/                           # Booking route
-    (public)/                       # Route group — all public pages (header/footer persist across nav)
-      layout.tsx                    # Wraps with SiteHeader + SiteFooter, hero/solid variant by path
+    (public)/                       # Route group — all public pages (header/footer persist)
+      layout.tsx                    # SiteHeader + SiteFooter
       page.tsx                      # Landing page
       about/, app/, blog/, contact/, clinics/, faq/, find-a-therapist/,
       how-it-works/, packages/, services/, testimonials/
@@ -66,73 +85,33 @@ src/
       loading.tsx                   # Dashboard skeleton loading fallback
       not-found.tsx
       patient/                      # 9 routes
-        page.tsx, sessions/page.tsx, shop/page.tsx, progress/page.tsx,
-        reports/page.tsx, complaints/page.tsx, profile/page.tsx,
-        help/page.tsx, settings/page.tsx
       therapist/                    # 9 routes
-        page.tsx, schedule/page.tsx, availability/page.tsx,
-        reports/page.tsx, patients/page.tsx, earnings/page.tsx,
-        complaints/page.tsx, profile/page.tsx, settings/page.tsx
       admin/                        # 19+ routes
-        page.tsx, activity-log/page.tsx, admin-team/page.tsx,
-        analytics/page.tsx, appearance/page.tsx, bookings/page.tsx,
-        complaints/page.tsx, leave/page.tsx, notifications/page.tsx,
-        patients/page.tsx, payments/page.tsx, performance/page.tsx,
-        refunds/page.tsx, safety-incidents/page.tsx, schedules/page.tsx,
-        service-areas/page.tsx, settings/page.tsx, therapists/page.tsx,
-        verification/page.tsx
     api/                            # Next.js API routes (proxy layer for auth + uploads + admin settings)
-      reports/route.ts              # POST — proxies FormData to backend /api/v1/reports
-      uploads/therapist-application/route.ts  # POST — public XHR upload for signup documents (session=therapist-signup)
-      uploads/complaint-evidence/route.ts     # POST — public XHR proxy for complaint evidence (session keyed)
+      reports/route.ts              # POST — proxies FormData to backend
+      uploads/therapist-application/route.ts  # POST — public XHR for signup docs (session=therapist-signup)
+      uploads/complaint-evidence/route.ts     # POST — public XHR proxy for complaint evidence
       uploads/[patientId]/route.ts
-      v1/auth/                      # send-otp, verify-otp, signup, send-login-otp,
-                                    #   login-otp, check-email — set the JWT cookie via Set-Cookie
+      v1/auth/                      # send-otp, verify-otp, signup, send-login-otp, login-otp, check-email
       v1/admin/settings/            # Design tokens GET/PUT
-      v1/uploads/applications/[session]/[filename]/route.ts  # GET — serves signup docs, adds bearer from cookie
-      v1/uploads/evidence/[session]/[filename]/route.ts      # GET — serves complaint evidence, adds bearer from cookie
+      v1/uploads/applications/[session]/[filename]/route.ts  # GET — serves signup docs, adds bearer
+      v1/uploads/evidence/[session]/[filename]/route.ts      # GET — serves complaint evidence, adds bearer
       v1/uploads/therapists/[therapistId]/…                  # GET/POST therapist photo + documents
 
   components/
-    layout/                         # Layout shells
-      DashboardShell.tsx            # Sidebar + header layout shell (fixed sidebar, h-16 header)
-      PageShell.tsx                 # Public page wrapper (header + hero + footer)
-      SiteHeader.tsx                # Public site header
-      SiteFooter.tsx                # Public site footer
-    modals/                         # Modal/drawer components
-      AuthModal.tsx                 # Login/signup modal (can be triggered from any page)
-      BookingModal.tsx              # Session booking
-      CancelConfirmModal.tsx, CartDrawer.tsx, RescheduleModal.tsx, SessionDrawer.tsx,
-      TherapistDetailSheet.tsx, PatientDetailSheet.tsx
-    auth/                           # Shared auth components
-      SignupFlow.tsx                # Multi-step signup (role → form → OTP → account)
-      DocumentUploader.tsx          # WhatsApp-style drag/drop document uploader (XHR w/ progress, previews, retry)
-      AuthShell.tsx, GoogleIcon.tsx, OtpInput.tsx, PasswordRules.tsx, StepProgress.tsx
-    common/                         # Shared components
-      Avatar.tsx, LangSwitcher.tsx, NotificationBell.tsx, Reveal.tsx,
-      TherapistCard.tsx, TherapistFilters.tsx, BookButton.tsx, HeroStat.tsx,
-      HowItWorksSteps.tsx, PlusField.tsx, ServiceCard.tsx, AppStoreBadge.tsx
-    dashboard/                      # Dashboard-specific components
-      DashboardStat.tsx, EmptyTableRow.tsx, ReferralCard.tsx,
-      SectionHeader.tsx, StatusBadge.tsx
-    sections/                       # Landing page sections
-      HeroSection.tsx, PartnersMarquee.tsx,
-      HowItWorksStep.tsx, ServicesSection.tsx,
-      FindTherapistSection.tsx, AppDownloadSection.tsx, TherapistCTA.tsx
+    layout/                         # DashboardShell.tsx, PageShell.tsx, SiteHeader.tsx, SiteFooter.tsx
+    modals/                         # AuthModal.tsx, BookingModal.tsx, CancelConfirmModal.tsx, CartDrawer.tsx, RescheduleModal.tsx, SessionDrawer.tsx, TherapistDetailSheet.tsx, PatientDetailSheet.tsx
+    auth/                           # SignupFlow.tsx, DocumentUploader.tsx, AuthShell.tsx, GoogleIcon.tsx, OtpInput.tsx, PasswordRules.tsx, StepProgress.tsx
+    common/                         # Avatar.tsx, LangSwitcher.tsx, NotificationBell.tsx, Reveal.tsx, TherapistCard.tsx, TherapistFilters.tsx, BookButton.tsx, HeroStat.tsx, HowItWorksSteps.tsx, PlusField.tsx, ServiceCard.tsx, AppStoreBadge.tsx
+    dashboard/                      # DashboardStat.tsx, EmptyTableRow.tsx, ReferralCard.tsx, SectionHeader.tsx, StatusBadge.tsx
+    sections/                       # HeroSection.tsx, PartnersMarquee.tsx, HowItWorksStep.tsx, ServicesSection.tsx, FindTherapistSection.tsx, AppDownloadSection.tsx, TherapistCTA.tsx
     schedule/, sessions/, availability/, booking/, tables/
-    ErrorBoundary.tsx               # Reusable class-based error boundary
-    SuspenseFallback.tsx            # Skeleton components (StatsSkeleton, CardSkeleton, etc.)
-    ui/                             # 49 shadcn/ui primitives (new-york style)
-      accordion, alert-dialog, alert, aspect-ratio, avatar, badge,
-      breadcrumb, button, calendar, card, carousel, chart, checkbox,
-      collapsible, command, context-menu, date-picker, dialog, drawer,
-      dropdown-menu, form, hover-card, input-otp, input, label,
-      menubar, navigation-menu, pagination, popover, progress,
-      radio-group, resizable, scroll-area, select, separator, sheet,
-      sidebar, skeleton, slider, sonner, switch, table, tabs, textarea,
-      toggle-group, toggle, tooltip
+    ErrorBoundary.tsx               # Class-based error boundary
+    SuspenseFallback.tsx            # Skeleton components
+    ui/                             # 49 shadcn/ui primitives (new-york style) + 2 custom (feature-carousel, pricing-cards)
 
-  context/                          # 7 React context providers
+  context/                          # 8 React context providers
+    admin-nav-badge.tsx             # Admin nav badge counts (pending leaves, refunds, verifications)
     auth.tsx                        # Auth state + API calls (JWT, API-driven)
     auth-modal.tsx                  # Auth modal open/close state + onLoginSuccess callback
     booking-badge.tsx               # Admin new-booking notification badge count
@@ -143,20 +122,13 @@ src/
 
   hooks/                            # 45 custom hooks
     useAuth.ts, useCart.ts, useAuthModal.ts  # Re-exports from context
-    usePatientDashboard.ts, usePatientReferral.ts, usePatientComplaints.ts,
-    usePatientReports.ts
-    useTherapistDashboard.ts, useTherapistEarnings.ts, useTherapistSchedule.ts,
-    useTherapistProfile.ts
+    usePatientDashboard.ts, usePatientReferral.ts, usePatientComplaints.ts, usePatientReports.ts
+    useTherapistDashboard.ts, useTherapistEarnings.ts, useTherapistSchedule.ts, useTherapistProfile.ts
     useTherapistPatients.ts, useTherapistComplaints.ts, useTherapists.ts
     useTherapistsToRate.ts, useSessions.ts, useBooking.ts, useProducts.ts
-    useClinics.ts                   # React Query hook for clinic data
-    usePackages.ts, useServices.ts  # Packages + service catalog hooks
+    useClinics.ts, usePackages.ts, useServices.ts  # React Query hooks for catalogs
     useManageAvailability.ts        # Availability management (578 lines, largest hook)
-    useAdmin*.ts                    # 18 admin hooks (activity-log, analytics, bookings,
-                                    #   complaints, dashboard, incidents, leaves,
-                                    #   notifications, patients, payments, payment-stats,
-                                    #   payouts, performance, refunds, service-areas,
-                                    #   team, therapists, verifications)
+    useAdmin*.ts                    # 18 admin hooks
     usePagination.ts, useTableSort.ts, useDebounce.ts, use-mobile.ts / use-mobile.tsx
 
   lib/
@@ -164,7 +136,7 @@ src/
       auth.ts, cart.ts, products.ts, profile.ts, sessions.ts, therapists.ts
     api.ts                          # Legacy API client (duplicate of services/api/client.ts)
     session.ts                      # Cookie token helpers (duplicate of services/api/session.ts)
-    format.ts                       # Date/time/NPR formatters
+    format.ts                       # Date/time/NPR formatters (npr(), mapSessionStatus())
     utils.ts                        # cn() helper
     constants.ts, types.ts, nav.tsx # Re-exports
     landing-data.ts                 # Landing page static data
@@ -181,8 +153,7 @@ src/
     reports.ts, reviews.ts, settings.ts, clinics.ts, packages.ts, services.ts
 
   services/
-    auth-flow.ts                    # Client-side auth calls → Next.js route handlers
-                                    #   (sendOtp, verifyOtp, sendLoginOtp, loginWithOtp, googleAuth)
+    auth-flow.ts                    # Client-side auth calls → Next.js route handlers (sendOtp, verifyOtp, sendLoginOtp, loginWithOtp, googleAuth)
 
   constants/                        # CITIES, SPECIALTIES, navigation (patientNav 9, therapistNav 9, adminNav 17 grouped)
   types/                            # TypeScript types (Therapist, Product, Session, Role, User, NavItem, Complaint, etc.)
@@ -246,7 +217,7 @@ interface AuthCtx {
 ### Provider Tree Order
 
 ```
-QueryClientProvider > DesignTokensProvider > LangProvider > AuthProvider > CartProvider > BookingBadgeProvider > ComplaintBadgeProvider > AuthModalProvider > {children} + Toaster
+QueryClientProvider > DesignTokensProvider > LangProvider > AuthProvider > CartProvider > BookingBadgeProvider > ComplaintBadgeProvider > AdminNavBadgeProvider > AuthModalProvider > {children} + Toaster
 ```
 
 ### Data Fetching Pattern
@@ -465,22 +436,22 @@ Dockerfile, Dockerfile.dev, docker-compose.yml, docker-compose.prod.yml
 
 ### API Endpoints (all under `/api/v1/`)
 
-**Auth**: send-otp, verify-otp, signup, login, me (GET/PUT), change-password, logout  
-**Therapists**: CRUD, me/dashboard, me/profile, {id}/slots  
-**Therapist application**: me/application-status, me/application-sections, PUT me/application (onboarding wizard)  
-**Sessions**: CRUD, {id}/reschedule  
-**Products**: CRUD (Admin for mutations)  
-**Cart**: CRUD (Patient only)  
-**Payments**: process (booking+payment combo), CRUD, {id}/status (Admin)  
-**Reports**: CRUD with multipart uploads  
-**Reviews**: therapists-to-rate, submit, list  
-**Patients**: me/profile, me/dashboard, me/referral, my-patients (Therapist)  
-**Earnings**: transactions, payouts  
-**Availability** (24+ endpoints): working-hours, slots, recurring, block, unblock, audit-log, block-requests (approve/reject)  
-**Admin** (60+ endpoints): users, therapists, patients, bookings, complaints, service-areas, performance, verifications, refunds, activity-log, payments, payouts, notifications, team, leaves, incidents, analytics  
-**Settings**: design-tokens (GET/PUT), currencies, payment-methods  
-**Catalog**: services CRUD (`/services`), packages CRUD (`/packages`), clinics CRUD (`/clinics`) — public reads, admin writes  
-**Uploads**: patient reports, therapist media, therapist-application (public pre-signup docs) + applications/{session}/{filename} (authenticated serving), complaint-evidence + evidence/{session}/{filename}  
+**Auth**: send-otp, verify-otp, signup, login, me (GET/PUT), change-password, logout
+**Therapists**: CRUD, me/dashboard, me/profile, {id}/slots
+**Therapist application**: me/application-status, me/application-sections, PUT me/application (onboarding wizard)
+**Sessions**: CRUD, {id}/reschedule
+**Products**: CRUD (Admin for mutations)
+**Cart**: CRUD (Patient only)
+**Payments**: process (booking+payment combo), CRUD, {id}/status (Admin)
+**Reports**: CRUD with multipart uploads
+**Reviews**: therapists-to-rate, submit, list
+**Patients**: me/profile, me/dashboard, me/referral, my-patients (Therapist)
+**Earnings**: transactions, payouts
+**Availability** (24+ endpoints): working-hours, slots, recurring, block, unblock, audit-log, block-requests (approve/reject)
+**Admin** (60+ endpoints): users, therapists, patients, bookings, complaints, service-areas, performance, verifications, refunds, activity-log, payments, payouts, notifications, team, leaves, incidents, analytics
+**Settings**: design-tokens (GET/PUT), currencies, payment-methods
+**Catalog**: services CRUD (`/services`), packages CRUD (`/packages`), clinics CRUD (`/clinics`) — public reads, admin writes
+**Uploads**: patient reports, therapist media, therapist-application (public pre-signup docs) + applications/{session}/{filename} (authenticated serving), complaint-evidence + evidence/{session}/{filename}
 **Health**: `/health` (DB + Redis), `/live`, `/ready`
 
 ### Database Schema (27 models)
