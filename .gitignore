@@ -37,7 +37,6 @@ Thumbs.db
 *.local
 
 #Agents
-AGENTS.md
 .agents/
 .opencode/
 .claude/

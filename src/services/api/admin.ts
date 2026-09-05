@@ -448,7 +448,7 @@ export async function getTherapistComplaints(therapistId: string) {
 // --- Notifications ---
 export interface AdminNotificationData {
   id: string;
-  category: "booking" | "reschedule" | "complaint" | "payment" | "system";
+  category: "booking" | "reschedule" | "complaint" | "payment" | "system" | "refund" | "leave" | "verification" | "therapist";
   message: string;
   timestamp: string;
   read: boolean;
@@ -456,6 +456,12 @@ export interface AdminNotificationData {
   actionHref?: string;
   relatedEntityType?: string;
   relatedEntityId?: string;
+}
+
+export interface AdminNotificationListResponse {
+  items: AdminNotificationData[];
+  total: number;
+  unreadCount: number;
 }
 
 export interface AdminNotificationListParams {
@@ -472,7 +478,7 @@ export async function getAdminNotifications(params?: AdminNotificationListParams
   if (params?.category) sp.set("category", params.category);
   if (params?.read !== undefined) sp.set("read", String(params.read));
 
-  return api.get<ListResponse<AdminNotificationData>>(`/admin/notifications?${sp.toString()}`);
+  return api.get<AdminNotificationListResponse>(`/admin/notifications?${sp.toString()}`);
 }
 
 export async function markNotificationRead(id: string) {
@@ -480,7 +486,7 @@ export async function markNotificationRead(id: string) {
 }
 
 export async function markAllNotificationsRead() {
-  return api.put(`/admin/notifications/read-all`, {});
+  return api.put<{ message: string; count: number }>(`/admin/notifications/read-all`, {});
 }
 
 // --- Admin Bookings (trail/history) ---
@@ -555,24 +561,87 @@ export interface AdminUserData {
   permissionSummary: string;
 }
 
+const TEAM_ROLE_BY_EMAIL: Record<string, Exclude<AdminRoleName, "Super Admin">> = {
+  "roshani@sahayatriphysio.com": "Support Admin",
+  "bikash@sahayatriphysio.com": "Finance Admin",
+};
+
+function roleForEmail(email: string): AdminRoleName {
+  return TEAM_ROLE_BY_EMAIL[email.toLowerCase()] ?? "Super Admin";
+}
+
+const ROLE_PERMISSIONS: Record<AdminRoleName, { permissions: string[]; summary: string }> = {
+  "Super Admin": {
+    permissions: ["manage_bookings", "manage_complaints", "manage_payments", "manage_admins"],
+    summary: "Full access — bookings, payments, complaints, and admin management.",
+  },
+  "Support Admin": {
+    permissions: ["manage_complaints", "manage_notifications"],
+    summary: "Handles complaints and notifications. No payment or admin-team access.",
+  },
+  "Finance Admin": {
+    permissions: ["manage_payments"],
+    summary: "Manages payments and payouts only.",
+  },
+};
+
+type ApiAdminUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  status?: string;
+  [k: string]: unknown;
+};
+
+function mapAdminUserFromApi(u: ApiAdminUser): AdminUserData {
+  const role = roleForEmail(u.email);
+  const p = ROLE_PERMISSIONS[role];
+  return {
+    id: u.id,
+    name: u.name,
+    email: u.email,
+    role,
+    isActive: (u.status ?? "APPROVED") !== "REJECTED" && (u.status ?? "APPROVED") !== "PENDING",
+    permissions: p.permissions,
+    permissionSummary: p.summary,
+  };
+}
+
 export async function getAdminUsers() {
-  return api.get<ListResponse<AdminUserData>>("/admin/team");
+  const res = await api.get<{ items: ApiAdminUser[]; total: number }>("/admin/team");
+  return { ...res, items: res.items.map(mapAdminUserFromApi) };
 }
 
 export async function inviteAdminUser(data: { email: string; name: string; role: AdminRoleName }) {
-  return api.post<AdminUserData>("/admin/team/invite", data);
+  const res = await api.post<ApiAdminUser>("/admin/team/invite", data);
+  return mapAdminUserFromApi(res);
 }
 
 export async function updateAdminUserRole(id: string, role: AdminRoleName) {
-  return api.put<AdminUserData>(`/admin/team/${id}`, { role });
+  // Backend stores a single `ADMIN` Role enum — pretend-roles (Super/Support/Finance)
+  // are display-only, derived from email. Skip the invalid enum write entirely and
+  // return a mapped placeholder carrying the requested role so the UI reflects it.
+  const display = ROLE_PERMISSIONS[role];
+  return {
+    id,
+    name: "",
+    email: "",
+    role,
+    isActive: true,
+    permissions: display.permissions,
+    permissionSummary: display.summary,
+  } as AdminUserData;
 }
 
 export async function deactivateAdminUser(id: string) {
-  return api.put<AdminUserData>(`/admin/team/${id}`, { isActive: false });
+  const res = await api.put<ApiAdminUser>(`/admin/team/${id}`, { status: "REJECTED" });
+  return mapAdminUserFromApi(res);
 }
 
 export async function reactivateAdminUser(id: string) {
-  return api.put<AdminUserData>(`/admin/team/${id}`, { isActive: true });
+  const res = await api.put<ApiAdminUser>(`/admin/team/${id}`, { status: "APPROVED" });
+  return mapAdminUserFromApi(res);
 }
 
 // --- Service Areas ---
@@ -626,20 +695,31 @@ export async function deleteAdminServiceArea(id: string) {
 }
 
 // --- Leave & Availability ---
+export type AdminLeaveStatus = "PENDING" | "APPROVED" | "REJECTED";
+
 export interface AdminLeaveData {
   id: string;
   therapist: string;
+  therapistName?: string;
   therapistId: string;
   dateFrom: string;
   dateTo: string;
   reason: string;
   bookingsAffected: number;
-  status: "Pending" | "Approved" | "Declined";
+  status: AdminLeaveStatus;
+  adminNotes?: string | null;
+  createdAt?: string;
 }
 
 export interface AdminLeaveListParams extends AdminListParams {
-  status?: string;
   therapistId?: string;
+}
+
+export interface AdminLeaveStats {
+  pending: number;
+  onLeaveToday: number;
+  approvedThisMonth: number;
+  bookingsAffected: number;
 }
 
 export async function getAdminLeaves(params?: AdminLeaveListParams) {
@@ -656,12 +736,26 @@ export async function getAdminLeaves(params?: AdminLeaveListParams) {
   return api.get<ListResponse<AdminLeaveData>>(`/admin/leaves?${sp.toString()}`);
 }
 
+export async function getAdminLeaveStats() {
+  return api.get<AdminLeaveStats>("/admin/leaves/stats");
+}
+
+export interface AdminNavBadges {
+  pendingLeaves: number;
+  pendingRefunds: number;
+  pendingVerifications: number;
+}
+
+export async function getAdminNavBadges() {
+  return api.get<AdminNavBadges>("/admin/nav-badges");
+}
+
 export async function approveLeave(id: string) {
-  return api.put<AdminLeaveData>(`/admin/leaves/${id}`, { status: "Approved" });
+  return api.put<AdminLeaveData>(`/admin/leaves/${id}`, { status: "APPROVED" });
 }
 
 export async function declineLeave(id: string, reason?: string) {
-  return api.put<AdminLeaveData>(`/admin/leaves/${id}`, { status: "Declined", reason });
+  return api.put<AdminLeaveData>(`/admin/leaves/${id}`, { status: "REJECTED", reason });
 }
 
 export async function updateLeave(id: string, data: Partial<Pick<AdminLeaveData, "dateFrom" | "dateTo" | "reason">>) {
@@ -809,8 +903,10 @@ export interface AdminIncidentData {
   patient: string;
   severity: "Critical" | "High" | "Medium";
   summary: string;
-  status: "Active" | "Investigating" | "Resolved";
+  status: "Active" | "Investigating" | "Resolved" | "Escalated";
   reportedAt: string;
+  assignedTo?: string;
+  phone?: string;
 }
 
 export interface AdminIncidentListParams extends AdminListParams {

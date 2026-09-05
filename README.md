@@ -12,13 +12,13 @@ Nepal's home-visit physiotherapy platform connecting patients with verified phys
 
 | Layer | Technology |
 |---|---|
-| Framework | Next.js 15 (App Router, standalone output) |
+| Framework | Next.js 16 (App Router, standalone output) |
 | Language | TypeScript 5.8 (strict) |
 | React | React 19 |
 | Styling | Tailwind CSS v4 + CSS custom properties |
-| UI | shadcn/ui (new-york style, 47 components) + Radix UI |
+| UI | shadcn/ui (new-york style, 49 components) + Radix UI |
 | Icons | lucide-react |
-| State | React Context (7 providers), TanStack Query v5 |
+| State | React Context (9 providers), TanStack Query v5 |
 | Forms | react-hook-form + zod |
 | Charts | recharts |
 | Notifications | sonner |
@@ -56,7 +56,7 @@ The dev server binds to `physiocore.com` with experimental HTTPS. Add `127.0.0.1
 
 Auth is **API-driven** — JWT tokens stored in HTTP-only cookies (`sahayatri.session`).
 
-- **Login**: `/login` page — email + password, redirects by role. "Sign up" link navigates to `/signup`.
+- **Login**: `/access` page — unified login (email + password, OTP, or Google), redirects by role. No separate role selector.
 - **Signup**: `/signup` page — therapist-only signup: account form → OTP email verification → account creation (server-side) → redirect to `/onboarding/therapist`.
 - **Therapist document upload**: Therapist signup requires uploading NMC license + certification (drag/drop or click, with live previews). Files upload via XHR to the public proxy `POST /api/uploads/therapist-application` before account creation; the returned URLs are stored as `Verification` records so admins can review them in `/admin/verification`. Admins view documents in-app (`DocumentViewer` dialog — image/iframe preview + open in new tab), and rejection requires a reason (`note`) that persists, is shown in the therapist detail sheet, and is included in the rejection email. Approval fires an account-verified email.
 - **Logout**: via sidebar in dashboard — always `await logout()` before redirect
@@ -86,8 +86,8 @@ src/
       admin/                    # Admin dashboard (19 sections)
       patient/                  # Patient dashboard (9 sections)
       therapist/                # Therapist dashboard (9 sections)
-    login/                      # Standalone login page
-    signup/                     # Standalone signup page (role selection → OTP → account creation)
+    access/                     # Unified login page (email+password, OTP, Google)
+    signup/                     # Therapist signup page (account form → OTP → account creation)
     api/                        # Route handlers (upload proxies)
     api/reports/route.ts        # POST — proxies FormData to backend /api/v1/reports
     api/uploads/complaint-evidence/route.ts  # POST — public XHR proxy for complaint evidence (session keyed)
@@ -111,20 +111,23 @@ src/
     layout/                     # DashboardShell, PageShell, SiteHeader, SiteFooter
     ErrorBoundary.tsx           # Reusable error boundary
     SuspenseFallback.tsx        # Loading skeleton components
-  context/                      # React contexts (7 providers)
+  context/                      # React contexts (9 providers)
     auth.tsx                    # Auth state + API calls
     auth-modal.tsx              # Login/signup modal state
     booking-badge.tsx           # Admin new-booking notification badge
     complaint-badge.tsx         # Admin new-complaint notification badge
+    admin-nav-badge.tsx         # Admin nav badge counts (leaves, refunds, verifications)
     cart.tsx                    # Shopping cart (API-driven)
     design-tokens.tsx           # Dynamic theme customization
     i18n.tsx                    # Nepali/English toggle
-  hooks/                        # TanStack Query hooks (41 files)
-  services/api/                 # Server-only API layer (15 files)
+  hooks/                        # TanStack Query hooks (45 files)
+  services/api/                 # Server-only API layer (21 files)
     client.ts                   # Base HTTP client (server-only import)
     auth.ts, admin.ts, sessions.ts, therapists.ts,
     patients.ts, products.ts, cart.ts, availability.ts,
-    earnings.ts, reports.ts, reviews.ts, settings.ts, profile.ts
+    earnings.ts, reports.ts, reviews.ts, settings.ts, profile.ts,
+    clinics.ts, packages.ts, services.ts, auth-session.ts,
+    auth-constants.ts, session-client.ts
     # auth.ts includes: login, signup, logout, getSession, updateProfile, sendOtp, verifyOtp
   lib/
     actions/                    # Server Actions (auth, cart, products, profile, sessions, therapists)

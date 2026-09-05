@@ -51,18 +51,6 @@ export function AppointmentsSkeleton() {
     </div>
   );
 }
-
-export function DashboardPageSkeleton() {
-  return (
-    <div>
-      <WelcomeSkeleton />
-      <StatsSkeleton />
-      <AppointmentsSkeleton />
-      <CardSkeleton />
-    </div>
-  );
-}
-
 export function TherapistCardSkeleton({ variant = "light" }: { variant?: "light" | "dark" }) {
   const dark = variant === "dark";
   return (
@@ -112,4 +100,3 @@ export function HeroLiveSkeleton() {
     </div>
   );
 }
-

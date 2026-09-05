@@ -3,24 +3,37 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { HeartPulse, Loader2, ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { HeartPulse, Loader2, ArrowLeft, ArrowRight, Check, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/context/auth";
 import { useLang } from "@/context/i18n";
 import { toast } from "sonner";
 import { completeOnboarding, saveOnboardingProgress, getOnboardingStatus } from "@/services/api/patients";
 import { StepProgress } from "@/components/auth/StepProgress";
+import { PasswordRules } from "@/components/auth/PasswordRules";
 import { DatePicker } from "@/components/ui/date-picker";
 
-type Step = "personal" | "contact" | "health" | "emergency" | "family" | "review";
+type Step = "personal" | "password" | "contact" | "health" | "emergency" | "family" | "review";
 
 const STEPS: { key: Step; label: string }[] = [
   { key: "personal", label: "Personal" },
+  { key: "password", label: "Password" },
   { key: "contact", label: "Contact" },
   { key: "health", label: "Health" },
   { key: "emergency", label: "Emergency" },
   { key: "family", label: "Family" },
   { key: "review", label: "Review" },
 ];
+
+const PASSWORD_RULES = (pw: string) => [
+  { label: "At least 8 characters", met: pw.length >= 8 },
+  { label: "One uppercase letter (A-Z)", met: /[A-Z]/.test(pw) },
+  { label: "One lowercase letter (a-z)", met: /[a-z]/.test(pw) },
+  { label: "One number (0-9)", met: /[0-9]/.test(pw) },
+  { label: "One special character (!@#$...)", met: /[^A-Za-z0-9]/.test(pw) },
+];
+
+const passwordValid = (pw: string) =>
+  pw.length >= 8 && /[A-Z]/.test(pw) && /[a-z]/.test(pw) && /[0-9]/.test(pw) && /[^A-Za-z0-9]/.test(pw);
 
 const inputClass =
   "h-11 w-full rounded-[7px] border border-[#d8dadd] px-3.5 text-[14px] text-text placeholder:text-[14px] placeholder:text-text-light/60 transition-colors focus:border-voltage-lime focus:outline-none focus:ring-4 focus:ring-voltage-lime/15";
@@ -38,6 +51,8 @@ export default function PatientOnboardingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [loadingState, setLoadingState] = useState(true);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [showPw, setShowPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
 
   const [form, setForm] = useState({
     name:"",
@@ -47,6 +62,8 @@ export default function PatientOnboardingPage() {
     address: "",
     dob: "",
     gender: "",
+    password: "",
+    confirmPassword: "",
     condition: "",
     medicalHistory: "",
     emergencyName: "",
@@ -119,6 +136,18 @@ export default function PatientOnboardingPage() {
       if (!form.dob) errors.dob = "Date of birth is required";
       if (!form.gender) errors.gender = "Gender is required";
     }
+    if (step === "password") {
+      if (!form.password) {
+        errors.password = "Password is required";
+      } else if (!passwordValid(form.password)) {
+        errors.password = "Password must meet all requirements below";
+      }
+      if (!form.confirmPassword) {
+        errors.confirmPassword = "Please confirm your password";
+      } else if (form.confirmPassword !== form.password) {
+        errors.confirmPassword = "Passwords do not match";
+      }
+    }
     if (step === "contact") {
       if (!form.phone.trim()) errors.phone = "Phone number is required";
       if (!form.city.trim()) errors.city = "City is required";
@@ -165,6 +194,15 @@ export default function PatientOnboardingPage() {
   };
 
   const handleSubmit = async () => {
+    if (!passwordValid(form.password) || form.password !== form.confirmPassword) {
+      setStep("password");
+      setFieldErrors(
+        !passwordValid(form.password)
+          ? { password: "Password must meet all requirements below" }
+          : { confirmPassword: "Passwords do not match" },
+      );
+      return;
+    }
     setSubmitting(true);
     try {
       await completeOnboarding(form);
@@ -249,6 +287,60 @@ export default function PatientOnboardingPage() {
                   {fieldErrors.gender && <p className="mt-1 text-[12px] text-red-500">{fieldErrors.gender}</p>}
                 </div>
               </div>
+            </div>
+          )}
+
+          {step === "password" && (
+            <div className="space-y-4">
+              <p className="text-[13px] text-text-light">
+                Choose a strong password for your account. You'll use this to sign in.
+              </p>
+              <div>
+                <label className={labelClass}>Password <span className="text-red-500">*</span></label>
+                <div className="relative">
+                  <input
+                    type={showPw ? "text" : "password"}
+                    value={form.password}
+                    onChange={(e) => set("password", e.target.value)}
+                    placeholder="Enter a strong password"
+                    className={`${inputClass} pr-10 ${fieldErrors.password ? "border-red-500" : ""}`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPw((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-light hover:text-text transition-colors"
+                    aria-label={showPw ? "Hide password" : "Show password"}
+                  >
+                    {showPw ? <EyeOff size={17} /> : <Eye size={17} />}
+                  </button>
+                </div>
+                {fieldErrors.password && <p className="mt-1 text-[12px] text-red-500">{fieldErrors.password}</p>}
+              </div>
+              <div>
+                <label className={labelClass}>Confirm password <span className="text-red-500">*</span></label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPw ? "text" : "password"}
+                    value={form.confirmPassword}
+                    onChange={(e) => set("confirmPassword", e.target.value)}
+                    placeholder="Re-enter your password"
+                    className={`${inputClass} pr-10 ${fieldErrors.confirmPassword ? "border-red-500" : ""}`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPw((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-light hover:text-text transition-colors"
+                    aria-label={showConfirmPw ? "Hide password" : "Show password"}
+                  >
+                    {showConfirmPw ? <EyeOff size={17} /> : <Eye size={17} />}
+                  </button>
+                </div>
+                {fieldErrors.confirmPassword && <p className="mt-1 text-[12px] text-red-500">{fieldErrors.confirmPassword}</p>}
+                {form.confirmPassword && form.confirmPassword !== form.password && !fieldErrors.confirmPassword && (
+                  <p className="mt-1 text-[12px] text-red-500">Passwords do not match</p>
+                )}
+              </div>
+              <PasswordRules password={form.password} showRules />
             </div>
           )}
 
@@ -449,6 +541,7 @@ export default function PatientOnboardingPage() {
                   <div><span className="text-text-light">Name:</span> {form.name || "—"}</div>
                   <div><span className="text-text-light">DOB:</span> {form.dob || "—"}</div>
                   <div><span className="text-text-light">Gender:</span> {form.gender || "—"}</div>
+                  <div><span className="text-text-light">Password:</span> {passwordValid(form.password) ? "Set" : "—"}</div>
                 </div>
               </div>
               <div className="rounded-lg border border-[#d8dadd] bg-white p-4 space-y-3">
