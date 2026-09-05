@@ -1518,6 +1518,8 @@ const en = {
   },
 
   rewards: {
+    totalEarned: "Total earned",
+    earnPerFriend: "Earn {amount} for every friend who signs up and completes a booking.",
     title: "Rewards & Referrals",
     yourBalance: "Your balance",
     pts: "pts",

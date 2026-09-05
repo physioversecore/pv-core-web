@@ -709,6 +709,8 @@ const ne = {
   },
 
   rewards: {
+    totalEarned: "कुल कमाइ",
+    earnPerFriend: "साइन अप गरी बुकिङ पूरा गर्ने प्रत्येक साथीका लागि {amount} कमाउनुहोस्।",
     title: "पुरस्कार र रेफरल",
     yourBalance: "तपाईंको ब्यालेन्स",
     pts: "अंक",

@@ -41,7 +41,10 @@ export interface ReferralEntry {
 export interface ReferralSummary {
   code: string;
   link: string;
+  /** Headline rate for this viewer's role, not a flat platform-wide figure. */
   awardPoints: number;
+  /** Everything earned from referrals so far. */
+  totalEarned: number;
   referrals: ReferralEntry[];
 }
 

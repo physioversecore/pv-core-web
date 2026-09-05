@@ -97,13 +97,11 @@ function InviteSection() {
 
   return (
     <section className="card-soft p-5">
-      <p className="eyebrow mb-1">{t("rewards.referAFriend")}</p>
-      <h3 className="section-title text-xl">
-        {t("rewards.giveGet")
-          .replace("{give}", npr(summary.awardPoints))
-          .replace("{get}", npr(summary.awardPoints))}
-      </h3>
-      <p className="text-sm text-text-light mt-1">{t("rewards.referDesc")}</p>
+      <p className="eyebrow mb-1">{t("rewards.totalEarned")}</p>
+      <h3 className="section-title text-xl">{npr(summary.totalEarned)}</h3>
+      <p className="text-sm text-text-light mt-1">
+        {t("rewards.earnPerFriend").replace("{amount}", npr(summary.awardPoints))}
+      </p>
 
       <div className="flex flex-wrap items-center gap-2 mt-4">
         <code className="px-3 py-2 rounded-xl bg-surface font-mono text-sm">
