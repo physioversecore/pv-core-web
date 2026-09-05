@@ -84,10 +84,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [role, pathname, resetComplaintCount]);
 
   if (loading || !user) return null;
-  if (user.role === "therapist" && user.status === "PENDING") return null;
+  if (user.role === "therapist" && user.status === "PENDING") {
+    router.replace("/onboarding/therapist");
+    return null;
+  }
 
   const userPrefix = ROLE_ROUTE[user.role as UserRole];
-  if (userPrefix && !pathname.startsWith(userPrefix)) return null;
+  if (userPrefix && !pathname.startsWith(userPrefix)) {
+    router.replace(userPrefix);
+    return null;
+  }
 
   const labelToKey: Record<string, string> = {
     "Overview": "nav.overview",
