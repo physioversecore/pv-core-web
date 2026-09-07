@@ -33,10 +33,10 @@ const ITEM_HEIGHT = 65;
 function CarouselSkeleton() {
   return (
     <div className="w-full max-w-7xl mx-auto md:p-8">
-      <div className="relative overflow-hidden rounded-[2.5rem] lg:rounded-[4rem] flex flex-col lg:flex-row min-h-[600px] lg:aspect-video border border-white/10">
-        <div className="w-full lg:w-[40%] min-h-[350px] md:min-h-[450px] lg:h-full bg-voltage-lime/40 animate-pulse" />
-        <div className="flex-1 min-h-[500px] md:min-h-[600px] lg:h-full bg-white/5 border-t lg:border-t-0 lg:border-l border-white/10 items-center justify-center hidden md:flex">
-          <div className="w-full max-w-[420px] aspect-[4/5] rounded-[2rem] md:rounded-[2.8rem] bg-white/5 border border-white/10 animate-pulse" />
+      <div className="relative overflow-hidden rounded-[2.5rem] lg:rounded-[4rem] flex flex-col lg:flex-row min-h-[520px] lg:aspect-[2/1] border border-cyan-spark/15">
+        <div className="w-full lg:w-[40%] min-h-[300px] md:min-h-[380px] lg:h-full bg-voltage-lime/40 animate-pulse" />
+        <div className="flex-1 min-h-[420px] md:min-h-[500px] lg:h-full bg-white/5 border-t lg:border-t-0 lg:border-l border-cyan-spark/15 items-center justify-center hidden md:flex">
+          <div className="w-full max-w-[340px] lg:max-w-[400px] aspect-[4/5] rounded-[2rem] md:rounded-[2.8rem] bg-white/5 border border-cyan-spark/20 animate-pulse" />
         </div>
       </div>
     </div>
@@ -93,7 +93,7 @@ export function FeatureCarousel({ therapists, onBook, loading }: FeatureCarousel
 
   return (
     <div className="w-full max-w-7xl mx-auto md:p-8">
-      <div className="relative overflow-hidden rounded-[2.5rem] lg:rounded-[4rem] flex flex-col lg:flex-row min-h-[600px] lg:aspect-video border border-border/40">
+      <div className="relative overflow-hidden rounded-[2.5rem] lg:rounded-[4rem] flex flex-col lg:flex-row min-h-[520px] lg:aspect-[2/1] border border-cyan-spark/15">
 
         <div className="hidden lg:flex w-[40%] h-full relative z-30 flex-col items-start justify-center overflow-hidden pl-16 bg-mid-abyss">
           <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-mid-abyss via-mid-abyss/80 to-transparent z-40" />
@@ -135,7 +135,7 @@ export function FeatureCarousel({ therapists, onBook, loading }: FeatureCarousel
                       "relative flex items-center gap-4 px-6 md:px-10 lg:px-8 py-3.5 md:py-5 lg:py-4 rounded-full transition-all duration-700 text-left group border",
                       isActive
                         ? "bg-voltage-lime text-carbon-ink border-voltage-lime z-10"
-                        : "bg-transparent text-white/60 border-white/20 hover:border-white/40 hover:text-white"
+                        : "bg-transparent text-white/60 border-cyan-spark/30 hover:border-cyan-spark/60 hover:text-white"
                     )}
                   >
                     <span className="font-normal text-sm md:text-[15px] tracking-tight whitespace-nowrap uppercase">
@@ -149,11 +149,11 @@ export function FeatureCarousel({ therapists, onBook, loading }: FeatureCarousel
           </div>
 
         <div
-          className="flex-1 min-h-[500px] md:min-h-[600px] lg:h-full relative bg-secondary/30 flex items-center justify-center py-16 md:py-24 lg:py-16 px-6 md:px-12 lg:px-10 overflow-hidden border-t lg:border-t-0 lg:border-l border-border/20"
+          className="flex-1 min-h-[420px] md:min-h-[500px] lg:h-full relative bg-secondary/30 flex items-center justify-center py-16 md:py-24 lg:py-16 px-6 md:px-12 lg:px-10 overflow-hidden border-t lg:border-t-0 lg:border-l border-cyan-spark/15"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
         >
-          <div className="relative w-full max-w-[420px] aspect-[4/5] flex items-center justify-center">
+          <div className="relative w-full max-w-[340px] lg:max-w-[400px] aspect-[4/5] flex items-center justify-center">
             {slides.map((therapist, index) => {
               const status = getCardStatus(index);
               const isActive = status === "active";
@@ -181,7 +181,7 @@ export function FeatureCarousel({ therapists, onBook, loading }: FeatureCarousel
                     damping: 25,
                     mass: 0.8,
                   }}
-                  className="absolute inset-0 rounded-[2rem] md:rounded-[2.8rem] overflow-hidden border-2 md:border-4 origin-center"
+                  className="absolute inset-0 rounded-[2rem] md:rounded-[2.8rem] overflow-hidden border-2 md:border-4 border-cyan-spark/25 origin-center"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <div className="relative w-full h-full">
