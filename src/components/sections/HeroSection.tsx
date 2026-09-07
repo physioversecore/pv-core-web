@@ -257,17 +257,17 @@ function AvailableToday({ onBook }: { onBook?: (t: TherapistData) => void }) {
               <div className="flex items-center gap-2.5 min-w-0">
                 <Avatar name={therapist.name} size={36} src={therapist.mediaUrls?.split(",")[0]} />
                 <div className="min-w-0">
-                  <div className="font-semibold text-sm text-white truncate">{therapist.name}</div>
+                  <div className="font-semibold text-[15px] text-white truncate">{therapist.name}</div>
                 </div>
               </div>
-              <div className="text-sm font-bold text-white leading-none shrink-0">
+              <div className="text-[15px] font-bold text-white leading-none shrink-0">
                 {npr(therapist.price)}
-                <span className="text-[10px] font-normal text-white/45"> {t("landing.heroPerSession")}</span>
+                <span className="text-[11px] font-normal text-white/45"> {t("landing.heroPerSession")}</span>
               </div>
             </div>
 
             <div className="flex items-center justify-between gap-2">
-              <p className="text-xs text-white/40 truncate">{therapist.city}</p>
+              <p className="text-[13px] text-white/40 truncate">{therapist.city}</p>
               <div className="flex items-center gap-1 text-xs shrink-0">
                 <Star className="w-3 h-3 fill-voltage-lime text-voltage-lime" />
                 <span className="font-semibold text-white/85">{therapist.rating}</span>
@@ -275,7 +275,7 @@ function AvailableToday({ onBook }: { onBook?: (t: TherapistData) => void }) {
               </div>
             </div>
 
-            <p className="text-xs text-white/40 leading-relaxed truncate">
+            <p className="text-[13px] text-white/40 leading-relaxed truncate">
               {therapist.specialty}
             </p>
 
@@ -290,7 +290,7 @@ function AvailableToday({ onBook }: { onBook?: (t: TherapistData) => void }) {
                   e.stopPropagation();
                   onBook?.(therapist);
                 }}
-                className="px-3 py-1 rounded-full border border-white/10 text-xs font-semibold text-white/75 transition-colors hover:border-voltage-lime/40 hover:text-voltage-lime"
+                className="px-3 py-1 rounded-full border border-white/10 text-[13px] font-semibold text-white/75 transition-colors hover:border-voltage-lime/40 hover:text-voltage-lime"
               >
                 {t("common.book")}
               </button>
