@@ -81,9 +81,9 @@ export const DEFAULT_TOKENS: DesignTokens = {
     inkDim: "#bcbdb7",
   },
   typography: {
-    fontDisplay: '"Fraunces", ui-serif, Georgia, serif',
-    fontSans: '"Inter", ui-sans-serif, system-ui, sans-serif',
-    fontMono: '"IBM Plex Mono", ui-monospace, monospace',
+    fontDisplay: '"Manrope", ui-sans-serif, system-ui, sans-serif',
+    fontSans: '"Manrope", ui-sans-serif, system-ui, sans-serif',
+    fontMono: '"Manrope", ui-sans-serif, system-ui, sans-serif',
   },
   radii: {
     base: "1rem",

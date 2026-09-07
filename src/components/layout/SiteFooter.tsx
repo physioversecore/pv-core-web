@@ -117,7 +117,7 @@ export function SiteFooter() {
 
         <div aria-hidden className="relative w-full text-center select-none pointer-events-none">
           <span
-            className="font-anybody font-black uppercase text-voltage-lime whitespace-nowrap inline-block"
+            className="font-sans font-extrabold uppercase text-voltage-lime whitespace-nowrap inline-block"
             style={{ fontSize: "clamp(12vw, 15vw, 16vw)", lineHeight: 0.72, letterSpacing: "-0.03em" }}
           >
             Sahayatri

@@ -162,7 +162,7 @@ Warm editorial design language — Deep Forest + Warm Ivory canvas with a Muted 
 
 **Legacy admin tokens** (kept in `:root` for dashboard/forms): Primary `#D77C5F` (terracotta), Secondary `#16443B` (deep forest), Background `#F7F5EF` (warm ivory), Foreground `#1B2523`, Surface `#ECEFE9` (soft mineral).
 
-**Fonts**: Fraunces (`font-display`, serif headings), Inter (`font-sans`, body), IBM Plex Mono (`font-mono`, mono labels/dates), Anybody (`font-anybody`, display weights).
+**Fonts**: Manrope (`font-sans`/`font-display`, single primary typeface). Weights: 400 body, 500 supporting UI, 600 nav/labels/buttons/therapist names, 700 prices/emphasis, 800 hero + major headings. `font-mono` and `font-anybody` utilities resolve to Manrope for legacy compat.
 
 **Dynamic theming**: Admin can customize all colors, fonts, and border radius via the Appearance section. Tokens are persisted via the API and applied in real-time.
 

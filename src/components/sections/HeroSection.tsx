@@ -75,7 +75,7 @@ export function HeroSection({ onBook }: { onBook?: (t: TherapistData) => void })
           {/* Left: text + search */}
           <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
             <h1
-              className="font-anybody font-bold uppercase text-white"
+              className="font-sans font-extrabold uppercase text-white"
               style={{
                 fontSize: "clamp(34px, 6vw, 84px)",
                 lineHeight: 1,
@@ -207,7 +207,7 @@ function AvailableToday({ onBook }: { onBook?: (t: TherapistData) => void }) {
   if (isLoading) return (
     <>
       <div className="flex items-center justify-between gap-3 pb-4">
-        <p className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-white/60 flex items-center gap-2 shrink-0">
+        <p className="font-mono font-semibold text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-white/60 flex items-center gap-2 shrink-0">
           <span className="relative flex size-1.5 sm:size-2">
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-voltage-lime/75" />
             <span className="relative inline-flex size-1.5 sm:size-2 rounded-full bg-voltage-lime" />
@@ -217,7 +217,7 @@ function AvailableToday({ onBook }: { onBook?: (t: TherapistData) => void }) {
         </p>
         <button
           onClick={() => router.push("/find-a-therapist")}
-          className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-white/40 transition-colors hover:text-white cursor-pointer shrink-0"
+          className="font-mono font-semibold text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-white/40 transition-colors hover:text-white cursor-pointer shrink-0"
         >
           {t("landing.heroViewAllTherapists")} →
         </button>
@@ -231,7 +231,7 @@ function AvailableToday({ onBook }: { onBook?: (t: TherapistData) => void }) {
   return (
     <>
       <div className="flex items-center justify-between gap-3">
-        <p className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-white/60 flex items-center gap-2 shrink-0">
+        <p className="font-mono font-semibold text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-white/60 flex items-center gap-2 shrink-0">
           <span className="relative flex size-1.5 sm:size-2">
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-voltage-lime/75" />
             <span className="relative inline-flex size-1.5 sm:size-2 rounded-full bg-voltage-lime" />
@@ -241,7 +241,7 @@ function AvailableToday({ onBook }: { onBook?: (t: TherapistData) => void }) {
         </p>
         <button
           onClick={() => router.push("/find-a-therapist")}
-          className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-white/40 transition-colors hover:text-white cursor-pointer shrink-0"
+          className="font-mono font-semibold text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-white/40 transition-colors hover:text-white cursor-pointer shrink-0"
         >
           {t("landing.heroViewAllTherapists")} →
         </button>
@@ -262,6 +262,7 @@ function AvailableToday({ onBook }: { onBook?: (t: TherapistData) => void }) {
               </div>
               <div className="text-sm font-bold text-white leading-none shrink-0">
                 {npr(therapist.price)}
+                <span className="text-[10px] font-normal text-white/45"> {t("landing.heroPerSession")}</span>
               </div>
             </div>
 
@@ -269,7 +270,7 @@ function AvailableToday({ onBook }: { onBook?: (t: TherapistData) => void }) {
               <p className="text-xs text-white/40 truncate">{therapist.city}</p>
               <div className="flex items-center gap-1 text-xs shrink-0">
                 <Star className="w-3 h-3 fill-voltage-lime text-voltage-lime" />
-                <span className="font-medium text-white/85">{therapist.rating}</span>
+                <span className="font-semibold text-white/85">{therapist.rating}</span>
                 <span className="text-white/35">({therapist.reviews})</span>
               </div>
             </div>
@@ -279,7 +280,7 @@ function AvailableToday({ onBook }: { onBook?: (t: TherapistData) => void }) {
             </p>
 
             <div className="mt-auto pt-1 flex items-center justify-between gap-2">
-              <span className="inline-flex items-center gap-1.5 text-[11px] text-white/45">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-white/45">
                 <ShieldCheck size={12} className="text-voltage-lime/70" />
                 {t("landing.heroNmcVerifiedCare")}
               </span>
@@ -289,7 +290,7 @@ function AvailableToday({ onBook }: { onBook?: (t: TherapistData) => void }) {
                   e.stopPropagation();
                   onBook?.(therapist);
                 }}
-                className="px-3 py-1 rounded-full border border-white/10 text-xs font-medium text-white/75 transition-colors hover:border-voltage-lime/40 hover:text-voltage-lime"
+                className="px-3 py-1 rounded-full border border-white/10 text-xs font-semibold text-white/75 transition-colors hover:border-voltage-lime/40 hover:text-voltage-lime"
               >
                 {t("common.book")}
               </button>
