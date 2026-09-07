@@ -607,12 +607,6 @@
 @keyframes blobFloatB { 0%,100%{transform:translateY(0)} 50%{transform:translateY(20px)} }
 @keyframes blobFloatC { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-18px,-14px)} }
 
-.dot-pulse { animation: dotPulse 1.6s ease-in-out infinite; }
-@keyframes dotPulse {
-  0%,100% { box-shadow: 0 0 0 0 rgba(215,124,95,.6); }
-  50%     { box-shadow: 0 0 0 10px rgba(215,124,95,0); }
-}
-
 .scroll-cue { animation: scrollCue 2.2s ease-in-out infinite; }
 @keyframes scrollCue {
   0%,100% { opacity: .25; transform: scaleY(.6); }
