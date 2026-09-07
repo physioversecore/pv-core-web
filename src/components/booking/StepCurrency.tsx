@@ -90,9 +90,9 @@ export function StepCurrency({
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-xl font-bold text-[#1E2A2E]">Select currency</h2>
+        <h2 className="text-xl font-bold text-text">Select currency</h2>
         <p className="text-sm text-gray-500 mt-1">Choose how you want to pay</p>
-        <button onClick={onBack} className="text-sm text-gray-500 hover:text-[#1F3D2B] mt-1 flex items-center gap-1">
+        <button onClick={onBack} className="text-sm text-gray-500 hover:text-secondary mt-1 flex items-center gap-1">
           ← Back
         </button>
       </div>
@@ -103,11 +103,11 @@ export function StepCurrency({
           onClick={() => setOpen((v) => !v)}
           aria-haspopup="listbox"
           aria-expanded={open}
-          className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3D2B]/20 focus:border-[#1F3D2B]"
+          className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
         >
           <span className="flex items-center gap-2">
             <span className="text-lg">{selected.flag}</span>
-            <span className="font-medium text-[#1E2A2E]">{selected.code}</span>
+            <span className="font-medium text-text">{selected.code}</span>
             <span className="text-gray-400">— {selected.name}</span>
           </span>
           <ChevronDown
@@ -134,17 +134,17 @@ export function StepCurrency({
                 }}
                 className={cn(
                   "w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors",
-                  c.code === selectedCurrency && "bg-[#1F3D2B]/5",
+                  c.code === selectedCurrency && "bg-secondary/5",
                   focusedIdx === i && "bg-gray-50"
                 )}
               >
                 <span className="flex items-center gap-2">
                   <span className="text-lg">{c.flag}</span>
-                  <span className="font-medium text-[#1E2A2E]">{c.code}</span>
+                  <span className="font-medium text-text">{c.code}</span>
                   <span className="text-gray-400">— {c.name}</span>
                 </span>
                 {c.code === selectedCurrency && (
-                  <span className="text-[#1F3D2B] font-bold">✓</span>
+                  <span className="text-secondary font-bold">✓</span>
                 )}
               </button>
             ))}
@@ -152,17 +152,17 @@ export function StepCurrency({
         )}
       </div>
 
-      <div className="bg-[#F0F0EE] rounded-xl p-4">
+      <div className="bg-surface rounded-xl p-4">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[10px] uppercase tracking-wider text-gray-500 font-medium">You will pay</p>
-            <p className="text-2xl font-bold text-[#1E2A2E] mt-0.5">
+            <p className="text-2xl font-bold text-text mt-0.5">
               {selected.symbol}{converted.toFixed(2)}
             </p>
           </div>
           <div className="text-right">
             <p className="text-[10px] uppercase tracking-wider text-gray-500 font-medium">Base price</p>
-            <p className="text-sm font-semibold text-[#1E2A2E] mt-0.5">
+            <p className="text-sm font-semibold text-text mt-0.5">
               Rs. {basePrice.toLocaleString("en-IN")}
             </p>
           </div>
@@ -183,7 +183,7 @@ export function StepCurrency({
 
       <button
         onClick={onContinue}
-        className="w-full py-3 rounded-xl font-semibold bg-[#1F3D2B] text-white hover:bg-[#1F3D2B]/90 flex items-center justify-center gap-2 transition-all"
+        className="w-full py-3 rounded-xl font-semibold bg-secondary text-white hover:bg-secondary/90 flex items-center justify-center gap-2 transition-all"
       >
         Continue to payment method →
       </button>

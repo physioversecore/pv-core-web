@@ -132,11 +132,11 @@ export function StepPayment({
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-xl font-bold text-[#1E2A2E]">Payment method</h2>
+        <h2 className="text-xl font-bold text-text">Payment method</h2>
         <p className="text-sm text-gray-500 mt-1">Enter your payment details</p>
         <button
           onClick={onBack}
-          className="text-sm text-gray-500 hover:text-[#1F3D2B] mt-1 flex items-center gap-1"
+          className="text-sm text-gray-500 hover:text-secondary mt-1 flex items-center gap-1"
         >
           ← Back
         </button>
@@ -157,12 +157,12 @@ export function StepPayment({
               className={cn(
                 "flex flex-col items-center gap-2 p-4 rounded-xl border text-sm transition-all",
                 active
-                  ? "border-[#1F3D2B] bg-[#1F3D2B]/5"
+                  ? "border-secondary bg-secondary/5"
                   : "border-gray-200 bg-white hover:border-gray-300",
               )}
             >
               <span className="text-2xl">{pt.flag}</span>
-              <span className={cn("font-semibold", active ? "text-[#1F3D2B]" : "text-[#1E2A2E]")}>
+              <span className={cn("font-semibold", active ? "text-secondary" : "text-text")}>
                 {pt.label}
               </span>
             </button>
@@ -175,9 +175,9 @@ export function StepPayment({
           <button
             type="button"
             onClick={() => setMethodOpen((v) => !v)}
-            className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3D2B]/20 focus:border-[#1F3D2B]"
+            className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
           >
-            <span className={cn("font-medium", selectedMethod ? "text-[#1E2A2E]" : "text-gray-400")}>
+            <span className={cn("font-medium", selectedMethod ? "text-text" : "text-gray-400")}>
               {selectedMethod ? (
                 <>
                   <span className="mr-2">{selectedMethod.icon}</span>
@@ -203,7 +203,7 @@ export function StepPayment({
                   }}
                   className={cn(
                     "w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors",
-                    selectedPaymentId === m.id && "bg-[#1F3D2B]/5 font-semibold text-[#1F3D2B]",
+                    selectedPaymentId === m.id && "bg-secondary/5 font-semibold text-secondary",
                   )}
                 >
                   <span className="text-lg">{m.icon}</span>
@@ -220,7 +220,7 @@ export function StepPayment({
 
       {paymentType === "nepal" && isNepalWallet && (
         <div>
-          <label className="text-sm font-medium text-[#1E2A2E]">
+          <label className="text-sm font-medium text-text">
             {selectedMethod?.label} registered mobile number
           </label>
           <input
@@ -230,7 +230,7 @@ export function StepPayment({
               onEsewaMobileChange?.(e.target.value.replace(/\D/g, "").slice(0, 10))
             }
             placeholder="98XXXXXXXX"
-            className="w-full mt-1.5 px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3D2B]/20 focus:border-[#1F3D2B]"
+            className="w-full mt-1.5 px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
           />
           <p className="text-xs text-gray-400 mt-1">
             You will receive a prompt on your {selectedMethod?.label} app to confirm the payment.
@@ -241,56 +241,56 @@ export function StepPayment({
       {paymentType === "international" && selectedPaymentId === "card" && (
         <div className="space-y-3">
           <div>
-            <label className="text-sm font-medium text-[#1E2A2E]">Card number</label>
+            <label className="text-sm font-medium text-text">Card number</label>
             <input
               type="text"
               inputMode="numeric"
               value={cardDetails.number}
               onChange={(e) => updateCard("number", e.target.value)}
               placeholder="1234 5678 9012 3456"
-              className="w-full mt-1.5 px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3D2B]/20 focus:border-[#1F3D2B]"
+              className="w-full mt-1.5 px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-sm font-medium text-[#1E2A2E]">Expiry date</label>
+              <label className="text-sm font-medium text-text">Expiry date</label>
               <input
                 type="text"
                 value={cardDetails.expiry}
                 onChange={(e) => updateCard("expiry", e.target.value)}
                 placeholder="MM/YY"
-                className="w-full mt-1.5 px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3D2B]/20 focus:border-[#1F3D2B]"
+                className="w-full mt-1.5 px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-[#1E2A2E]">CVV</label>
+              <label className="text-sm font-medium text-text">CVV</label>
               <input
                 type="text"
                 inputMode="numeric"
                 value={cardDetails.cvv}
                 onChange={(e) => updateCard("cvv", e.target.value)}
                 placeholder="123"
-                className="w-full mt-1.5 px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3D2B]/20 focus:border-[#1F3D2B]"
+                className="w-full mt-1.5 px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
               />
             </div>
           </div>
           <div>
-            <label className="text-sm font-medium text-[#1E2A2E]">Name on card</label>
+            <label className="text-sm font-medium text-text">Name on card</label>
             <input
               type="text"
               value={cardDetails.name}
               onChange={(e) => updateCard("name", e.target.value)}
               placeholder="John Doe"
-              className="w-full mt-1.5 px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3D2B]/20 focus:border-[#1F3D2B]"
+              className="w-full mt-1.5 px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-[#1E2A2E]">Billing country</label>
+            <label className="text-sm font-medium text-text">Billing country</label>
             <div className="relative mt-1.5">
               <button
                 type="button"
                 onClick={() => setCountryOpen((v) => !v)}
-                className="w-full text-left px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3D2B]/20 focus:border-[#1F3D2B]"
+                className="w-full text-left px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
               >
                 {billingCountry || <span className="text-gray-400">Select country</span>}
               </button>
@@ -305,7 +305,7 @@ export function StepPayment({
                       }}
                       className={cn(
                         "w-full text-left px-3 py-2 text-sm hover:bg-gray-50",
-                        billingCountry === c && "bg-[#1F3D2B]/5 font-medium",
+                        billingCountry === c && "bg-secondary/5 font-medium",
                       )}
                     >
                       {c}
@@ -319,24 +319,24 @@ export function StepPayment({
       )}
 
       {currency && (
-        <div className="bg-[#F0F0EE] rounded-xl p-4 space-y-2">
+        <div className="bg-surface rounded-xl p-4 space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Session fee</span>
-            <span className="font-medium text-[#1E2A2E]">
+            <span className="font-medium text-text">
               {currency.symbol}
               {converted.toFixed(2)}
             </span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Platform fee (5%)</span>
-            <span className="font-medium text-[#1E2A2E]">
+            <span className="font-medium text-text">
               {currency.symbol}
               {platformFee.toFixed(2)}
             </span>
           </div>
           <div className="flex justify-between text-sm font-bold border-t border-gray-300 pt-2">
-            <span className="text-[#1E2A2E]">Total</span>
-            <span className="text-[#1E2A2E]">
+            <span className="text-text">Total</span>
+            <span className="text-text">
               {currency.symbol}
               {total.toFixed(2)}
             </span>
@@ -355,7 +355,7 @@ export function StepPayment({
         className={cn(
           "w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all",
           isValid
-            ? "bg-[#1F3D2B] text-white hover:bg-[#1F3D2B]/90"
+            ? "bg-secondary text-white hover:bg-secondary/90"
             : "bg-gray-200 text-gray-400 cursor-not-allowed",
         )}
       >

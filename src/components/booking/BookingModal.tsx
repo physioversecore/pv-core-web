@@ -142,7 +142,7 @@ export default function BookingModal(props: Props) {
         onClick={onClose}
         aria-label="Close"
       />
-      <div className="relative w-full max-w-[420px] bg-[#FAF9F5] rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full max-w-[420px] bg-background rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
         <button
           onClick={onClose}
           className="absolute right-3 top-3 z-10 p-2 rounded-full hover:bg-black/5 transition-colors"
@@ -216,14 +216,14 @@ export default function BookingModal(props: Props) {
 
           {currentStep === 5 && mode === "admin" && adminResult && (
             <div className="space-y-5 text-center">
-              <div className="w-20 h-20 rounded-full bg-[#1F3D2B]/10 flex items-center justify-center mx-auto animate-in zoom-in duration-300">
+              <div className="w-20 h-20 rounded-full bg-secondary/10 flex items-center justify-center mx-auto animate-in zoom-in duration-300">
                 <span className="text-4xl">✓</span>
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-[#1E2A2E]">Booking created!</h2>
+                <h2 className="text-2xl font-bold text-text">Booking created!</h2>
                 <p className="text-gray-500 mt-1">Session booked on behalf of patient</p>
               </div>
-              <div className="bg-[#F0F0EE] rounded-xl p-4 text-left space-y-2 text-sm">
+              <div className="bg-surface rounded-xl p-4 text-left space-y-2 text-sm">
                 <DetailRow label="Patient" value={adminResult.patientName} />
                 <DetailRow label="Therapist" value={adminResult.therapistName} />
                 <DetailRow label="Date" value={formatDisplayDate(adminResult.date)} />
@@ -240,7 +240,7 @@ export default function BookingModal(props: Props) {
                   }
                   onClose();
                 }}
-                className="w-full py-3 rounded-xl font-semibold bg-[#1F3D2B] text-white hover:bg-[#1F3D2B]/90 transition-all"
+                className="w-full py-3 rounded-xl font-semibold bg-secondary text-white hover:bg-secondary/90 transition-all"
               >
                 Done
               </button>
@@ -259,8 +259,8 @@ export default function BookingModal(props: Props) {
         {paying && (
           <div className="absolute inset-0 bg-white/60 backdrop-blur-sm rounded-2xl flex items-center justify-center z-20">
             <div className="text-center">
-              <div className="w-12 h-12 border-4 border-[#1F3D2B] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-              <p className="text-sm font-medium text-[#1E2A2E]">
+              <div className="w-12 h-12 border-4 border-secondary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+              <p className="text-sm font-medium text-text">
                 {mode === "admin" ? "Creating booking..." : "Processing payment..."}
               </p>
             </div>
@@ -283,7 +283,7 @@ function DetailRow({
   return (
     <div className="flex justify-between gap-2">
       <span className="text-gray-500">{label}</span>
-      <span className={bold ? "font-bold text-[#1E2A2E]" : "font-medium text-[#1E2A2E]"}>
+      <span className={bold ? "font-bold text-text" : "font-medium text-text"}>
         {value}
       </span>
     </div>

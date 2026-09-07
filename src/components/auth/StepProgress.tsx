@@ -19,8 +19,8 @@ export function StepProgress({
             <div
               className={cn(
                 "flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold transition-colors",
-                done && "bg-voltage-lime text-[#0a1815]",
-                active && "bg-[#14151c] text-white",
+                done && "bg-voltage-lime text-carbon-ink",
+                active && "bg-carbon-ink text-white",
                 !done && !active && "bg-border text-text-muted/50"
               )}
             >

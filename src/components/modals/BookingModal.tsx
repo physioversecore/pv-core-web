@@ -104,8 +104,8 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
               <div
                 className={cn(
                   "w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors",
-                  isCompleted && "bg-[#1F3D2B] text-white",
-                  isActive && "bg-[#1F3D2B] text-white ring-2 ring-[#1F3D2B]/30",
+                  isCompleted && "bg-secondary text-white",
+                  isActive && "bg-secondary text-white ring-2 ring-secondary/30",
                   isUpcoming && "bg-white border-2 border-gray-300 text-gray-400"
                 )}
               >
@@ -114,8 +114,8 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
               <span
                 className={cn(
                   "text-[10px] mt-1 whitespace-nowrap font-medium",
-                  isCompleted && "text-[#1F3D2B]",
-                  isActive && "text-[#1F3D2B] font-semibold",
+                  isCompleted && "text-secondary",
+                  isActive && "text-secondary font-semibold",
                   isUpcoming && "text-gray-400"
                 )}
               >
@@ -126,7 +126,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
               <div
                 className={cn(
                   "flex-1 h-[2px] mx-2 mt-[-1.5rem]",
-                  isCompleted ? "bg-[#1F3D2B]" : "bg-gray-200"
+                  isCompleted ? "bg-secondary" : "bg-gray-200"
                 )}
               />
             )}
@@ -155,14 +155,14 @@ function TherapistSummaryCard({ therapist, selectedCurrency, currencies, compact
 
   if (compact) {
     return (
-      <div className="flex items-center gap-3 bg-[#F0F0EE] rounded-xl p-3">
+      <div className="flex items-center gap-3 bg-surface rounded-xl p-3">
         <Avatar name={therapist.name} size={40} />
         <div className="flex-1 min-w-0">
-          <div className="font-semibold text-sm text-[#1E2A2E] truncate">{therapist.name}</div>
+          <div className="font-semibold text-sm text-text truncate">{therapist.name}</div>
           <div className="text-xs text-gray-500">{therapist.specialty}</div>
         </div>
         <div className="text-right">
-          <div className="font-bold text-sm text-[#1E2A2E]">{formattedPrice}</div>
+          <div className="font-bold text-sm text-text">{formattedPrice}</div>
           <div className="text-[10px] text-gray-400">per session</div>
         </div>
       </div>
@@ -170,14 +170,14 @@ function TherapistSummaryCard({ therapist, selectedCurrency, currencies, compact
   }
 
   return (
-    <div className="flex items-center gap-3 bg-[#F0F0EE] rounded-xl p-3">
+    <div className="flex items-center gap-3 bg-surface rounded-xl p-3">
       <Avatar name={therapist.name} size={44} />
       <div className="flex-1 min-w-0">
-        <div className="font-semibold text-[#1E2A2E] truncate">{therapist.name}</div>
+        <div className="font-semibold text-text truncate">{therapist.name}</div>
         <div className="text-sm text-gray-500 truncate">{therapist.specialty}</div>
       </div>
       <div className="text-right shrink-0">
-        <div className="font-bold text-[#1E2A2E]">{formattedPrice}</div>
+        <div className="font-bold text-text">{formattedPrice}</div>
         <div className="text-xs text-gray-400">per session</div>
       </div>
     </div>
@@ -207,7 +207,7 @@ function ForWhomSelector({ familyMembers, selectedName, selectedId, onSelect }: 
 
   return (
     <div>
-      <label className="text-sm font-semibold text-[#1E2A2E]">Who is this session for?</label>
+      <label className="text-sm font-semibold text-text">Who is this session for?</label>
       <div className="grid grid-cols-2 gap-2 mt-1.5">
         {options.map((opt) => {
           const isSelected = opt.id === selectedId;
@@ -219,11 +219,11 @@ function ForWhomSelector({ familyMembers, selectedName, selectedId, onSelect }: 
               className={cn(
                 "py-2.5 px-3 rounded-xl border text-left transition-all",
                 isSelected
-                  ? "border-[#2F5D50] bg-[#2F5D50]/10 ring-1 ring-[#2F5D50]/30"
+                  ? "border-secondary bg-secondary/10 ring-1 ring-secondary/30"
                   : "border-gray-200 bg-white hover:bg-gray-50"
               )}
             >
-              <div className={cn("text-sm font-medium", isSelected ? "text-[#2F5D50]" : "text-[#1E2A2E]")}>
+              <div className={cn("text-sm font-medium", isSelected ? "text-secondary" : "text-text")}>
                 {opt.name}
               </div>
               <div className="text-[11px] text-gray-400 truncate">{opt.subtitle}</div>
@@ -311,7 +311,7 @@ function StepDateTime({ selectedDate, selectedTime, address, slots, slotsLoading
     <div className="space-y-5">
       <div>
         {/*{onBack && (
-          <button onClick={onBack} className="text-sm text-gray-500 hover:text-[#1F3D2B] mb-2 flex items-center gap-1">
+          <button onClick={onBack} className="text-sm text-gray-500 hover:text-secondary mb-2 flex items-center gap-1">
             ← Back
           </button>
         )}*/}
@@ -324,7 +324,7 @@ function StepDateTime({ selectedDate, selectedTime, address, slots, slotsLoading
       </div>
 
       <div>
-        <label className="text-sm font-semibold text-[#1E2A2E]">Select date</label>
+        <label className="text-sm font-semibold text-text">Select date</label>
         <div className="flex items-center gap-2 mt-1.5">
           <button
             type="button"
@@ -337,7 +337,7 @@ function StepDateTime({ selectedDate, selectedTime, address, slots, slotsLoading
           >
             <ChevronLeft size={16} className="text-gray-500" />
           </button>
-          <div className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-medium text-[#1E2A2E]">
+          <div className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-medium text-text">
             <CalendarDays size={16} className="text-gray-400 shrink-0" />
             <span className="truncate">{formatDateLabel(selectedDate)}</span>
           </div>
@@ -352,7 +352,7 @@ function StepDateTime({ selectedDate, selectedTime, address, slots, slotsLoading
       </div>
 
       <div>
-        <label className="text-sm font-semibold text-[#1E2A2E]">Available time slots</label>
+        <label className="text-sm font-semibold text-text">Available time slots</label>
         {slotsLoading ? (
           <div className="grid grid-cols-3 gap-2 mt-2">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -381,8 +381,8 @@ function StepDateTime({ selectedDate, selectedTime, address, slots, slotsLoading
                     onClick={() => isOpen && onTimeChange(slot.time)}
                     className={cn(
                       "py-2.5 rounded-xl text-sm font-medium border transition-all",
-                      isOpen && isSelected && "border-[#2F5D50] bg-[#2F5D50]/10 text-[#2F5D50] ring-1 ring-[#2F5D50]/30",
-                      isOpen && !isSelected && "border-[#2F5D50]/30 bg-[#2F5D50]/5 text-[#2F5D50] hover:bg-[#2F5D50]/10 hover:border-[#2F5D50]/50",
+                      isOpen && isSelected && "border-secondary bg-secondary/10 text-secondary ring-1 ring-secondary/30",
+                      isOpen && !isSelected && "border-secondary/30 bg-secondary/5 text-secondary hover:bg-secondary/10 hover:border-secondary/50",
                       isBooked && "bg-gray-100 text-gray-400 border-gray-200 line-through cursor-not-allowed",
                       isOff && "bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed",
                       isPast && "bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed"
@@ -397,18 +397,18 @@ function StepDateTime({ selectedDate, selectedTime, address, slots, slotsLoading
           </div>
         )}
         <p className="text-xs text-gray-400 mt-2">
-          <span className="text-[#2F5D50]">Green</span> = available · <span className="line-through">Grey</span> = booked · Light grey = off
+          <span className="text-secondary">Green</span> = available · <span className="line-through">Grey</span> = booked · Light grey = off
         </p>
       </div>
 
       <div>
-        <label className="text-sm font-semibold text-[#1E2A2E]">Session address</label>
+        <label className="text-sm font-semibold text-text">Session address</label>
         <input
           type="text"
           value={address}
           onChange={(e) => onAddressChange(e.target.value)}
           placeholder="Enter your address for the session"
-          className="mt-1.5 w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-[#1E2A2E] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1F3D2B]/20 focus:border-[#1F3D2B]"
+          className="mt-1.5 w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-text placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
         />
       </div>
 
@@ -418,7 +418,7 @@ function StepDateTime({ selectedDate, selectedTime, address, slots, slotsLoading
         className={cn(
           "w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all",
           isValid
-            ? "bg-[#1F3D2B] text-white hover:bg-[#1F3D2B]/90"
+            ? "bg-secondary text-white hover:bg-secondary/90"
             : "bg-gray-200 text-gray-400 cursor-not-allowed"
         )}
       >
@@ -603,25 +603,25 @@ function StepPayment({
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-xl font-bold text-[#1E2A2E]">Payment</h2>
+        <h2 className="text-xl font-bold text-text">Payment</h2>
         <p className="text-sm text-gray-500 mt-1">Select currency and payment method</p>
-        <button onClick={onBack} className="text-sm text-gray-500 hover:text-[#1F3D2B] mt-1 flex items-center gap-1">
+        <button onClick={onBack} className="text-sm text-gray-500 hover:text-secondary mt-1 flex items-center gap-1">
           ← Back
         </button>
       </div>
 
       <div ref={currencyRef} className="relative" onKeyDown={handleCurrencyKeyDown}>
-        <label className="text-sm font-medium text-[#1E2A2E] mb-1.5 block">Currency</label>
+        <label className="text-sm font-medium text-text mb-1.5 block">Currency</label>
         <button
           type="button"
           onClick={() => setCurrencyOpen((v) => !v)}
           aria-haspopup="listbox"
           aria-expanded={currencyOpen}
-          className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3D2B]/20 focus:border-[#1F3D2B]"
+          className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
         >
           <span className="flex items-center gap-2">
             <span className="text-lg">{currency.flag}</span>
-            <span className="font-medium text-[#1E2A2E]">{currency.code}</span>
+            <span className="font-medium text-text">{currency.code}</span>
             <span className="text-gray-400">— {currency.name}</span>
           </span>
           <ChevronDown
@@ -646,17 +646,17 @@ function StepPayment({
                 }}
                 className={cn(
                   "w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors",
-                  c.code === selectedCurrency && "bg-[#1F3D2B]/5",
+                  c.code === selectedCurrency && "bg-secondary/5",
                   currencyFocusedIdx === i && "bg-gray-50"
                 )}
               >
                 <span className="flex items-center gap-2">
                   <span className="text-lg">{c.flag}</span>
-                  <span className="font-medium text-[#1E2A2E]">{c.code}</span>
+                  <span className="font-medium text-text">{c.code}</span>
                   <span className="text-gray-400">— {c.name}</span>
                 </span>
                 {c.code === selectedCurrency && (
-                  <span className="text-[#1F3D2B] font-bold">✓</span>
+                  <span className="text-secondary font-bold">✓</span>
                 )}
               </button>
             ))}
@@ -664,17 +664,17 @@ function StepPayment({
         )}
       </div>
 
-      <div className="bg-[#F0F0EE] rounded-xl p-4">
+      <div className="bg-surface rounded-xl p-4">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[10px] uppercase tracking-wider text-gray-500 font-medium">You will pay</p>
-            <p className="text-2xl font-bold text-[#1E2A2E] mt-0.5">
+            <p className="text-2xl font-bold text-text mt-0.5">
               {symbol}{total.toFixed(2)}
             </p>
           </div>
           <div className="text-right">
             <p className="text-[10px] uppercase tracking-wider text-gray-500 font-medium">Base price</p>
-            <p className="text-sm font-semibold text-[#1E2A2E] mt-0.5">
+            <p className="text-sm font-semibold text-text mt-0.5">
               Rs. {basePrice.toLocaleString("en-IN")}
             </p>
           </div>
@@ -701,12 +701,12 @@ function StepPayment({
               className={cn(
                 "flex flex-col items-center gap-2 p-4 rounded-xl border text-sm transition-all",
                 active
-                  ? "border-[#1F3D2B] bg-[#1F3D2B]/5"
+                  ? "border-secondary bg-secondary/5"
                   : "border-gray-200 bg-white hover:border-gray-300"
               )}
             >
               <span className="text-2xl">{pt.flag}</span>
-              <span className={cn("font-semibold", active ? "text-[#1F3D2B]" : "text-[#1E2A2E]")}>
+              <span className={cn("font-semibold", active ? "text-secondary" : "text-text")}>
                 {pt.label}
               </span>
             </button>
@@ -719,9 +719,9 @@ function StepPayment({
           <button
             type="button"
             onClick={() => setMethodOpen((v) => !v)}
-            className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3D2B]/20 focus:border-[#1F3D2B]"
+            className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
           >
-            <span className={cn("font-medium", selectedMethod ? "text-[#1E2A2E]" : "text-gray-400")}>
+            <span className={cn("font-medium", selectedMethod ? "text-text" : "text-gray-400")}>
               {selectedMethod ? (
                 <><span className="mr-2">{selectedMethod.icon}</span>{selectedMethod.label}</>
               ) : (
@@ -738,7 +738,7 @@ function StepPayment({
                   onClick={() => { onPaymentChange(m.id); setMethodOpen(false); }}
                   className={cn(
                     "w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors",
-                    selectedPaymentMethod === m.id && "bg-[#1F3D2B]/5 font-semibold text-[#1F3D2B]"
+                    selectedPaymentMethod === m.id && "bg-secondary/5 font-semibold text-secondary"
                   )}
                 >
                   <span className="text-lg">{m.icon}</span>
@@ -755,7 +755,7 @@ function StepPayment({
 
       {paymentType === "nepal" && isNepalWallet && (
         <div>
-          <label className="text-sm font-medium text-[#1E2A2E]">
+          <label className="text-sm font-medium text-text">
             {selectedMethod?.label} registered mobile number
           </label>
           <input
@@ -763,7 +763,7 @@ function StepPayment({
             value={esewaMobile}
             onChange={(e) => onEsewaMobileChange(e.target.value.replace(/\D/g, "").slice(0, 10))}
             placeholder="98XXXXXXXX"
-            className="w-full mt-1.5 px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3D2B]/20 focus:border-[#1F3D2B]"
+            className="w-full mt-1.5 px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
           />
           <p className="text-xs text-gray-400 mt-1">
             You will receive a prompt on your {selectedMethod?.label} app to confirm the payment.
@@ -774,56 +774,56 @@ function StepPayment({
       {paymentType === "international" && selectedPaymentMethod === "card" && (
         <div className="space-y-3">
           <div>
-            <label className="text-sm font-medium text-[#1E2A2E]">Card number</label>
+            <label className="text-sm font-medium text-text">Card number</label>
             <input
               type="text"
               inputMode="numeric"
               value={cardDetails.number}
               onChange={(e) => updateCard("number", e.target.value)}
               placeholder="1234 5678 9012 3456"
-              className="w-full mt-1.5 px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3D2B]/20 focus:border-[#1F3D2B]"
+              className="w-full mt-1.5 px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-sm font-medium text-[#1E2A2E]">Expiry date</label>
+              <label className="text-sm font-medium text-text">Expiry date</label>
               <input
                 type="text"
                 value={cardDetails.expiry}
                 onChange={(e) => updateCard("expiry", e.target.value)}
                 placeholder="MM/YY"
-                className="w-full mt-1.5 px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3D2B]/20 focus:border-[#1F3D2B]"
+                className="w-full mt-1.5 px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-[#1E2A2E]">CVV</label>
+              <label className="text-sm font-medium text-text">CVV</label>
               <input
                 type="text"
                 inputMode="numeric"
                 value={cardDetails.cvv}
                 onChange={(e) => updateCard("cvv", e.target.value)}
                 placeholder="123"
-                className="w-full mt-1.5 px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3D2B]/20 focus:border-[#1F3D2B]"
+                className="w-full mt-1.5 px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
               />
             </div>
           </div>
           <div>
-            <label className="text-sm font-medium text-[#1E2A2E]">Name on card</label>
+            <label className="text-sm font-medium text-text">Name on card</label>
             <input
               type="text"
               value={cardDetails.name}
               onChange={(e) => updateCard("name", e.target.value)}
               placeholder="John Doe"
-              className="w-full mt-1.5 px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3D2B]/20 focus:border-[#1F3D2B]"
+              className="w-full mt-1.5 px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-[#1E2A2E]">Billing country</label>
+            <label className="text-sm font-medium text-text">Billing country</label>
             <div className="relative mt-1.5">
               <button
                 type="button"
                 onClick={() => setCountryOpen((v) => !v)}
-                className="w-full text-left px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3D2B]/20 focus:border-[#1F3D2B]"
+                className="w-full text-left px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
               >
                 {billingCountry || <span className="text-gray-400">Select country</span>}
               </button>
@@ -838,7 +838,7 @@ function StepPayment({
                       }}
                       className={cn(
                         "w-full text-left px-3 py-2 text-sm hover:bg-gray-50",
-                        billingCountry === c && "bg-[#1F3D2B]/5 font-medium"
+                        billingCountry === c && "bg-secondary/5 font-medium"
                       )}
                     >
                       {c}
@@ -851,18 +851,18 @@ function StepPayment({
         </div>
       )}
 
-      <div className="bg-[#F0F0EE] rounded-xl p-4 space-y-2">
+      <div className="bg-surface rounded-xl p-4 space-y-2">
         <div className="flex justify-between text-sm">
           <span className="text-gray-500">Session fee</span>
-          <span className="font-medium text-[#1E2A2E]">{symbol}{converted.toFixed(2)}</span>
+          <span className="font-medium text-text">{symbol}{converted.toFixed(2)}</span>
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-gray-500">Platform fee (5%)</span>
-          <span className="font-medium text-[#1E2A2E]">{symbol}{platformFee.toFixed(2)}</span>
+          <span className="font-medium text-text">{symbol}{platformFee.toFixed(2)}</span>
         </div>
         <div className="flex justify-between text-sm font-bold border-t border-gray-300 pt-2">
-          <span className="text-[#1E2A2E]">Total</span>
-          <span className="text-[#1E2A2E]">{symbol}{total.toFixed(2)}</span>
+          <span className="text-text">Total</span>
+          <span className="text-text">{symbol}{total.toFixed(2)}</span>
         </div>
       </div>
 
@@ -877,7 +877,7 @@ function StepPayment({
         className={cn(
           "w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all",
           isValid && !isSubmitting
-            ? "bg-[#1F3D2B] text-white hover:bg-[#1F3D2B]/90"
+            ? "bg-secondary text-white hover:bg-secondary/90"
             : "bg-gray-200 text-gray-400 cursor-not-allowed"
         )}
       >
@@ -922,13 +922,13 @@ function StepConfirmation({ result, currencies, onDone, isEdit }: StepConfirmati
           visible ? "opacity-100 scale-100" : "opacity-0 scale-50"
         )}
       >
-        <div className="w-20 h-20 rounded-full bg-[#1F3D2B]/10 flex items-center justify-center mx-auto">
+        <div className="w-20 h-20 rounded-full bg-secondary/10 flex items-center justify-center mx-auto">
           <span className="text-4xl">✓</span>
         </div>
       </div>
 
       <div>
-        <h2 className="text-2xl font-bold text-[#1E2A2E]">
+        <h2 className="text-2xl font-bold text-text">
           {isEdit ? "Booking updated!" : "Booking confirmed!"}
         </h2>
         <p className="text-gray-500 mt-1">
@@ -936,8 +936,8 @@ function StepConfirmation({ result, currencies, onDone, isEdit }: StepConfirmati
         </p>
       </div>
 
-      <div className="flex items-center gap-3 bg-[#F0F0EE] rounded-xl p-3 text-left">
-        <div className="w-10 h-10 rounded-full bg-[#1F3D2B] flex items-center justify-center text-white font-semibold text-sm">
+      <div className="flex items-center gap-3 bg-surface rounded-xl p-3 text-left">
+        <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-white font-semibold text-sm">
           {result.therapistName
             .replace(/Dr\.?\s*/i, "")
             .split(" ")
@@ -946,10 +946,10 @@ function StepConfirmation({ result, currencies, onDone, isEdit }: StepConfirmati
             .join("")}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="font-semibold text-sm text-[#1E2A2E] truncate">{result.therapistName}</div>
+          <div className="font-semibold text-sm text-text truncate">{result.therapistName}</div>
         </div>
         <div className="text-right shrink-0">
-          <div className="font-bold text-sm text-[#1E2A2E]">
+          <div className="font-bold text-sm text-text">
             {symbol}{result.amount.toFixed(2)}
           </div>
         </div>
@@ -961,7 +961,7 @@ function StepConfirmation({ result, currencies, onDone, isEdit }: StepConfirmati
           : `Your payment has been processed successfully. ${result.therapistName} has been notified of your booking.`}
       </p>
 
-      <div className="bg-[#F0F0EE] rounded-xl p-4 text-left space-y-2 text-sm">
+      <div className="bg-surface rounded-xl p-4 text-left space-y-2 text-sm">
         <DetailRow label="Therapist" value={result.therapistName} />
         <DetailRow label="Date" value={result.date} />
         <DetailRow label="Time" value={to12h(result.time)} />
@@ -976,7 +976,7 @@ function StepConfirmation({ result, currencies, onDone, isEdit }: StepConfirmati
 
       <button
         onClick={onDone}
-        className="w-full py-3 rounded-xl font-semibold bg-[#1F3D2B] text-white hover:bg-[#1F3D2B]/90 transition-all"
+        className="w-full py-3 rounded-xl font-semibold bg-secondary text-white hover:bg-secondary/90 transition-all"
       >
         Done
       </button>
@@ -988,7 +988,7 @@ function DetailRow({ label, value, bold }: { label: string; value: string; bold?
   return (
     <div className="flex justify-between gap-2">
       <span className="text-gray-500">{label}</span>
-      <span className={bold ? "font-bold text-[#1E2A2E]" : "font-medium text-[#1E2A2E]"}>
+      <span className={bold ? "font-bold text-text" : "font-medium text-text"}>
         {value}
       </span>
     </div>
@@ -1245,7 +1245,7 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
         onClick={onClose}
         aria-label="Close"
       />
-      <div className="relative w-full max-w-[420px] bg-[#FAF9F5] rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full max-w-[420px] bg-background rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
         <button
           onClick={onClose}
           className="absolute right-3 top-3 z-10 p-2 rounded-full hover:bg-black/5 transition-colors"
@@ -1328,8 +1328,8 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
         {isSubmitting && (
           <div className="absolute inset-0 bg-white/60 backdrop-blur-sm rounded-2xl flex items-center justify-center z-20">
             <div className="text-center">
-              <div className="w-12 h-12 border-4 border-[#1F3D2B] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-              <p className="text-sm font-medium text-[#1E2A2E]">
+              <div className="w-12 h-12 border-4 border-secondary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+              <p className="text-sm font-medium text-text">
                 {isEdit ? "Updating booking..." : "Processing payment..."}
               </p>
             </div>

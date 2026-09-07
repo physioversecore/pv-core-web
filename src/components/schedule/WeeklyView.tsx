@@ -23,10 +23,10 @@ function dateKeyStr(d: Date): string {
 }
 
 const SLOT_CARD: Record<ScheduleAppointmentStatus, string> = {
-  confirmed: "bg-[#e4efe9] border-secondary text-secondary",
-  reschedule_requested: "bg-[#e8eaf6] border-[#5b6ea8] text-[#5b6ea8]",
-  decline_requested: "bg-[#f7e4e4] border-[#b0454b] text-[#b0454b]",
-  completed: "bg-[#eeece6] border-[#8b8f87] text-[#8b8f87]",
+  confirmed: "bg-session-confirmed-bg border-secondary text-secondary",
+  reschedule_requested: "bg-session-reschedule-bg border-session-reschedule text-session-reschedule",
+  decline_requested: "bg-session-decline-bg border-session-decline text-session-decline",
+  completed: "bg-session-completed-bg border-session-completed text-session-completed",
 };
 
 interface WeeklyViewProps {
@@ -128,7 +128,7 @@ export function WeeklyView({
                 <div
                   key={di}
                   className={`border-r border-border last:border-r-0 p-1.5 min-h-[60px] ${
-                    past ? "bg-[#f1efe7]" : today ? "bg-primary/[0.02]" : ""
+                    past ? "bg-session-past-bg" : today ? "bg-primary/[0.02]" : ""
                   }`}
                 >
                   {apt && (

@@ -14,12 +14,12 @@ import { OtpInput } from "@/components/auth/OtpInput";
 type Step = "account" | "otp";
 
 const inputClass =
-  "h-[44px] w-full rounded-[7px] border border-[#d8dadd] bg-white px-[14px] text-[14px] text-text placeholder:text-[14px] placeholder:text-text-light/60 transition-colors focus:border-voltage-lime focus:outline-none focus:ring-4 focus:ring-voltage-lime/15";
+  "h-[44px] w-full rounded-[7px] border border-input bg-white px-[14px] text-[14px] text-text placeholder:text-[14px] placeholder:text-text-light/60 transition-colors focus:border-voltage-lime focus:outline-none focus:ring-4 focus:ring-voltage-lime/15";
 
-const labelClass = "block text-[13px] font-medium text-[#555] mb-[8px]";
+const labelClass = "block text-[13px] font-medium text-text-light mb-[8px]";
 
 const primaryBtnClass =
-  "inline-flex h-[44px] items-center justify-center gap-2 rounded-[7px] bg-mid-abyss px-[28px] text-[14px] font-semibold text-white transition-colors hover:bg-[#0a3a3e] active:bg-[#031a1d] disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex h-[44px] items-center justify-center gap-2 rounded-[7px] bg-mid-abyss px-[28px] text-[14px] font-semibold text-white transition-colors hover:bg-carbon-ink active:bg-carbon-ink disabled:cursor-not-allowed disabled:opacity-50";
 
 const PASSWORD_RE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 const EMAIL_RE = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
@@ -278,7 +278,7 @@ export default function SignupPage() {
                 className={inputClass}
               />
               { emailTouched && email.length > 0 && !EMAIL_RE.test(email) && (
-                <p className="pt-1 text-[12px] leading-[16px] text-[#b45309]">
+                <p className="pt-1 text-[12px] leading-[16px] text-warn-ink">
                   Please enter a valid email address format.
                 </p>
               )}
@@ -312,7 +312,7 @@ export default function SignupPage() {
                 </button>
               </div>
               { password.length > 0 && !PASSWORD_RE.test(password) && (
-                <p className="pt-1 text-[12px] leading-[16px] text-[#b45309]">
+                <p className="pt-1 text-[12px] leading-[16px] text-warn-ink">
                   Your password must be 8+ chars, include uppercase, lowercase, number, & special char.
                 </p>
               )}
@@ -321,7 +321,7 @@ export default function SignupPage() {
               </p>
             </div>
 
-            <p className="text-[12px] leading-[1.5] text-[#444]">
+            <p className="text-[12px] leading-[1.5] text-text-light">
               By clicking &ldquo;Create account&rdquo;, I agree to the{" "}
               <Link href="/terms" className="text-secondary underline hover:no-underline">Terms of Service</Link>{" "}
               and have read the{" "}

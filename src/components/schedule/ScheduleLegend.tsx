@@ -3,21 +3,21 @@
 const ITEMS = [
   { color: "bg-secondary", label: "Confirmed" },
   {
-    color: "bg-[#5b6ea8]",
+    color: "bg-session-reschedule",
     label: "Reschedule requested · awaiting admin",
   },
   {
-    color: "bg-[#b0454b]",
+    color: "bg-session-decline",
     label: "Decline requested · awaiting admin",
   },
-  { color: "bg-[#8b8f87]", label: "Completed" },
+  { color: "bg-session-completed", label: "Completed" },
   {
-    color: "bg-[#d8d4c6]",
+    color: "bg-slot-off-border",
     label: "Outside working hours",
     pattern: true,
   },
   {
-    color: "bg-[#f1efe7] border border-[#d8d4c6]",
+    color: "bg-session-past-bg border border-slot-off-border",
     label: "Past date · view only",
   },
 ];

@@ -28,18 +28,18 @@ const STEPS: { key: Step; label: string }[] = [
 ];
 
 const inputClass =
-  "h-11 w-full rounded-[7px] border border-[#d8dadd] bg-white px-3.5 text-[14px] text-text placeholder:text-[14px] placeholder:text-text-light/60 transition-colors focus:border-voltage-lime focus:outline-none focus:ring-4 focus:ring-voltage-lime/15";
+  "h-11 w-full rounded-[7px] border border-input bg-white px-3.5 text-[14px] text-text placeholder:text-[14px] placeholder:text-text-light/60 transition-colors focus:border-voltage-lime focus:outline-none focus:ring-4 focus:ring-voltage-lime/15";
 
 const inputDisabledClass =
-  "h-11 w-full rounded-[7px] border border-[#e5e5e5] bg-[#f5f5f5] px-3.5 text-[14px] text-text-light cursor-not-allowed";
+  "h-11 w-full rounded-[7px] border border-border bg-surface px-3.5 text-[14px] text-text-light cursor-not-allowed";
 
-const labelClass = "block text-[13px] font-medium text-[#555] mb-2";
+const labelClass = "block text-[13px] font-medium text-text-light mb-2";
 
 const primaryBtnClass =
-  "inline-flex h-11 items-center justify-center gap-2 rounded-[7px] bg-mid-abyss px-7 text-[14px] font-semibold text-white transition-colors hover:bg-[#0a3a3e] active:bg-[#031a1d] disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex h-11 items-center justify-center gap-2 rounded-[7px] bg-mid-abyss px-7 text-[14px] font-semibold text-white transition-colors hover:bg-carbon-ink active:bg-carbon-ink disabled:cursor-not-allowed disabled:opacity-50";
 
 const secondaryBtnClass =
-  "inline-flex h-11 items-center justify-center gap-2 rounded-[7px] border border-[#d8dadd] bg-white px-7 text-[14px] font-semibold text-text transition-colors hover:bg-neutral-50 active:bg-neutral-100";
+  "inline-flex h-11 items-center justify-center gap-2 rounded-[7px] border border-input bg-white px-7 text-[14px] font-semibold text-text transition-colors hover:bg-neutral-50 active:bg-neutral-100";
 
 const requiredMark = <span className="text-red-500 ml-0.5">*</span>;
 
@@ -268,7 +268,7 @@ export default function TherapistOnboardingPage() {
             </p>
             <Link
               href="/access"
-              className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-[7px] border border-[#d8dadd] bg-white px-7 text-[14px] font-semibold text-text transition-colors hover:bg-neutral-50"
+              className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-[7px] border border-input bg-white px-7 text-[14px] font-semibold text-text transition-colors hover:bg-neutral-50"
             >
               Back to Login
             </Link>
@@ -298,7 +298,7 @@ export default function TherapistOnboardingPage() {
               </p>
               <Link
                 href="/"
-                className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-[7px] border border-[#d8dadd] bg-white px-7 text-[14px] font-semibold text-text transition-colors hover:bg-neutral-50"
+                className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-[7px] border border-input bg-white px-7 text-[14px] font-semibold text-text transition-colors hover:bg-neutral-50"
               >
                Go to Home page
               </Link>
@@ -466,7 +466,7 @@ export default function TherapistOnboardingPage() {
               <h2 className="text-[18px] font-semibold text-text">Review Application</h2>
               <p className="text-text-light text-[13px]">Please review your details before submitting.</p>
 
-              <div className="rounded-lg border border-[#d8dadd] bg-white p-4 space-y-3">
+              <div className="rounded-lg border border-input bg-white p-4 space-y-3">
                 <h3 className="text-[13px] font-semibold text-text">Personal Information</h3>
                 <div className="grid grid-cols-2 gap-2 text-[13px]">
                   <div><span className="text-text-light">First Name:</span> {form.firstName || "—"}</div>
@@ -478,7 +478,7 @@ export default function TherapistOnboardingPage() {
                 </div>
               </div>
 
-              <div className="rounded-lg border border-[#d8dadd] bg-white p-4 space-y-3">
+              <div className="rounded-lg border border-input bg-white p-4 space-y-3">
                 <h3 className="text-[13px] font-semibold text-text">Professional Details</h3>
                 <div className="grid grid-cols-2 gap-2 text-[13px]">
                   <div><span className="text-text-light">Specialty:</span> {form.specialty || "—"}</div>
@@ -489,7 +489,7 @@ export default function TherapistOnboardingPage() {
                 {form.bio && <div className="text-[13px]"><span className="text-text-light">Bio:</span> {form.bio}</div>}
               </div>
 
-              <div className="rounded-lg border border-[#d8dadd] bg-white p-4 space-y-3">
+              <div className="rounded-lg border border-input bg-white p-4 space-y-3">
                 <h3 className="text-[13px] font-semibold text-text">Documents</h3>
                 <div className="text-[13px] text-text-light space-y-1">
                   <div>NMC License: {docs.license.length > 0 ? <span className="text-green-600">{docs.license.length} uploaded</span> : <span className="text-red-500">Required</span>}</div>
@@ -497,7 +497,7 @@ export default function TherapistOnboardingPage() {
                 </div>
               </div>
 
-              <p className="text-[12px] leading-[1.5] text-[#666]">
+              <p className="text-[12px] leading-[1.5] text-text-muted">
                 By submitting, I confirm my credentials are accurate and agree to the{" "}
                 <Link href="/terms" className="underline hover:text-text">Terms of Service</Link>{" "}
                 and <Link href="/privacy" className="underline hover:text-text">Privacy Policy</Link>.

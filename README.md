@@ -142,23 +142,25 @@ src/
 
 ## Theme
 
-Handshake-inspired design language — monochrome canvas + voltage-lime accent, pillow radii, hairline borders, no drop shadows.
+Warm editorial design language — Deep Forest + Warm Ivory canvas with a Muted Terracotta accent, pillow radii, hairline borders, no drop shadows.
 
 **Brand tokens** (defined in `globals.css` `@theme`, used as Tailwind utilities like `bg-voltage-lime`):
 
 | Token | CSS Variable | Value | Usage |
 |---|---|---|---|
-| Lime | `--color-voltage-lime` | `#d3fb52` | Brand accent, primary CTAs |
-| Cyan | `--color-cyan-spark` | `#7af3ff` | Secondary accent, glows |
-| Abyss | `--color-mid-abyss` | `#052326` | Deep green-black |
-| Carbon | `--color-carbon-ink` | `#14151c` | Near-black ink |
-| Ash | `--color-ash` | `#666666` | Muted text |
+| Terracotta | `--color-voltage-lime` | `#d77c5f` | Warm accent / primary CTAs |
+| Mineral Sage | `--color-cyan-spark` | `#c4d3c2` | Secondary accent, gentle supporting tint |
+| Deep Forest | `--color-mid-abyss` | `#16443b` | Brand foreground / nav |
+| Evergreen Ink | `--color-carbon-ink` | `#0d2925` | Deepest dark |
+| Stone | `--color-ash` | `#68736f` | Muted text |
 
-**Dark canvas** (hero + services atmosphere): `abyss-soft #1e3a2b`, `abyss-mid #112720`, `abyss-deep #0a1815` — the hero bleeds into the services section via a shared olive-charcoal gradient.
+**Dark canvas** (hero + services atmosphere): `abyss-soft #2a5047`, `abyss-mid #123b34`, `abyss-deep #081411` — the hero bleeds into the services section via a shared forest-charcoal gradient.
 
-**Dark-section text hierarchy**: `ink-soft #e7e7ea`, `ink-muted #9a9aa3`, `ink-faint #85858d`, `ink-dim #b0b0b7`.
+**Dark-section text hierarchy**: `ink-soft #edede9`, `ink-muted #a8aaa4`, `ink-faint #858587`, `ink-dim #bcbdb7`.
 
-**Legacy admin tokens** (kept in `:root` for dashboard/forms): Primary `#E2962F` (amber), Secondary `#2F5D50` (forest green), Background `#FBFBF8` (cream), Foreground `#1E2A2E`, Surface `#EEF1ED` (sage).
+**Neutral/functional tokens** (in `@theme inline`): `text #1B2523`, `text-light #4c5a55`, `text-muted #68736f`, `surface #ECEFE9`, `background #F7F5EF` (Warm Ivory), `border #e5e2da`, `input #d5d0c5`, `primary #D77C5F`, `secondary #16443B`, plus session-status tokens (`session-reschedule/decline/completed/confirmed/open/past`), warn tokens (`warn-bg`/`warn-ink`/`warn-border`/`danger`/`success`/`warning`), slot tokens, and feature gradient tints (`feature-forest`/`feature-amber`/`feature-rose`/`feature-rose-deep`). All component colors reference these variables — no hardcoded hexes in code.
+
+**Legacy admin tokens** (kept in `:root` for dashboard/forms): Primary `#D77C5F` (terracotta), Secondary `#16443B` (deep forest), Background `#F7F5EF` (warm ivory), Foreground `#1B2523`, Surface `#ECEFE9` (soft mineral).
 
 **Fonts**: Fraunces (`font-display`, serif headings), Inter (`font-sans`, body), IBM Plex Mono (`font-mono`, mono labels/dates), Anybody (`font-anybody`, display weights).
 

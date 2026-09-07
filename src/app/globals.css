@@ -13,46 +13,46 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
 
-  --color-background: #FBFBF8;
-  --color-background-dark: #0D1A15;
-  --color-foreground: #1E2A2E;
+  --color-background: #F7F5EF;
+  --color-background-dark: #0D2925;
+  --color-foreground: #1B2523;
   --color-card: #ffffff;
-  --color-card-foreground: #1E2A2E;
+  --color-card-foreground: #1B2523;
   --color-popover: #ffffff;
-  --color-popover-foreground: #1E2A2E;
-  --color-primary: #E2962F;
-  --color-primary-light: #fef4e8;
+  --color-popover-foreground: #1B2523;
+  --color-primary: #D77C5F;
+  --color-primary-light: #f9e6df;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #2F5D50;
+  --color-secondary: #16443B;
   --color-secondary-foreground: #ffffff;
-  --color-muted: #EEF1ED;
-  --color-muted-foreground: #4A5854;
-  --color-accent: #E2962F;
+  --color-muted: #ECEFE9;
+  --color-muted-foreground: #4c5a55;
+  --color-accent: #D77C5F;
   --color-accent-foreground: #ffffff;
   --color-destructive: #C84B4B;
   --color-destructive-foreground: #ffffff;
-  --color-border: #e5e7eb;
-  --color-input: #d1d5db;
-  --color-ring: #E2962F;
+  --color-border: #e5e2da;
+  --color-input: #d5d0c5;
+  --color-ring: #D77C5F;
 
-  --color-text: #1E2A2E;
-  --color-text-light: #4A5854;
-  --color-text-muted: #9ca3af;
+  --color-text: #1B2523;
+  --color-text-light: #4c5a55;
+  --color-text-muted: #68736f;
   --color-text-inverse: #ffffff;
   --color-danger: #C84B4B;
   --color-success: #16a34a;
   --color-warning: #f59e0b;
   --color-info: #0ea5e9;
-  --color-surface: #EEF1ED;
+  --color-surface: #ECEFE9;
   --color-white: #ffffff;
   --color-black: #000000;
 
   /* Slot status colors */
   --color-slot-open: #D1E8DF;
   --color-slot-open-text: #134B39;
-  --color-slot-booked: #16332A;
+  --color-slot-booked: #16443B;
   --color-slot-booked-text: #FFFFFF;
-  --color-slot-off: #FBFBF8;
+  --color-slot-off: #F7F5EF;
   --color-slot-past: #ECEAE3;
   --color-slot-past-alt: #E2DFD5;
   --color-danger-bg: #FBEAE5;
@@ -61,11 +61,11 @@
   --color-warn-ink: #8A5A0B;
   --color-warn-border: #ECD09B;
 
-  /* Slot status colors */
+  /* Slot status colors (duplicate block) */
   --color-slot-open: #D1E8DF;
   --color-slot-open-text: #134B39;
-  --color-slot-booked: #16332A;
-  --color-slot-off: #FBFBF8;
+  --color-slot-booked: #16443B;
+  --color-slot-off: #F7F5EF;
   --color-slot-past: #ECEAE3;
   --color-slot-past-alt: #E2DFD5;
   --color-danger-bg: #FBEAE5;
@@ -73,6 +73,29 @@
   --color-warn-bg: #FCF3E1;
   --color-warn-ink: #8A5A0B;
   --color-warn-border: #ECD09B;
+
+  /* Session status colors — schedule views */
+  --color-session-reschedule: #5b6ea8;
+  --color-session-reschedule-bg: #e8eaf6;
+  --color-session-decline: #b0454b;
+  --color-session-decline-bg: #f7e4e4;
+  --color-session-completed: #8b8f87;
+  --color-session-completed-bg: #eeece6;
+  --color-session-confirmed-bg: #e4efe9;
+  --color-session-open-bg: #eef2ee;
+  --color-session-open-bg-hover: #e2e8e0;
+  --color-session-open-border: #c7d3cb;
+  --color-session-past-bg: #f1efe7;
+  --color-session-tip: #9aa196;
+  --color-surface-hover: #e2e0d8;
+  --color-slot-blocked: #f0d5ca;
+  --color-slot-off-border: #d8d4c6;
+
+  /* Feature gradient tints — blog cards etc. */
+  --color-feature-forest: #3f7965;
+  --color-feature-amber: #f4c778;
+  --color-feature-rose: #c97070;
+  --color-feature-rose-deep: #7a3535;
 
   --font-display: "Fraunces", ui-serif, Georgia, serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
@@ -80,25 +103,27 @@
 }
 
 @theme {
-  /* Colors */
-  --color-voltage-lime: #d3fb52;
-  --color-cyan-spark: #7af3ff;
-  --color-mid-abyss: #052326;
-  --color-carbon-ink: #14151c;
+  /* Colors — Deep Forest + Warm Ivory + Mineral Sage + Terracotta
+     (replaces the retired voltage-lime / cyan-spark tech palette) */
+  --color-voltage-lime: #d77c5f;      /* Muted Terracotta — warm accent / CTA */
+  --color-cyan-spark: #c4d3c2;        /* Mineral Sage — gentle supporting tint */
+  --color-mid-abyss: #16443b;         /* Deep Forest — brand foreground / nav */
+  --color-carbon-ink: #0d2925;        /* Evergreen Ink — deepest dark */
   --color-pure-white: #ffffff;
   --color-true-black: #000000;
-  --color-ash: #666666;
+  --color-ash: #68736f;               /* Stone — muted gray */
+  --color-hairline: #e5e2da;          /* Hairline borders — same as --color-border */
 
-  /* Dark canvas — olive-charcoal atmosphere */
-  --color-abyss-soft: #1e3a2b;
-  --color-abyss-mid: #112720;
-  --color-abyss-deep: #0a1815;
+  /* Dark canvas — forest-charcoal atmosphere */
+  --color-abyss-soft: #2a5047;
+  --color-abyss-mid: #123b34;
+  --color-abyss-deep: #081411;
 
   /* Dark-section text hierarchy */
-  --color-ink-soft: #e7e7ea;
-  --color-ink-muted: #9a9aa3;
-  --color-ink-faint: #85858d;
-  --color-ink-dim: #b0b0b7;
+  --color-ink-soft: #edede9;
+  --color-ink-muted: #a8aaa4;
+  --color-ink-faint: #858587;
+  --color-ink-dim: #bcbdb7;
 
   /* Typography — Font Families */
   --font-noigrotesk: "NoiGrotesk", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -133,15 +158,14 @@
 }
 
 :root {
-  /* ---- Design tokens ---- */
-  --color-primary: #E2962F;
-  --color-primary-hover: #c98124;
-  --color-primary-light: #fef4e8;
-  --color-primary-dark: #b3711d;
+  /* ---- Design tokens — new palette ---- */
+  --color-primary: #D77C5F;
+  --color-primary-hover: #c15f43;
+  --color-primary-light: #f9e6df;
+  --color-primary-dark: #b05222;
 
-  --color-secondary: #2F5D50;
-  /* --color-secondary: #97257b; */
-  --color-secondary-hover: #22443a;
+  --color-secondary: #16443B;
+  --color-secondary-hover: #0d2925;
   --color-success: #16a34a;
   --color-warning: #f59e0b;
   --color-danger: #C84B4B;
@@ -150,19 +174,19 @@
   --color-white: #ffffff;
   --color-black: #000000;
 
-  --color-text: #1E2A2E;
-  --color-text-light: #4A5854;
-  --color-text-muted: #9ca3af;
+  --color-text: #1B2523;
+  --color-text-light: #4c5a55;
+  --color-text-muted: #68736f;
   --color-text-inverse: #ffffff;
 
-  --color-background: #FBFBF8;
-  --color-background-dark: #0D1A15;
-  --color-surface: #EEF1ED;
+  --color-background: #F7F5EF;
+  --color-background-dark: #0D2925;
+  --color-surface: #ECEFE9;
   --color-card: #ffffff;
 
-  --color-border: #e5e7eb;
-  --color-border-light: #f1f5f9;
-  --color-divider: #d1d5db;
+  --color-border: #e5e2da;
+  --color-border-light: #f0ede7;
+  --color-divider: #d5d0c5;
 
   /* Buttons */
   --btn-primary-background: var(--color-primary);
@@ -318,7 +342,7 @@
   padding: .7rem var(--spacing-5); border-radius: var(--radius-full);
   background: var(--color-primary); color: #fff; font-weight: 600;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
-  &:hover { transform: translateY(-1px); background: #cf8721; box-shadow: 0 8px 20px -8px rgba(226,150,47,.6); }
+  &:hover { transform: translateY(-1px); background: #c15f43; box-shadow: 0 8px 20px -8px rgba(215,124,95,.6); }
 }
 
 /* @utility btn-pine {
@@ -565,10 +589,10 @@
 
 .hero-gradient-bg {
   background:
-    radial-gradient(circle at 20% 30%, rgba(47,93,80,.55), transparent 55%),
-    radial-gradient(circle at 82% 22%, rgba(226,150,47,.28), transparent 50%),
-    radial-gradient(circle at 65% 85%, rgba(22,51,42,.75), transparent 55%),
-    linear-gradient(135deg, #0A1611 0%, #0F241D 55%, #16332A 100%);
+    radial-gradient(circle at 20% 30%, rgba(22,67,59,.55), transparent 55%),
+    radial-gradient(circle at 82% 22%, rgba(215,124,95,.28), transparent 50%),
+    radial-gradient(circle at 65% 85%, rgba(13,41,37,.75), transparent 55%),
+    linear-gradient(135deg, #0A1F1A 0%, #0D2925 55%, #16443B 100%);
   animation: heroDrift 22s ease-in-out infinite alternate;
 }
 @keyframes heroDrift {
@@ -585,8 +609,8 @@
 
 .dot-pulse { animation: dotPulse 1.6s ease-in-out infinite; }
 @keyframes dotPulse {
-  0%,100% { box-shadow: 0 0 0 0 rgba(226,150,47,.6); }
-  50%     { box-shadow: 0 0 0 10px rgba(226,150,47,0); }
+  0%,100% { box-shadow: 0 0 0 0 rgba(215,124,95,.6); }
+  50%     { box-shadow: 0 0 0 10px rgba(215,124,95,0); }
 }
 
 .scroll-cue { animation: scrollCue 2.2s ease-in-out infinite; }

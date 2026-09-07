@@ -63,7 +63,7 @@ export function StepDateTime({
   return (
     <div className="space-y-5">
       <div>
-        <label className="text-sm font-semibold text-[#1E2A2E]">Select date</label>
+        <label className="text-sm font-semibold text-text">Select date</label>
         <div className="mt-1.5">
           <DatePicker
             value={selectedDate}
@@ -75,7 +75,7 @@ export function StepDateTime({
 
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="text-sm font-semibold text-[#1E2A2E]">Available time slots</label>
+          <label className="text-sm font-semibold text-text">Available time slots</label>
           {(isLoading || isFetching) && therapistId && selectedDate && (
             <span className="inline-flex items-center gap-1 text-xs text-gray-400">
               <Loader2 size={12} className="animate-spin" /> Loading slots...
@@ -99,8 +99,8 @@ export function StepDateTime({
                   className={cn(
                     "py-2.5 rounded-xl text-xs font-medium border transition-all",
                     slot.booked && "bg-gray-100 text-gray-400 line-through cursor-not-allowed",
-                    !slot.booked && selectedTime === slot.time && "border-[#1F3D2B] bg-[#1F3D2B]/10 text-[#1F3D2B]",
-                    !slot.booked && selectedTime !== slot.time && "border-gray-200 bg-white text-[#1E2A2E] hover:border-[#1F3D2B]"
+                    !slot.booked && selectedTime === slot.time && "border-secondary bg-secondary/10 text-secondary",
+                    !slot.booked && selectedTime !== slot.time && "border-gray-200 bg-white text-text hover:border-secondary"
                   )}
                 >
                   {to12h(slot.time)}
@@ -122,7 +122,7 @@ export function StepDateTime({
         className={cn(
           "w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all",
           isValid
-            ? "bg-[#1F3D2B] text-white hover:bg-[#1F3D2B]/90"
+            ? "bg-secondary text-white hover:bg-secondary/90"
             : "bg-gray-200 text-gray-400 cursor-not-allowed"
         )}
       >
