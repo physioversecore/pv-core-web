@@ -7,12 +7,15 @@ import {
   MessageSquareWarning, Clock,
 } from "lucide-react";
 
+export type AdminSubRole = "Super Admin" | "Support Admin" | "Finance Admin";
+
 export interface NavItem {
   to: string;
   label: string;
   icon: ReactNode;
   badge?: number | string;
   group?: string;
+  roles?: AdminSubRole[];
 }
 
 export const NAV_LINKS = [
@@ -50,24 +53,26 @@ export const therapistNav: NavItem[] = [
   { to: "/therapist/settings", label: "Settings", icon: <Settings size={16} /> },
 ];
 
+const ALL_ADMIN_ROLES: AdminSubRole[] = ["Super Admin", "Support Admin", "Finance Admin"];
+
 export const adminNav: NavItem[] = [
-  { to: "/admin", label: "Overview", icon: <LayoutDashboard size={16} />, group: "Operations" },
-  { to: "/admin/therapists", label: "Therapists", icon: <Shield size={16} />, group: "Operations" },
-  { to: "/admin/patients", label: "Patients", icon: <Users size={16} />, group: "Operations" },
-  { to: "/admin/bookings", label: "Bookings", icon: <CalendarClock size={16} />, group: "Operations" },
-  { to: "/admin/service-areas", label: "Service Areas", icon: <MapPin size={16} />, group: "Operations" },
-  { to: "/admin/schedules", label: "Schedules", icon: <Calendar size={16} />, group: "Operations" },
-  { to: "/admin/leave", label: "Leave & Availability", icon: <ClipboardCheck size={16} />, group: "Operations" },
-  { to: "/admin/payments", label: "Payments", icon: <CreditCard size={16} />, group: "Finance" },
-  { to: "/admin/refunds", label: "Refunds & Disputes", icon: <RotateCcw size={16} />, group: "Finance" },
-  { to: "/admin/complaints", label: "Complaints", icon: <AlertTriangle size={16} />, group: "Trust & Safety" },
-  { to: "/admin/verification", label: "Therapist Verification", icon: <BadgeCheck size={16} />, group: "Trust & Safety" },
-  { to: "/admin/performance", label: "Therapist Performance", icon: <BarChart3 size={16} />, group: "Trust & Safety" },
-  { to: "/admin/safety-incidents", label: "Safety Incidents", icon: <ShieldAlert size={16} />, group: "Trust & Safety" },
-  { to: "/admin/notifications", label: "Notifications", icon: <Bell size={16} />, group: "Trust & Safety" },
-  { to: "/admin/analytics", label: "Analytics & Reports", icon: <LineChart size={16} />, group: "Insights" },
-  { to: "/admin/admin-team", label: "Admin Team", icon: <UserCog size={16} />, group: "System" },
-  { to: "/admin/activity-log", label: "Activity Log", icon: <ScrollText size={16} />, group: "System" },
-  { to: "/admin/appearance", label: "Appearance", icon: <Palette size={16} />, group: "System" },
-  { to: "/admin/settings", label: "Settings", icon: <Settings size={16} />, group: "System" },
+  { to: "/admin", label: "Overview", icon: <LayoutDashboard size={16} />, group: "Operations", roles: ALL_ADMIN_ROLES },
+  { to: "/admin/therapists", label: "Therapists", icon: <Shield size={16} />, group: "Operations", roles: ["Super Admin"] },
+  { to: "/admin/patients", label: "Patients", icon: <Users size={16} />, group: "Operations", roles: ["Super Admin"] },
+  { to: "/admin/bookings", label: "Bookings", icon: <CalendarClock size={16} />, group: "Operations", roles: ["Super Admin"] },
+  { to: "/admin/service-areas", label: "Service Areas", icon: <MapPin size={16} />, group: "Operations", roles: ["Super Admin"] },
+  { to: "/admin/schedules", label: "Schedules", icon: <Calendar size={16} />, group: "Operations", roles: ["Super Admin"] },
+  { to: "/admin/leave", label: "Leave & Availability", icon: <ClipboardCheck size={16} />, group: "Operations", roles: ["Super Admin"] },
+  { to: "/admin/payments", label: "Payments", icon: <CreditCard size={16} />, group: "Finance", roles: ["Super Admin", "Finance Admin"] },
+  { to: "/admin/refunds", label: "Refunds & Disputes", icon: <RotateCcw size={16} />, group: "Finance", roles: ["Super Admin", "Finance Admin"] },
+  { to: "/admin/complaints", label: "Complaints", icon: <AlertTriangle size={16} />, group: "Trust & Safety", roles: ["Super Admin", "Support Admin"] },
+  { to: "/admin/verification", label: "Therapist Verification", icon: <BadgeCheck size={16} />, group: "Trust & Safety", roles: ["Super Admin", "Support Admin"] },
+  { to: "/admin/performance", label: "Therapist Performance", icon: <BarChart3 size={16} />, group: "Trust & Safety", roles: ["Super Admin", "Support Admin"] },
+  { to: "/admin/safety-incidents", label: "Safety Incidents", icon: <ShieldAlert size={16} />, group: "Trust & Safety", roles: ["Super Admin", "Support Admin"] },
+  { to: "/admin/notifications", label: "Notifications", icon: <Bell size={16} />, group: "Trust & Safety", roles: ["Super Admin", "Support Admin"] },
+  { to: "/admin/analytics", label: "Analytics & Reports", icon: <LineChart size={16} />, group: "Insights", roles: ["Super Admin", "Finance Admin"] },
+  { to: "/admin/admin-team", label: "Admin Team", icon: <UserCog size={16} />, group: "System", roles: ["Super Admin"] },
+  { to: "/admin/activity-log", label: "Activity Log", icon: <ScrollText size={16} />, group: "System", roles: ["Super Admin", "Support Admin"] },
+  { to: "/admin/appearance", label: "Appearance", icon: <Palette size={16} />, group: "System", roles: ALL_ADMIN_ROLES },
+  { to: "/admin/settings", label: "Settings", icon: <Settings size={16} />, group: "System", roles: ALL_ADMIN_ROLES },
 ];
