@@ -21,17 +21,17 @@ function weekdayIndex(d: Date): number {
 }
 
 const CARD_CLASSES: Record<ScheduleAppointmentStatus, string> = {
-  confirmed: "bg-[#e4efe9] border-secondary text-secondary",
-  reschedule_requested: "bg-[#e8eaf6] border-[#5b6ea8] text-[#5b6ea8]",
-  decline_requested: "bg-[#f7e4e4] border-[#b0454b] text-[#b0454b]",
-  completed: "bg-[#eeece6] border-[#8b8f87] text-[#8b8f87]",
+  confirmed: "bg-session-confirmed-bg border-secondary text-secondary",
+  reschedule_requested: "bg-session-reschedule-bg border-session-reschedule text-session-reschedule",
+  decline_requested: "bg-session-decline-bg border-session-decline text-session-decline",
+  completed: "bg-session-completed-bg border-session-completed text-session-completed",
 };
 
 const PILL_CLASSES: Record<ScheduleAppointmentStatus, string> = {
   confirmed: "bg-secondary text-white",
-  reschedule_requested: "bg-[#5b6ea8] text-white",
-  decline_requested: "bg-[#b0454b] text-white",
-  completed: "bg-[#8b8f87] text-white",
+  reschedule_requested: "bg-session-reschedule text-white",
+  decline_requested: "bg-session-decline text-white",
+  completed: "bg-session-completed text-white",
 };
 
 const STATUS_LABELS: Record<ScheduleAppointmentStatus, string> = {
@@ -79,7 +79,7 @@ export function DailyView({
   return (
     <div
       className={`border border-border rounded-xl overflow-hidden ${
-        past ? "bg-[#fbfaf7]" : "bg-white"
+        past ? "bg-session-past-bg" : "bg-white"
       }`}
     >
       <div className="px-4 py-3 border-b border-border flex items-center justify-between">
@@ -87,7 +87,7 @@ export function DailyView({
           {DOW_FULL[dow]},{" "}
           {date.toLocaleDateString("en-US", { month: "long", day: "numeric" })}
           {past && (
-            <span className="ml-2 text-[11px] font-bold text-[#a8763a] bg-[#fbf1de] border border-[#ecd9ac] px-2.5 py-0.5 rounded-full">
+            <span className="ml-2 text-[11px] font-bold text-warn-ink bg-warn-bg border border-warn-border px-2.5 py-0.5 rounded-full">
               Past date · view only
             </span>
           )}
@@ -167,7 +167,7 @@ export function DailyView({
                     <div className="px-2.5 py-3 text-[11px] text-text-light text-right border-r border-border">
                       {to12h(rangeStart)}
                     </div>
-                    <div className="px-3 py-3 text-[11px] text-[#9aa196] italic">
+                    <div className="px-3 py-3 text-[11px] text-session-tip italic">
                       {past
                         ? "No appointment"
                         : `Free until ${to12h(endTimeStr)}`}

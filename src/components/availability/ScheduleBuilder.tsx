@@ -650,7 +650,7 @@ function BlockMode({
       {hasBookedInRange ? (
         <div
           className="proto-warn-banner"
-          style={{ marginTop: "16px", background: "#FEF3C7", borderColor: "#F59E0B" }}
+          style={{ marginTop: "16px", background: "var(--color-warn-bg)", borderColor: "var(--color-warning)" }}
         >
           <span>
             This selection has existing bookings. You cannot block directly — a

@@ -5,6 +5,7 @@ import { Calendar, CalendarClock, AlertTriangle, CreditCard, Settings, CheckChec
 import { toast } from "sonner";
 import { useLang } from "@/context/i18n";
 import { useAdminNotifications } from "@/hooks/useAdminNotifications";
+import { isSafeRelativeHref } from "@/lib/sanitize";
 import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import type { AdminNotificationData } from "@/services/api/admin";
 
@@ -178,15 +179,25 @@ function NotificationItem({
           <span className="text-xs text-text-light font-mono">
             {formatRelativeTime(notification.timestamp)}
           </span>
-          {notification.actionLabel && notification.actionHref && (
-            <a
-              href={notification.actionHref}
-              onClick={(e) => e.stopPropagation()}
-              className="text-xs text-secondary hover:underline font-medium"
-            >
-              {notification.actionLabel}
-            </a>
-          )}
+          {notification.actionLabel && (() => {
+            const safeHref = notification.actionHref ? isSafeRelativeHref(notification.actionHref) : null;
+            if (safeHref) {
+              return (
+                <a
+                  href={safeHref}
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-xs text-secondary hover:underline font-medium"
+                >
+                  {notification.actionLabel}
+                </a>
+              );
+            }
+            return (
+              <span className="text-xs text-text-light font-medium">
+                {notification.actionLabel}
+              </span>
+            );
+          })()}
         </div>
       </div>
 

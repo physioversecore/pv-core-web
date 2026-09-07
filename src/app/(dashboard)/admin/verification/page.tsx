@@ -38,6 +38,7 @@ import {
 import type { AdminVerificationData } from "@/services/api/admin";
 import type { CreateVerificationPayload } from "@/services/api/admin";
 import type { AdminCreateTherapistPayload } from "@/services/api/admin";
+import { isSafeAssetUrl } from "@/lib/sanitize";
 import {
   Sheet,
   SheetContent,
@@ -197,7 +198,7 @@ export default function VerificationPage() {
     setTimeout(() => {
       setCallLoading(null);
       if (row.phone) {
-        window.location.href = `tel:${row.phone}`;
+        window.location.href = `tel:${encodeURIComponent(row.phone ?? "")}`;
       } else {
         toast(
           `Calling ${row.therapist}... (mock action — API not yet connected)`,
@@ -837,11 +838,13 @@ function DocumentPreview({
 }) {
   const { documentUrl, fileName, fileSize } = verification;
 
+  const safeDocumentUrl = isSafeAssetUrl(documentUrl);
+
   if (compact) {
-    if (!documentUrl) return <span className="text-text-muted">—</span>;
+    if (!safeDocumentUrl) return <span className="text-text-muted">—</span>;
     return (
       <a
-        href={documentUrl}
+        href={safeDocumentUrl}
         target="_blank"
         rel="noopener noreferrer"
         onClick={(e) => e.stopPropagation()}
@@ -852,7 +855,7 @@ function DocumentPreview({
     );
   }
 
-  if (!documentUrl) {
+  if (!safeDocumentUrl) {
     return (
       <div className="bg-surface rounded-xl p-6 text-center text-text-muted text-sm">
         No document attached
@@ -862,15 +865,15 @@ function DocumentPreview({
 
   return (
     <div className="bg-surface rounded-xl p-3">
-      {isImageUrl(documentUrl) ? (
+      {isImageUrl(safeDocumentUrl) ? (
         <a
-          href={documentUrl}
+          href={safeDocumentUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="block overflow-hidden rounded-lg border border-border bg-white"
         >
           <Image
-            src={documentUrl}
+            src={safeDocumentUrl}
             alt={fileName ?? verification.documentType}
             width={400}
             height={260}
@@ -880,7 +883,7 @@ function DocumentPreview({
         </a>
       ) : (
         <a
-          href={documentUrl}
+          href={safeDocumentUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="flex flex-col items-center justify-center gap-2 py-8 rounded-lg border border-dashed border-border bg-white text-text-light hover:text-secondary hover:border-secondary transition-colors"
@@ -899,7 +902,7 @@ function DocumentPreview({
       <div className="flex items-center justify-between gap-2 mt-2 text-xs text-text-light">
         <span className="truncate">{fileName ?? verification.documentType}</span>
         <a
-          href={documentUrl}
+          href={safeDocumentUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1 text-secondary hover:underline shrink-0"

@@ -163,23 +163,23 @@ export function RescheduleModal({
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
       <button className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-[#FAF9F5] rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full max-w-md bg-background rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
         <button onClick={onClose} className="absolute right-3 top-3 z-10 p-2 rounded-full hover:bg-black/5">
           <X size={18} className="text-gray-500" />
         </button>
 
         <div className="p-6">
-          <h3 className="text-xl font-bold text-[#1E2A2E]">Reschedule session</h3>
+          <h3 className="text-xl font-bold text-text">Reschedule session</h3>
           <p className="text-sm text-gray-500 mt-1">
             with {therapistName} · Currently {formatDateLabel(currentDate.slice(0, 10))} at {to12h(currentTime)}
           </p>
-          {/* <button onClick={onClose} className="text-sm text-gray-500 hover:text-[#1F3D2B] mt-1 flex items-center gap-1">
+          {/* <button onClick={onClose} className="text-sm text-gray-500 hover:text-secondary mt-1 flex items-center gap-1">
             ← Back
           </button> */}
 
           <div className="mt-5 space-y-4">
             <div>
-              <label className="text-sm font-medium text-[#1E2A2E]">Pick a new date</label>
+              <label className="text-sm font-medium text-text">Pick a new date</label>
               <div className="flex items-center gap-2 mt-1.5">
                 <button
                   type="button"
@@ -192,7 +192,7 @@ export function RescheduleModal({
                 >
                   <ChevronLeft size={16} className="text-gray-500" />
                 </button>
-                <div className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-medium text-[#1E2A2E]">
+                <div className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-medium text-text">
                   <CalendarDays size={16} className="text-gray-400 shrink-0" />
                   <span className="truncate">{formatDateLabel(selectedDate)}</span>
                 </div>
@@ -208,7 +208,7 @@ export function RescheduleModal({
 
             {selectedDate && (
               <div>
-                <label className="text-sm font-medium text-[#1E2A2E]">New time</label>
+                <label className="text-sm font-medium text-text">New time</label>
                 {slotsLoading ? (
                   <div className="grid grid-cols-3 gap-2 mt-2">
                     {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -234,8 +234,8 @@ export function RescheduleModal({
                           onClick={() => isOpen && setSelectedTime(slot.time)}
                           className={cn(
                             "py-2.5 rounded-xl text-sm font-medium border transition-all",
-                            isOpen && isSelected && "border-[#2F5D50] bg-[#2F5D50]/10 text-[#2F5D50] ring-1 ring-[#2F5D50]/30",
-                            isOpen && !isSelected && "border-[#2F5D50]/30 bg-[#2F5D50]/5 text-[#2F5D50] hover:bg-[#2F5D50]/10 hover:border-[#2F5D50]/50",
+                            isOpen && isSelected && "border-secondary bg-secondary/10 text-secondary ring-1 ring-secondary/30",
+                            isOpen && !isSelected && "border-secondary/30 bg-secondary/5 text-secondary hover:bg-secondary/10 hover:border-secondary/50",
                             isBooked && "bg-gray-100 text-gray-400 border-gray-200 line-through cursor-not-allowed",
                             isOff && "bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed",
                             isPast && "bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed"
@@ -249,7 +249,7 @@ export function RescheduleModal({
                   </div>
                 )}
                 <p className="text-xs text-gray-400 mt-2">
-                  <span className="text-[#2F5D50]">Green</span> = available · <span className="line-through">Grey</span> = booked · Light grey = off
+                  <span className="text-secondary">Green</span> = available · <span className="line-through">Grey</span> = booked · Light grey = off
                 </p>
               </div>
             )}
@@ -261,7 +261,7 @@ export function RescheduleModal({
             )}
 
             <div className="flex gap-2 pt-2">
-              <button onClick={onClose} className="flex-1 py-3 rounded-xl font-semibold border border-gray-300 text-[#1E2A2E] hover:bg-gray-50 transition">
+              <button onClick={onClose} className="flex-1 py-3 rounded-xl font-semibold border border-gray-300 text-text hover:bg-gray-50 transition">
                 Keep original
               </button>
               <button
@@ -270,7 +270,7 @@ export function RescheduleModal({
                 className={cn(
                   "flex-1 py-3 rounded-xl font-semibold transition",
                   canSubmit && !isPending
-                    ? "bg-[#1F3D2B] text-white hover:bg-[#1F3D2B]/90"
+                    ? "bg-secondary text-white hover:bg-secondary/90"
                     : "bg-gray-200 text-gray-400 cursor-not-allowed"
                 )}
               >

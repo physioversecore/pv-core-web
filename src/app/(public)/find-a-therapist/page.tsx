@@ -366,12 +366,12 @@ function FindPageContent() {
                 <div
                   aria-hidden
                   className="absolute -top-8 -right-8 w-72 h-72 rounded-full blur-3xl opacity-40"
-                  style={{ background: "radial-gradient(circle, #d3fb52 0%, transparent 70%)" }}
+                  style={{ background: "radial-gradient(circle, var(--color-primary) 0%, transparent 70%)" }}
                 />
                 <div
                   aria-hidden
                   className="absolute -bottom-10 -left-8 w-72 h-72 rounded-full blur-3xl opacity-30"
-                  style={{ background: "radial-gradient(circle, #7af3ff 0%, transparent 70%)" }}
+                  style={{ background: "radial-gradient(circle, var(--color-cyan-spark) 0%, transparent 70%)" }}
                 />
 
                 <div className="relative flex items-center">

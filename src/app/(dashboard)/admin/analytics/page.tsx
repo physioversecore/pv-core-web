@@ -82,7 +82,7 @@ export default function AnalyticsPage() {
                   type="category"
                   dataKey="zone"
                   width={120}
-                  tick={{ fontSize: 12, fill: "#4A5854" }}
+                  tick={{ fontSize: 12, fill: "var(--color-text-light)" }}
                 />
                 <Tooltip
                   cursor={{ fill: "rgba(0,0,0,0.04)" }}
@@ -92,7 +92,7 @@ export default function AnalyticsPage() {
                   {zones.map((entry, i) => (
                     <Cell
                       key={i}
-                      fill={entry.isWarning ? "#C84B4B" : "#2F5D50"}
+                      fill={entry.isWarning ? "var(--color-danger)" : "var(--color-secondary)"}
                       opacity={entry.isWarning ? 0.85 : 0.8}
                     />
                   ))}
@@ -114,7 +114,7 @@ export default function AnalyticsPage() {
                   type="category"
                   dataKey="therapist"
                   width={120}
-                  tick={{ fontSize: 12, fill: "#4A5854" }}
+                  tick={{ fontSize: 12, fill: "var(--color-text-light)" }}
                 />
                 <Tooltip
                   cursor={{ fill: "rgba(0,0,0,0.04)" }}
@@ -124,7 +124,7 @@ export default function AnalyticsPage() {
                   {cancellation.map((entry, i) => (
                     <Cell
                       key={i}
-                      fill={entry.isWarning ? "#C84B4B" : entry.isAmber ? "#E2962F" : "#2F5D50"}
+                      fill={entry.isWarning ? "var(--color-danger)" : entry.isAmber ? "var(--color-primary)" : "var(--color-secondary)"}
                       opacity={0.85}
                     />
                   ))}
@@ -144,7 +144,7 @@ export default function AnalyticsPage() {
             <BarChart data={revenue} margin={{ left: 10, right: 20 }}>
               <XAxis
                 dataKey="month"
-                tick={{ fontSize: 12, fill: "#4A5854" }}
+                tick={{ fontSize: 12, fill: "var(--color-text-light)" }}
                 axisLine={false}
                 tickLine={false}
               />
@@ -153,7 +153,7 @@ export default function AnalyticsPage() {
                 cursor={{ fill: "rgba(0,0,0,0.04)" }}
                 formatter={(value: string) => [value, "Revenue"]}
               />
-              <Bar dataKey="revenue" fill="#2F5D50" radius={[6, 6, 0, 0]} barSize={32} />
+              <Bar dataKey="revenue" fill="var(--color-secondary)" radius={[6, 6, 0, 0]} barSize={32} />
             </BarChart>
           </ResponsiveContainer>
         )}

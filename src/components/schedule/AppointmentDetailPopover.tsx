@@ -15,9 +15,9 @@ const STATUS_LABELS: Record<ScheduleAppointmentStatus, string> = {
 
 const STATUS_CLASSES: Record<ScheduleAppointmentStatus, string> = {
   confirmed: "bg-secondary text-white",
-  reschedule_requested: "bg-[#5b6ea8] text-white",
-  decline_requested: "bg-[#b0454b] text-white",
-  completed: "bg-[#8b8f87] text-white",
+  reschedule_requested: "bg-session-reschedule text-white",
+  decline_requested: "bg-session-decline text-white",
+  completed: "bg-session-completed text-white",
 };
 
 interface AppointmentDetailPopoverProps {
@@ -109,7 +109,7 @@ export function AppointmentDetailPopover({
       </div>
 
       {a.requestPending && (
-        <div className="mt-3 bg-[#fef8ec] border border-[#ecd9ac] text-[#8a5a17] text-[11px] px-3 py-2 rounded-lg">
+        <div className="mt-3 bg-warn-bg border border-warn-border text-warn-ink text-[11px] px-3 py-2 rounded-lg">
           <div className="flex items-center gap-1.5 mb-1">
             <AlertTriangle className="w-3 h-3" />
             <span className="font-semibold">Waiting on admin</span>
@@ -128,13 +128,13 @@ export function AppointmentDetailPopover({
         <div className="flex gap-2 mt-3 pt-3 border-t border-border">
           <button
             onClick={() => onRequestReschedule?.(a)}
-            className="flex-1 py-2 rounded-lg bg-[#5b6ea8] text-white text-xs font-semibold hover:opacity-90 transition-opacity"
+            className="flex-1 py-2 rounded-lg bg-session-reschedule text-white text-xs font-semibold hover:opacity-90 transition-opacity"
           >
             Request reschedule
           </button>
           <button
             onClick={() => onRequestDecline?.(a)}
-            className="flex-1 py-2 rounded-lg bg-[#b0454b] text-white text-xs font-semibold hover:opacity-90 transition-opacity"
+            className="flex-1 py-2 rounded-lg bg-session-decline text-white text-xs font-semibold hover:opacity-90 transition-opacity"
           >
             Request decline
           </button>

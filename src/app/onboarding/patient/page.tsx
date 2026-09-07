@@ -36,9 +36,9 @@ const passwordValid = (pw: string) =>
   pw.length >= 8 && /[A-Z]/.test(pw) && /[a-z]/.test(pw) && /[0-9]/.test(pw) && /[^A-Za-z0-9]/.test(pw);
 
 const inputClass =
-  "h-11 w-full rounded-[7px] border border-[#d8dadd] px-3.5 text-[14px] text-text placeholder:text-[14px] placeholder:text-text-light/60 transition-colors focus:border-voltage-lime focus:outline-none focus:ring-4 focus:ring-voltage-lime/15";
+  "h-11 w-full rounded-[7px] border border-input px-3.5 text-[14px] text-text placeholder:text-[14px] placeholder:text-text-light/60 transition-colors focus:border-voltage-lime focus:outline-none focus:ring-4 focus:ring-voltage-lime/15";
 
-const labelClass = "block text-[13px] font-medium text-[#555] mb-2";
+const labelClass = "block text-[13px] font-medium text-text-light mb-2";
 
 export default function PatientOnboardingPage() {
   const { t } = useLang();
@@ -268,7 +268,7 @@ export default function PatientOnboardingPage() {
                     onChange={(d) => set("dob", d)}
                     placeholder="Pick a date"
                     dropdowns
-                    className={`${fieldErrors.dob ? "border-red-500" : ""} h-11 rounded-[7px] border-[#d8dadd] text-text hover:bg-transparent focus:border-voltage-lime focus:outline-none focus:ring-4 focus:ring-voltage-lime/15`}
+                    className={`${fieldErrors.dob ? "border-red-500" : ""} h-11 rounded-[7px] border-input text-text hover:bg-transparent focus:border-voltage-lime focus:outline-none focus:ring-4 focus:ring-voltage-lime/15`}
                   />
                   {fieldErrors.dob && <p className="mt-1 text-[12px] text-red-500">{fieldErrors.dob}</p>}
                 </div>
@@ -401,7 +401,7 @@ export default function PatientOnboardingPage() {
                   onChange={(e) => set("medicalHistory", e.target.value)}
                   placeholder="Surgeries, chronic conditions, allergies, medications..."
                   rows={8}
-                  className={"w-full min-h-[180px] rounded-[7px] border border-[#d8dadd] px-3.5 text-[14px] text-text placeholder:text-[14px] placeholder:text-text-light/60 transition-colors focus:border-voltage-lime focus:outline-none focus:ring-4 focus:ring-voltage-lime/15"}
+                  className={"w-full min-h-[180px] rounded-[7px] border border-input px-3.5 text-[14px] text-text placeholder:text-[14px] placeholder:text-text-light/60 transition-colors focus:border-voltage-lime focus:outline-none focus:ring-4 focus:ring-voltage-lime/15"}
                 />
               </div>
             </div>
@@ -459,7 +459,7 @@ export default function PatientOnboardingPage() {
                 Add family members who also need physiotherapy. You can skip this and add them later.
               </p>
               {familyMembers.map((fm, i) => (
-                <div key={i} className="rounded-lg border border-[#d8dadd] bg-white p-4 space-y-3">
+                <div key={i} className="rounded-lg border border-input bg-white p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-[13px] font-medium text-text">Family member {i + 1}</span>
                     <button
@@ -524,7 +524,7 @@ export default function PatientOnboardingPage() {
               <button
                 type="button"
                 onClick={() => setFamilyMembers((prev) => [...prev, { name: "", relationship: "", dob: "", phone: "", condition: "" }])}
-                className="w-full h-11 rounded-[7px] border-2 border-dashed border-[#d8dadd] text-[13px] font-medium text-text-light hover:border-voltage-lime hover:text-text transition-colors"
+                className="w-full h-11 rounded-[7px] border-2 border-dashed border-input text-[13px] font-medium text-text-light hover:border-voltage-lime hover:text-text transition-colors"
               >
                 + Add family member
               </button>
@@ -533,7 +533,7 @@ export default function PatientOnboardingPage() {
 
           {step === "review" && (
             <div className="space-y-4">
-              <div className="rounded-lg border border-[#d8dadd] bg-white p-4 space-y-3">
+              <div className="rounded-lg border border-input bg-white p-4 space-y-3">
                 <h3 className="text-[13px] font-semibold text-text">Personal Information</h3>
                 <div className="grid grid-cols-2 gap-2 text-[13px]">
 
@@ -544,7 +544,7 @@ export default function PatientOnboardingPage() {
                   <div><span className="text-text-light">Password:</span> {passwordValid(form.password) ? "Set" : "—"}</div>
                 </div>
               </div>
-              <div className="rounded-lg border border-[#d8dadd] bg-white p-4 space-y-3">
+              <div className="rounded-lg border border-input bg-white p-4 space-y-3">
                 <h3 className="text-[13px] font-semibold text-text">Contact & Address</h3>
                 <div className="grid grid-cols-2 gap-2 text-[13px]">
                   <div><span className="text-text-light">Phone:</span> {form.phone || "—"}</div>
@@ -552,7 +552,7 @@ export default function PatientOnboardingPage() {
                   <div><span className="text-text-light">Address:</span> {form.address || "—"}</div>
                 </div>
               </div>
-              <div className="rounded-lg border border-[#d8dadd] bg-white p-4 space-y-3">
+              <div className="rounded-lg border border-input bg-white p-4 space-y-3">
                 <h3 className="text-[13px] font-semibold text-text">Health</h3>
                 <div className="text-[13px]">
                   <div><span className="text-text-light">Condition:</span> {form.condition || "—"}</div>
@@ -560,7 +560,7 @@ export default function PatientOnboardingPage() {
                 </div>
               </div>
               {(form.emergencyName || form.emergencyPhone) && (
-                <div className="rounded-lg border border-[#d8dadd] bg-white p-4 space-y-3">
+                <div className="rounded-lg border border-input bg-white p-4 space-y-3">
                   <h3 className="text-[13px] font-semibold text-text">Emergency Contact</h3>
                   <div className="grid grid-cols-2 gap-2 text-[13px]">
                     <div><span className="text-text-light">Name:</span> {form.emergencyName || "—"}</div>
@@ -570,7 +570,7 @@ export default function PatientOnboardingPage() {
                 </div>
               )}
               {familyMembers.length > 0 && (
-                <div className="rounded-lg border border-[#d8dadd] bg-white p-4 space-y-3">
+                <div className="rounded-lg border border-input bg-white p-4 space-y-3">
                   <h3 className="text-[13px] font-semibold text-text">Family Members ({familyMembers.length})</h3>
                   {familyMembers.map((fm, i) => (
                     <div key={i} className="text-[13px]">
@@ -591,7 +591,7 @@ export default function PatientOnboardingPage() {
             <button
               type="button"
               onClick={goBack}
-              className="h-11 px-5 rounded-[7px] border border-[#d8dadd] bg-white text-[14px] font-medium text-text hover:bg-neutral-50 transition-colors"
+              className="h-11 px-5 rounded-[7px] border border-input bg-white text-[14px] font-medium text-text hover:bg-neutral-50 transition-colors"
             >
               <ArrowLeft size={16} className="inline mr-1" />
               Back
@@ -601,7 +601,7 @@ export default function PatientOnboardingPage() {
             type="button"
             onClick={step === "review" ? handleSubmit : goNext}
             disabled={submitting}
-            className="flex-1 h-11 rounded-[7px] bg-mid-abyss px-5 text-[14px] font-semibold text-white transition-colors hover:bg-[#0a3a3e] active:bg-[#031a1d] disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-1 h-11 rounded-[7px] bg-mid-abyss px-5 text-[14px] font-semibold text-white transition-colors hover:bg-carbon-ink active:bg-carbon-ink disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {submitting ? (
               <Loader2 className="h-4 w-4 animate-spin" />

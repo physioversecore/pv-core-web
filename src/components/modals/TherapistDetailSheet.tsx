@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { useLang } from "@/context/i18n";
 import { useAdminTherapists } from "@/hooks/useAdminTherapists";
 import type { AdminTherapistData, AdminTherapistDocument } from "@/services/api/admin";
+import { isSafeAssetUrl } from "@/lib/sanitize";
 import {
   Phone,
   Mail,
@@ -399,24 +400,33 @@ export function TherapistDetailSheet({
                               {doc.status}
                             </Badge>
                           )}
-                          {doc.documentUrl && (
-                            <>
-                              <button
-                                onClick={() => setViewerDoc(doc)}
-                                className="inline-flex items-center gap-1 text-xs text-secondary hover:underline cursor-pointer"
-                              >
-                                <Eye size={12} /> {t("admin_dashboard.viewFile")}
-                              </button>
-                              <a
-                                href={doc.documentUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 text-xs text-text-light hover:text-secondary hover:underline"
-                              >
-                                <ExternalLink size={12} /> {t("admin_dashboard.openFile")}
-                              </a>
-                            </>
-                          )}
+                          {doc.documentUrl && (() => {
+                            const safeUrl = isSafeAssetUrl(doc.documentUrl);
+                            return (
+                              <>
+                                <button
+                                  onClick={() => safeUrl && setViewerDoc(doc)}
+                                  className="inline-flex items-center gap-1 text-xs text-secondary hover:underline cursor-pointer"
+                                >
+                                  <Eye size={12} /> {t("admin_dashboard.viewFile")}
+                                </button>
+                                {safeUrl ? (
+                                  <a
+                                    href={safeUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 text-xs text-text-light hover:text-secondary hover:underline"
+                                  >
+                                    <ExternalLink size={12} /> {t("admin_dashboard.openFile")}
+                                  </a>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 text-xs text-text-light opacity-50">
+                                    <ExternalLink size={12} /> {t("admin_dashboard.openFile")}
+                                  </span>
+                                )}
+                              </>
+                            );
+                          })()}
                         </div>
                       </div>
                       {doc.note && (
@@ -470,37 +480,42 @@ export function TherapistDetailSheet({
               </p>
             ) : (
               <div className="grid grid-cols-2 gap-2">
-                {mediaFiles.map((url, i) => (
-                  <div key={i} className="relative group border rounded-md overflow-hidden">
-                    {isImage(url) ? (
-                      <Image
-                        src={url}
-                        alt={getFileName(url)}
-                        width={400}
-                        height={200}
-                        unoptimized
-                        className="w-full h-28 object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-28 flex items-center justify-center bg-surface/50">
-                        <FileText size={24} className="text-text-light" />
+                {mediaFiles.map((url, i) => {
+                  const safeMediaUrl = isSafeAssetUrl(url);
+                  return (
+                    <div key={i} className="relative group border rounded-md overflow-hidden">
+                      {safeMediaUrl && isImage(safeMediaUrl) ? (
+                        <Image
+                          src={safeMediaUrl}
+                          alt={getFileName(url)}
+                          width={400}
+                          height={200}
+                          unoptimized
+                          className="w-full h-28 object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-28 flex items-center justify-center bg-surface/50">
+                          <FileText size={24} className="text-text-light" />
+                        </div>
+                      )}
+                      <div className="p-1.5">
+                        <p className="text-[10px] text-text-light truncate">{getFileName(url)}</p>
                       </div>
-                    )}
-                    <div className="p-1.5">
-                      <p className="text-[10px] text-text-light truncate">{getFileName(url)}</p>
+                      {safeMediaUrl && (
+                        <a
+                          href={safeMediaUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 flex items-center justify-center"
+                        >
+                          <span className="text-white text-xs font-medium bg-black/60 px-2 py-1 rounded">
+                            {t("admin_dashboard.viewFile")}
+                          </span>
+                        </a>
+                      )}
                     </div>
-                    <a
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 flex items-center justify-center"
-                    >
-                      <span className="text-white text-xs font-medium bg-black/60 px-2 py-1 rounded">
-                        {t("admin_dashboard.viewFile")}
-                      </span>
-                    </a>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </Section>
@@ -609,7 +624,7 @@ function DocumentViewer({
   onClose: () => void;
 }) {
   const { t } = useLang();
-  const url = doc.documentUrl;
+  const url = isSafeAssetUrl(doc.documentUrl);
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-3xl">

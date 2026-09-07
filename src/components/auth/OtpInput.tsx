@@ -82,7 +82,7 @@ export function OtpInput({
           value={d}
           onChange={(e) => handleChange(i, e.target.value)}
           onKeyDown={(e) => handleKeyDown(i, e)}
-          className="w-11 h-13 text-center text-xl font-mono font-bold rounded-xl border border-[#d8dadd] bg-white text-text placeholder:text-text-muted/30 transition-colors focus:border-voltage-lime focus:outline-none focus:ring-4 focus:ring-voltage-lime/15 disabled:opacity-50"
+          className="w-11 h-13 text-center text-xl font-mono font-bold rounded-xl border border-input bg-white text-text placeholder:text-text-muted/30 transition-colors focus:border-voltage-lime focus:outline-none focus:ring-4 focus:ring-voltage-lime/15 disabled:opacity-50"
           aria-label={`Digit ${i + 1}`}
         />
       ))}

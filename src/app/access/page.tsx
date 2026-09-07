@@ -38,19 +38,19 @@ function resolveCallbackUrl(callbackUrl: string | null, role: string): string {
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const inputClass =
-  "h-12 w-full rounded-md border border-[#d8dadd] bg-white px-3.5 text-[15px] text-text placeholder:text-[15px] placeholder:text-text-light/60 transition-colors focus:border-voltage-lime focus:outline-none focus:ring-4 focus:ring-voltage-lime/15";
+  "h-12 w-full rounded-md border border-input bg-white px-3.5 text-[15px] text-text placeholder:text-[15px] placeholder:text-text-light/60 transition-colors focus:border-voltage-lime focus:outline-none focus:ring-4 focus:ring-voltage-lime/15";
 
 const primaryBtnClass =
-  "inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-mid-abyss px-4 text-[15px] font-semibold text-white transition-colors hover:bg-[#0a3a3e] active:bg-[#031a1d] disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-mid-abyss px-4 text-[15px] font-semibold text-white transition-colors hover:bg-carbon-ink active:bg-carbon-ink disabled:cursor-not-allowed disabled:opacity-50";
 
 const googleBtnClass =
-  "inline-flex h-12 w-full items-center justify-center gap-2.5 rounded-md border border-[#d8dadd] bg-white px-4 text-sm font-medium text-[#3c4043] transition-colors hover:bg-neutral-50 active:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex h-12 w-full items-center justify-center gap-2.5 rounded-md border border-input bg-white px-4 text-sm font-medium text-text-light transition-colors hover:bg-neutral-50 active:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50";
 
 const secondaryBtnClass = (enabled: boolean) =>
   `inline-flex h-12 w-full items-center justify-center gap-2 rounded-md border px-4 text-[15px] font-semibold transition-colors ${
     enabled
-      ? "border-[#052629] bg-white text-[#052629] hover:bg-neutral-50 active:bg-neutral-100"
-      : "cursor-not-allowed border-transparent bg-[#eeeeee] text-[#aaaaaa]"
+      ? "border-secondary bg-white text-secondary hover:bg-neutral-50 active:bg-neutral-100"
+      : "cursor-not-allowed border-transparent bg-surface text-text-muted"
   }`;
 
 type Step = "email" | "welcome" | "otp";
@@ -308,9 +308,9 @@ export default function AccessPage() {
           </div>
 
           <div className="my-6 flex items-center gap-3" aria-hidden="true">
-            <span className="h-px flex-1 bg-[#e5e5e5]" />
+            <span className="h-px flex-1 bg-border" />
             <span className="text-[13px] text-text-muted">{t("auth.orDivider")}</span>
-            <span className="h-px flex-1 bg-[#e5e5e5]" />
+            <span className="h-px flex-1 bg-border" />
           </div>
 
           <form onSubmit={handleEmailContinue} noValidate>
@@ -384,9 +384,9 @@ export default function AccessPage() {
           </p>
 
           <div className="my-6 flex w-full items-center gap-3" aria-hidden="true">
-            <span className="h-px flex-1 bg-[#dedede]" />
+            <span className="h-px flex-1 bg-border" />
             <span className="text-[13px] text-text-muted">{t("auth.orDivider")}</span>
-            <span className="h-px flex-1 bg-[#dedede]" />
+            <span className="h-px flex-1 bg-border" />
           </div>
 
           <form onSubmit={handleLogin} noValidate className="w-full flex flex-col gap-2 text-left">

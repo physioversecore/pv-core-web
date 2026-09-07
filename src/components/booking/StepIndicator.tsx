@@ -39,8 +39,8 @@ export function StepIndicator({
               <div
                 className={cn(
                   "w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors",
-                  isCompleted && "bg-[#1F3D2B] text-white",
-                  isActive && "bg-[#1F3D2B] text-white ring-2 ring-[#1F3D2B]/30",
+                  isCompleted && "bg-secondary text-white",
+                  isActive && "bg-secondary text-white ring-2 ring-secondary/30",
                   isUpcoming && "bg-white border-2 border-gray-300 text-gray-400"
                 )}
               >
@@ -49,8 +49,8 @@ export function StepIndicator({
               <span
                 className={cn(
                   "text-[10px] mt-1 whitespace-nowrap font-medium",
-                  isCompleted && "text-[#1F3D2B]",
-                  isActive && "text-[#1F3D2B] font-semibold",
+                  isCompleted && "text-secondary",
+                  isActive && "text-secondary font-semibold",
                   isUpcoming && "text-gray-400"
                 )}
               >
@@ -61,7 +61,7 @@ export function StepIndicator({
               <div
                 className={cn(
                   "flex-1 h-[2px] mx-2 mt-[-1.5rem]",
-                  isCompleted ? "bg-[#1F3D2B]" : "bg-gray-200"
+                  isCompleted ? "bg-secondary" : "bg-gray-200"
                 )}
               />
             )}

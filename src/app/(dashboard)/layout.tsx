@@ -13,6 +13,7 @@ import { useComplaintBadge } from "@/context/complaint-badge";
 import { useAdminNavBadge } from "@/context/admin-nav-badge";
 
 import { ROLE_ROUTE, type UserRole } from "@/services/api/auth-constants";
+import { adminRoleForEmail, type AdminSubRole } from "@/services/api/auth-constants";
 
 const rolePrefixes = [
   { prefix: "/patient", nav: patientNav },
@@ -47,12 +48,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   let nav: NavItem[] = adminNav;
   let role = "admin";
+  let adminSubRole: AdminSubRole = "Super Admin";
   for (const r of rolePrefixes) {
     if (pathname.startsWith(r.prefix)) {
       nav = r.nav;
       role = r.prefix.slice(1);
       break;
     }
+  }
+
+  if (role === "admin") {
+    adminSubRole = adminRoleForEmail(user?.email);
+    nav = nav.filter((item) => !item.roles || item.roles?.includes(adminSubRole));
   }
 
   const navWithBadges = useMemo(() => {
@@ -95,6 +102,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return null;
   }
 
+  if (role === "admin") {
+    const isAllowed = nav.some((item) => pathname === item.to || pathname.startsWith(`${item.to}/`));
+    if (pathname !== "/admin" && pathname.startsWith("/admin") && !isAllowed) {
+      router.replace("/admin");
+      return null;
+    }
+  }
+
   const labelToKey: Record<string, string> = {
     "Overview": "nav.overview",
     "My Sessions": "nav.mySessions",
@@ -105,6 +120,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     "Help": "nav.help",
     "Settings": "nav.settings",
     "My Schedule": "nav.mySchedule",
+    "Manage Availability": "nav.manageAvailability",
     "Upload Reports": "nav.uploadReports",
     "My Patients": "nav.myPatients",
     "Earnings": "nav.earnings",
@@ -113,10 +129,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     "Schedules": "nav.schedules",
     "Payments": "nav.payments",
     "Therapists": "nav.therapists",
+    "Service Areas": "nav.serviceAreas",
+    "Leave & Availability": "nav.leave",
+    "Refunds & Disputes": "nav.refunds",
     "Complaints": "nav.complaints",
     "Complaints & Feedback": "nav.complaints",
+    "Therapist Verification": "nav.verification",
+    "Therapist Performance": "nav.performance",
+    "Safety Incidents": "nav.safetyIncidents",
     "Notifications": "nav.notifications",
+    "Analytics & Reports": "nav.analytics",
     "Admin Team": "nav.adminTeam",
+    "Activity Log": "nav.activityLog",
     "Appearance": "nav.appearance",
   };
   const current = nav.find((n) => pathname === n.to);
