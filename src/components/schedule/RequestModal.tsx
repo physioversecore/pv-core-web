@@ -64,7 +64,7 @@ export function RequestModal({
           <button
             onClick={onCancel}
             disabled={isSubmitting}
-            className="flex-1 py-2 rounded-lg bg-surface text-text text-xs font-semibold hover:bg-[#e2e0d8] transition-colors disabled:opacity-50"
+            className="flex-1 py-2 rounded-lg bg-surface text-text text-xs font-semibold hover:bg-surface-hover transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
@@ -72,7 +72,7 @@ export function RequestModal({
             onClick={() => onSubmit(reason || (isReschedule ? "Reschedule requested." : "Decline requested."))}
             disabled={isSubmitting}
             className={`flex-1 py-2 rounded-lg text-white text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 ${
-              isReschedule ? "bg-[#5b6ea8]" : "bg-[#b0454b]"
+              isReschedule ? "bg-session-reschedule" : "bg-session-decline"
             }`}
           >
             {isSubmitting ? "Sending…" : "Send to admin"}

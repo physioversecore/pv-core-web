@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import Image from "next/image";
 import { FileText, Image as ImageIcon, Video, File } from "lucide-react";
+import { isSafeAssetUrl } from "@/lib/sanitize";
 import {
   Dialog,
   DialogContent,
@@ -81,11 +82,12 @@ export function PreviewDialog({
   fileSize,
 }: PreviewDialogProps) {
   const authSrc = useMemo(() => {
-    if (!src) return src;
+    const safeSrc = isSafeAssetUrl(src);
+    if (!safeSrc) return null;
     const token = getAuthToken();
-    if (!token) return src;
-    const sep = src.includes("?") ? "&" : "?";
-    return `${src}${sep}token=${token}`;
+    if (!token) return safeSrc;
+    const sep = safeSrc.includes("?") ? "&" : "?";
+    return `${safeSrc}${sep}token=${token}`;
   }, [src]);
 
   return (

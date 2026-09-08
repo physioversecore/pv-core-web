@@ -20,7 +20,7 @@ export default function BookPage({ params }: { params: Promise<{ therapistId: st
   if (isLoading) {
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
-        <div className="w-12 h-12 border-4 border-[#1F3D2B] border-t-transparent rounded-full animate-spin" />
+        <div className="w-12 h-12 border-4 border-secondary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -29,10 +29,10 @@ export default function BookPage({ params }: { params: Promise<{ therapistId: st
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
         <div className="bg-white rounded-2xl p-8 text-center shadow-2xl">
-          <p className="text-[#1E2A2E] font-semibold mb-4">Therapist not found</p>
+          <p className="text-text font-semibold mb-4">Therapist not found</p>
           <button
             onClick={() => router.back()}
-            className="px-4 py-2 bg-[#1F3D2B] text-white rounded-xl text-sm font-medium"
+            className="px-4 py-2 bg-secondary text-white rounded-xl text-sm font-medium"
           >
             Go back
           </button>

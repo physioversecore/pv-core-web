@@ -3,19 +3,41 @@
 import { useState, useMemo, useCallback } from "react";
 import { UserPlus, ShieldCheck, Edit2, Ban, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
-import { useLang } from "@/context/i18n";
+import { useLang, type TKey } from "@/context/i18n";
 import { useAdminTeam } from "@/hooks/useAdminTeam";
 import { StatusChip } from "@/components/tables";
 import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import { Avatar } from "@/components/Avatar";
 import type { AdminUserData, AdminRoleName } from "@/services/api/admin";
 
-const PERMISSION_MATRIX: { permission: string; roles: AdminRoleName[] }[] = [
-  { permission: "View patients & therapists", roles: ["Super Admin", "Support Admin"] },
-  { permission: "Manage complaints", roles: ["Super Admin", "Support Admin"] },
-  { permission: "Manage payments & payouts", roles: ["Super Admin", "Finance Admin"] },
-  { permission: "Manage other admins", roles: ["Super Admin"] },
-];
+const ROLE_ORDER: AdminRoleName[] = ["Super Admin", "Support Admin", "Finance Admin"];
+
+function getPermissionMatrix(t: (k: TKey) => string) {
+  return [
+    { permission: t("adminTeam.permissionViewPatientsTherapists"), roles: ["Super Admin", "Support Admin"] as AdminRoleName[] },
+    { permission: t("adminTeam.permissionManageComplaints"), roles: ["Super Admin", "Support Admin"] as AdminRoleName[] },
+    { permission: t("adminTeam.permissionManagePaymentsPayouts"), roles: ["Super Admin", "Finance Admin"] as AdminRoleName[] },
+    { permission: t("adminTeam.permissionManageAdmins"), roles: ["Super Admin"] as AdminRoleName[] },
+  ];
+}
+
+function roleName(t: (k: TKey) => string, role: AdminRoleName): string {
+  const map: Record<AdminRoleName, string> = {
+    "Super Admin": t("adminTeam.superAdmin"),
+    "Support Admin": t("adminTeam.supportAdmin"),
+    "Finance Admin": t("adminTeam.financeAdmin"),
+  };
+  return map[role];
+}
+
+function roleSummary(t: (k: TKey) => string, role: AdminRoleName): string {
+  const map: Record<AdminRoleName, string> = {
+    "Super Admin": t("adminTeam.superAdminSummary"),
+    "Support Admin": t("adminTeam.supportAdminSummary"),
+    "Finance Admin": t("adminTeam.financeAdminSummary"),
+  };
+  return map[role];
+}
 
 export default function AdminTeamPage() {
   const { t } = useLang();
@@ -26,29 +48,31 @@ export default function AdminTeamPage() {
 
   const currentAdminId = "adm-001";
 
+  const permissionMatrix = useMemo(() => getPermissionMatrix(t), [t]);
+
   const handleDeactivate = useCallback(
     async (admin: AdminUserData) => {
       if (admin.id === currentAdminId) return;
       try {
         await deactivate(admin.id);
-        toast.success(`${admin.name} has been deactivated.`);
+        toast.success(`${admin.name} ${t("adminTeam.deactivatedSuccess")}`);
       } catch {
-        toast.error("Failed to deactivate admin.");
+        toast.error(t("adminTeam.invitationFailed"));
       }
     },
-    [deactivate, currentAdminId],
+    [deactivate, currentAdminId, t],
   );
 
   const handleReactivate = useCallback(
     async (admin: AdminUserData) => {
       try {
         await reactivate(admin.id);
-        toast.success(`${admin.name} has been reactivated.`);
+        toast.success(`${admin.name} ${t("adminTeam.reactivatedSuccess")}`);
       } catch {
-        toast.error("Failed to reactivate admin.");
+        toast.error(t("adminTeam.invitationFailed"));
       }
     },
-    [reactivate],
+    [reactivate, t],
   );
 
   return (
@@ -56,9 +80,9 @@ export default function AdminTeamPage() {
       <div className="card-soft p-5">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
-            <h3 className="font-display text-xl">Admin Team</h3>
+            <h3 className="font-display text-xl">{t("adminTeam.title")}</h3>
             <p className="text-sm text-text-light mt-1">
-              Super Admins control who else can access this console, and what they can do.
+              {t("adminTeam.subtitle")}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -67,7 +91,7 @@ export default function AdminTeamPage() {
               onClick={() => setShowInvite(true)}
               className="btn-primary !py-2 !px-3 text-xs cursor-pointer"
             >
-              <UserPlus size={14} className="inline mr-1" /> Invite admin
+              <UserPlus size={14} className="inline mr-1" /> {t("adminTeam.inviteAdmin")}
             </button>
           </div>
         </div>
@@ -76,7 +100,7 @@ export default function AdminTeamPage() {
       <div className="card-soft p-5">
         <div className="flex items-center gap-2 mb-4">
           <ShieldCheck size={18} className="text-secondary" />
-          <h4 className="font-display text-lg">Admin Users</h4>
+          <h4 className="font-display text-lg">{t("adminTeam.adminUsers")}</h4>
         </div>
 
         {isLoading ? (
@@ -102,7 +126,7 @@ export default function AdminTeamPage() {
                     <span className="font-medium text-sm">{admin.name}</span>
                     <StatusChip status={admin.role} />
                     {!admin.isActive && (
-                      <span className="text-[0.65rem] uppercase font-mono text-destructive">Deactivated</span>
+                      <span className="text-[0.65rem] uppercase font-mono text-destructive">{t("adminTeam.deactivated")}</span>
                     )}
                   </div>
                   <div className="text-xs text-text-light mt-0.5">{admin.email}</div>
@@ -113,25 +137,25 @@ export default function AdminTeamPage() {
                     onClick={() => setEditingAdmin(admin)}
                     disabled={admin.id === currentAdminId}
                     className="chip !bg-surface hover:bg-border transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                    title={admin.id === currentAdminId ? "Can't edit your own role" : "Edit role"}
+                    title={admin.id === currentAdminId ? t("adminTeam.cannotEditOwnRole") : t("adminTeam.editRole")}
                   >
-                    <Edit2 size={12} className="inline mr-1" /> Edit role
+                    <Edit2 size={12} className="inline mr-1" /> {t("adminTeam.editRole")}
                   </button>
                   {admin.isActive ? (
                     <button
                       onClick={() => handleDeactivate(admin)}
                       disabled={admin.id === currentAdminId}
                       className="chip !bg-destructive/10 !text-destructive hover:bg-destructive/20 transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                      title={admin.id === currentAdminId ? "Can't deactivate yourself" : "Deactivate"}
+                      title={admin.id === currentAdminId ? t("adminTeam.cannotDeactivateSelf") : t("adminTeam.deactivate")}
                     >
-                      <Ban size={12} className="inline mr-1" /> Deactivate
+                      <Ban size={12} className="inline mr-1" /> {t("adminTeam.deactivate")}
                     </button>
                   ) : (
                     <button
                       onClick={() => handleReactivate(admin)}
                       className="chip !bg-secondary/10 !text-secondary hover:bg-secondary/20 transition cursor-pointer"
                     >
-                      <CheckCircle size={12} className="inline mr-1" /> Reactivate
+                      <CheckCircle size={12} className="inline mr-1" /> {t("adminTeam.reactivate")}
                     </button>
                   )}
                 </div>
@@ -142,22 +166,22 @@ export default function AdminTeamPage() {
       </div>
 
       <div className="card-soft p-5">
-        <h4 className="font-display text-lg mb-4">Role Permissions</h4>
+        <h4 className="font-display text-lg mb-4">{t("adminTeam.rolePermissions")}</h4>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-[0.65rem] uppercase font-mono text-text-light text-left border-b border-border">
-                <th className="py-2 pr-4">Permission</th>
-                <th className="py-2 px-4 text-center">Super Admin</th>
-                <th className="py-2 px-4 text-center">Support Admin</th>
-                <th className="py-2 px-4 text-center">Finance Admin</th>
+                <th className="py-2 pr-4">{t("adminTeam.permission")}</th>
+                {ROLE_ORDER.map((role) => (
+                  <th key={role} className="py-2 px-4 text-center">{roleName(t, role)}</th>
+                ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {PERMISSION_MATRIX.map((row) => (
+              {permissionMatrix.map((row) => (
                 <tr key={row.permission}>
                   <td className="py-3 pr-4 font-medium">{row.permission}</td>
-                  {(["Super Admin", "Support Admin", "Finance Admin"] as AdminRoleName[]).map((role) => (
+                  {ROLE_ORDER.map((role) => (
                     <td key={role} className="py-3 px-4 text-center">
                       {row.roles.includes(role) ? (
                         <span className="text-secondary font-bold">✓</span>
@@ -195,6 +219,7 @@ function InviteAdminModal({
   onClose: () => void;
   onInvite: (data: { email: string; name: string; role: AdminRoleName }) => Promise<unknown>;
 }) {
+  const { t } = useLang();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [role, setRole] = useState<AdminRoleName>("Support Admin");
@@ -203,16 +228,16 @@ function InviteAdminModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !name.trim()) {
-      toast.error("Email and name are required.");
+      toast.error(t("adminTeam.emailAndNameRequired"));
       return;
     }
     setSaving(true);
     try {
       await onInvite({ email, name, role });
-      toast.success(`Invitation sent to ${email}`);
+      toast.success(`${t("adminTeam.invitationSent")} ${email}`);
       onClose();
     } catch {
-      toast.error("Failed to send invitation.");
+      toast.error(t("adminTeam.invitationFailed"));
     } finally {
       setSaving(false);
     }
@@ -224,51 +249,49 @@ function InviteAdminModal({
         className="bg-background rounded-lg border shadow-lg p-6 w-full max-w-md"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="font-display text-lg mb-4">Invite Admin</h3>
+        <h3 className="font-display text-lg mb-4">{t("adminTeam.inviteModalTitle")}</h3>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="text-xs font-mono text-text-light uppercase">Name</label>
+            <label className="text-xs font-mono text-text-light uppercase">{t("adminTeam.name")}</label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full mt-1 px-3 py-2 rounded-md border border-input bg-transparent text-sm"
-              placeholder="Full name"
+              placeholder={t("adminTeam.namePlaceholder")}
             />
           </div>
           <div>
-            <label className="text-xs font-mono text-text-light uppercase">Email</label>
+            <label className="text-xs font-mono text-text-light uppercase">{t("adminTeam.email")}</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full mt-1 px-3 py-2 rounded-md border border-input bg-transparent text-sm"
-              placeholder="admin@example.com"
+              placeholder={t("adminTeam.emailPlaceholder")}
             />
           </div>
           <div>
-            <label className="text-xs font-mono text-text-light uppercase">Role</label>
+            <label className="text-xs font-mono text-text-light uppercase">{t("adminTeam.role")}</label>
             <select
               value={role}
               onChange={(e) => setRole(e.target.value as AdminRoleName)}
               className="w-full mt-1 px-3 py-2 rounded-md border border-input bg-transparent text-sm"
             >
-              <option value="Super Admin">Super Admin</option>
-              <option value="Support Admin">Support Admin</option>
-              <option value="Finance Admin">Finance Admin</option>
+              {ROLE_ORDER.map((r) => (
+                <option key={r} value={r}>{roleName(t, r)}</option>
+              ))}
             </select>
           </div>
           <div className="bg-surface rounded-xl p-3 text-xs text-text-light">
-            <div className="font-mono uppercase mb-1">Permission summary</div>
-            {role === "Super Admin" && "Full access — bookings, payments, complaints, and admin management."}
-            {role === "Support Admin" && "Handles complaints and notifications. No payment or admin-team access."}
-            {role === "Finance Admin" && "Manages payments and payouts only."}
+            <div className="font-mono uppercase mb-1">{t("adminTeam.permissionSummary")}</div>
+            {roleSummary(t, role)}
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" onClick={onClose} className="btn-outline !py-1.5 !px-4 text-xs cursor-pointer">
-              Cancel
+              {t("adminTeam.cancel")}
             </button>
             <button type="submit" disabled={saving} className="chip !bg-secondary !text-white cursor-pointer disabled:opacity-50">
-              {saving ? "Sending…" : "Send invitation"}
+              {saving ? t("adminTeam.sending") : t("adminTeam.sendInvitation")}
             </button>
           </div>
         </form>
@@ -286,18 +309,21 @@ function EditRoleModal({
   onClose: () => void;
   onSave: (id: string, role: AdminRoleName) => Promise<unknown>;
 }) {
+  const { t } = useLang();
   const [role, setRole] = useState<AdminRoleName>(admin.role);
   const [saving, setSaving] = useState(false);
+
+  const permissionMatrix = useMemo(() => getPermissionMatrix(t), [t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     try {
       await onSave(admin.id, role);
-      toast.success(`${admin.name}'s role updated to ${role}.`);
+      toast.success(`${admin.name}'s ${t("adminTeam.roleUpdated")} ${roleName(t, role)}.`);
       onClose();
     } catch {
-      toast.error("Failed to update role.");
+      toast.error(t("adminTeam.updateRoleFailed"));
     } finally {
       setSaving(false);
     }
@@ -309,24 +335,24 @@ function EditRoleModal({
         className="bg-background rounded-lg border shadow-lg p-6 w-full max-w-md"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="font-display text-lg mb-1">Edit Role</h3>
+        <h3 className="font-display text-lg mb-1">{t("adminTeam.editRoleTitle")}</h3>
         <p className="text-sm text-text-light mb-4">{admin.name} — {admin.email}</p>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="text-xs font-mono text-text-light uppercase">Role</label>
+            <label className="text-xs font-mono text-text-light uppercase">{t("adminTeam.role")}</label>
             <select
               value={role}
               onChange={(e) => setRole(e.target.value as AdminRoleName)}
               className="w-full mt-1 px-3 py-2 rounded-md border border-input bg-transparent text-sm"
             >
-              <option value="Super Admin">Super Admin</option>
-              <option value="Support Admin">Support Admin</option>
-              <option value="Finance Admin">Finance Admin</option>
+              {ROLE_ORDER.map((r) => (
+                <option key={r} value={r}>{roleName(t, r)}</option>
+              ))}
             </select>
           </div>
           <div className="bg-surface rounded-xl p-3 text-xs text-text-light">
-            <div className="font-mono uppercase mb-1">Permissions for {role}</div>
-            {PERMISSION_MATRIX.map((row) => (
+            <div className="font-mono uppercase mb-1">{t("adminTeam.permissionsFor")} {roleName(t, role)}</div>
+            {permissionMatrix.map((row) => (
               <div key={row.permission} className="flex items-center gap-2 py-0.5">
                 <span className={row.roles.includes(role) ? "text-secondary" : "text-text-muted"}>
                   {row.roles.includes(role) ? "✓" : "—"}
@@ -337,10 +363,10 @@ function EditRoleModal({
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" onClick={onClose} className="btn-outline !py-1.5 !px-4 text-xs cursor-pointer">
-              Cancel
+              {t("adminTeam.cancel")}
             </button>
             <button type="submit" disabled={saving || role === admin.role} className="chip !bg-secondary !text-white cursor-pointer disabled:opacity-50">
-              {saving ? "Saving…" : "Save role"}
+              {saving ? t("adminTeam.saving") : t("adminTeam.saveRole")}
             </button>
           </div>
         </form>

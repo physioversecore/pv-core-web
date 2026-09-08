@@ -46,7 +46,7 @@ export function PasswordRules({ password, showRules = false }: { password: strin
     metCount <= 1 ? "weak" : metCount === 2 ? "fair" : metCount === 3 ? "good" : metCount === 4 ? "strong" : "veryStrong";
 
   return (
-    <div className="rounded-lg border border-[#e5e5e5] bg-[#f9f9f9] p-3">
+    <div className="rounded-lg border border-border bg-muted p-3">
       <div className="flex items-center justify-between mb-2">
         <p className="text-sm font-medium text-text-light flex items-center gap-1.5">
           <ShieldCheck size={14} />
@@ -64,7 +64,7 @@ export function PasswordRules({ password, showRules = false }: { password: strin
             key={i}
             className={cn(
               "h-1.5 flex-1 rounded-full transition-all duration-200",
-              i < metCount ? "bg-success" : "bg-[#e0e0e0]",
+              i < metCount ? "bg-success" : "bg-border",
             )}
           />
         ))}
@@ -78,7 +78,7 @@ export function PasswordRules({ password, showRules = false }: { password: strin
                 <span
                   className={cn(
                     "flex h-4 w-4 shrink-0 items-center justify-center rounded-full transition-colors",
-                    met ? "bg-success text-white" : "bg-[#e0e0e0] text-transparent"
+                    met ? "bg-success text-white" : "bg-border text-transparent"
                   )}
                 >
                   <Check size={10} strokeWidth={3} />

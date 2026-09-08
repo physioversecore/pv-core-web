@@ -128,10 +128,10 @@ function FindPageContent() {
     { value: "6", label: t("find.statCities") },
   ];
 
-  const sorts: { key: SortKey; label: string; icon: string }[] = [
-    { key: "trending", label: t("find.sortTrending"), icon: "🔥" },
-    { key: "rated", label: t("find.sortRated"), icon: "⭐" },
-    { key: "price", label: t("find.sortPrice"), icon: "💰" },
+  const sorts: { key: SortKey; label: string }[] = [
+    { key: "trending", label: t("find.sortTrending") },
+    { key: "rated", label: t("find.sortRated") },
+    { key: "price", label: t("find.sortPrice") },
   ];
 
   const selectCls =
@@ -179,12 +179,12 @@ function FindPageContent() {
                   </div>
                 ))}
               </div>
-              <div
+              {/*<div
                 aria-hidden
                 className="absolute -top-5 -right-3 phone-float w-14 h-14 rounded-full border border-white/70 bg-white/60 backdrop-blur-md grid place-items-center shadow-lg"
               >
                 <Sparkles className="w-6 h-6 text-primary" />
-              </div>
+              </div>*/}
             </div>
           </div>
         </div>
@@ -257,7 +257,6 @@ function FindPageContent() {
                       : "border-border bg-white text-text-light hover:border-secondary/40 hover:text-text"
                   }`}
                 >
-                  <span className="leading-none">{s.icon}</span>
                   {s.label}
                 </button>
               ))}
@@ -366,12 +365,12 @@ function FindPageContent() {
                 <div
                   aria-hidden
                   className="absolute -top-8 -right-8 w-72 h-72 rounded-full blur-3xl opacity-40"
-                  style={{ background: "radial-gradient(circle, #d3fb52 0%, transparent 70%)" }}
+                  style={{ background: "radial-gradient(circle, var(--color-primary) 0%, transparent 70%)" }}
                 />
                 <div
                   aria-hidden
                   className="absolute -bottom-10 -left-8 w-72 h-72 rounded-full blur-3xl opacity-30"
-                  style={{ background: "radial-gradient(circle, #7af3ff 0%, transparent 70%)" }}
+                  style={{ background: "radial-gradient(circle, var(--color-cyan-spark) 0%, transparent 70%)" }}
                 />
 
                 <div className="relative flex items-center">

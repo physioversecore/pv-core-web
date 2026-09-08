@@ -36,3 +36,16 @@ export function getRoleForPath(pathname: string): UserRole | null {
 export function isValidRole(role: unknown): role is UserRole {
   return typeof role === "string" && (VALID_ROLES as readonly string[]).includes(role);
 }
+
+// --- Admin sub-roles (email-derived display roles) ---
+export type AdminSubRole = "Super Admin" | "Support Admin" | "Finance Admin";
+
+export const TEAM_ROLE_BY_EMAIL: Record<string, Exclude<AdminSubRole, "Super Admin">> = {
+  "roshani@sahayatriphysio.com": "Support Admin",
+  "bikash@sahayatriphysio.com": "Finance Admin",
+};
+
+export function adminRoleForEmail(email: string | undefined | null): AdminSubRole {
+  if (!email) return "Super Admin";
+  return TEAM_ROLE_BY_EMAIL[email.toLowerCase()] ?? "Super Admin";
+}

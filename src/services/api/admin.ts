@@ -1,6 +1,7 @@
 "use server";
 
 import { api } from "./client";
+import { adminRoleForEmail, type AdminSubRole } from "./auth-constants";
 
 export interface AdminPatientData {
   id: string;
@@ -549,7 +550,8 @@ export async function getNewComplaintCount(since?: string) {
 }
 
 // --- Admin Team ---
-export type AdminRoleName = "Super Admin" | "Support Admin" | "Finance Admin";
+
+export type AdminRoleName = AdminSubRole;
 
 export interface AdminUserData {
   id: string;
@@ -561,13 +563,8 @@ export interface AdminUserData {
   permissionSummary: string;
 }
 
-const TEAM_ROLE_BY_EMAIL: Record<string, Exclude<AdminRoleName, "Super Admin">> = {
-  "roshani@sahayatriphysio.com": "Support Admin",
-  "bikash@sahayatriphysio.com": "Finance Admin",
-};
-
 function roleForEmail(email: string): AdminRoleName {
-  return TEAM_ROLE_BY_EMAIL[email.toLowerCase()] ?? "Super Admin";
+  return adminRoleForEmail(email);
 }
 
 const ROLE_PERMISSIONS: Record<AdminRoleName, { permissions: string[]; summary: string }> = {

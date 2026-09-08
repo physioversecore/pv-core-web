@@ -248,7 +248,7 @@ export default function AdminBookingsPage() {
           </button>
           <button
             onClick={() => setShowBookingModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#1F3D2B] text-white text-sm font-semibold hover:bg-[#1F3D2B]/90 transition-colors shrink-0"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary text-white text-sm font-semibold hover:bg-secondary/90 transition-colors shrink-0"
           >
             <Plus size={16} />
             Book Session

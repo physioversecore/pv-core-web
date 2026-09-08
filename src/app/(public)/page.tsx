@@ -34,7 +34,7 @@ export default function Landing() {
     <div className="overflow-x-hidden">
       <div className="home-background">
         <HeroSection onBook={(t) => handleBook({ ...t, gender: t.gender as Therapist["gender"] })} />
-        <div className="max-w-7xl mx-auto px-5 text-center pt-4 pb-8 md:pb-2">
+        <div className="max-w-7xl mx-auto px-5 text-center pt-10 pb-8 md:pb-2">
           <Reveal>
             <p className="eyebrow !text-voltage-lime mb-3">{t("landing.featuredTherapistsEyebrow")}</p>
             <h2 className="font-display text-heading-sm font-medium leading-snug tracking-[-0.02em] text-white sm:text-2xl">

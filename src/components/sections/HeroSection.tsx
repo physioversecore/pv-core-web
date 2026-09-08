@@ -12,7 +12,7 @@ import { npr } from "@/utils/format";
 import { Avatar } from "@/components/common/Avatar";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Suspense } from "react";
-import { HeroLiveSkeleton, TherapistCardGridSkeleton } from "@/components/SuspenseFallback";
+import { TherapistCardGridSkeleton } from "@/components/SuspenseFallback";
 
 const CHIPS = SPECIALTIES.slice(0, 4);
 
@@ -67,17 +67,17 @@ export function HeroSection({ onBook }: { onBook?: (t: TherapistData) => void })
   return (
     <section
       id="top"
-      className="relative flex min-h-[85vh] lg:min-h-[80vh] flex-col pt-36 lg:pt-40 pb-6 lg:pb-12 text-white"
+      className="relative flex min-h-[85vh] lg:min-h-[80vh] flex-col pt-40 lg:pt-48 pb-20 lg:pb-28 text-white"
     >
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-5 lg:px-8">
+      <div className="relative z-10 w-full max-w-[86rem] mx-auto px-5 lg:px-10">
         {/* Main hero: side-by-side on desktop, stacked on mobile */}
-        <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] lg:gap-16">
+        <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.25fr)_minmax(300px,0.75fr)] lg:gap-20">
           {/* Left: text + search */}
           <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
             <h1
-              className="font-anybody font-bold uppercase text-white"
+              className="font-sans font-extrabold uppercase text-white"
               style={{
-                fontSize: "clamp(32px, 5.5vw, 72px)",
+                fontSize: "clamp(34px, 6vw, 84px)",
                 lineHeight: 1,
                 letterSpacing: "-0.02em",
               }}
@@ -85,7 +85,7 @@ export function HeroSection({ onBook }: { onBook?: (t: TherapistData) => void })
               {t("landing.heroTitle")}
             </h1>
 
-            <p className="hidden md:block mt-6 max-w-xl text-sm text-white/70">
+            <p className="hidden md:block mt-6 max-w-lg text-[15px] text-white/60">
               {t("landing.heroDesc")}
             </p>
 
@@ -112,13 +112,13 @@ export function HeroSection({ onBook }: { onBook?: (t: TherapistData) => void })
                 </button>
               </form>
 
-              <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+              <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5">
                 {CHIPS.map((c) => (
                   <button
                     key={c}
                     type="button"
                     onClick={() => chip(c)}
-                    className="text-[12px] text-white border border-white/30 rounded-full px-3.5 py-2 sm:px-4 sm:py-1.5 sm:text-[14px] transition-colors hover:bg-voltage-lime hover:text-carbon-ink"
+                    className="text-[11px] sm:text-[12px] text-white/55 border border-white/15 rounded-full px-3 py-1.5 sm:px-3.5 sm:py-1 transition-colors hover:text-white hover:border-white/35"
                   >
                     {c}
                   </button>
@@ -130,11 +130,8 @@ export function HeroSection({ onBook }: { onBook?: (t: TherapistData) => void })
           {/* Right: hero visual (desktop only) */}
           <div className="relative hidden min-h-[360px] items-center justify-center lg:flex">
             <div className="relative w-full max-w-md">
-              {/* Decorative rings */}
-              <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                <div className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-voltage-lime/10" style={{ width: 480, height: 480 }} />
-                <div className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" style={{ width: 560, height: 560 }} />
-              </div>
+              {/* Single subtle decorative ring */}
+              <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" style={{ width: 520, height: 520 }} />
 
               {/* Main image card */}
               <div className="relative aspect-square overflow-hidden rounded-3xl border border-voltage-lime/20 bg-white/5 shadow-2xl transition-transform duration-700 hover:rotate-0 lg:rotate-3">
@@ -150,18 +147,18 @@ export function HeroSection({ onBook }: { onBook?: (t: TherapistData) => void })
               </div>
 
               {/* Floating NMC verified card */}
-              <div className="absolute -right-4 top-4 z-20 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/90 p-3 shadow-xl backdrop-blur-sm sm:-right-6 sm:top-6">
-                <div className="grid size-10 place-items-center rounded-xl bg-voltage-lime/10 text-voltage-lime">
-                  <ShieldCheck className="size-5" />
+              <div className="absolute -right-4 top-6 z-20 flex items-center gap-2.5 rounded-2xl border border-white/10 bg-white/90 p-2.5 pr-3.5 shadow-xl backdrop-blur-sm">
+                <div className="grid size-8 place-items-center rounded-lg bg-voltage-lime/10 text-voltage-lime">
+                  <ShieldCheck className="size-4" />
                 </div>
                 <div>
-                  <p className="text-[10px] text-ash sm:text-xs">{t("landing.heroCertifiedProfessionals")}</p>
-                  <p className="text-sm font-semibold text-carbon-ink">{t("landing.heroNmcVerifiedCare")}</p>
+                  <p className="text-[10px] text-ash">{t("landing.heroCertifiedProfessionals")}</p>
+                  <p className="text-xs font-semibold text-carbon-ink">{t("landing.heroNmcVerifiedCare")}</p>
                 </div>
               </div>
 
               {/* Floating rating card */}
-              <div className="absolute -left-4 bottom-4 z-20 rounded-2xl bg-voltage-lime p-4 shadow-xl sm:-left-6 sm:bottom-6">
+              <div className="absolute -left-4 bottom-4 z-20 flex items-center gap-3 rounded-2xl bg-voltage-lime p-4 shadow-xl sm:-left-6 sm:bottom-6">
                 <div className="flex items-center gap-2 text-carbon-ink">
                   <span className="font-display text-2xl font-semibold">4.8</span>
                   <div className="flex gap-0.5">
@@ -170,14 +167,14 @@ export function HeroSection({ onBook }: { onBook?: (t: TherapistData) => void })
                     ))}
                   </div>
                 </div>
-                <p className="mt-1 text-[10px] text-carbon-ink/70 sm:text-xs">{t("landing.heroAvgPatientRating")}</p>
+                <p className="text-[10px] leading-tight text-carbon-ink/70 sm:text-xs">{t("landing.heroAvgPatientRating")}</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Available today strip */}
-        <div className="mt-24">
+        <div className="mt-28 lg:mt-36 border-t border-white/10 pt-10 lg:pt-12">
           <ErrorBoundary>
             <Suspense fallback={<TherapistCardGridSkeleton count={4}  />}>
               <AvailableToday onBook={onBook} />
@@ -210,7 +207,7 @@ function AvailableToday({ onBook }: { onBook?: (t: TherapistData) => void }) {
   if (isLoading) return (
     <>
       <div className="flex items-center justify-between gap-3 pb-4">
-        <p className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-white/60 flex items-center gap-2 shrink-0">
+        <p className="font-mono font-semibold text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-white/60 flex items-center gap-2 shrink-0">
           <span className="relative flex size-1.5 sm:size-2">
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-voltage-lime/75" />
             <span className="relative inline-flex size-1.5 sm:size-2 rounded-full bg-voltage-lime" />
@@ -220,7 +217,7 @@ function AvailableToday({ onBook }: { onBook?: (t: TherapistData) => void }) {
         </p>
         <button
           onClick={() => router.push("/find-a-therapist")}
-          className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-white/40 transition-colors hover:text-white cursor-pointer shrink-0"
+          className="font-mono font-semibold text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-white/40 transition-colors hover:text-white cursor-pointer shrink-0"
         >
           {t("landing.heroViewAllTherapists")} →
         </button>
@@ -234,7 +231,7 @@ function AvailableToday({ onBook }: { onBook?: (t: TherapistData) => void }) {
   return (
     <>
       <div className="flex items-center justify-between gap-3">
-        <p className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-white/60 flex items-center gap-2 shrink-0">
+        <p className="font-mono font-semibold text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-white/60 flex items-center gap-2 shrink-0">
           <span className="relative flex size-1.5 sm:size-2">
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-voltage-lime/75" />
             <span className="relative inline-flex size-1.5 sm:size-2 rounded-full bg-voltage-lime" />
@@ -244,7 +241,7 @@ function AvailableToday({ onBook }: { onBook?: (t: TherapistData) => void }) {
         </p>
         <button
           onClick={() => router.push("/find-a-therapist")}
-          className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-white/40 transition-colors hover:text-white cursor-pointer shrink-0"
+          className="font-mono font-semibold text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-white/40 transition-colors hover:text-white cursor-pointer shrink-0"
         >
           {t("landing.heroViewAllTherapists")} →
         </button>
@@ -254,35 +251,37 @@ function AvailableToday({ onBook }: { onBook?: (t: TherapistData) => void }) {
         {therapists.map((therapist) => (
           <div
             key={therapist.id}
-            className="bg-white/[0.04] border border-white/10 rounded-xl p-4 flex flex-col gap-3 text-left hover:shadow-md hover:border-voltage-lime/30 transition-all duration-200"
+            className="bg-white/[0.03] border border-white/5 rounded-xl p-4 flex flex-col gap-2.5 text-left transition-colors duration-200 hover:border-voltage-lime/25"
           >
-            <div className="flex items-center gap-3">
-              <Avatar name={therapist.name} size={56} src={therapist.mediaUrls?.split(",")[0]} />
-              <div className="min-w-0">
-                <div className="font-bold text-[15px] text-white truncate">{therapist.name}</div>
-                <div className="text-xs text-white/50 truncate">{therapist.city}</div>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <Avatar name={therapist.name} size={36} src={therapist.mediaUrls?.split(",")[0]} />
+                <div className="min-w-0">
+                  <div className="font-semibold text-[15px] text-white truncate">{therapist.name}</div>
+                </div>
               </div>
-            </div>
-
-            <div className="flex items-end justify-between gap-2">
-              <div className="text-lg font-bold text-white leading-none">
+              <div className="text-[15px] font-bold text-white leading-none shrink-0">
                 {npr(therapist.price)}
-                <span className="text-xs font-normal text-white/50"> {t("landing.heroPerSession")}</span>
-              </div>
-              <div className="flex items-center gap-1 text-xs shrink-0">
-                <Star className="w-3.5 h-3.5 fill-voltage-lime text-voltage-lime" />
-                <span className="font-semibold text-white">{therapist.rating}</span>
-                <span className="text-white/50">({therapist.reviews})</span>
+                <span className="text-[11px] font-normal text-white/45"> {t("landing.heroPerSession")}</span>
               </div>
             </div>
 
-            <p className="text-xs text-white/40 leading-relaxed">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[13px] text-white/40 truncate">{therapist.city}</p>
+              <div className="flex items-center gap-1 text-xs shrink-0">
+                <Star className="w-3 h-3 fill-voltage-lime text-voltage-lime" />
+                <span className="font-semibold text-white/85">{therapist.rating}</span>
+                <span className="text-white/35">({therapist.reviews})</span>
+              </div>
+            </div>
+
+            <p className="text-[13px] text-white/40 leading-relaxed truncate">
               {therapist.specialty}
             </p>
 
-            <div className="mt-auto pt-2 flex items-center justify-between gap-2 border-t border-white/10">
-              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-voltage-lime">
-                <ShieldCheck size={14} />
+            <div className="mt-auto pt-1 flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-white/45">
+                <ShieldCheck size={12} className="text-voltage-lime/70" />
                 {t("landing.heroNmcVerifiedCare")}
               </span>
               <button
@@ -291,7 +290,7 @@ function AvailableToday({ onBook }: { onBook?: (t: TherapistData) => void }) {
                   e.stopPropagation();
                   onBook?.(therapist);
                 }}
-                className="px-3 py-1.5 rounded-full border border-white/15 text-sm font-semibold text-white transition-colors hover:border-voltage-lime/50 hover:text-voltage-lime"
+                className="px-3 py-1 rounded-full border border-white/10 text-[13px] font-semibold text-white/75 transition-colors hover:border-voltage-lime/40 hover:text-voltage-lime"
               >
                 {t("common.book")}
               </button>

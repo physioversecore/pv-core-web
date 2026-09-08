@@ -1,11 +1,11 @@
 "use client";
 
 const LEGEND_ITEMS = [
-  { label: "Booked", bg: "var(--booked, #16332A)", border: "" },
-  { label: "Open", bg: "var(--open, #D1E8DF)", border: "" },
-  { label: "Off", bg: "var(--off, #FBFBF8)", border: "1px solid var(--border, #E4E0D6)" },
-  { label: "Past", bg: "#ECEAE3", border: "" },
-  { label: "Blocked", bg: "#F0D5CA", border: "" },
+  { label: "Booked", bg: "var(--booked, var(--color-slot-booked))", border: "" },
+  { label: "Open", bg: "var(--open, var(--color-slot-open))", border: "" },
+  { label: "Off", bg: "var(--off, var(--color-slot-off))", border: "1px solid var(--border, var(--color-slot-past-alt))" },
+  { label: "Past", bg: "var(--color-slot-past)", border: "" },
+  { label: "Blocked", bg: "var(--color-slot-blocked)", border: "" },
 ] as const;
 
 export function Legend() {

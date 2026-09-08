@@ -8,10 +8,10 @@ import type { ScheduleAppointment, ScheduleAppointmentStatus } from "@/hooks/use
 const DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const CHIP_CLASSES: Record<ScheduleAppointmentStatus, string> = {
-  confirmed: "bg-[#e4efe9] text-secondary border-secondary",
-  reschedule_requested: "bg-[#e8eaf6] text-[#5b6ea8] border-[#5b6ea8]",
-  decline_requested: "bg-[#f7e4e4] text-[#b0454b] border-[#b0454b]",
-  completed: "bg-[#eeece6] text-[#8b8f87] border-[#8b8f87]",
+  confirmed: "bg-session-confirmed-bg text-secondary border-secondary",
+  reschedule_requested: "bg-session-reschedule-bg text-session-reschedule border-session-reschedule",
+  decline_requested: "bg-session-decline-bg text-session-decline border-session-decline",
+  completed: "bg-session-completed-bg text-session-completed border-session-completed",
 };
 
 interface MonthCell {
@@ -151,9 +151,9 @@ export function MonthlyView({
               <div
                 key={di}
                 className={`border-r border-border last:border-r-0 p-1.5 min-h-[88px] ${
-                  !day.isCurrentMonth ? "bg-[#fafafa]" : ""
+                  !day.isCurrentMonth ? "bg-surface" : ""
                 } ${isToday ? "bg-primary/[0.03]" : ""} ${
-                  past && day.isCurrentMonth ? "bg-[#f1efe7]" : ""
+                  past && day.isCurrentMonth ? "bg-session-past-bg" : ""
                 }`}
               >
                 <div
@@ -198,7 +198,7 @@ export function MonthlyView({
                           ).getBoundingClientRect();
                           onShowMore(rest, rect);
                         }}
-                        className="w-full text-[10px] font-bold text-secondary bg-[#eef2ee] rounded px-1.5 py-1 cursor-pointer border border-dashed border-[#c7d3cb] hover:bg-[#e2e8e0] transition-colors"
+                        className="w-full text-[10px] font-bold text-secondary bg-session-open-bg rounded px-1.5 py-1 cursor-pointer border border-dashed border-session-open-border hover:bg-session-open-bg-hover transition-colors"
                       >
                         +{rest.length} more
                       </button>

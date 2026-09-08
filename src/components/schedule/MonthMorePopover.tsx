@@ -7,9 +7,9 @@ import type { ScheduleAppointment, ScheduleAppointmentStatus } from "@/hooks/use
 
 const DOT_COLORS: Record<ScheduleAppointmentStatus, string> = {
   confirmed: "bg-secondary",
-  reschedule_requested: "bg-[#5b6ea8]",
-  decline_requested: "bg-[#b0454b]",
-  completed: "bg-[#8b8f87]",
+  reschedule_requested: "bg-session-reschedule",
+  decline_requested: "bg-session-decline",
+  completed: "bg-session-completed",
 };
 
 interface MonthMorePopoverProps {

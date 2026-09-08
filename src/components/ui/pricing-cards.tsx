@@ -35,18 +35,17 @@ function PackageCard({ pkg, delay }: { pkg: Package; delay: number }) {
             </Badge>
           </div>
         )}
-
         <CardHeader className="pt-8">
-          <div className="flex items-center justify-between">
-            <span className="text-2xl">{icon}</span>
+          <div className="flex justify-between">
+            {/*<span className="text-2xl">{icon}</span>*/}
             <span className="rounded-full bg-mid-abyss/5 border border-border px-2.5 py-1 text-[10px] font-medium text-text-light">
               {pkg.tag}
             </span>
           </div>
-          <CardTitle className="mt-4 font-sans font-medium text-lg md:text-subheading text-carbon-ink">
+          <CardTitle className="mt-2 font-sans font-medium text-lg md:text-subheading text-carbon-ink">
             {pkg.name}
           </CardTitle>
-          <CardDescription className="mt-2 text-[12px] leading-tight text-ash">
+          <CardDescription className="mt-2 text-[11px] leading-tight text-ash">
             {pkg.blurb}
           </CardDescription>
         </CardHeader>

@@ -11,6 +11,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useLang } from "@/context/i18n";
+import { sanitizeRichText } from "@/lib/sanitize";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -28,7 +29,7 @@ export function ConfirmDialog({ open, onOpenChange, onConfirm, title, descriptio
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription dangerouslySetInnerHTML={{ __html: description }}/>
+          <AlertDialogDescription dangerouslySetInnerHTML={{ __html: sanitizeRichText(description) }}/>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>{t("common.cancel") ?? "Cancel"}</AlertDialogCancel>
