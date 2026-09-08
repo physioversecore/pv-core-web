@@ -5,16 +5,9 @@ import { to12h } from "@/lib/format";
 import { generateTimeSlots, isDateInPast, isSlotInPast } from "@/lib/availability-utils";
 import type { ScheduleAppointment, ScheduleAppointmentStatus } from "@/hooks/useTherapistSchedule";
 import type { WorkingHours } from "@/lib/availability-utils";
+import { PackageBadge } from "./PackageBadge";
 
-const DOW_FULL = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-];
+const DOW_FULL = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 function weekdayIndex(d: Date): number {
   return (d.getDay() + 6) % 7;
@@ -22,7 +15,8 @@ function weekdayIndex(d: Date): number {
 
 const CARD_CLASSES: Record<ScheduleAppointmentStatus, string> = {
   confirmed: "bg-session-confirmed-bg border-secondary text-secondary",
-  reschedule_requested: "bg-session-reschedule-bg border-session-reschedule text-session-reschedule",
+  reschedule_requested:
+    "bg-session-reschedule-bg border-session-reschedule text-session-reschedule",
   decline_requested: "bg-session-decline-bg border-session-decline text-session-decline",
   completed: "bg-session-completed-bg border-session-completed text-session-completed",
 };
@@ -55,7 +49,7 @@ export function DailyView({
   onSelectAppointment,
 }: DailyViewProps) {
   const past = isDateInPast(
-    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
+    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`,
   );
   const dow = weekdayIndex(date);
 
@@ -63,10 +57,8 @@ export function DailyView({
 
   const dayAppts = useMemo(
     () =>
-      appointments
-        .filter((a) => a.date === dateKey)
-        .sort((a, b) => a.time.localeCompare(b.time)),
-    [appointments, dateKey]
+      appointments.filter((a) => a.date === dateKey).sort((a, b) => a.time.localeCompare(b.time)),
+    [appointments, dateKey],
   );
 
   const allSlots = useMemo(() => {
@@ -84,8 +76,7 @@ export function DailyView({
     >
       <div className="px-4 py-3 border-b border-border flex items-center justify-between">
         <h3 className="text-[15px] font-display font-semibold">
-          {DOW_FULL[dow]},{" "}
-          {date.toLocaleDateString("en-US", { month: "long", day: "numeric" })}
+          {DOW_FULL[dow]}, {date.toLocaleDateString("en-US", { month: "long", day: "numeric" })}
           {past && (
             <span className="ml-2 text-[11px] font-bold text-warn-ink bg-warn-bg border border-warn-border px-2.5 py-0.5 rounded-full">
               Past date · view only
@@ -99,8 +90,7 @@ export function DailyView({
 
       {!hasSlots ? (
         <div className="py-10 text-center text-sm text-text-light">
-          No working hours set for {DOW_FULL[dow]} — set them in Manage
-          Availability.
+          No working hours set for {DOW_FULL[dow]} — set them in Manage Availability.
         </div>
       ) : (
         <div>
@@ -126,10 +116,8 @@ export function DailyView({
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <p className="text-[13px] font-semibold truncate">
-                              {match.patient}
-                            </p>
-                            <p className="text-[11px] opacity-70 mt-0.5">
+                            <p className="text-[13px] font-semibold truncate">{match.patient}</p>
+                            <p className="text-[11px] opacity-70 mt-0.5 flex items-center gap-1.5 flex-wrap">
                               {match.type} · {match.address}
                             </p>
                           </div>
@@ -139,19 +127,20 @@ export function DailyView({
                             {STATUS_LABELS[match.status]}
                           </span>
                         </div>
+                        {match.bookedViaPackage && (
+                          <div className="mt-1.5">
+                            <PackageBadge name={match.packageName} />
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
+                  </div>,
                 );
                 i++;
               } else {
                 const rangeStart = t;
                 let j = i;
-                while (
-                  j < allSlots.length &&
-                  !dayAppts.find((a) => a.time === allSlots[j])
-                )
-                  j++;
+                while (j < allSlots.length && !dayAppts.find((a) => a.time === allSlots[j])) j++;
                 const rangeEnd = allSlots[j - 1];
                 const [endH, endM] = rangeEnd.split(":").map(Number);
                 const endMin = endH * 60 + endM + (workingHours.slotInterval || 60);
@@ -168,11 +157,9 @@ export function DailyView({
                       {to12h(rangeStart)}
                     </div>
                     <div className="px-3 py-3 text-[11px] text-session-tip italic">
-                      {past
-                        ? "No appointment"
-                        : `Free until ${to12h(endTimeStr)}`}
+                      {past ? "No appointment" : `Free until ${to12h(endTimeStr)}`}
                     </div>
-                  </div>
+                  </div>,
                 );
                 i = j;
               }

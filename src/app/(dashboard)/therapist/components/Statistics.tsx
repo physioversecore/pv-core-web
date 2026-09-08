@@ -12,15 +12,26 @@ export function Statistics() {
 
   const sessionsWeek = dashboard?.sessionsThisWeek ?? 0;
   const totalPatients = dashboard?.totalPatients ?? 0;
+  const packageSessions = dashboard?.packageSessions ?? 0;
   const earnings = dashboard?.earningsThisMonth ?? 0;
   const rating = dashboard?.averageRating ?? 0;
 
   return (
-    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      <DashboardStat label={t("therapist_dashboard.sessionsThisWeek")} value={String(sessionsWeek)} />
+    <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+      <DashboardStat
+        label={t("therapist_dashboard.sessionsThisWeek")}
+        value={String(sessionsWeek)}
+      />
       <DashboardStat label={t("therapist_dashboard.totalPatients")} value={String(totalPatients)} />
+      <DashboardStat
+        label={t("therapist_dashboard.packageSessions")}
+        value={String(packageSessions)}
+      />
       <DashboardStat label={t("therapist_dashboard.earningsThisMonth")} value={npr(earnings)} />
-      <DashboardStat label={t("therapist_dashboard.averageRating")} value={`${rating.toFixed(1)} ★`} />
+      <DashboardStat
+        label={t("therapist_dashboard.averageRating")}
+        value={`${rating.toFixed(1)} ★`}
+      />
     </div>
   );
 }

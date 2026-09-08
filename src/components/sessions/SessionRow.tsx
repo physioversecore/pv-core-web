@@ -2,7 +2,15 @@
 
 import { Avatar } from "@/components/common/Avatar";
 import { SmartBadge } from "./SmartBadge";
-import { formatWhen, formatType, npr, mapSessionStatus, isPast, isOverdueSession } from "@/lib/format";
+import { Package } from "lucide-react";
+import {
+  formatWhen,
+  formatType,
+  npr,
+  mapSessionStatus,
+  isPast,
+  isOverdueSession,
+} from "@/lib/format";
 import type { SessionData } from "@/services/api/sessions";
 
 interface SessionRowProps {
@@ -21,7 +29,14 @@ const statusStyles: Record<string, string> = {
   Overdue: "!bg-danger/15 !text-danger",
 };
 
-export function SessionRow({ session, onCancel, onReschedule, onRate, onClick, rateableIds }: SessionRowProps) {
+export function SessionRow({
+  session,
+  onCancel,
+  onReschedule,
+  onRate,
+  onClick,
+  rateableIds,
+}: SessionRowProps) {
   const isUpcoming = session.status === "SCHEDULED" || session.status === "IN_PROGRESS";
   const isOverdue = isOverdueSession(session.status, session.date, session.time);
   const displayStatus = isOverdue ? "Overdue" : mapSessionStatus(session.status);
@@ -29,30 +44,44 @@ export function SessionRow({ session, onCancel, onReschedule, onRate, onClick, r
   const canRate = displayStatus === "Completed" && rateableIds?.has(session.id);
 
   return (
-    <div className="card-soft p-4 cursor-pointer hover:shadow-md transition" onClick={() => onClick(session.id)}>
+    <div
+      className="card-soft p-4 cursor-pointer hover:shadow-md transition"
+      onClick={() => onClick(session.id)}
+    >
       <div className="flex items-start gap-3.5">
         <Avatar name={session.therapistName || "T"} size={44} />
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <div className="font-semibold text-[15px] leading-tight truncate">{session.therapistName || "Therapist"}</div>
+              <div className="font-semibold text-[15px] leading-tight truncate">
+                {session.therapistName || "Therapist"}
+              </div>
               <div className="text-xs text-text-light mt-1 leading-relaxed">
                 {formatWhen(session.date, session.time)} · {formatType(session.type)}
               </div>
               <div className="text-[13px] text-text-light/80 mt-0.5 font-medium">
-                {npr(session.fee)}
+                {session.bookedViaPackage ? (
+                  <span className="inline-flex items-center gap-1 text-primary">
+                    <Package size={12} /> Package session
+                  </span>
+                ) : (
+                  npr(session.fee)
+                )}
               </div>
             </div>
             <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
-              {!isOverdue && <SmartBadge date={session.date} time={session.time} status={session.status} />}
-              <span className={`chip ${statusStyles[displayStatus] ?? ""}`}>
-                {displayStatus}
-              </span>
+              {!isOverdue && (
+                <SmartBadge date={session.date} time={session.time} status={session.status} />
+              )}
+              <span className={`chip ${statusStyles[displayStatus] ?? ""}`}>{displayStatus}</span>
             </div>
           </div>
 
           {showActions && (
-            <div className="flex gap-2 mt-3 pt-3 border-t border-border" onClick={(e) => e.stopPropagation()}>
+            <div
+              className="flex gap-2 mt-3 pt-3 border-t border-border"
+              onClick={(e) => e.stopPropagation()}
+            >
               <button
                 onClick={() => onReschedule(session.id)}
                 className="inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-xl border border-primary text-primary text-xs font-semibold cursor-pointer hover:bg-primary hover:text-white transition-all"

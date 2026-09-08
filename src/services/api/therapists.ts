@@ -30,6 +30,8 @@ export interface TodaySessionData {
   address: string;
   type: string;
   status: string;
+  bookedViaPackage?: boolean;
+  packageName?: string;
 }
 
 export interface RecentUploadData {
@@ -61,6 +63,7 @@ export interface TherapistDashboardData {
   name: string;
   sessionsThisWeek: number;
   totalPatients: number;
+  packageSessions: number;
   earningsThisMonth: number;
   averageRating: number;
   todaySessions: TodaySessionData[];
@@ -87,19 +90,14 @@ export async function getTherapists(params?: {
   if (params?.specialty) searchParams.set("specialty", params.specialty);
   if (params?.gender) searchParams.set("gender", params.gender);
 
-  return api.get<TherapistListResponse>(
-    `/therapists?${searchParams.toString()}`,
-  );
+  return api.get<TherapistListResponse>(`/therapists?${searchParams.toString()}`);
 }
 
 export async function getTherapist(id: string) {
   return api.get<TherapistData>(`/therapists/${id}`);
 }
 
-export async function updateTherapist(
-  id: string,
-  data: Partial<TherapistData>,
-) {
+export async function updateTherapist(id: string, data: Partial<TherapistData>) {
   return api.put<TherapistData>(`/therapists/${id}`, data);
 }
 
@@ -154,9 +152,7 @@ export async function getTherapistSlots(
   toDate: string,
 ): Promise<TherapistSlotRangeData> {
   const params = new URLSearchParams({ from_date: fromDate, to_date: toDate });
-  return api.get<TherapistSlotRangeData>(
-    `/therapists/${therapistId}/slots?${params.toString()}`,
-  );
+  return api.get<TherapistSlotRangeData>(`/therapists/${therapistId}/slots?${params.toString()}`);
 }
 
 // --- Application Status ---

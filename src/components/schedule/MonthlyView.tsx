@@ -9,7 +9,8 @@ const DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const CHIP_CLASSES: Record<ScheduleAppointmentStatus, string> = {
   confirmed: "bg-session-confirmed-bg text-secondary border-secondary",
-  reschedule_requested: "bg-session-reschedule-bg text-session-reschedule border-session-reschedule",
+  reschedule_requested:
+    "bg-session-reschedule-bg text-session-reschedule border-session-reschedule",
   decline_requested: "bg-session-decline-bg text-session-decline border-session-decline",
   completed: "bg-session-completed-bg text-session-completed border-session-completed",
 };
@@ -33,10 +34,7 @@ function getFirstDayOfMonth(y: number, m: number): number {
   return day === 0 ? 6 : day - 1;
 }
 
-function getMonthWeeks(
-  year: number,
-  month: number
-): MonthCell[][] {
+function getMonthWeeks(year: number, month: number): MonthCell[][] {
   const daysInMonth = getDaysInMonth(year, month);
   const firstDay = getFirstDayOfMonth(year, month);
   const weeks: MonthCell[][] = [];
@@ -104,7 +102,7 @@ export function MonthlyView({
   const todayStr = dateKeyStr(
     new Date().getFullYear(),
     new Date().getMonth(),
-    new Date().getDate()
+    new Date().getDate(),
   );
 
   const apptMap = useMemo(() => {
@@ -116,8 +114,7 @@ export function MonthlyView({
     for (const key of Object.keys(map)) {
       map[key].sort(
         (a, b) =>
-          (b.requestPending ? 1 : 0) - (a.requestPending ? 1 : 0) ||
-          a.time.localeCompare(b.time)
+          (b.requestPending ? 1 : 0) - (a.requestPending ? 1 : 0) || a.time.localeCompare(b.time),
       );
     }
     return map;
@@ -127,19 +124,13 @@ export function MonthlyView({
     <div className="border border-border rounded-xl overflow-hidden bg-white min-w-[780px]">
       <div className="grid grid-cols-7 border-b border-border">
         {DOW.map((d) => (
-          <div
-            key={d}
-            className="p-2.5 text-center border-r border-border last:border-r-0"
-          >
+          <div key={d} className="p-2.5 text-center border-r border-border last:border-r-0">
             <div className="text-xs font-semibold text-text-light">{d}</div>
           </div>
         ))}
       </div>
       {weeks.map((week, wi) => (
-        <div
-          key={wi}
-          className="grid grid-cols-7 border-b border-border last:border-b-0"
-        >
+        <div key={wi} className="grid grid-cols-7 border-b border-border last:border-b-0">
           {week.map((day, di) => {
             const dayAppts = apptMap[day.date] ?? [];
             const isToday = day.date === todayStr;
@@ -158,11 +149,7 @@ export function MonthlyView({
               >
                 <div
                   className={`text-[11px] font-semibold mb-1 text-center ${
-                    !day.isCurrentMonth
-                      ? "text-text-muted"
-                      : isToday
-                        ? "text-primary"
-                        : "text-text"
+                    !day.isCurrentMonth ? "text-text-muted" : isToday ? "text-primary" : "text-text"
                   }`}
                 >
                   {isToday ? (
@@ -183,8 +170,11 @@ export function MonthlyView({
                           past ? "opacity-60" : ""
                         } ${CHIP_CLASSES[apt.status]}`}
                       >
-                        <p className="font-semibold truncate">
+                        <p className="font-semibold truncate flex items-center gap-1">
                           {apt.patient.split(" ")[0]}
+                          {apt.bookedViaPackage && (
+                            <span className="text-[9px] font-bold text-primary shrink-0">●</span>
+                          )}
                         </p>
                         <p className="opacity-70">{to12h(apt.time)}</p>
                       </div>
@@ -193,9 +183,7 @@ export function MonthlyView({
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          const rect = (
-                            e.target as HTMLElement
-                          ).getBoundingClientRect();
+                          const rect = (e.target as HTMLElement).getBoundingClientRect();
                           onShowMore(rest, rect);
                         }}
                         className="w-full text-[10px] font-bold text-secondary bg-session-open-bg rounded px-1.5 py-1 cursor-pointer border border-dashed border-session-open-border hover:bg-session-open-bg-hover transition-colors"

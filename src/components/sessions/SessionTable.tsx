@@ -1,9 +1,27 @@
 "use client";
 
 import { SmartBadge } from "./SmartBadge";
-import { formatWhen, formatType, npr, mapSessionStatus, isPast, isOverdueSession } from "@/lib/format";
+import {
+  formatWhen,
+  formatType,
+  npr,
+  mapSessionStatus,
+  isPast,
+  isOverdueSession,
+} from "@/lib/format";
 import type { SessionData } from "@/services/api/sessions";
-import { CheckCircle2, XCircle, AlertTriangle, RefreshCw, X, Clock, IndianRupee, Star, User } from "lucide-react";
+import {
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  RefreshCw,
+  X,
+  Clock,
+  IndianRupee,
+  Star,
+  User,
+  Package,
+} from "lucide-react";
 
 interface SessionTableProps {
   sessions: SessionData[];
@@ -28,7 +46,14 @@ const statusIconStyles: Record<string, string> = {
   Overdue: "text-danger",
 };
 
-export function SessionTable({ sessions, onCancel, onReschedule, onRate, onClick, rateableIds }: SessionTableProps) {
+export function SessionTable({
+  sessions,
+  onCancel,
+  onReschedule,
+  onRate,
+  onClick,
+  rateableIds,
+}: SessionTableProps) {
   if (sessions.length === 0) return null;
 
   return (
@@ -59,8 +84,12 @@ export function SessionTable({ sessions, onCancel, onReschedule, onRate, onClick
                 onClick={() => onClick(s.id)}
               >
                 <td className="py-3.5 px-3 md:px-4 max-w-[140px] md:max-w-none">
-                  <div className="text-sm font-medium text-secondary truncate">{s.therapistName || "Therapist"}</div>
-                  <div className="text-[10px] text-text-light truncate md:hidden">{formatType(s.type)}</div>
+                  <div className="text-sm font-medium text-secondary truncate">
+                    {s.therapistName || "Therapist"}
+                  </div>
+                  <div className="text-[10px] text-text-light truncate md:hidden">
+                    {formatType(s.type)}
+                  </div>
                 </td>
                 <td className="py-3.5 px-3 md:px-4 text-text-light whitespace-nowrap hidden sm:table-cell">
                   <span className="inline-flex items-center gap-1">
@@ -79,7 +108,13 @@ export function SessionTable({ sessions, onCancel, onReschedule, onRate, onClick
                 </td>
                 <td className="py-3.5 px-3 md:px-4 text-text-light whitespace-nowrap hidden md:table-cell">
                   <span className="inline-flex items-center gap-1">
-                    {npr(s.fee)}
+                    {s.bookedViaPackage ? (
+                      <span className="inline-flex items-center gap-1 text-primary">
+                        <Package size={12} /> Package
+                      </span>
+                    ) : (
+                      npr(s.fee)
+                    )}
                   </span>
                 </td>
                 <td className="py-3.5 px-3 md:px-4 text-center md:text-left">
@@ -92,15 +127,26 @@ export function SessionTable({ sessions, onCancel, onReschedule, onRate, onClick
                   </span>
                   {/* Mobile: centered icon */}
                   <span className="md:hidden flex items-center justify-center">
-                    {displayStatus === "Confirmed" && <CheckCircle2 size={20} className={statusIconStyles.Confirmed} />}
-                    {displayStatus === "Overdue" && <AlertTriangle size={20} className={statusIconStyles.Overdue} />}
-                    {displayStatus === "Completed" && <CheckCircle2 size={20} className={statusIconStyles.Completed} />}
-                    {displayStatus === "Cancelled" && <XCircle size={20} className={statusIconStyles.Cancelled} />}
+                    {displayStatus === "Confirmed" && (
+                      <CheckCircle2 size={20} className={statusIconStyles.Confirmed} />
+                    )}
+                    {displayStatus === "Overdue" && (
+                      <AlertTriangle size={20} className={statusIconStyles.Overdue} />
+                    )}
+                    {displayStatus === "Completed" && (
+                      <CheckCircle2 size={20} className={statusIconStyles.Completed} />
+                    )}
+                    {displayStatus === "Cancelled" && (
+                      <XCircle size={20} className={statusIconStyles.Cancelled} />
+                    )}
                   </span>
                 </td>
                 <td className="py-3.5 px-3 md:px-4 text-right">
                   {showActions && (
-                    <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                    <div
+                      className="flex items-center justify-end gap-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       {/* Desktop: text buttons */}
                       <button
                         onClick={() => onReschedule(s.id)}
@@ -134,7 +180,10 @@ export function SessionTable({ sessions, onCancel, onReschedule, onRate, onClick
                     </div>
                   )}
                   {canRate && (
-                    <div className="flex items-center justify-end" onClick={(e) => e.stopPropagation()}>
+                    <div
+                      className="flex items-center justify-end"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <button
                         onClick={() => onRate(s.id)}
                         className="inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg border border-primary text-primary text-[11px] font-semibold cursor-pointer hover:bg-primary hover:text-white transition-all whitespace-nowrap"

@@ -22,7 +22,9 @@ export function TodaySessions() {
           <p className="eyebrow mb-1">{t("therapist_dashboard.today")}</p>
           <h3 className="font-display text-lg">{t("therapist_dashboard.upcomingToday")}</h3>
         </div>
-        <span className="chip">{sessions.length} {t("therapist_dashboard.visits")}</span>
+        <span className="chip">
+          {sessions.length} {t("therapist_dashboard.visits")}
+        </span>
       </div>
       {sessions.length === 0 ? (
         <p className="text-sm text-text-light py-4">No sessions scheduled for today.</p>
@@ -45,16 +47,28 @@ export function TodaySessions() {
                   <td className="py-3 pr-3 font-mono text-secondary">{to12h(row.time)}</td>
                   <td className="py-3 pr-3 font-medium">{row.patient}</td>
                   <td className="py-3 pr-3 text-text-light">{row.address}</td>
-                  <td className="py-3 pr-3 text-text-light">{row.type}</td>
+                  <td className="py-3 pr-3 text-text-light">
+                    {row.bookedViaPackage && (
+                      <span className="inline-flex items-center gap-1 bg-primary/10 text-primary text-[10px] font-semibold px-2 py-0.5 rounded-full mr-2">
+                        Package
+                      </span>
+                    )}
+                    {row.type}
+                  </td>
                   <td className="py-3 pr-3">
                     <StatusBadge
                       status={row.status === "Confirmed" ? "Confirmed" : "Pending"}
-                      labels={{ confirmed: t("therapist_dashboard.confirmed"), pending: t("therapist_dashboard.pending") }}
+                      labels={{
+                        confirmed: t("therapist_dashboard.confirmed"),
+                        pending: t("therapist_dashboard.pending"),
+                      }}
                     />
                   </td>
                   <td className="py-3 text-right">
                     <button
-                      onClick={() => toast.success(`${t("therapist_dashboard.start")} ${row.patient}`)}
+                      onClick={() =>
+                        toast.success(`${t("therapist_dashboard.start")} ${row.patient}`)
+                      }
                       className="btn-outline !py-1 !px-3 text-xs"
                     >
                       {t("therapist_dashboard.start")}

@@ -7,6 +7,7 @@ import { X, CalendarDays, ChevronDown, ChevronLeft, ChevronRight, TriangleAlert,
 import { cn } from "@/utils/cn";
 import { Avatar } from "@/components/common/Avatar";
 import { useAuth } from "@/context/auth";
+import { useActivePackage } from "@/hooks/useActivePackage";
 import { createSession, updateSession, processBooking } from "@/services/api/sessions";
 import { getTherapistSlots } from "@/services/api/therapists";
 import { getCurrencies, getPaymentMethods } from "@/services/api/settings";
@@ -1079,6 +1080,13 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
   const [address, setAddress] = useState(user?.city ?? "");
   const [selectedForWhomId, setSelectedForWhomId] = useState("");
   const [selectedForWhomName, setSelectedForWhomName] = useState("Myself");
+  const { activePackage } = useActivePackage();
+  const [usePackage, setUsePackage] = useState(false);
+
+  const canUsePackage =
+    !!activePackage &&
+    activePackage.status === "ACTIVE" &&
+    activePackage.sessionsRemaining > 0;
 
   // Fetch family members for "who is this for" selector
   const { data: familyMembers = [] } = useQuery({
@@ -1145,31 +1153,37 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
         time: selectedTime,
         type: "HOME_VISIT",
         address: address || user?.city || "",
-        fee: displayPrice,
+        fee: usePackage ? 0 : displayPrice,
         familyMemberId: selectedForWhomId || undefined,
-        currency: selectedCurrency,
-        paymentMethod: selectedPaymentMethod,
+        currency: usePackage ? "NPR" : selectedCurrency,
+        paymentMethod: usePackage ? selectedPaymentMethod : selectedPaymentMethod,
         paymentType: detectedType,
-        platformFee,
-        cardLast4: cardDetails.number.replace(/\s/g, "").slice(-4) || undefined,
-        walletMobile: esewaMobile || undefined,
-        billingCountry: billingCountry || undefined,
+        platformFee: usePackage ? 0 : platformFee,
+        cardLast4: usePackage ? undefined : cardDetails.number.replace(/\s/g, "").slice(-4) || undefined,
+        walletMobile: usePackage ? undefined : esewaMobile || undefined,
+        billingCountry: usePackage ? undefined : billingCountry || undefined,
+        packagePurchaseId: usePackage ? activePackage?.id ?? null : null,
       });
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["therapist-slots"] });
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
       queryClient.invalidateQueries({ queryKey: ["patient-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["active-package"] });
+      queryClient.invalidateQueries({ queryKey: ["my-packages"] });
       const ref = data?.payment?.id || data?.session?.id || "BK-" + Math.random().toString(36).slice(2, 8).toUpperCase();
       setBookingResult({
         reference: ref,
         therapistName: resolvedTherapist.name,
         date: formatDisplayDate(selectedDate),
         time: selectedTime,
-        amount: totalPrice,
-        currency: selectedCurrency,
-        paymentMethod: getPaymentLabel(),
+        amount: usePackage ? 0 : totalPrice,
+        currency: usePackage ? "NPR" : selectedCurrency,
+        paymentMethod: usePackage ? "Package" : getPaymentLabel(),
       });
+      if (usePackage && activePackage) {
+        toast.success(`Session booked! ${activePackage.sessionsRemaining - 1} sessions remaining`);
+      }
       setCurrentStep(3);
     },
     onError: (error) => {
@@ -1236,6 +1250,14 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
     }
   }, [isEdit, createMutation, updateMutation]);
 
+  const handleDateTimeContinue = useCallback(() => {
+    if (usePackage) {
+      handleSubmit();
+    } else {
+      setCurrentStep(2);
+    }
+  }, [usePackage, handleSubmit]);
+
   const stepsWithSummary = currentStep >= 1 && currentStep <= 2;
 
   return (
@@ -1269,6 +1291,43 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
           </div>
         )}
 
+        {!isEdit && canUsePackage && currentStep < 3 && (
+          <div className="px-5 pb-4">
+            <div className="flex items-center justify-between gap-3 bg-secondary/5 border border-secondary/20 rounded-xl p-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-secondary/10 grid place-items-center shrink-0">
+                  <span className="text-base">🎁</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-secondary">Use package session</p>
+                  <p className="text-xs text-text-light">
+                    {activePackage.sessionsRemaining} session{activePackage.sessionsRemaining !== 1 ? "s" : ""} remaining
+                  </p>
+                </div>
+              </div>
+              <button
+                role="switch"
+                aria-checked={usePackage}
+                onClick={() => setUsePackage((v) => !v)}
+                className={cn(
+                  "relative w-11 h-6 rounded-full transition-colors shrink-0",
+                  usePackage ? "bg-secondary" : "bg-gray-300"
+                )}
+              >
+                <span
+                  className={cn(
+                    "absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform",
+                    usePackage && "translate-x-5"
+                  )}
+                />
+              </button>
+            </div>
+            <p className="text-[11px] text-text-light mt-1.5">
+              Book this session free using your package. Session fee is covered.
+            </p>
+          </div>
+        )}
+
         <div className="px-5 pb-6">
           {currentStep === 1 && (
             <StepDateTime
@@ -1287,12 +1346,12 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
               onDateChange={setSelectedDate}
               onTimeChange={setSelectedTime}
               onAddressChange={setAddress}
-              onContinue={() => setCurrentStep(2)}
+              onContinue={handleDateTimeContinue}
               onBack={onClose}
             />
           )}
 
-          {currentStep === 2 && (
+          {currentStep === 2 && !usePackage && (
             <StepPayment
               selectedPaymentMethod={selectedPaymentMethod}
               selectedCurrency={selectedCurrency}

@@ -8,10 +8,7 @@ import { getMyTherapist } from "@/services/api/therapists";
 import type { WorkingHours } from "@/lib/availability-utils";
 
 export type ScheduleAppointmentStatus =
-  | "confirmed"
-  | "reschedule_requested"
-  | "decline_requested"
-  | "completed";
+  "confirmed" | "reschedule_requested" | "decline_requested" | "completed";
 
 export interface ScheduleAppointment {
   id: string;
@@ -25,6 +22,8 @@ export interface ScheduleAppointment {
   address: string;
   phone?: string;
   fee?: number;
+  bookedViaPackage?: boolean;
+  packageName?: string;
   requestPending?: boolean;
   requestReason?: string;
   notes?: string;
@@ -51,9 +50,24 @@ function toLocalDateKey(raw: string): string {
   return `${y}-${m}-${day}`;
 }
 
-function mapSessionToAppointment(
-  s: { id: string; patientId: string; patientName?: string; patientPhone?: string; familyMemberName?: string; date: string; time: string; type: string; status: string; address: string; fee?: number; notes?: string; therapistId?: string; therapistName?: string },
-): ScheduleAppointment {
+function mapSessionToAppointment(s: {
+  id: string;
+  patientId: string;
+  patientName?: string;
+  patientPhone?: string;
+  familyMemberName?: string;
+  date: string;
+  time: string;
+  type: string;
+  status: string;
+  address: string;
+  fee?: number;
+  notes?: string;
+  therapistId?: string;
+  therapistName?: string;
+  bookedViaPackage?: boolean;
+  packageName?: string;
+}): ScheduleAppointment {
   return {
     id: s.id,
     patient: s.patientName || s.notes?.split("|")[1]?.trim() || s.patientId,
@@ -66,17 +80,15 @@ function mapSessionToAppointment(
     address: s.address,
     phone: s.patientPhone || s.notes?.split("|")[2]?.trim(),
     fee: s.fee,
+    bookedViaPackage: s.bookedViaPackage,
+    packageName: s.packageName,
     requestPending: s.status === "RESCHEDULE_REQUESTED" || s.status === "DECLINE_REQUESTED",
     requestReason: s.notes?.split("|")[0]?.trim(),
     notes: s.notes,
   };
 }
 
-export function useTherapistSchedule(
-  userId?: string | null,
-  startDate?: string,
-  endDate?: string,
-) {
+export function useTherapistSchedule(userId?: string | null, startDate?: string, endDate?: string) {
   const queryClient = useQueryClient();
 
   const { data: myTherapist, isLoading: therapistLoading } = useQuery({
@@ -135,7 +147,16 @@ export function useTherapistSchedule(
 
   return {
     appointments,
-    workingHours: workingHours ?? ({ start: "08:00", end: "18:00", slotInterval: 60, sessionDuration: 60, breakDuration: 0, daysOfWeek: [] } as WorkingHours),
+    workingHours:
+      workingHours ??
+      ({
+        start: "08:00",
+        end: "18:00",
+        slotInterval: 60,
+        sessionDuration: 60,
+        breakDuration: 0,
+        daysOfWeek: [],
+      } as WorkingHours),
     isLoading: isLoading || whLoading || therapistLoading,
     isRefetching,
     refetch,

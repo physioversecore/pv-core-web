@@ -185,7 +185,8 @@ const en = {
     youAreAllSet: "You're all set",
     patientSuccessSub: "Your patient account is ready. Let's find you a therapist.",
     applicationReceived: "Application received",
-    therapistSuccessSub: "We've emailed you a confirmation. Your application is under review and will be verified within 24 hours. You'll be able to log in once it's approved.",
+    therapistSuccessSub:
+      "We've emailed you a confirmation. Your application is under review and will be verified within 24 hours. You'll be able to log in once it's approved.",
     goToDashboard: "Go to dashboard",
     goToLogin: "Go to login",
     openDashboard: "Open dashboard",
@@ -207,7 +208,8 @@ const en = {
     errorAcceptTerms: "Please accept terms",
     errorFillRequired: "Please fill required fields",
     errorLoginFailed: "Login failed",
-    loginUnderReview: "Your application is under review. You'll be able to log in once it's approved.",
+    loginUnderReview:
+      "Your application is under review. You'll be able to log in once it's approved.",
     loginRejected: "Your application was not approved. Please contact support.",
     errorSignupFailed: "Signup failed",
     errorSendOtpFailed: "Could not send verification code",
@@ -337,7 +339,8 @@ const en = {
   legal: {
     eyebrow: "Legal",
     privacyTitle: "Privacy Policy",
-    privacySubtitle: "We are committed to protecting your personal information and being transparent about how we use it.",
+    privacySubtitle:
+      "We are committed to protecting your personal information and being transparent about how we use it.",
     termsTitle: "Terms & Conditions",
     termsSubtitle: "Please read these terms carefully before using Sahayatri Physio.",
     lastUpdated: "Last updated",
@@ -347,11 +350,12 @@ const en = {
   landing: {
     heroBadge: "Home-visit physiotherapy · Nepal",
     heroTitle: "Recovery, at your doorstep.",
-    heroDesc: "Verified, licensed physiotherapists who come to your home. Book in minutes, recover with care, and track your progress — all in one place.",
+    heroDesc:
+      "Verified, licensed physiotherapists who come to your home. Book in minutes, recover with care, and track your progress — all in one place.",
     heroCta: "Book a session →",
     heroSearchPlaceholder: "Search therapists, specialties, or city",
     heroSearchSubmit: "Search",
-    heroSearchPhrase0:"Search Physiotherapist",
+    heroSearchPhrase0: "Search Physiotherapist",
     heroSearchPhrase1: "Eg. Sports & post-surgery",
     heroSearchPhrase2: "Eg. Kathmandu",
     heroSearchPhrase3: "Eg. Geriatric & neuro",
@@ -370,15 +374,18 @@ const en = {
     howItWorksTitle: "Care in three simple steps.",
     step1Number: "01",
     step1Title: "Sign up & search",
-    step1Desc: "Create your account, filter by location, condition, and gender. Read verified reviews before you book.",
+    step1Desc:
+      "Create your account, filter by location, condition, and gender. Read verified reviews before you book.",
     step1DescDefault: "Create your account, filter by location, condition, and gender.",
     step2Number: "02",
     step2Title: "Book & pay",
-    step2Desc: "Pick a date and time that fits. Pay via eSewa, Khalti, or cash on visit — with a full refund window.",
+    step2Desc:
+      "Pick a date and time that fits. Pay via eSewa, Khalti, or cash on visit — with a full refund window.",
     step2DescDefault: "Pick date and time. Pay via eSewa, Khalti, or cash on visit.",
     step3Number: "03",
     step3Title: "Recover at home",
-    step3Desc: "Your therapist arrives on time, treats you at home, uploads a session report and next-visit plan.",
+    step3Desc:
+      "Your therapist arrives on time, treats you at home, uploads a session report and next-visit plan.",
     step3DescDefault: "Your therapist arrives, treats you, and uploads a session report.",
     step1Cta: "Create account",
     step2Cta: "Book a session",
@@ -424,7 +431,8 @@ const en = {
     appFeature3: "Reminders for exercises and next visits",
     therapistCtaEyebrow: "For physiotherapists",
     therapistCtaTitle: "Are you a physiotherapist? Join our platform.",
-    therapistCtaDesc: "Set your own schedule, earn per session, and build your patient base with verified bookings across Nepal.",
+    therapistCtaDesc:
+      "Set your own schedule, earn per session, and build your patient base with verified bookings across Nepal.",
     nmcVerified: "NMC verified",
     reviews: "reviews",
     live: "Live",
@@ -437,16 +445,21 @@ const en = {
   about: {
     eyebrow: "About us",
     title: "Bringing quality physiotherapy home.",
-    subtitle: "Sahayatri Physio started with a simple observation: recovery happens better at home, but great physiotherapy shouldn't be hard to find.",
+    subtitle:
+      "Sahayatri Physio started with a simple observation: recovery happens better at home, but great physiotherapy shouldn't be hard to find.",
     storyEyebrow: "Our story",
     storyTitle: "Recovery belongs at home.",
-    para1: "Nepal's clinics are excellent — but they're often crowded, far, and inaccessible for patients recovering from surgery, stroke, or major injury. Families juggle work, traffic, and unpredictable schedules just to reach an hour of physio.",
-    para2: "We built Sahayatri Physio to flip the script: verified physiotherapists come to you. You book in minutes, we handle the vetting and the logistics, and you focus on getting better.",
-    para3: "Today we work with 180+ NMC-verified physiotherapists across six cities in Nepal, partnering with leading hospitals, and delivering more than 12,000 home visits every year.",
+    para1:
+      "Nepal's clinics are excellent — but they're often crowded, far, and inaccessible for patients recovering from surgery, stroke, or major injury. Families juggle work, traffic, and unpredictable schedules just to reach an hour of physio.",
+    para2:
+      "We built Sahayatri Physio to flip the script: verified physiotherapists come to you. You book in minutes, we handle the vetting and the logistics, and you focus on getting better.",
+    para3:
+      "Today we work with 180+ NMC-verified physiotherapists across six cities in Nepal, partnering with leading hospitals, and delivering more than 12,000 home visits every year.",
     valuesEyebrow: "Our values",
     valuesTitle: "What guides every decision.",
     value1Title: "Verified always",
-    value1Desc: "Every therapist is manually reviewed against NMC records before their first booking.",
+    value1Desc:
+      "Every therapist is manually reviewed against NMC records before their first booking.",
     value2Title: "Human first",
     value2Desc: "Recovery is personal. We match therapists to patients — not just conditions.",
     value3Title: "Access for all",
@@ -468,7 +481,8 @@ const en = {
   services: {
     eyebrow: "Our services",
     title: "Everything for your recovery.",
-    subtitle: "Clinical rehab, home visits, and a curated shop for equipment, medicine, and recovery nutrition.",
+    subtitle:
+      "Clinical rehab, home visits, and a curated shop for equipment, medicine, and recovery nutrition.",
     clinicalEyebrow: "Care & Rehab",
     clinicalTitle: "Rehabilitation, tailored to your condition.",
     service1Title: "Sports Injury Rehab",
@@ -504,7 +518,8 @@ const en = {
   contact: {
     eyebrow: "Contact us",
     title: "We're here to help.",
-    subtitle: "Have a question about booking, billing, or partnering with us? Send us a message and our care team will respond within one business day.",
+    subtitle:
+      "Have a question about booking, billing, or partnering with us? Send us a message and our care team will respond within one business day.",
     formName: "Your name",
     formEmail: "Email",
     formPhone: "Phone (optional)",
@@ -540,7 +555,8 @@ const en = {
   clinics: {
     eyebrow: "Partner clinics",
     title: "Find a Clinic Near You",
-    subtitle: "Visit our partner clinics for in-person physiotherapy. Each clinic is verified and staffed with licensed professionals.",
+    subtitle:
+      "Visit our partner clinics for in-person physiotherapy. Each clinic is verified and staffed with licensed professionals.",
     noResults: "No clinics found.",
     searchPlaceholder: "Search clinics by name or area...",
     search: "Search",
@@ -551,26 +567,71 @@ const en = {
   packages: {
     eyebrow: "Packages",
     title: "Prices that make sense!",
-    subtitle: "Pick a package by condition, pay once from anywhere, and we handle the visits, scheduling and updates — you get a report after every session.",
+    subtitle:
+      "Pick a package by condition, pay once from anywhere, and we handle the visits, scheduling and updates — you get a report after every session.",
     perMonth: "/ month",
     choosePackage: "Choose package",
     contactUs: "Contact us",
     phone: "+977 980-1234567",
+    sessionCount: "{count} sessions included",
+    validity: "Valid for {days} days",
+    expires: "Expires in {days} days",
+    expired: "Expired",
+    depleted: "All sessions used",
+    active: "Active",
+    remaining: "sessions remaining",
+    purchasedOn: "Purchased on {date}",
+    bookSession: "Book Session",
+    rePurchase: "Re-purchase",
+    noPackages: "You haven't purchased any packages yet",
+    noPackagesDesc:
+      "Buy a prepaid bundle to save time and money. Book sessions any time with any therapist.",
+    browsePackages: "Browse Packages",
+    bookSingleSession: "Or book a single session",
+    usePackage: "Use Package Session",
+    payPerSession: "Pay Per Session",
+    freeWithPackage: "Free (Package)",
+    packageBooked: "Package",
+    sessionsUsed: "{used} of {total} sessions used",
+    confirmPurchase: "Confirm Purchase",
+    purchaseSuccess: "Package purchased successfully!",
+    purchaseFailed: "Purchase failed. Please try again.",
+    alreadyHasPackage: "You already have an active package",
+    saveWithPackage: "Save with a package",
+    viewPackage: "View Your Package",
+    myPackages: "Your Packages",
+    purchaseHistory: "Purchase History",
+    viewAllPackages: "View all packages",
+    totalRevenue: "Total Revenue",
+    activePurchases: "Active Purchases",
+    sessionsDelivered: "Sessions via Packages",
+    mostPopular: "Most Popular",
+    packageManagement: "Package Management",
+    addPackage: "Add Package",
+    editPackage: "Edit Package",
+    sessionCountLabel: "Number of Sessions",
+    validityDaysLabel: "Validity (Days)",
+    purchases: "Purchases",
+    analytics: "Analytics",
   },
 
   howItWorks: {
     eyebrow: "How it works",
     title: "Care in three simple steps.",
-    subtitle: "From your first search to a fully uploaded session report — everything runs through one calm, verified flow.",
+    subtitle:
+      "From your first search to a fully uploaded session report — everything runs through one calm, verified flow.",
     step1Number: "01",
     step1Title: "Sign up & search",
-    step1Desc: "Create your account, filter by location, condition, and gender. Read verified reviews before you book.",
+    step1Desc:
+      "Create your account, filter by location, condition, and gender. Read verified reviews before you book.",
     step2Number: "02",
     step2Title: "Book & pay",
-    step2Desc: "Pick a date and time that fits. Pay via eSewa, Khalti, or cash on visit — with a full refund window.",
+    step2Desc:
+      "Pick a date and time that fits. Pay via eSewa, Khalti, or cash on visit — with a full refund window.",
     step3Number: "03",
     step3Title: "Recover at home",
-    step3Desc: "Your therapist arrives on time, treats you at home, uploads a session report and next-visit plan.",
+    step3Desc:
+      "Your therapist arrives on time, treats you at home, uploads a session report and next-visit plan.",
     step1Cta: "Create account",
     step2Cta: "Book a session",
     step3Cta: "Explore services",
@@ -600,21 +661,27 @@ const en = {
     subtitle: "If your question isn't here, our care team is a message away.",
     groupBookings: "Bookings",
     qHowBook: "How do I book a session?",
-    aHowBook: "Sign up, choose a therapist from Find a Therapist, pick a slot, and pay. You'll get a confirmation email and SMS.",
+    aHowBook:
+      "Sign up, choose a therapist from Find a Therapist, pick a slot, and pay. You'll get a confirmation email and SMS.",
     qCancelReschedule: "Can I cancel or reschedule?",
-    aCancelReschedule: "Yes — up to 6 hours before your visit for a full refund. Rescheduling is free from your patient dashboard.",
+    aCancelReschedule:
+      "Yes — up to 6 hours before your visit for a full refund. Rescheduling is free from your patient dashboard.",
     qHowSoon: "How soon can a therapist arrive?",
-    aHowSoon: "Same-day bookings are available in Kathmandu Valley subject to availability. Otherwise up to 30 days in advance.",
+    aHowSoon:
+      "Same-day bookings are available in Kathmandu Valley subject to availability. Otherwise up to 30 days in advance.",
     groupTherapists: "Therapists & Verification",
     qHowVerified: "How are therapists verified?",
-    aHowVerified: "Every physiotherapist must upload their Nepal Medical Council (NMC) license and certifications. Our team reviews within 24 hours.",
+    aHowVerified:
+      "Every physiotherapist must upload their Nepal Medical Council (NMC) license and certifications. Our team reviews within 24 hours.",
     qRequestGender: "Can I request a specific gender?",
     aRequestGender: "Yes. Use the gender filter on the Find a Therapist page to book comfortably.",
     groupCoverage: "Coverage & Payments",
     qWhichCities: "Which cities do you cover?",
-    aWhichCities: "Kathmandu, Lalitpur, Bhaktapur, Pokhara, Chitwan, and Biratnagar. More cities coming soon.",
+    aWhichCities:
+      "Kathmandu, Lalitpur, Bhaktapur, Pokhara, Chitwan, and Biratnagar. More cities coming soon.",
     qPayments: "How are payments handled?",
-    aPayments: "We accept eSewa, Khalti, and cash on visit. All transactions are secured and receipted.",
+    aPayments:
+      "We accept eSewa, Khalti, and cash on visit. All transactions are secured and receipted.",
     qInsurance: "Do you support insurance?",
     aInsurance: "Not yet — we're piloting insurance partnerships with select providers in 2026.",
     ctaTitle: "Still have questions?",
@@ -654,31 +721,39 @@ const en = {
   testimonials: {
     eyebrow: "Testimonials",
     title: "Recovery stories from real patients.",
-    subtitle: "Only verified patients can leave a review after their session — every word here is from someone we treated.",
+    subtitle:
+      "Only verified patients can leave a review after their session — every word here is from someone we treated.",
     reviewer1Name: "Sunita Rai",
     reviewer1City: "Kathmandu",
-    reviewer1Quote: "After my knee surgery I dreaded traffic and clinic waits. Sahayatri's therapist came home three times a week — I was walking without support in six weeks.",
+    reviewer1Quote:
+      "After my knee surgery I dreaded traffic and clinic waits. Sahayatri's therapist came home three times a week — I was walking without support in six weeks.",
     reviewer2Name: "Rajesh Karki",
     reviewer2City: "Pokhara",
-    reviewer2Quote: "My father had a stroke and we couldn't move him easily. Dr. Aarati was patient, professional, and gave us a plan we could follow between visits.",
+    reviewer2Quote:
+      "My father had a stroke and we couldn't move him easily. Dr. Aarati was patient, professional, and gave us a plan we could follow between visits.",
     reviewer3Name: "Anisha Shrestha",
     reviewer3City: "Lalitpur",
-    reviewer3Quote: "Booked a sports rehab session for a torn ligament. The app made it easy to see progress and message my therapist between sessions.",
+    reviewer3Quote:
+      "Booked a sports rehab session for a torn ligament. The app made it easy to see progress and message my therapist between sessions.",
     reviewer4Name: "Prakash Adhikari",
     reviewer4City: "Bhaktapur",
-    reviewer4Quote: "I appreciated the NMC verification — I knew I was getting a real, licensed physio. The reports uploaded after each visit were incredibly detailed.",
+    reviewer4Quote:
+      "I appreciated the NMC verification — I knew I was getting a real, licensed physio. The reports uploaded after each visit were incredibly detailed.",
     reviewer5Name: "Kamala Poudel",
     reviewer5City: "Chitwan",
-    reviewer5Quote: "My mother's mobility improved dramatically after 8 sessions. The therapist even trained our family on safe transfers.",
+    reviewer5Quote:
+      "My mother's mobility improved dramatically after 8 sessions. The therapist even trained our family on safe transfers.",
     reviewer6Name: "Bibek Thapa",
     reviewer6City: "Biratnagar",
-    reviewer6Quote: "Great platform for post-surgery rehab in Biratnagar. Everything from booking to payment was smooth.",
+    reviewer6Quote:
+      "Great platform for post-surgery rehab in Biratnagar. Everything from booking to payment was smooth.",
   },
 
   therapists: {
     eyebrow: "Our therapists",
     title: "Meet the physiotherapists coming to your home.",
-    subtitle: "Every therapist is NMC-verified, rated by real patients, and specialized in the areas they treat.",
+    subtitle:
+      "Every therapist is NMC-verified, rated by real patients, and specialized in the areas they treat.",
     featuredEyebrow: "Featured",
     featuredTitle: "Top-rated pros this month.",
     nmcVerified: "NMC verified",
@@ -692,7 +767,8 @@ const en = {
   find: {
     eyebrow: "Find a therapist",
     title: "Browse verified physiotherapists.",
-    subtitle: "Filter by city, specialty, and gender — every therapist is NMC-verified with real patient reviews.",
+    subtitle:
+      "Filter by city, specialty, and gender — every therapist is NMC-verified with real patient reviews.",
     placeholderSearch: "Search Physiotherapist",
     allCities: "All cities",
     allSpecialties: "All specialties",
@@ -703,7 +779,8 @@ const en = {
     therapistsFound: "therapist(s) found",
     noMatch: "No therapists match your filters.",
     heroTitle: "Find your physiotherapist, in your home.",
-    heroSubtitle: "Search verified NMC-registered physiotherapists by city, specialty, and gender — book home visits in minutes.",
+    heroSubtitle:
+      "Search verified NMC-registered physiotherapists by city, specialty, and gender — book home visits in minutes.",
     statSessions: "Home sessions delivered",
     statVerified: "NMC-verified therapists",
     statRating: "Average patient rating",
@@ -726,6 +803,7 @@ const en = {
     greeting: "Good morning. Here's your day.",
     sessionsThisWeek: "Sessions this week",
     totalPatients: "Total patients",
+    packageSessions: "Package sessions",
     earningsThisMonth: "Earnings this month",
     averageRating: "Average rating",
     upcomingToday: "Upcoming sessions today",
@@ -741,7 +819,8 @@ const en = {
     cancelled: "Cancelled",
     start: "Start",
     uploadSessionReport: "Upload session report",
-    uploadDesc: "Once uploaded, the patient and their family members are notified and can view the report immediately.",
+    uploadDesc:
+      "Once uploaded, the patient and their family members are notified and can view the report immediately.",
     afterEveryVisit: "After every visit",
     patientLabel: "Patient",
     reportType: "Report type",
@@ -760,12 +839,14 @@ const en = {
     recentlyUploaded: "Recently uploaded",
     myPublicProfile: "My public profile",
     experienceYears: "yrs experience",
-    starRatingDesc: "Your star rating is calculated live from patient feedback submitted after sessions. Maintaining above 4.5 ensures continued visibility on the platform.",
+    starRatingDesc:
+      "Your star rating is calculated live from patient feedback submitted after sessions. Maintaining above 4.5 ensures continued visibility on the platform.",
     editProfile: "Edit profile →",
     recentPatientRatings: "Recent patient ratings",
     referColleague: "Refer a colleague",
     referTitle: "Earn Rs 1,000 per verified physiotherapist",
-    referDesc: "When a colleague signs up with your code and completes 5 sessions, you both earn Rs 1,000.",
+    referDesc:
+      "When a colleague signs up with your code and completes 5 sessions, you both earn Rs 1,000.",
     copy: "Copy",
     shareInvite: "Share invite",
     copyInviteLink: "Copy invite link",
@@ -872,7 +953,8 @@ const en = {
     pendingReview: "Pending review",
     rejected: "Rejected",
     rejectionReason: "Rejection reason",
-    docsReviewHint: "Uploaded documents are reviewed by our team and will appear here with their status.",
+    docsReviewHint:
+      "Uploaded documents are reviewed by our team and will appear here with their status.",
     emailLabel: "Email",
     genderLabel: "Gender",
     licenseNumber: "NMC license number",
@@ -897,7 +979,8 @@ const en = {
     requestedRate: "Requested rate (NPR)",
     increase: "Increase",
     justification: "Justification",
-    justificationPlaceholder: "New certification, added years of experience, expanded service area…",
+    justificationPlaceholder:
+      "New certification, added years of experience, expanded service area…",
     submitRateChange: "Submit rate change application",
     rateChangeNote: "Admin reviews rate change requests within 3–5 business days.",
     notificationPreferences: "Notification preferences",
@@ -921,7 +1004,8 @@ const en = {
     errorEnterCurrentPassword: "Enter your current password",
     accountDeleted: "Your account has been permanently deleted",
     deleteAccountTitle: "Delete my account",
-    deleteAccountDescription: "This will permanently delete your account, profile, documents and all data. This action cannot be undone.",
+    deleteAccountDescription:
+      "This will permanently delete your account, profile, documents and all data. This action cannot be undone.",
     deleteAccountCta: "Are you sure you want to delete your account?",
     logoutAllConfirm: "This will sign you out of every device, including this one.",
     requestStatus: "Status",
@@ -955,7 +1039,8 @@ const en = {
     time: "Time",
     session: "Session",
     fee: "Fee",
-    bookedEditNote: "Booked slots cannot be edited here. Use schedule management to reschedule or cancel.",
+    bookedEditNote:
+      "Booked slots cannot be edited here. Use schedule management to reschedule or cancel.",
     close: "Close",
     cancel: "Cancel",
     save: "Save",
@@ -1000,7 +1085,8 @@ const en = {
     cancelSession: "Cancel Session",
     reschedule: "Reschedule",
     rateYourTherapist: "Rate your therapist",
-    rateDesc: "Your rating appears directly on the therapist's public profile. Only patients with completed sessions can rate.",
+    rateDesc:
+      "Your rating appears directly on the therapist's public profile. Only patients with completed sessions can rate.",
     pickStarRating: "Pick a star rating first",
     thanksForRating: "Thanks for rating",
     noTherapistsToRate: "No therapists to rate yet.",
@@ -1008,7 +1094,8 @@ const en = {
     whatWentWell: "What went well? What could improve?",
     referFriend: "Refer a friend",
     referTitle: "Give Rs 200, get Rs 200",
-    referDesc: "Share your code. When your friend books their first session, you both earn Rs 200 credit.",
+    referDesc:
+      "Share your code. When your friend books their first session, you both earn Rs 200 credit.",
     referralCopied: "Referral link copied",
     noUpcoming: "No upcoming session",
     noUpcomingSessions: "No upcoming sessions scheduled.",
@@ -1111,7 +1198,8 @@ const en = {
     relOther: "Other",
     helpFaq: "FAQ",
     helpQ1: "How are therapists verified?",
-    helpA1: "All physiotherapists must upload their NMC license and certification. Our team reviews and approves within 24 hours.",
+    helpA1:
+      "All physiotherapists must upload their NMC license and certification. Our team reviews and approves within 24 hours.",
     helpQ2: "What are the cancellation policies?",
     helpA2: "You can cancel up to 6 hours before your session for a full refund.",
     helpQ3: "Which areas do you cover?",
@@ -1157,7 +1245,8 @@ const en = {
     settingsPasswordError: "Could not change password",
     settingsPasswordMismatch: "New passwords do not match",
     settingsDeleteTitle: "Delete your account",
-    settingsDeleteDesc: "This permanently removes your account, profile, bookings and all related data. This action cannot be undone.",
+    settingsDeleteDesc:
+      "This permanently removes your account, profile, bookings and all related data. This action cannot be undone.",
     settingsDeleteWarning: "You will not be able to log in again with this account.",
     settingsDeletePlaceholder: "Type DELETE to confirm",
     settingsDeleteConfirmBtn: "Permanently delete my account",
@@ -1170,7 +1259,8 @@ const en = {
   patient_complaints: {
     fileComplaint: "File a complaint",
     reportIssue: "Report an issue with a therapist",
-    reportDesc: "Tell us what happened. We review every complaint carefully and respond within 48 hours.",
+    reportDesc:
+      "Tell us what happened. We review every complaint carefully and respond within 48 hours.",
     relatedBooking: "Related booking (optional)",
     generalBooking: "General — not tied to a specific session",
     therapist: "Therapist",
@@ -1184,12 +1274,14 @@ const en = {
     catSafety: "Safety concern",
     catOther: "Other",
     safetyRedirectTitle: "Safety concern detected",
-    safetyRedirectDesc: "This appears to be a safety issue that requires immediate attention. Please use the Safety Incident form for a faster response.",
+    safetyRedirectDesc:
+      "This appears to be a safety issue that requires immediate attention. Please use the Safety Incident form for a faster response.",
     goToSafetyIncident: "Go to Safety Incident Report →",
     priority: "Priority",
     autoSuggested: "Auto-suggested",
     description: "Description",
-    descriptionPlaceholder: "Tell us what happened. Include the date, time, and any details that would help us look into this.",
+    descriptionPlaceholder:
+      "Tell us what happened. Include the date, time, and any details that would help us look into this.",
     charsMinRemaining: "more characters needed",
     evidence: "Evidence (optional)",
     attachFile: "Attach file",
@@ -1210,7 +1302,8 @@ const en = {
     errorDescription: "Please describe the issue in at least 20 characters",
     errorTherapist: "Please select a therapist",
     confirmTitle: "Complaint filed",
-    confirmDesc: "Your complaint has been received. Our team will review it and respond within 48 hours.",
+    confirmDesc:
+      "Your complaint has been received. Our team will review it and respond within 48 hours.",
     complaintId: "Complaint ID",
     expectedResponse: "Expected response",
     within48Hours: "Within 48 hours",
@@ -1226,7 +1319,8 @@ const en = {
   therapist_complaints: {
     fileComplaint: "File a complaint",
     reportIssue: "Report an issue with a patient",
-    reportDesc: "Tell us what happened. We review every complaint carefully and respond within 48 hours.",
+    reportDesc:
+      "Tell us what happened. We review every complaint carefully and respond within 48 hours.",
     relatedBooking: "Related booking (optional)",
     generalBooking: "General — not tied to a specific session",
     patient: "Patient",
@@ -1241,12 +1335,14 @@ const en = {
     catBillingDispute: "Billing dispute",
     catOther: "Other",
     safetyRedirectTitle: "Safety concern detected",
-    safetyRedirectDesc: "This appears to be a safety issue that requires immediate attention. Please use the Safety Incident form for a faster response.",
+    safetyRedirectDesc:
+      "This appears to be a safety issue that requires immediate attention. Please use the Safety Incident form for a faster response.",
     goToSafetyIncident: "Go to Safety Incident Report →",
     priority: "Priority",
     autoSuggested: "Auto-suggested",
     description: "Description",
-    descriptionPlaceholder: "Tell us what happened. Include the date, time, and any details that would help us look into this.",
+    descriptionPlaceholder:
+      "Tell us what happened. Include the date, time, and any details that would help us look into this.",
     charsMinRemaining: "more characters needed",
     evidence: "Evidence (optional)",
     attachFile: "Attach file",
@@ -1267,7 +1363,8 @@ const en = {
     errorDescription: "Please describe the issue in at least 20 characters",
     errorPatient: "Please select a patient",
     confirmTitle: "Complaint filed",
-    confirmDesc: "Your complaint has been received. Our team will review it and respond within 48 hours.",
+    confirmDesc:
+      "Your complaint has been received. Our team will review it and respond within 48 hours.",
     complaintId: "Complaint ID",
     expectedResponse: "Expected response",
     within48Hours: "Within 48 hours",
@@ -1385,7 +1482,8 @@ const en = {
     selectTherapistPlaceholder: "Select a therapist…",
     viewingScheduleFor: "Viewing schedule for",
     selectTherapistToView: "Select a therapist to view their schedule",
-    selectTherapistHint: "Pick a therapist from the dropdown above to see their weekly or monthly sessions.",
+    selectTherapistHint:
+      "Pick a therapist from the dropdown above to see their weekly or monthly sessions.",
     noSessionsThisWeek: "No sessions for this therapist in the selected period.",
     edit: "Edit",
     delete: "Delete",
@@ -1434,7 +1532,7 @@ const en = {
     filterPayments: "Payments",
     filterSystem: "System",
     allSpecialties: "All Specialities",
-    allCities:"All cities",
+    allCities: "All cities",
     viewAll: "View All",
     viewDetails: "Details",
     personalInfo: "Personal Information",

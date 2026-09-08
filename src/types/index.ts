@@ -36,6 +36,63 @@ export interface Package {
   featured: boolean;
   sortOrder: number;
   isActive: boolean;
+  sessionCount: number;
+  validityDays: number;
+}
+
+export type PackagePurchaseStatus = "ACTIVE" | "EXPIRED" | "DEPLETED" | "CANCELLED";
+
+export interface PackagePurchase {
+  id: string;
+  userId: string;
+  packageId: string;
+  packageName: string;
+  packageTag: string;
+  sessionsTotal: number;
+  sessionsUsed: number;
+  sessionsRemaining: number;
+  status: PackagePurchaseStatus;
+  purchasedAt: string;
+  expiresAt: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface PackagePurchaseSession {
+  id: string;
+  date: string;
+  time: string;
+  therapistName: string;
+  status: string;
+}
+
+export interface PackagePurchaseDetail extends PackagePurchase {
+  payment?: {
+    id?: string;
+    amount?: number;
+    method?: string;
+    status?: string;
+  } | null;
+  sessions: PackagePurchaseSession[];
+}
+
+export interface PackagePurchaseListResponse {
+  purchases: PackagePurchase[];
+  total: number;
+}
+
+export interface AdminPackagePurchase extends PackagePurchase {
+  patientName: string;
+  patientId: string;
+  amount: number;
+}
+
+export interface AdminPackageStats {
+  totalRevenue: number;
+  activePurchases: number;
+  totalPurchases: number;
+  sessionsDelivered: number;
+  mostPopularPackage: string | null;
 }
 
 export interface PatientProfile {
@@ -107,7 +164,8 @@ export interface Session {
   date: string;
   time: string;
   type: string;
-  status: "Confirmed" | "Completed" | "Cancelled" | "Pending" | "SCHEDULED" | "COMPLETED" | "CANCELLED";
+  status:
+    "Confirmed" | "Completed" | "Cancelled" | "Pending" | "SCHEDULED" | "COMPLETED" | "CANCELLED";
   patient?: string;
   patientId?: string;
   familyMemberId?: string;

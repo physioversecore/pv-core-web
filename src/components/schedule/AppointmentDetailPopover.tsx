@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Clock, MapPin, Phone, Calendar, AlertTriangle, User } from "lucide-react";
+import { Clock, MapPin, Phone, Calendar, AlertTriangle, User, Package } from "lucide-react";
 import { to12h } from "@/lib/format";
 import { isDateInPast } from "@/lib/availability-utils";
 import type { ScheduleAppointment, ScheduleAppointmentStatus } from "@/hooks/useTherapistSchedule";
@@ -69,7 +69,9 @@ export function AppointmentDetailPopover({
             {a.type} · {to12h(a.time)}
           </p>
         </div>
-        <span className={`text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap ${STATUS_CLASSES[a.status]}`}>
+        <span
+          className={`text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap ${STATUS_CLASSES[a.status]}`}
+        >
           {STATUS_LABELS[a.status]}
         </span>
       </div>
@@ -106,6 +108,14 @@ export function AppointmentDetailPopover({
           <Clock className="w-3.5 h-3.5 text-text-muted flex-shrink-0" />
           <span>{to12h(a.time)}</span>
         </div>
+        {a.bookedViaPackage && (
+          <div className="flex items-center gap-2">
+            <Package className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+            <span className="font-medium text-primary">
+              Package session{a.packageName ? ` · ${a.packageName}` : ""}
+            </span>
+          </div>
+        )}
       </div>
 
       {a.requestPending && (

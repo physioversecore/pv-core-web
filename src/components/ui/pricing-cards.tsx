@@ -1,12 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import { Check, MoveRight, Phone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/Reveal";
+import { PurchaseConfirmDialog } from "@/components/modals/PurchaseConfirmDialog";
 import { useLang } from "@/context/i18n";
+import { useAuth } from "@/context/auth";
+import { useAuthModal } from "@/context/auth-modal";
 import { usePackages } from "@/hooks/usePackages";
+import { useActivePackage } from "@/hooks/useActivePackage";
 import type { Package } from "@/types";
 
 const ICON_MAP: Record<string, string> = {
@@ -17,15 +22,28 @@ const ICON_MAP: Record<string, string> = {
 
 function PackageCard({ pkg, delay }: { pkg: Package; delay: number }) {
   const { t } = useLang();
+  const { user } = useAuth();
+  const { openAuth } = useAuthModal();
+  const { activePackage } = useActivePackage();
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const icon = ICON_MAP[pkg.icon] ?? "\u{1F48E}";
+
+  const hasActivePackage =
+    !!activePackage && activePackage.status === "ACTIVE" && activePackage.sessionsRemaining > 0;
+
+  const handleChoose = () => {
+    if (!user || user.role !== "patient") {
+      openAuth("access", "patient");
+      return;
+    }
+    setConfirmOpen(true);
+  };
 
   return (
     <Reveal delay={delay}>
       <Card
         className={`relative w-full rounded-2xl border h-full flex flex-col transition-all duration-200 hover:shadow-lg ${
-          pkg.featured
-            ? "border-voltage-lime/60 bg-white shadow-lg"
-            : "border-border bg-white"
+          pkg.featured ? "border-voltage-lime/60 bg-white shadow-lg" : "border-border bg-white"
         }`}
       >
         {pkg.featured && (
@@ -69,19 +87,27 @@ function PackageCard({ pkg, delay }: { pkg: Package; delay: number }) {
             </div>
 
             {pkg.featured ? (
-              <Button className="w-full gap-2 rounded-xl bg-voltage-lime text-carbon-ink hover:bg-voltage-lime/90 h-11 font-semibold">
-                {t("packages.choosePackage")} <MoveRight className="size-4" />
+              <Button
+                onClick={handleChoose}
+                className="w-full gap-2 rounded-xl bg-voltage-lime text-carbon-ink hover:bg-voltage-lime/90 h-11 font-semibold"
+              >
+                {hasActivePackage ? t("packages.viewPackage") : t("packages.choosePackage")}{" "}
+                <MoveRight className="size-4" />
               </Button>
             ) : (
               <Button
+                onClick={handleChoose}
                 variant="outline"
                 className="w-full gap-2 rounded-xl border-border hover:bg-voltage-lime/90 hover:text-text h-11 font-medium"
               >
-                {t("packages.choosePackage")} <MoveRight className="size-4" />
+                {hasActivePackage ? t("packages.viewPackage") : t("packages.choosePackage")}{" "}
+                <MoveRight className="size-4" />
               </Button>
             )}
           </div>
         </CardContent>
+
+        {confirmOpen && <PurchaseConfirmDialog pkg={pkg} onClose={() => setConfirmOpen(false)} />}
       </Card>
     </Reveal>
   );

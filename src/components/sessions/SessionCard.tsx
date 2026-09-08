@@ -1,9 +1,16 @@
 "use client";
 import { Avatar } from "@/components/common/Avatar";
 import { SmartBadge } from "./SmartBadge";
-import { formatWhen, formatType, mapSessionStatus, npr, isPast, isOverdueSession } from "@/lib/format";
+import {
+  formatWhen,
+  formatType,
+  mapSessionStatus,
+  npr,
+  isPast,
+  isOverdueSession,
+} from "@/lib/format";
 import type { SessionData } from "@/services/api/sessions";
-import { Clock, RotateCcw, X, Star, User } from "lucide-react";
+import { Clock, RotateCcw, X, Star, User, Package } from "lucide-react";
 
 interface SessionCardProps {
   session: SessionData;
@@ -21,7 +28,14 @@ const statusStyles: Record<string, string> = {
   Overdue: "!bg-danger/15 !text-danger",
 };
 
-export function SessionCard({ session, onCancel, onReschedule, onRate, onClick, rateableIds }: SessionCardProps) {
+export function SessionCard({
+  session,
+  onCancel,
+  onReschedule,
+  onRate,
+  onClick,
+  rateableIds,
+}: SessionCardProps) {
   const isUpcoming = session.status === "SCHEDULED" || session.status === "IN_PROGRESS";
   const isOverdue = isOverdueSession(session.status, session.date, session.time);
   const displayStatus = isOverdue ? "Overdue" : mapSessionStatus(session.status);
@@ -43,7 +57,9 @@ export function SessionCard({ session, onCancel, onReschedule, onRate, onClick, 
             <span className="truncate">{formatType(session.type)}</span>
           </div>
         </div>
-        {!isOverdue && <SmartBadge date={session.date} time={session.time} status={session.status} />}
+        {!isOverdue && (
+          <SmartBadge date={session.date} time={session.time} status={session.status} />
+        )}
       </div>
 
       <div className="flex items-center gap-1.5 text-xs text-text-light/90 bg-border/30 rounded-lg px-2.5 py-1.5 leading-relaxed">
@@ -60,15 +76,23 @@ export function SessionCard({ session, onCancel, onReschedule, onRate, onClick, 
 
       <div className="flex items-center justify-between pt-3 border-t border-border">
         <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-text">
-          {npr(session.fee)}
+          {session.bookedViaPackage ? (
+            <>
+              <Package size={13} className="text-primary" />
+              Package
+            </>
+          ) : (
+            npr(session.fee)
+          )}
         </span>
         <div className="flex items-center gap-2">
-          <span className={`chip ${statusStyles[displayStatus] ?? ""}`}>
-            {displayStatus}
-          </span>
+          <span className={`chip ${statusStyles[displayStatus] ?? ""}`}>{displayStatus}</span>
           {canRate && (
             <button
-              onClick={(e) => { e.stopPropagation(); onRate(session.id); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onRate(session.id);
+              }}
               className="inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg border border-primary text-primary text-xs font-semibold cursor-pointer hover:bg-primary hover:text-white transition-all"
             >
               <Star size={12} />

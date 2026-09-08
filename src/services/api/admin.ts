@@ -2,6 +2,7 @@
 
 import { api } from "./client";
 import { adminRoleForEmail, type AdminSubRole } from "./auth-constants";
+import type { Package, AdminPackagePurchase, AdminPackageStats } from "@/types";
 
 export interface AdminPatientData {
   id: string;
@@ -177,7 +178,9 @@ export async function createAdminTherapist(data: AdminCreateTherapistPayload) {
   return api.post<AdminTherapistCreatedResponse>("/admin/therapists", data);
 }
 
-export async function getAdminPayments(params?: AdminListParams & { patientId?: string; therapistId?: string }) {
+export async function getAdminPayments(
+  params?: AdminListParams & { patientId?: string; therapistId?: string },
+) {
   const sp = new URLSearchParams();
   if (params?.skip) sp.set("skip", String(params.skip));
   if (params?.limit) sp.set("limit", String(params.limit));
@@ -390,7 +393,7 @@ export async function submitPatientComplaint(data: PatientComplaintPayload) {
 
 export async function getPatientComplaints(patientId: string) {
   const res = await api.get<{ items: ApiComplaint[]; total: number }>(
-    `/admin/complaints?type=patient&complainantId=${patientId}`
+    `/admin/complaints?type=patient&complainantId=${patientId}`,
   );
   return {
     ...res,
@@ -430,7 +433,7 @@ export async function submitTherapistComplaint(data: TherapistComplaintPayload) 
 
 export async function getTherapistComplaints(therapistId: string) {
   const res = await api.get<{ items: ApiComplaint[]; total: number }>(
-    `/admin/complaints?type=therapist&complainantId=${therapistId}`
+    `/admin/complaints?type=therapist&complainantId=${therapistId}`,
   );
   return {
     ...res,
@@ -441,7 +444,16 @@ export async function getTherapistComplaints(therapistId: string) {
 // --- Notifications ---
 export interface AdminNotificationData {
   id: string;
-  category: "booking" | "reschedule" | "complaint" | "payment" | "system" | "refund" | "leave" | "verification" | "therapist";
+  category:
+    | "booking"
+    | "reschedule"
+    | "complaint"
+    | "payment"
+    | "system"
+    | "refund"
+    | "leave"
+    | "verification"
+    | "therapist";
   message: string;
   timestamp: string;
   read: boolean;
@@ -658,7 +670,11 @@ export async function getAdminServiceAreas(params?: AdminServiceAreaListParams) 
   return api.get<ListResponse<AdminServiceAreaData>>(`/admin/service-areas?${sp.toString()}`);
 }
 
-export async function createAdminServiceArea(data: { name: string; localities: string[]; therapistIds?: string[] }) {
+export async function createAdminServiceArea(data: {
+  name: string;
+  localities: string[];
+  therapistIds?: string[];
+}) {
   return api.post<AdminServiceAreaData>("/admin/service-areas", data);
 }
 
@@ -738,7 +754,10 @@ export async function declineLeave(id: string, reason?: string) {
   return api.put<AdminLeaveData>(`/admin/leaves/${id}`, { status: "REJECTED", reason });
 }
 
-export async function updateLeave(id: string, data: Partial<Pick<AdminLeaveData, "dateFrom" | "dateTo" | "reason">>) {
+export async function updateLeave(
+  id: string,
+  data: Partial<Pick<AdminLeaveData, "dateFrom" | "dateTo" | "reason">>,
+) {
   return api.put<AdminLeaveData>(`/admin/leaves/${id}`, data);
 }
 
@@ -847,7 +866,10 @@ export async function getAdminPerformance(params?: AdminPerformanceListParams) {
   return api.get<ListResponse<AdminPerformanceData>>(`/admin/performance?${sp.toString()}`);
 }
 
-export async function scheduleReview(id: string, data: { date: string; adminId: string; notes: string }) {
+export async function scheduleReview(
+  id: string,
+  data: { date: string; adminId: string; notes: string },
+) {
   return api.post(`/admin/performance/${id}/schedule-review`, data);
 }
 
@@ -1021,7 +1043,9 @@ export async function getBookingsByZone(dateRange?: string) {
 export async function getCancellationRateByTherapist(dateRange?: string) {
   const sp = new URLSearchParams();
   if (dateRange) sp.set("dateRange", dateRange);
-  return api.get<TherapistCancellationStat[]>(`/admin/analytics/cancellation-rate?${sp.toString()}`);
+  return api.get<TherapistCancellationStat[]>(
+    `/admin/analytics/cancellation-rate?${sp.toString()}`,
+  );
 }
 
 export async function getRevenueTrend(months?: number) {
@@ -1126,9 +1150,68 @@ export async function assignRefund(id: string, assigneeId: string) {
 }
 
 export async function getAdminRefundStats() {
-  return api.get<{ pending: number; refundedThisMonth: number; disputeRate: number; avgResolutionDays: number }>("/admin/refunds/stats");
+  return api.get<{
+    pending: number;
+    refundedThisMonth: number;
+    disputeRate: number;
+    avgResolutionDays: number;
+  }>("/admin/refunds/stats");
 }
 
 export async function getAdminStaffList() {
-  return api.get<ListResponse<{ id: string; name: string; email: string }>>("/admin/users?role=ADMIN");
+  return api.get<ListResponse<{ id: string; name: string; email: string }>>(
+    "/admin/users?role=ADMIN",
+  );
+}
+
+// --- Packages (Admin) ---
+export interface CreatePackagePayload {
+  name: string;
+  tag: string;
+  icon?: string;
+  price: number;
+  cadence: string;
+  blurb: string;
+  points: string[];
+  sessionCount?: number;
+  validityDays?: number;
+  featured?: boolean;
+  sortOrder?: number;
+  isActive?: boolean;
+}
+
+export async function getAdminPackages() {
+  return api.get<{ packages: Package[]; total: number }>("/packages");
+}
+
+export async function createAdminPackage(data: CreatePackagePayload) {
+  return api.post<Package>("/packages", data);
+}
+
+export async function updateAdminPackage(id: string, data: Partial<CreatePackagePayload>) {
+  return api.put<Package>(`/packages/${id}`, data);
+}
+
+export async function deleteAdminPackage(id: string) {
+  return api.delete(`/packages/${id}`);
+}
+
+export async function getAdminPackagePurchases(params?: {
+  skip?: number;
+  limit?: number;
+  status?: string;
+  packageId?: string;
+}) {
+  const sp = new URLSearchParams();
+  if (params?.skip) sp.set("skip", String(params.skip));
+  if (params?.limit) sp.set("limit", String(params.limit));
+  if (params?.status) sp.set("status", params.status);
+  if (params?.packageId) sp.set("packageId", params.packageId);
+  return api.get<{ purchases: AdminPackagePurchase[]; total: number }>(
+    `/admin/packages/purchases?${sp.toString()}`,
+  );
+}
+
+export async function getAdminPackageStats() {
+  return api.get<AdminPackageStats>("/admin/packages/stats");
 }

@@ -24,7 +24,8 @@ function dateKeyStr(d: Date): string {
 
 const SLOT_CARD: Record<ScheduleAppointmentStatus, string> = {
   confirmed: "bg-session-confirmed-bg border-secondary text-secondary",
-  reschedule_requested: "bg-session-reschedule-bg border-session-reschedule text-session-reschedule",
+  reschedule_requested:
+    "bg-session-reschedule-bg border-session-reschedule text-session-reschedule",
   decline_requested: "bg-session-decline-bg border-session-decline text-session-decline",
   completed: "bg-session-completed-bg border-session-completed text-session-completed",
 };
@@ -56,7 +57,7 @@ export function WeeklyView({
   const interval = workingHours.slotInterval || 60;
   const allSlots = useMemo(
     () => generateTimeSlots(workingHours.start, workingHours.end, interval),
-    [workingHours, interval]
+    [workingHours, interval],
   );
 
   const apptMap = useMemo(() => {
@@ -76,8 +77,7 @@ export function WeeklyView({
         <div className="p-2.5 border-r border-border" />
         {days.map((d, i) => {
           const past = isDateInPast(dateKeyStr(d));
-          const today =
-            dateKeyStr(d) === dateKeyStr(new Date());
+          const today = dateKeyStr(d) === dateKeyStr(new Date());
           return (
             <div
               key={i}
@@ -85,17 +85,11 @@ export function WeeklyView({
                 today ? "bg-primary/[0.05]" : ""
               } ${past ? "opacity-50" : ""}`}
             >
-              <div
-                className={`text-xs font-semibold ${
-                  today ? "text-primary" : "text-text"
-                }`}
-              >
+              <div className={`text-xs font-semibold ${today ? "text-primary" : "text-text"}`}>
                 {DOW[i]}
               </div>
               <div
-                className={`text-sm mt-0.5 ${
-                  today ? "text-primary font-bold" : "text-text-muted"
-                }`}
+                className={`text-sm mt-0.5 ${today ? "text-primary font-bold" : "text-text-muted"}`}
               >
                 {d.getDate()}
               </div>
@@ -139,7 +133,12 @@ export function WeeklyView({
                       <p className="font-semibold text-[11.5px] truncate">
                         {apt.patient.split(" ")[0]}
                       </p>
-                      <p className="opacity-70 mt-0.5 truncate">{apt.type}</p>
+                      <p className="opacity-70 mt-0.5 truncate flex items-center gap-1">
+                        {apt.type}
+                        {apt.bookedViaPackage && (
+                          <span className="text-[9px] font-bold text-primary shrink-0">●</span>
+                        )}
+                      </p>
                     </div>
                   )}
                 </div>
