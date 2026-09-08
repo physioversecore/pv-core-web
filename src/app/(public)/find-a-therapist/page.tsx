@@ -128,10 +128,10 @@ function FindPageContent() {
     { value: "6", label: t("find.statCities") },
   ];
 
-  const sorts: { key: SortKey; label: string; icon: string }[] = [
-    { key: "trending", label: t("find.sortTrending"), icon: "🔥" },
-    { key: "rated", label: t("find.sortRated"), icon: "⭐" },
-    { key: "price", label: t("find.sortPrice"), icon: "💰" },
+  const sorts: { key: SortKey; label: string }[] = [
+    { key: "trending", label: t("find.sortTrending") },
+    { key: "rated", label: t("find.sortRated") },
+    { key: "price", label: t("find.sortPrice") },
   ];
 
   const selectCls =
@@ -179,12 +179,12 @@ function FindPageContent() {
                   </div>
                 ))}
               </div>
-              <div
+              {/*<div
                 aria-hidden
                 className="absolute -top-5 -right-3 phone-float w-14 h-14 rounded-full border border-white/70 bg-white/60 backdrop-blur-md grid place-items-center shadow-lg"
               >
                 <Sparkles className="w-6 h-6 text-primary" />
-              </div>
+              </div>*/}
             </div>
           </div>
         </div>
@@ -257,7 +257,6 @@ function FindPageContent() {
                       : "border-border bg-white text-text-light hover:border-secondary/40 hover:text-text"
                   }`}
                 >
-                  <span className="leading-none">{s.icon}</span>
                   {s.label}
                 </button>
               ))}
