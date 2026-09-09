@@ -10,6 +10,7 @@ import { useAuth } from "@/context/auth";
 import { AuthModal } from "@/components/AuthModal";
 import { BookingModal } from "@/components/BookingModal";
 import { BookingWidget } from "@/components/therapist/BookingWidget";
+import { WorkplaceCard } from "@/components/therapist/WorkplaceCard";
 import { Avatar } from "@/components/Avatar";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { SectionError } from "@/components/SectionError";
@@ -147,7 +148,11 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
               </div>
 
               <div className="lg:col-span-4 lg:sticky lg:top-24 h-fit">
-                <BookingWidget therapistId={therapist.id} price={therapist.price} onConfirm={handleConfirm} />
+                {therapist.listingType === "INFO_ONLY" ? (
+                  <WorkplaceCard clinic={therapist.clinic} />
+                ) : (
+                  <BookingWidget therapistId={therapist.id} price={therapist.price} onConfirm={handleConfirm} />
+                )}
               </div>
             </div>
           )}

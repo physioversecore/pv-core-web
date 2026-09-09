@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useCallback, useEffect, useMemo } from "react";
+
+import { getClinics } from "@/services/api/clinics";
+import type { Clinic } from "@/types";
 import Image from "next/image";
 import {
   Sheet,
@@ -91,6 +94,12 @@ export function TherapistDetailSheet({
     price: therapist?.price != null ? String(therapist.price) : "",
     bio: therapist?.bio ?? "",
     status: therapist?.status ?? ("Under review" as AdminTherapistData["status"]),
+    listingType: therapist?.listingType ?? "BOOKABLE",
+    clinicId: therapist?.clinicId ?? "",
+    latitude: therapist?.latitude != null ? String(therapist.latitude) : "",
+    longitude: therapist?.longitude != null ? String(therapist.longitude) : "",
+    serviceRadiusKm:
+      therapist?.serviceRadiusKm != null ? String(therapist.serviceRadiusKm) : "",
   });
 
   useEffect(() => {
@@ -108,6 +117,12 @@ export function TherapistDetailSheet({
         price: therapist.price != null ? String(therapist.price) : "",
         bio: therapist.bio ?? "",
         status: therapist.status ?? "Under review",
+        listingType: therapist.listingType ?? "BOOKABLE",
+        clinicId: therapist.clinicId ?? "",
+        latitude: therapist.latitude != null ? String(therapist.latitude) : "",
+        longitude: therapist.longitude != null ? String(therapist.longitude) : "",
+        serviceRadiusKm:
+          therapist.serviceRadiusKm != null ? String(therapist.serviceRadiusKm) : "",
       });
     }
   }, [therapist]);
@@ -124,11 +139,40 @@ export function TherapistDetailSheet({
       form.experience !== (therapist.experience != null ? String(therapist.experience) : "") ||
       form.price !== (therapist.price != null ? String(therapist.price) : "") ||
       form.bio !== (therapist.bio ?? "") ||
-      form.status !== (therapist.status ?? "Under review")
+      form.status !== (therapist.status ?? "Under review") ||
+      form.listingType !== (therapist.listingType ?? "BOOKABLE") ||
+      form.clinicId !== (therapist.clinicId ?? "") ||
+      form.latitude !== (therapist.latitude != null ? String(therapist.latitude) : "") ||
+      form.longitude !== (therapist.longitude != null ? String(therapist.longitude) : "") ||
+      form.serviceRadiusKm !==
+        (therapist.serviceRadiusKm != null ? String(therapist.serviceRadiusKm) : "")
     );
   }, [form, therapist]);
 
   const setField = (key: string, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
+
+  // The workplace picker. Fetched directly rather than through useClinics,
+  // which paginates at 9 -- a picker needs the whole list.
+  const [clinics, setClinics] = useState<Clinic[]>([]);
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    getClinics({ limit: 200 })
+      .then((res) => {
+        if (!cancelled) setClinics(res.clinics);
+      })
+      .catch(() => {
+        if (!cancelled) setClinics([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
+
+  const bookableLabels = useMemo(
+    () => [t("admin_dashboard.bookable"), t("admin_dashboard.infoOnly")],
+    [t],
+  );
 
   const mediaFiles = therapist?.mediaUrls
     ? therapist.mediaUrls.split(",").filter(Boolean)
@@ -224,6 +268,14 @@ export function TherapistDetailSheet({
         bio: form.bio,
         status: form.status,
         isActive: form.status === "Verified",
+        listingType: form.listingType as AdminTherapistData["listingType"],
+        // Empty means "not set" rather than 0 — sending 0 would place every
+        // ungeocoded therapist off the coast of Africa.
+        clinicId: form.clinicId || null,
+        latitude: form.latitude.trim() === "" ? null : Number(form.latitude),
+        longitude: form.longitude.trim() === "" ? null : Number(form.longitude),
+        serviceRadiusKm:
+          form.serviceRadiusKm.trim() === "" ? null : Number(form.serviceRadiusKm),
       });
       toast.success(t("common.saved"));
       onOpenChange(false);
@@ -289,6 +341,95 @@ export function TherapistDetailSheet({
                 <InfoRow icon={<Phone size={14} />} label={t("admin_dashboard.phone")} value={therapist.phone ?? "—"} />
                 <InfoRow icon={<MapPin size={14} />} label={t("admin_dashboard.city")} value={therapist.city} />
                 <InfoRow icon={<User size={14} />} label={t("admin_dashboard.gender")} value={therapist.gender ?? "—"} />
+              </>
+            )}
+          </Section>
+
+          <Section title={t("admin_dashboard.listingAndCoverage")}>
+            {isEdit ? (
+              <>
+                <EditField
+                  label={t("admin_dashboard.listingType")}
+                  value={form.listingType === "INFO_ONLY" ? bookableLabels[1] : bookableLabels[0]}
+                  onChange={(v) =>
+                    setField("listingType", v === bookableLabels[1] ? "INFO_ONLY" : "BOOKABLE")
+                  }
+                  type="select"
+                  options={bookableLabels}
+                />
+                <div>
+                  <label className="text-xs font-mono text-text-light uppercase">
+                    {t("admin_dashboard.workplace")}
+                  </label>
+                  <select
+                    value={form.clinicId}
+                    onChange={(e) => setField("clinicId", e.target.value)}
+                    className="w-full mt-1 px-3 py-2 rounded-md border border-input bg-transparent text-sm"
+                  >
+                    <option value="">{t("admin_dashboard.noWorkplace")}</option>
+                    {clinics.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <EditField
+                  label={t("admin_dashboard.latitude")}
+                  value={form.latitude}
+                  onChange={(v) => setField("latitude", v)}
+                />
+                <EditField
+                  label={t("admin_dashboard.longitude")}
+                  value={form.longitude}
+                  onChange={(v) => setField("longitude", v)}
+                />
+                <EditField
+                  label={t("admin_dashboard.serviceRadius")}
+                  value={form.serviceRadiusKm}
+                  onChange={(v) => setField("serviceRadiusKm", v)}
+                  type="number"
+                />
+                {form.listingType === "INFO_ONLY" && !form.clinicId && (
+                  <p className="text-xs text-text-light">
+                    {t("admin_dashboard.infoOnlyNeedsWorkplace")}
+                  </p>
+                )}
+                {(!form.latitude.trim() || !form.longitude.trim()) && (
+                  <p className="text-xs text-text-light">
+                    {t("admin_dashboard.ungeocodedTherapist")}
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                <InfoRow
+                  icon={<Briefcase size={14} />}
+                  label={t("admin_dashboard.listingType")}
+                  value={
+                    therapist.listingType === "INFO_ONLY"
+                      ? t("admin_dashboard.infoOnly")
+                      : t("admin_dashboard.bookable")
+                  }
+                />
+                <InfoRow
+                  icon={<MapPin size={14} />}
+                  label={t("admin_dashboard.workplace")}
+                  value={therapist.clinicName ?? "—"}
+                />
+                <InfoRow
+                  icon={<MapPin size={14} />}
+                  label={t("admin_dashboard.coverage")}
+                  value={
+                    therapist.latitude != null && therapist.longitude != null
+                      ? `${therapist.latitude}, ${therapist.longitude}${
+                          therapist.serviceRadiusKm != null
+                            ? ` · ${therapist.serviceRadiusKm} km`
+                            : ""
+                        }`
+                      : t("admin_dashboard.notGeocoded")
+                  }
+                />
               </>
             )}
           </Section>

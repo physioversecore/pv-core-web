@@ -1,6 +1,7 @@
 "use server";
 
 import { api } from "./client";
+import type { Clinic } from "@/types";
 
 export interface TherapistData {
   id: string;
@@ -15,6 +16,12 @@ export interface TherapistData {
   bio: string;
   userId?: string;
   mediaUrls?: string;
+  /** INFO_ONLY therapists cannot be booked — the API rejects it with a 400. */
+  listingType?: "BOOKABLE" | "INFO_ONLY";
+  clinic?: Clinic | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  serviceRadiusKm?: number | null;
 }
 
 interface TherapistListResponse {

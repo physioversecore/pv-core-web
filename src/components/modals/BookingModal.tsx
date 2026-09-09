@@ -11,6 +11,7 @@ import { createSession, updateSession, processBooking } from "@/services/api/ses
 import { getTherapistSlots } from "@/services/api/therapists";
 import { getCurrencies, getPaymentMethods } from "@/services/api/settings";
 import { getFamilyMembers, type FamilyMember } from "@/services/api/patients";
+import { usePointBalance, useApplyPoints } from "@/hooks/usePoints";
 import type { Currency, PaymentMethod } from "@/services/api/settings";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -450,6 +451,10 @@ interface StepPaymentProps {
   onBillingCountryChange: (val: string) => void;
   isEdit: boolean;
   isSubmitting: boolean;
+  pointsAvailable: number;
+  pointToNpr: number;
+  pointsToUse: number;
+  onPointsToUseChange: (points: number) => void;
 }
 
 const PAYMENT_TYPES = [
@@ -476,6 +481,10 @@ function StepPayment({
   onBillingCountryChange,
   isEdit,
   isSubmitting,
+  pointsAvailable,
+  pointToNpr,
+  pointsToUse,
+  onPointsToUseChange,
 }: StepPaymentProps) {
   const [paymentType, setPaymentType] = useState<"nepal" | "international" | null>(null);
   const [methodOpen, setMethodOpen] = useState(false);
@@ -492,6 +501,18 @@ function StepPayment({
   const converted = basePrice * rate;
   const platformFee = converted * 0.05;
   const total = converted + platformFee;
+
+  // Points are Rs credit, so they are only offered on an NPR booking rather
+  // than converted into a currency the ledger does not speak.
+  const isNpr = selectedCurrency === "NPR";
+  const maxUsablePoints = Math.min(
+    pointsAvailable,
+    // The server caps a redemption at half the session fee; mirroring it here
+    // keeps the shown total honest instead of failing after the booking.
+    Math.floor((basePrice * 0.5) / (pointToNpr || 1)),
+  );
+  const canUsePoints = isNpr && maxUsablePoints > 0;
+  const pointsDiscount = canUsePoints ? pointsToUse * pointToNpr : 0;
   const isNPR = selectedCurrency === "NPR";
 
   const selectedMethod = [...nepalPayments, ...internationalPayments].find(
@@ -851,6 +872,40 @@ function StepPayment({
         </div>
       )}
 
+      {canUsePoints && (
+        <div className="bg-surface rounded-xl p-4 space-y-2">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium text-text">
+                You have {pointsAvailable.toLocaleString()} points
+              </p>
+              <p className="text-xs text-text-light mt-0.5">
+                {pointsToUse > 0
+                  ? `Using ${pointsToUse.toLocaleString()} on this booking.`
+                  : `Use up to ${maxUsablePoints.toLocaleString()} on this booking.`}
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={pointsToUse > 0}
+              onClick={() => onPointsToUseChange(pointsToUse > 0 ? 0 : maxUsablePoints)}
+              className={cn(
+                "shrink-0 w-11 h-6 rounded-full transition-colors relative",
+                pointsToUse > 0 ? "bg-secondary" : "bg-border"
+              )}
+            >
+              <span
+                className={cn(
+                  "absolute top-0.5 w-5 h-5 bg-surface rounded-full transition-all",
+                  pointsToUse > 0 ? "left-[1.375rem]" : "left-0.5"
+                )}
+              />
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="bg-surface rounded-xl p-4 space-y-2">
         <div className="flex justify-between text-sm">
           <span className="text-gray-500">Session fee</span>
@@ -860,10 +915,23 @@ function StepPayment({
           <span className="text-gray-500">Platform fee (5%)</span>
           <span className="font-medium text-text">{symbol}{platformFee.toFixed(2)}</span>
         </div>
+        {pointsDiscount > 0 && (
+          <div className="flex justify-between text-sm">
+            <span className="text-text-light">Points ({pointsToUse.toLocaleString()})</span>
+            <span className="font-medium text-secondary">
+              − {symbol}{pointsDiscount.toFixed(2)}
+            </span>
+          </div>
+        )}
         <div className="flex justify-between text-sm font-bold border-t border-gray-300 pt-2">
           <span className="text-text">Total</span>
-          <span className="text-text">{symbol}{total.toFixed(2)}</span>
+          <span className="text-text">{symbol}{(total - pointsDiscount).toFixed(2)}</span>
         </div>
+        {pointsDiscount > 0 && (
+          <p className="text-[11px] text-gray-500 pt-1">
+            Your therapist is still paid the full session fee.
+          </p>
+        )}
       </div>
 
       <div className="flex items-center gap-2 text-xs text-gray-400">
@@ -1077,6 +1145,7 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
   const [esewaMobile, setEsewaMobile] = useState("");
   const [billingCountry, setBillingCountry] = useState("");
   const [address, setAddress] = useState(user?.city ?? "");
+  const [pointsToUse, setPointsToUse] = useState(0);
   const [selectedForWhomId, setSelectedForWhomId] = useState("");
   const [selectedForWhomName, setSelectedForWhomName] = useState("Myself");
 
@@ -1133,6 +1202,16 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
   const platformFee = displayPrice * 0.05;
   const totalPrice = displayPrice + platformFee;
 
+  const { balance: pointBalance } = usePointBalance();
+  const { applyPoints } = useApplyPoints();
+  const pointsAvailable = pointBalance?.balance ?? 0;
+  const pointToNpr = pointBalance?.pointToNpr ?? 1;
+
+  // A currency switch invalidates a redemption priced in rupees.
+  useEffect(() => {
+    if (selectedCurrency !== "NPR" && pointsToUse > 0) setPointsToUse(0);
+  }, [selectedCurrency, pointsToUse]);
+
   // Mutations
   const createMutation = useMutation({
     mutationFn: () => {
@@ -1156,10 +1235,23 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
         billingCountry: billingCountry || undefined,
       });
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["therapist-slots"] });
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
       queryClient.invalidateQueries({ queryKey: ["patient-dashboard"] });
+
+      // Redemption needs a session id, so it runs after the booking rather
+      // than as part of it. A failure here keeps the booking — the patient
+      // simply has not spent their points.
+      const sessionId = data?.session?.id;
+      if (sessionId && pointsToUse > 0 && selectedCurrency === "NPR") {
+        try {
+          await applyPoints(sessionId, pointsToUse);
+        } catch {
+          toast.error("Booked, but your points could not be applied.");
+        }
+      }
+
       const ref = data?.payment?.id || data?.session?.id || "BK-" + Math.random().toString(36).slice(2, 8).toUpperCase();
       setBookingResult({
         reference: ref,
@@ -1312,6 +1404,10 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
               onBillingCountryChange={setBillingCountry}
               isEdit={isEdit}
               isSubmitting={isSubmitting}
+              pointsAvailable={pointsAvailable}
+              pointToNpr={pointToNpr}
+              pointsToUse={pointsToUse}
+              onPointsToUseChange={setPointsToUse}
             />
           )}
 
