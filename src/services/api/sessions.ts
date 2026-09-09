@@ -40,9 +40,7 @@ export async function getSessions(params?: {
     if (params?.startDate) searchParams.set("startDate", params.startDate);
     if (params?.endDate) searchParams.set("endDate", params.endDate);
 
-    return await api.get<SessionListResponse>(
-      `/sessions?${searchParams.toString()}`,
-    );
+    return await api.get<SessionListResponse>(`/sessions?${searchParams.toString()}`);
   } catch (e) {
     if (e instanceof AuthError) return { sessions: [], total: 0 };
     throw e;
@@ -99,6 +97,12 @@ export interface BookingPaymentPayload {
   billingCountry?: string;
 }
 
+export interface BookingPaymentInitiation {
+  type: "form" | "redirect";
+  url?: string;
+  formFields?: Record<string, string>;
+}
+
 export interface BookingPaymentResult {
   session: SessionData;
   payment: {
@@ -108,16 +112,15 @@ export interface BookingPaymentResult {
     method: string;
     currency: string;
     platformFee: number;
+    sessionId?: string;
   };
+  initiation?: BookingPaymentInitiation;
 }
 
 export async function processBooking(data: BookingPaymentPayload) {
   return api.post<BookingPaymentResult>("/payments/process", data);
 }
 
-export async function rescheduleSession(
-  id: string,
-  data: { newDate: string; newTime: string },
-) {
+export async function rescheduleSession(id: string, data: { newDate: string; newTime: string }) {
   return api.patch<SessionData>(`/sessions/${id}/reschedule`, data);
 }
