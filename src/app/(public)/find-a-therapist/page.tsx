@@ -23,9 +23,8 @@ import { Avatar } from "@/components/Avatar";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { SectionError } from "@/components/SectionError";
 import { TherapistCardGridSkeleton } from "@/components/SuspenseFallback";
-import { AuthModal } from "@/components/AuthModal";
 import { BookingModal } from "@/components/BookingModal";
-import { useAuth } from "@/context/auth";
+import { useBooking } from "@/hooks/useBooking";
 import { CITIES, SPECIALTIES } from "@/constants";
 import type { Therapist } from "@/types";
 import { getTherapists } from "@/services/api/therapists";
@@ -55,9 +54,7 @@ function FindPageContent() {
   const [gender, setGender] = useState("");
   const [sort, setSort] = useState<SortKey>("trending");
   const [page, setPage] = useState(1);
-  const [auth, setAuth] = useState<null | "access">(null);
-  const [booking, setBooking] = useState<Therapist | null>(null);
-  const { user } = useAuth();
+  const { booking, book: handleBook, closeBooking } = useBooking();
   const searchTherapyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -114,11 +111,6 @@ function FindPageContent() {
     setCity("");
     setSpec("");
     setGender("");
-  };
-
-  const handleBook = (th: Therapist) => {
-    if (!user) return setAuth("access");
-    setBooking(th);
   };
 
   const stats = [
@@ -412,8 +404,7 @@ function FindPageContent() {
         </div>
       </section>
 
-      <AuthModal open={auth !== null} mode={auth ?? "access"} onClose={() => setAuth(null)} />
-      {booking && <BookingModal therapist={booking} onClose={() => setBooking(null)} />}
+      {booking && <BookingModal therapist={booking} onClose={closeBooking} />}
     </div>
   );
 }
