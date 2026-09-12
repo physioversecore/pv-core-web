@@ -116,7 +116,7 @@ Each data-fetching section has its own `ErrorBoundary` — one section failing d
 
 ### API Service Layer (`src/services/api/`)
 - `client.ts` — base HTTP client with `Authorization: Bearer <token>` header, imports `"server-only"`
-- 15 domain service files: `auth.ts`, `admin.ts`, `sessions.ts`, `therapists.ts`, `patients.ts`, `products.ts`, `cart.ts`, `availability.ts`, `earnings.ts`, `reports.ts`, `reviews.ts`, `settings.ts`, `profile.ts`, `session.ts` (cookie management)
+- Domain service files: `auth.ts`, `admin.ts`, `sessions.ts`, `therapists.ts`, `patients.ts`, `products.ts`, `cart.ts`, `availability.ts`, `earnings.ts`, `reports.ts`, `reviews.ts`, `settings.ts`, `profile.ts`, `payments.ts` (`confirmPayment`, `getPaymentStatus`), `session.ts` (cookie management)
 - `auth.ts` includes: `login`, `signup`, `logout`, `getSession`, `updateProfile`, `sendOtp`, `verifyOtp`
 - `admin.ts` includes: `getNewBookingCount(since)`, `getNewComplaintCount(since)` (badge polls), `submitTherapistComplaint`, `submitPatientComplaint`
 
@@ -135,7 +135,7 @@ Each data-fetching section has its own `ErrorBoundary` — one section failing d
 |---|---|
 | Page data (reads) | Server Components or Server Actions |
 | User mutations | Server Actions |
-| Webhooks/integrations | Route Handlers (`app/api/...`) |
+| Webhooks/integrations | Route Handlers (`app/api/...`) — payment gateway callbacks (`app/api/webhooks/payments/[vendor]/route.ts` → backend `confirm` → 302 `/book/confirmation`) |
 | File upload/download | Route Handler proxy — public `POST /api/uploads/therapist-application` (XHR from `DocumentUploader`), `POST /api/reports`, `POST /api/uploads/complaint-evidence` (complaint evidence), `GET /api/v1/uploads/applications/[session]/[filename]` and `GET /api/v1/uploads/evidence/[session]/[filename]` (add bearer cookie) |
 | Real-time (future) | Client fetch → own Route Handler (never raw backend) |
 
@@ -171,6 +171,34 @@ Patients and therapists attach up to 3 evidence files (photos/screenshots) when 
 
 ### Report file serving
 `GET /api/v1/uploads/[patientId]/[filename]` passes the JWT as a `token` query param (backend report serving is token-authenticated) instead of a bearer header.
+
+## Payment Gateways (eSewa / Khalti)
+
+### Flow
+Booking is a **booking + payment combo** — a single `POST /api/v1/payments/process` creates the session, creates the payment, and returns a `GatewayInitiationResponse` for gateway methods (`esewa`, `khalti`). Manual methods (cash, card, connectips, …) keep the legacy behaviour: payment is `COMPLETED` immediately and an admin notification fires right away.
+
+For gateway methods the payment starts `PENDING` and the response includes an `initiation`:
+
+| Gateway | Initiation | Client action |
+|---|---|---|
+| eSewa (`app/services/payments/esewa.py`) | `type: "form"`, `formFields` (signed) | `BookingModal` auto-submits a hidden HTML form to `rc-epay.esewa.com.np` API in UAT |
+| Khalti (`app/services/payments/khalti.py`) | `type: "redirect"`, `url` | `BookingModal` does `window.location.assign(url)` → Khalti Web Checkout (KPG-2) |
+
+`GatewayInitiationResponse.type` is `"form"`, `"redirect"`, or `"manual"`. The **full-page navigation to the gateway is the one allowed exception** to "never outward-navigate" — the modal shows a "Redirecting to {method}…" overlay first. Untracked methods (`connectips`) are method-gated to fall back to manual on the backend (see `gateway.py` `GATEWAY_METHODS`).
+
+### Verification & callbacks
+- The homepage webhook `src/app/api/webhooks/payments/[vendor]/route.ts` receives the provider callback (eSewa = signed POST form, Khalti = GET+POST with `purchase_order_id` = `pymt-{paymentId}`), forwards to `POST /api/v1/payments/{id}/confirm`, then `302`s to `/book/confirmation?status=…&sessionId=…&ref=…`.
+- **Server-side confirm is the only source of truth** for `COMPLETED` — the backend gateway (`esewa._verify_response_signature`, Khalti transaction lookup) verifies the callback/status; the browser is never trusted. `confirm` is idempotent (`already_completed`), and the admin notification fires only on the first transition to `COMPLETED`.
+- `/book/confirmation` shows the result; `src/services/api/payments.ts` (`confirmPayment`, `getPaymentStatus`) wraps the confirm + status-refresh calls.
+
+### Payment methods & brand marks
+- The `payment-methods` setting (seeded by `seed-settings.py`) no longer lists `imepay` — IME Pay merged into Khalti ("Khalti by IME"). The backend `_METHOD_ALIASES` keeps `imepay → khalti` so legacy/deposited values still map to the Khalti rail; the seed script idempotently prunes stale `imepay` rows from existing settings on run.
+- Method icons render via `PaymentMethodIcon` (`src/components/PaymentMethodIcon.tsx`) — inline SVG brand marks (eSewa green tile, Khalti purple gradient tile, PayPal, Google Pay arc, …) with a neutral card fallback for admin-added methods. No emoji, no external assets.
+
+### Booking gating (unified)
+The "Book" action is the same component flow everywhere — home "Available today" strip, featured-therapist carousel, and `/find-a-therapist` — all via `useBooking()` (`src/hooks/useBooking.ts`):
+- Logged in → opens `BookingModal` for that therapist.
+- Logged out → `router.replace("/access?callbackUrl=/patient/sessions?book=<id>")`; after login `/patient/sessions` deep-links straight into that therapist's booking modal.
 
 ## Styling
 

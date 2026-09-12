@@ -123,6 +123,8 @@ export async function POST(req: Request) {
 - Route Handlers are the only acceptable place for a stable, versioned REST-style contract if we later build a therapist-facing mobile app.
 - Do not use Route Handlers as a generic "client calls this, this calls backend" proxy layer for page data — that's what Server Components/Actions are for. Only use when there's a real external caller.
 
+**Implemented example — payment gateways:** `app/api/webhooks/payments/[vendor]/route.ts` (this repo) receives provider callbacks (eSewa = signed POST form, Khalti = GET+POST with `purchase_order_id` = `pymt-{paymentId}`), forwards to `POST /api/v1/payments/{id}/confirm` on the backend (server-side gateway verification — the **only** source of truth for `COMPLETED`), then `302`s to `/book/confirmation?status=…`. The browser is never trusted to mark a payment settled.
+
 ---
 
 ## 4. Client-side fetch — narrow exception, not default
@@ -137,6 +139,8 @@ Only acceptable for:
 - Never put backend API keys, secrets, or unprefixed `BACKEND_URL` in client-accessible code.
 - If polling, respect reasonable intervals (avoid hammering the backend); prefer WebSocket/SSE for true real-time needs like live location.
 
+> **One deliberate exception — gateway checkout redirect:** the `BookingModal` performs a full-page navigation to the external provider when initiating an eSewa/Khalti payment (eSewa = auto-submit hidden form, Khalti = `window.location.assign`). This is allowed because initiating a payment requires the user's own browser session at the provider. Correctness is restored server-side on return via the webhook → `confirm` path — never by trusting the browser's reported status.
+
 ---
 
 ## Non-negotiables (apply everywhere)
@@ -147,7 +151,8 @@ Only acceptable for:
 4. **Booking/scheduling mutations must go through Server Actions** so slot-locking/availability checks happen server-side, avoiding double-booking.
 5. **Payment webhooks must verify signatures** before acting on the payload.
 6. **Revalidate after every mutation** (`revalidatePath`/`revalidateTag`) so stale data isn't shown post-action.
-7. When in doubt about which layer to use, default to **Server Component (for reads) or Server Action (for writes)** — Route Handlers and client fetch are the exception, not the default.
+7. **Server-side confirm is the only truth for settled payments** — gateway payments start `PENDING` on `POST /payments/process` and only reach `COMPLETED` via `POST /payments/{id}/confirm` (backend-verified). Never render a success state from the browser's own navigation result alone.
+8. When in doubt about which layer to use, default to **Server Component (for reads) or Server Action (for writes)** — Route Handlers and client fetch are the exception, not the default.
 
 ---
 
@@ -159,7 +164,8 @@ Only acceptable for:
 | Book / cancel / reschedule a session | Server Action |
 | Submit intake or health form | Server Action |
 | Update patient/therapist profile | Server Action |
-| Payment gateway webhook | Route Handler |
+| Payment gateway webhook | Route Handler (`app/api/webhooks/payments/[vendor]/route.ts` → backend `confirm` → 302 `/book/confirmation`) |
+| Initiate gateway payment (eSewa/Khalti) | BookingModal → server action `processBooking`; full-page redirect to provider's checkout, server confirms on return |
 | Future mobile app API surface | Route Handler |
 | Live therapist location tracking | Client fetch/WebSocket → our own Route Handler |
 | Live chat | Client fetch/WebSocket → our own Route Handler |

@@ -63,6 +63,20 @@ Auth is **API-driven** — JWT tokens stored in HTTP-only cookies (`sahayatri.se
 - **AuthModal**: Global modal (triggered by `openAuth()` from context) for login and signup from any page. Navbar "Log In" opens modal; "Sign Up" navigates to `/signup` page. "Book Now" opens modal with patient role pre-selected. "Apply to Join" opens modal with therapist role pre-selected.
 - **OTP Verification**: Signup requires email verification via 6-digit OTP code. Backend sends branded HTML email, validates code before allowing account creation.
 
+## Payments
+
+Booking runs a **booking + payment combo** (`POST /api/v1/payments/process`). Cash and other non-gateway methods mark the payment `COMPLETED` immediately. **eSewa** and **Khalti** (Khalti by IME — IME Pay was removed as a separate method) go through an async gateway flow:
+
+1. `BookingModal` calls `processBooking()` (server action → `/payments/process`). For a gateway method the response includes `initiation`:
+   - **eSewa** → `type: "form"` + `formFields` — the modal auto-submits a hidden form to eSewa's hosted page (`rc-epay.esewa.com.np` in UAT).
+   - **Khalti** → `type: "redirect"` + `url` — the modal navigates (`window.location.assign`) to Khalti Web Checkout.
+2. The user logs in and pays on the provider's page; the provider returns to our webhook route `src/app/api/webhooks/payments/[vendor]/route.ts` (eSewa POST form, Khalti GET+POST).
+3. The route confirms server-side via `POST /api/v1/payments/{id}/confirm` — the only source of truth for `COMPLETED`, never the browser — then `302`s to `/book/confirmation?status=…&sessionId=…`.
+4. `/book/confirmation` shows the result. Admin notifications fire on the first transition to `COMPLETED`.
+
+- Payment methods render their **original brand marks** via `src/components/PaymentMethodIcon.tsx` (inline SVGs, no external assets). The `payment-methods` setting no longer lists `imepay` (merged into `khalti`; the backend still maps legacy `imepay` values to the Khalti rail via an alias).
+- **Booking gated by login — identical everywhere**: the "Book" action behaves the same on the home "Available today" strip, the featured-therapist carousel, and `/find-a-therapist` (all via `useBooking`). Logged-out users are redirected to `/access?callbackUrl=/patient/sessions?book=<therapistId>`, and `/patient/sessions` auto-opens that specific therapist's booking modal after login.
+
 ## Dashboard Sections
 
 | Role | Sections |
@@ -82,13 +96,15 @@ src/
       about/, app/, blog/, contact/, faq/, find-a-therapist/,
       how-it-works/, services/, testimonials/, therapist/
     book/                       # Booking route (standalone)
+    book/confirmation/          # Post-payment result page (webhook → /book/confirmation)
     (dashboard)/                # Route group — authenticated pages
       admin/                    # Admin dashboard (19 sections)
       patient/                  # Patient dashboard (9 sections)
       therapist/                # Therapist dashboard (9 sections)
     access/                     # Unified login page (email+password, OTP, Google)
     signup/                     # Therapist signup page (account form → OTP → account creation)
-    api/                        # Route handlers (upload proxies)
+    api/                        # Route handlers (upload proxies + gateway webhooks)
+    api/webhooks/payments/[vendor]/route.ts  # POST/GET — eSewa/Khalti callbacks → backend confirm → 302 /book/confirmation
     api/reports/route.ts        # POST — proxies FormData to backend /api/v1/reports
     api/uploads/complaint-evidence/route.ts  # POST — public XHR proxy for complaint evidence (session keyed)
     api/v1/uploads/evidence/[session]/[filename]/route.ts  # GET — serves complaint evidence, adds bearer cookie
@@ -107,6 +123,7 @@ src/
     common/                     # Landing page shared components
     sections/                   # Landing page sections
     modals/                     # Global modals (Auth, Booking, Cart, etc.)
+    PaymentMethodIcon.tsx       # Inline-SVG brand marks for payment methods (eSewa/Khalti/PayPal/…) + neutral fallback
     auth/                       # Shared auth components (SignupFlow, DocumentUploader)
     layout/                     # DashboardShell, PageShell, SiteHeader, SiteFooter
     ErrorBoundary.tsx           # Reusable error boundary
