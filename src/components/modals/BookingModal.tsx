@@ -1454,7 +1454,7 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
         onClick={onClose}
         aria-label="Close"
       />
-      <div className="relative w-full max-w-[420px] bg-background rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full max-w-[420px] bg-background text-text rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
         <button
           onClick={onClose}
           className="absolute right-3 top-3 z-10 p-2 rounded-full hover:bg-black/5 transition-colors"
