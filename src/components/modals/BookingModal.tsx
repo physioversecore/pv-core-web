@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { Avatar } from "@/components/common/Avatar";
+import { PaymentMethodIcon } from "@/components/PaymentMethodIcon";
 import { useAuth } from "@/context/auth";
 import { createSession, updateSession, processBooking } from "@/services/api/sessions";
 import { getTherapistSlots } from "@/services/api/therapists";
@@ -796,7 +797,9 @@ function StepPayment({
             <span className={cn("font-medium", selectedMethod ? "text-text" : "text-gray-400")}>
               {selectedMethod ? (
                 <>
-                  <span className="mr-2">{selectedMethod.icon}</span>
+                  <span className="mr-2 inline-flex items-center align-middle">
+                    <PaymentMethodIcon id={selectedMethod.id} size={18} />
+                  </span>
                   {selectedMethod.label}
                 </>
               ) : (
@@ -822,7 +825,7 @@ function StepPayment({
                     selectedPaymentMethod === m.id && "bg-secondary/5 font-semibold text-secondary",
                   )}
                 >
-                  <span className="text-lg">{m.icon}</span>
+                  <PaymentMethodIcon id={m.id} size={18} className="shrink-0" />
                   <div className="text-left">
                     <span className="block">{m.label}</span>
                     {m.subtype && <span className="block text-xs text-gray-400">{m.subtype}</span>}

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { ChevronDown, TriangleAlert, Lock } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { NEPAL_PAYMENTS, INTERNATIONAL_PAYMENTS } from "./mockData";
+import { PaymentMethodIcon } from "@/components/PaymentMethodIcon";
 import type { PaymentMethod, BookingTherapist, CurrencyOption } from "./types";
 
 interface CardDetails {
@@ -180,7 +181,9 @@ export function StepPayment({
             <span className={cn("font-medium", selectedMethod ? "text-text" : "text-gray-400")}>
               {selectedMethod ? (
                 <>
-                  <span className="mr-2">{selectedMethod.icon}</span>
+                  <span className="mr-2 inline-flex items-center align-middle">
+                    <PaymentMethodIcon id={selectedMethod.id} size={18} />
+                  </span>
                   {selectedMethod.label}
                 </>
               ) : (
@@ -206,7 +209,7 @@ export function StepPayment({
                     selectedPaymentId === m.id && "bg-secondary/5 font-semibold text-secondary",
                   )}
                 >
-                  <span className="text-lg">{m.icon}</span>
+                  <PaymentMethodIcon id={m.id} size={18} className="shrink-0" />
                   <div className="text-left">
                     <span className="block">{m.label}</span>
                     {m.subtype && <span className="block text-xs text-gray-400">{m.subtype}</span>}
@@ -226,9 +229,7 @@ export function StepPayment({
           <input
             type="tel"
             value={esewaMobile}
-            onChange={(e) =>
-              onEsewaMobileChange?.(e.target.value.replace(/\D/g, "").slice(0, 10))
-            }
+            onChange={(e) => onEsewaMobileChange?.(e.target.value.replace(/\D/g, "").slice(0, 10))}
             placeholder="98XXXXXXXX"
             className="w-full mt-1.5 px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
           />
