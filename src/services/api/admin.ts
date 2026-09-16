@@ -14,6 +14,18 @@ export interface AdminPatientData {
   isActive: boolean;
   phone?: string;
   email?: string;
+  photo?: string;
+  address?: string;
+  history?: string;
+  dob?: string;
+  age?: number;
+  gender?: string;
+  condition?: string;
+  emergencyName?: string;
+  emergencyRelation?: string;
+  emergencyPhone?: string;
+  notifEmail?: boolean;
+  notifSms?: boolean;
 }
 
 export interface AdminTherapistDocument {
@@ -185,7 +197,9 @@ export async function createAdminTherapist(data: AdminCreateTherapistPayload) {
   return api.post<AdminTherapistCreatedResponse>("/admin/therapists", data);
 }
 
-export async function getAdminPayments(params?: AdminListParams & { patientId?: string; therapistId?: string }) {
+export async function getAdminPayments(
+  params?: AdminListParams & { patientId?: string; therapistId?: string },
+) {
   const sp = new URLSearchParams();
   if (params?.skip) sp.set("skip", String(params.skip));
   if (params?.limit) sp.set("limit", String(params.limit));
@@ -398,7 +412,7 @@ export async function submitPatientComplaint(data: PatientComplaintPayload) {
 
 export async function getPatientComplaints(patientId: string) {
   const res = await api.get<{ items: ApiComplaint[]; total: number }>(
-    `/admin/complaints?type=patient&complainantId=${patientId}`
+    `/admin/complaints?type=patient&complainantId=${patientId}`,
   );
   return {
     ...res,
@@ -438,7 +452,7 @@ export async function submitTherapistComplaint(data: TherapistComplaintPayload) 
 
 export async function getTherapistComplaints(therapistId: string) {
   const res = await api.get<{ items: ApiComplaint[]; total: number }>(
-    `/admin/complaints?type=therapist&complainantId=${therapistId}`
+    `/admin/complaints?type=therapist&complainantId=${therapistId}`,
   );
   return {
     ...res,
@@ -449,7 +463,16 @@ export async function getTherapistComplaints(therapistId: string) {
 // --- Notifications ---
 export interface AdminNotificationData {
   id: string;
-  category: "booking" | "reschedule" | "complaint" | "payment" | "system" | "refund" | "leave" | "verification" | "therapist";
+  category:
+    | "booking"
+    | "reschedule"
+    | "complaint"
+    | "payment"
+    | "system"
+    | "refund"
+    | "leave"
+    | "verification"
+    | "therapist";
   message: string;
   timestamp: string;
   read: boolean;
@@ -755,7 +778,10 @@ export async function declineLeave(id: string, reason?: string) {
   return api.put<AdminLeaveData>(`/admin/leaves/${id}`, { status: "REJECTED", reason });
 }
 
-export async function updateLeave(id: string, data: Partial<Pick<AdminLeaveData, "dateFrom" | "dateTo" | "reason">>) {
+export async function updateLeave(
+  id: string,
+  data: Partial<Pick<AdminLeaveData, "dateFrom" | "dateTo" | "reason">>,
+) {
   return api.put<AdminLeaveData>(`/admin/leaves/${id}`, data);
 }
 
@@ -864,7 +890,10 @@ export async function getAdminPerformance(params?: AdminPerformanceListParams) {
   return api.get<ListResponse<AdminPerformanceData>>(`/admin/performance?${sp.toString()}`);
 }
 
-export async function scheduleReview(id: string, data: { date: string; adminId: string; notes: string }) {
+export async function scheduleReview(
+  id: string,
+  data: { date: string; adminId: string; notes: string },
+) {
   return api.post(`/admin/performance/${id}/schedule-review`, data);
 }
 
@@ -1038,7 +1067,9 @@ export async function getBookingsByZone(dateRange?: string) {
 export async function getCancellationRateByTherapist(dateRange?: string) {
   const sp = new URLSearchParams();
   if (dateRange) sp.set("dateRange", dateRange);
-  return api.get<TherapistCancellationStat[]>(`/admin/analytics/cancellation-rate?${sp.toString()}`);
+  return api.get<TherapistCancellationStat[]>(
+    `/admin/analytics/cancellation-rate?${sp.toString()}`,
+  );
 }
 
 export async function getRevenueTrend(months?: number) {
@@ -1143,9 +1174,16 @@ export async function assignRefund(id: string, assigneeId: string) {
 }
 
 export async function getAdminRefundStats() {
-  return api.get<{ pending: number; refundedThisMonth: number; disputeRate: number; avgResolutionDays: number }>("/admin/refunds/stats");
+  return api.get<{
+    pending: number;
+    refundedThisMonth: number;
+    disputeRate: number;
+    avgResolutionDays: number;
+  }>("/admin/refunds/stats");
 }
 
 export async function getAdminStaffList() {
-  return api.get<ListResponse<{ id: string; name: string; email: string }>>("/admin/users?role=ADMIN");
+  return api.get<ListResponse<{ id: string; name: string; email: string }>>(
+    "/admin/users?role=ADMIN",
+  );
 }

@@ -6,6 +6,8 @@ export interface SessionData {
   id: string;
   therapistId: string;
   therapistName?: string;
+  therapistSpecialty?: string;
+  therapistLicenseNumber?: string;
   patientId: string;
   patientName?: string;
   patientPhone?: string;
