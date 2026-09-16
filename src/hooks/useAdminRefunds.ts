@@ -10,6 +10,7 @@ import {
   updateAdminRefund,
   deleteAdminRefund,
   assignRefund as apiAssignRefund,
+  getAdminRefundStats,
   type AdminRefundData,
   type AdminCreateRefundPayload,
   type ManualCasePayload,
@@ -21,6 +22,7 @@ export type { RefundReason, RefundStatus };
 export type RefundItem = AdminRefundData;
 
 const QUERY_KEY = "admin-refunds";
+const NAV_BADGE_KEY = ["admin-nav-badges"];
 
 export function useCreateManualCase() {
   const queryClient = useQueryClient();
@@ -29,6 +31,7 @@ export function useCreateManualCase() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: ["admin-complaints"] });
+      queryClient.invalidateQueries({ queryKey: NAV_BADGE_KEY });
     },
   });
 }
@@ -48,48 +51,81 @@ export function useAdminRefunds(params: {
   const skip = (params.page - 1) * params.pageSize;
 
   const query = useQuery({
-    queryKey: [QUERY_KEY, {
-      search: params.search, reason: params.reason, status: params.status,
-      dateFrom: params.dateFrom, dateTo: params.dateTo,
-      sortBy: params.sortBy, sortOrder: params.sortOrder, skip, pageSize: params.pageSize,
-    }],
-    queryFn: () => getAdminRefunds({
-      skip,
-      limit: params.pageSize,
-      search: params.search || undefined,
-      reason: params.reason || undefined,
-      status: params.status || undefined,
-      dateFrom: params.dateFrom || undefined,
-      dateTo: params.dateTo || undefined,
-      sortBy: params.sortBy || undefined,
-      sortOrder: params.sortOrder,
-    }),
+    queryKey: [
+      QUERY_KEY,
+      {
+        search: params.search,
+        reason: params.reason,
+        status: params.status,
+        dateFrom: params.dateFrom,
+        dateTo: params.dateTo,
+        sortBy: params.sortBy,
+        sortOrder: params.sortOrder,
+        skip,
+        pageSize: params.pageSize,
+      },
+    ],
+    queryFn: () =>
+      getAdminRefunds({
+        skip,
+        limit: params.pageSize,
+        search: params.search || undefined,
+        reason: params.reason || undefined,
+        status: params.status || undefined,
+        dateFrom: params.dateFrom || undefined,
+        dateTo: params.dateTo || undefined,
+        sortBy: params.sortBy || undefined,
+        sortOrder: params.sortOrder,
+      }),
+    placeholderData: (prev) => prev,
+  });
+
+  const statsQuery = useQuery({
+    queryKey: ["admin-refund-stats"],
+    queryFn: getAdminRefundStats,
+    refetchInterval: 30_000,
     placeholderData: (prev) => prev,
   });
 
   const approveMutation = useMutation({
     mutationFn: (id: string) => apiApproveRefund(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: NAV_BADGE_KEY });
+      queryClient.invalidateQueries({ queryKey: ["admin-refund-stats"] });
+    },
   });
 
   const denyMutation = useMutation({
     mutationFn: ({ id, reason }: { id: string; reason: string }) => apiDenyRefund(id, reason),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: NAV_BADGE_KEY });
+      queryClient.invalidateQueries({ queryKey: ["admin-refund-stats"] });
+    },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<AdminRefundData> }) => updateAdminRefund(id, data),
+    mutationFn: ({ id, data }: { id: string; data: Partial<AdminRefundData> }) =>
+      updateAdminRefund(id, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteAdminRefund(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: NAV_BADGE_KEY });
+    },
   });
 
   const createMutation = useMutation({
     mutationFn: (data: AdminCreateRefundPayload) => createAdminRefund(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: NAV_BADGE_KEY });
+      queryClient.invalidateQueries({ queryKey: ["admin-refund-stats"] });
+    },
   });
 
   const createManualCaseMutation = useMutation({
@@ -97,11 +133,13 @@ export function useAdminRefunds(params: {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
       queryClient.invalidateQueries({ queryKey: ["admin-complaints"] });
+      queryClient.invalidateQueries({ queryKey: NAV_BADGE_KEY });
     },
   });
 
   const assignMutation = useMutation({
-    mutationFn: ({ id, assigneeId }: { id: string; assigneeId: string }) => apiAssignRefund(id, assigneeId),
+    mutationFn: ({ id, assigneeId }: { id: string; assigneeId: string }) =>
+      apiAssignRefund(id, assigneeId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEY] }),
   });
 
@@ -111,12 +149,16 @@ export function useAdminRefunds(params: {
     isLoading: query.isLoading,
     isRefetching: query.isRefetching,
     refetch: query.refetch,
+    refundStats: statsQuery.data ?? null,
+    statsLoading: statsQuery.isLoading,
     createRefund: (data: AdminCreateRefundPayload) => createMutation.mutateAsync(data),
     approveRefund: (id: string) => approveMutation.mutateAsync(id),
     denyRefund: (id: string, reason: string) => denyMutation.mutateAsync({ id, reason }),
-    updateRefund: (id: string, data: Partial<AdminRefundData>) => updateMutation.mutateAsync({ id, data }),
+    updateRefund: (id: string, data: Partial<AdminRefundData>) =>
+      updateMutation.mutateAsync({ id, data }),
     deleteRefund: (id: string) => deleteMutation.mutateAsync(id),
     createManualCase: (data: ManualCasePayload) => createManualCaseMutation.mutateAsync(data),
-    assignRefund: (id: string, assigneeId: string) => assignMutation.mutateAsync({ id, assigneeId }),
+    assignRefund: (id: string, assigneeId: string) =>
+      assignMutation.mutateAsync({ id, assigneeId }),
   };
 }

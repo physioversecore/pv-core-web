@@ -1,12 +1,27 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useAdminRefunds, useCreateManualCase } from "@/hooks/useAdminRefunds";
+import { useCreateManualCase } from "@/hooks/useAdminRefunds";
 import type { RefundReason, ManualCasePayload } from "@/services/api/admin";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { getAdminStaffList } from "@/services/api/admin";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface LogManualCaseModalProps {
   open: boolean;
@@ -29,12 +44,16 @@ const COMPLAINT_CATEGORIES = [
   "Service quality",
 ];
 
-const ADMIN_STAFF = [
-  { value: "admin-1", label: "Admin User" },
-];
-
 export function LogManualCaseModal({ open, onClose }: LogManualCaseModalProps) {
   const { mutate, isPending } = useCreateManualCase();
+
+  const { data: staffList } = useQuery({
+    queryKey: ["admin-staff-for-refunds"],
+    queryFn: getAdminStaffList,
+    enabled: open,
+    placeholderData: (prev) => prev,
+  });
+  const adminStaff = staffList?.items ?? [];
 
   const [patientId, setPatientId] = useState("");
   const [bookingId, setBookingId] = useState("");
@@ -99,18 +118,29 @@ export function LogManualCaseModal({ open, onClose }: LogManualCaseModalProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) { reset(); onClose(); } }}>
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        if (!v) {
+          reset();
+          onClose();
+        }
+      }}
+    >
       <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display">Log Manual Case</DialogTitle>
           <DialogDescription>
-            Record a phone-call or walk-in case. Creates a refund record, optionally linked to a dispute.
+            Record a phone-call or walk-in case. Creates a refund record, optionally linked to a
+            dispute.
           </DialogDescription>
         </DialogHeader>
 
         <div className="mt-4 space-y-4">
           <div>
-            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">Patient ID</label>
+            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+              Patient ID
+            </label>
             <Input
               value={patientId}
               onChange={(e) => setPatientId(e.target.value)}
@@ -119,7 +149,9 @@ export function LogManualCaseModal({ open, onClose }: LogManualCaseModalProps) {
           </div>
 
           <div>
-            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">Booking ID</label>
+            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+              Booking ID
+            </label>
             <Input
               value={bookingId}
               onChange={(e) => setBookingId(e.target.value)}
@@ -128,7 +160,9 @@ export function LogManualCaseModal({ open, onClose }: LogManualCaseModalProps) {
           </div>
 
           <div>
-            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">Refund Amount (NPR)</label>
+            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+              Refund Amount (NPR)
+            </label>
             <Input
               type="number"
               value={amount}
@@ -138,35 +172,45 @@ export function LogManualCaseModal({ open, onClose }: LogManualCaseModalProps) {
           </div>
 
           <div>
-            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">Reason</label>
+            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+              Reason
+            </label>
             <Select value={reason} onValueChange={(v) => setReason(v as RefundReason)}>
               <SelectTrigger className="h-9 rounded-full border-border text-sm">
                 <SelectValue placeholder="Select reason" />
               </SelectTrigger>
               <SelectContent>
                 {REFUND_REASONS.map((r) => (
-                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                  <SelectItem key={r.value} value={r.value}>
+                    {r.label}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
           <div>
-            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">Assign To</label>
+            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+              Assign To
+            </label>
             <Select value={assigneeId} onValueChange={setAssigneeId}>
               <SelectTrigger className="h-9 rounded-full border-border text-sm">
                 <SelectValue placeholder="Select admin (optional)" />
               </SelectTrigger>
               <SelectContent>
-                {ADMIN_STAFF.map((s) => (
-                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                {adminStaff.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
           <div>
-            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">Call Notes</label>
+            <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+              Call Notes
+            </label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -192,21 +236,27 @@ export function LogManualCaseModal({ open, onClose }: LogManualCaseModalProps) {
           {alsoCreateDispute && (
             <>
               <div>
-                <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">Dispute Category</label>
+                <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+                  Dispute Category
+                </label>
                 <Select value={disputeCategory} onValueChange={setDisputeCategory}>
                   <SelectTrigger className="h-9 rounded-full border-border text-sm">
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
                     {COMPLAINT_CATEGORIES.map((c) => (
-                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                      <SelectItem key={c} value={c}>
+                        {c}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">Dispute Priority</label>
+                <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+                  Dispute Priority
+                </label>
                 <Select value={disputePriority} onValueChange={setDisputePriority}>
                   <SelectTrigger className="h-9 rounded-full border-border text-sm">
                     <SelectValue />
@@ -219,7 +269,9 @@ export function LogManualCaseModal({ open, onClose }: LogManualCaseModalProps) {
               </div>
 
               <div>
-                <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">Dispute Description (min 20 chars)</label>
+                <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
+                  Dispute Description (min 20 chars)
+                </label>
                 <textarea
                   value={disputeDescription}
                   onChange={(e) => setDisputeDescription(e.target.value)}
@@ -234,7 +286,10 @@ export function LogManualCaseModal({ open, onClose }: LogManualCaseModalProps) {
 
         <DialogFooter className="mt-2">
           <button
-            onClick={() => { reset(); onClose(); }}
+            onClick={() => {
+              reset();
+              onClose();
+            }}
             className="px-4 py-2 rounded-xl text-sm text-text-light hover:bg-muted transition cursor-pointer"
           >
             Cancel
