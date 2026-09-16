@@ -85,6 +85,12 @@ export function PatientDetailSheet({
   onSave,
 }: PatientDetailSheetProps) {
   const { t } = useLang();
+  const GENDER_LABELS: Record<string, string> = {
+    Any: t("patient_dashboard.any" as any) ?? "Any",
+    Male: t("patient_dashboard.male" as any) ?? "Male",
+    Female: t("patient_dashboard.female" as any) ?? "Female",
+  };
+  const genderLabel = (g: string | null | undefined) => (g == null ? "—" : (GENDER_LABELS[g] ?? g));
   const { togglePatientStatus } = useAdminPatients({
     search: "",
     dateFrom: "",
@@ -203,7 +209,7 @@ export function PatientDetailSheet({
 
   const isEdit = mode === "edit";
   const dobLine = patient.dob
-    ? `${patient.dob}${patient.age != null ? ` · ${patient.age} yrs` : ""}`
+    ? `${patient.dob}${patient.age != null ? ` · ${t("admin_dashboard.age" as any) ?? "Age"}: ${patient.age}` : ""}`
     : "—";
 
   return (
@@ -282,7 +288,7 @@ export function PatientDetailSheet({
                   label={t("admin_dashboard.gender" as any) ?? "Gender"}
                   value={form.gender}
                   onChange={(v) => setField("gender", v)}
-                  options={GENDER_OPTIONS.map((g) => ({ value: g, label: g }))}
+                  options={GENDER_OPTIONS.map((g) => ({ value: g, label: genderLabel(g) }))}
                 />
                 <EditField
                   label={t("admin_dashboard.address" as any) ?? "Address"}
@@ -320,7 +326,7 @@ export function PatientDetailSheet({
                 <InfoRow
                   icon={<User size={14} />}
                   label={t("admin_dashboard.gender" as any) ?? "Gender"}
-                  value={patient.gender ?? "—"}
+                  value={genderLabel(patient.gender)}
                 />
                 <InfoRow
                   icon={<MapPin size={14} />}
@@ -408,12 +414,12 @@ export function PatientDetailSheet({
           {isEdit && (
             <Section title={t("admin_dashboard.preferences" as any) ?? "Notifications"}>
               <EditToggle
-                label={t("patient_dashboard.email" as any) ?? "Email notifications"}
+                label={t("admin_dashboard.notifEmail" as any) ?? "Email notifications"}
                 checked={form.notifEmail}
                 onChange={(c) => setToggle("notifEmail", c)}
               />
               <EditToggle
-                label={t("patient_dashboard.sms" as any) ?? "SMS notifications"}
+                label={t("admin_dashboard.notifSms" as any) ?? "SMS notifications"}
                 checked={form.notifSms}
                 onChange={(c) => setToggle("notifSms", c)}
               />
@@ -442,7 +448,9 @@ export function PatientDetailSheet({
             <Section title={t("admin_dashboard.status" as any) ?? "Status"}>
               <div className="flex items-center gap-3">
                 <Badge variant={patient.isActive ? "default" : "destructive"}>
-                  {patient.isActive ? "Active" : "Inactive"}
+                  {patient.isActive
+                    ? (t("admin_dashboard.active" as any) ?? "Active")
+                    : (t("admin_dashboard.inactive" as any) ?? "Inactive")}
                 </Badge>
                 <span className="text-xs text-text-light">
                   {t("admin_dashboard.joined" as any) ?? "Joined"}: {patient.joined}
@@ -458,7 +466,7 @@ export function PatientDetailSheet({
                 className="flex-1 btn-outline !py-2 text-xs inline-flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <X size={14} />
-                Cancel
+                {t("admin_dashboard.cancel" as any) ?? "Cancel"}
               </button>
               <button
                 onClick={handleSave}
@@ -466,7 +474,9 @@ export function PatientDetailSheet({
                 className="flex-1 btn-secondary !py-2 text-xs inline-flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
                 <Save size={14} />
-                {saving ? "Saving..." : "Save"}
+                {saving
+                  ? (t("admin_dashboard.saving" as any) ?? "Saving…")
+                  : (t("admin_dashboard.save" as any) ?? "Save")}
               </button>
             </div>
           ) : (

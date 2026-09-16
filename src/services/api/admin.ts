@@ -1078,6 +1078,22 @@ export async function getRevenueTrend(months?: number) {
   return api.get<RevenueMonthStat[]>(`/admin/analytics/revenue-trend?${sp.toString()}`);
 }
 
+// --- Earnings Trend (Daily / Weekly / Monthly) ---
+export interface AdminEarningsTrendPoint {
+  label: string;
+  amount: number;
+}
+
+export interface AdminEarningsTrendData {
+  daily: AdminEarningsTrendPoint[];
+  weekly: AdminEarningsTrendPoint[];
+  monthly: AdminEarningsTrendPoint[];
+}
+
+export async function getAdminDashboardEarningsTrend() {
+  return api.get<AdminEarningsTrendData>("/admin/dashboard/earnings-trend");
+}
+
 // --- Refunds & Disputes ---
 export type RefundReason = "No-show" | "Double charge" | "Service quality" | "Cancellation";
 export type RefundStatus = "Pending" | "Approved" | "Denied";

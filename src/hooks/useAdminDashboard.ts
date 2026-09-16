@@ -4,10 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import {
   getAdminDashboardStats,
   getAdminDashboardEarnings,
+  getAdminDashboardEarningsTrend,
   getAdminRecentActivity,
   getAdminTherapists,
   getAdminBookings,
-  getAdminPatients,
   type AdminBookingData,
 } from "@/services/api/admin";
 
@@ -50,7 +50,12 @@ function normalizeStats(raw: any): AdminDashboardStats | null {
   const totalPatients = raw.totalPatients ?? raw.total_patients;
   const sessionsThisWeek = raw.sessionsThisWeek ?? raw.sessions_this_week;
   const pendingVerifications = raw.pendingVerifications ?? raw.pending_verifications;
-  if (totalTherapists == null || totalPatients == null || sessionsThisWeek == null || pendingVerifications == null)
+  if (
+    totalTherapists == null ||
+    totalPatients == null ||
+    sessionsThisWeek == null ||
+    pendingVerifications == null
+  )
     return null;
   return { totalTherapists, totalPatients, sessionsThisWeek, pendingVerifications };
 }
@@ -89,6 +94,12 @@ export function useAdminDashboard() {
     staleTime: 60_000,
   });
 
+  const earningsTrendQuery = useQuery({
+    queryKey: ["admin-dashboard-earnings-trend"],
+    queryFn: getAdminDashboardEarningsTrend,
+    staleTime: 60_000,
+  });
+
   const activityQuery = useQuery({
     queryKey: ["admin-dashboard-activity"],
     queryFn: () => getAdminRecentActivity(10),
@@ -109,6 +120,7 @@ export function useAdminDashboard() {
 
   const stats = normalizeStats(statsQuery.data);
   const earnings = normalizeEarnings(earningsQuery.data);
+  const earningsTrend = earningsTrendQuery.data ?? null;
   const activity = normalizeActivity(activityQuery.data);
   const pendingTherapists = pendingQuery.data?.items ?? [];
   const recentBookings: AdminBookingData[] = recentBookingsQuery.data?.items ?? [];
@@ -116,21 +128,31 @@ export function useAdminDashboard() {
   return {
     stats,
     earnings,
+    earningsTrend,
     activity,
     pendingTherapists,
     recentBookings,
     statsLoading: statsQuery.isLoading,
     earningsLoading: earningsQuery.isLoading,
+    earningsTrendLoading: earningsTrendQuery.isLoading,
     activityLoading: activityQuery.isLoading,
     pendingLoading: pendingQuery.isLoading,
     bookingsLoading: recentBookingsQuery.isLoading,
-    isLoading: statsQuery.isLoading || earningsQuery.isLoading || activityQuery.isLoading || pendingQuery.isLoading,
+    isLoading:
+      statsQuery.isLoading ||
+      earningsQuery.isLoading ||
+      activityQuery.isLoading ||
+      pendingQuery.isLoading,
     isRefetching:
-      statsQuery.isRefetching || earningsQuery.isRefetching || activityQuery.isRefetching || pendingQuery.isRefetching,
+      statsQuery.isRefetching ||
+      earningsQuery.isRefetching ||
+      activityQuery.isRefetching ||
+      pendingQuery.isRefetching,
     refetch: () =>
       Promise.all([
         statsQuery.refetch(),
         earningsQuery.refetch(),
+        earningsTrendQuery.refetch(),
         activityQuery.refetch(),
         pendingQuery.refetch(),
         recentBookingsQuery.refetch(),
