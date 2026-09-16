@@ -89,7 +89,14 @@ export default function AdminBookingsPage() {
   const { sort, toggleSort, sortBy, sortOrder } = useTableSort({ defaultColumn: "date" });
   const pageSize = 10;
 
-  const { items: apiItems, total: apiTotal, isLoading, error, isRefetching, refetch } = useAdminBookings({
+  const {
+    items: apiItems,
+    total: apiTotal,
+    isLoading,
+    error,
+    isRefetching,
+    refetch,
+  } = useAdminBookings({
     search: debouncedSearch,
     status,
     dateFrom,
@@ -119,16 +126,13 @@ export default function AdminBookingsPage() {
     [search, status, dateFrom, dateTo],
   );
 
-  const handleFilterChange = useCallback(
-    (key: string, value: string) => {
-      if (key === "search") setSearch(value);
-      else if (key === "status") setStatus(value);
-      else if (key === "dateFrom") setDateFrom(value);
-      else if (key === "dateTo") setDateTo(value);
-      setPage(1);
-    },
-    [],
-  );
+  const handleFilterChange = useCallback((key: string, value: string) => {
+    if (key === "search") setSearch(value);
+    else if (key === "status") setStatus(value);
+    else if (key === "dateFrom") setDateFrom(value);
+    else if (key === "dateTo") setDateTo(value);
+    setPage(1);
+  }, []);
 
   const handleBookingCreated = useCallback((result: AdminBookingResult) => {
     const newBooking = buildAdminBookingFromResult(result);
@@ -169,6 +173,12 @@ export default function AdminBookingsPage() {
   const columns: Column<AdminBookingData>[] = useMemo(
     () => [
       {
+        key: "id",
+        label: "Booking ID",
+        sortable: true,
+        render: (row) => <span className="font-mono text-xs text-secondary">{row.id}</span>,
+      },
+      {
         key: "patient",
         label: t("admin_dashboard.patient") ?? "Patient",
         sortable: true,
@@ -198,9 +208,7 @@ export default function AdminBookingsPage() {
         key: "date",
         label: t("admin_dashboard.date") ?? "Date",
         sortable: true,
-        render: (row) => (
-          <span className="font-mono text-xs text-text-light">{row.date}</span>
-        ),
+        render: (row) => <span className="font-mono text-xs text-text-light">{row.date}</span>,
       },
       {
         key: "originalTime",
@@ -235,7 +243,8 @@ export default function AdminBookingsPage() {
             <span className="ml-2 text-sm font-normal text-text-light font-mono">({total})</span>
           </h3>
           <p className="text-sm text-text-light mt-1">
-            Cancellations and reschedules update the therapist&apos;s calendar instantly and notify both sides.
+            Cancellations and reschedules update the therapist&apos;s calendar instantly and notify
+            both sides.
           </p>
         </div>
         <div className="flex items-center gap-2">

@@ -30,7 +30,6 @@ import { BookingPicker } from "@/components/refunds/BookingPicker";
 import {
   DataTable,
   ActionMenu,
-  ConfirmDialog,
   FilterBar,
   StatusChip,
   type Column,
@@ -633,16 +632,60 @@ export default function AdminRefunds() {
         </div>
       )}
 
-      {/* Delete Confirmation Dialog */}
-      <ConfirmDialog
-        open={!!deleteTarget}
-        onOpenChange={(open) => {
-          if (!open) setDeleteTarget(null);
-        }}
-        onConfirm={handleDeleteSubmit}
-        title="Delete Refund"
-        description={`Are you sure you want to delete refund <strong>${deleteTarget?.id}</strong> for <strong>${deleteTarget ? npr(deleteTarget.amount) : ""}</strong>? This action cannot be undone.`}
-      />
+      {/* Delete Dialog */}
+      {deleteTarget && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onClick={() => setDeleteTarget(null)}
+        >
+          <div
+            className="bg-background rounded-lg border shadow-lg p-6 w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="font-display text-lg mb-1">Delete Refund</h3>
+            <p className="text-sm text-text-light mb-4">This action cannot be undone.</p>
+
+            <div className="bg-danger-bg/40 border border-danger/20 rounded-lg px-3 py-2.5 space-y-1.5 mb-4 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-text-light shrink-0">Booking ID</span>
+                <span className="font-mono text-xs font-medium text-secondary truncate">
+                  {deleteTarget.bookingId}
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-text-light shrink-0">Patient</span>
+                <span className="font-medium truncate">{deleteTarget.patient}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-text-light shrink-0">Amount</span>
+                <span className="font-medium">{npr(deleteTarget.amount)}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-text-light shrink-0">Filed on</span>
+                <span className="font-medium">{deleteTarget.filed}</span>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                className="btn-outline !py-1.5 !px-4 text-xs cursor-pointer"
+              >
+                {t("common.cancel") ?? "Cancel"}
+              </button>
+              <button
+                type="button"
+                disabled={deleteSaving}
+                onClick={handleDeleteSubmit}
+                className="chip !bg-destructive !text-white cursor-pointer disabled:opacity-50"
+              >
+                {deleteSaving ? (t("common.loading") ?? "Loading...") : "Delete Refund"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Deny Dialog */}
       {denyTarget && (
@@ -659,9 +702,30 @@ export default function AdminRefunds() {
           >
             <h3 className="font-display text-lg mb-1">Deny Refund</h3>
             <p className="text-sm text-text-light mb-4">
-              Case <span className="font-mono font-medium text-text">{denyTarget.id}</span> —{" "}
-              {npr(denyTarget.amount)}
+              Review this case before denying the refund.
             </p>
+
+            <div className="bg-surface/60 border border-border rounded-lg px-3 py-2.5 space-y-1.5 mb-4 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-text-light shrink-0">Booking ID</span>
+                <span className="font-mono text-xs font-medium text-secondary truncate">
+                  {denyTarget.bookingId}
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-text-light shrink-0">Patient</span>
+                <span className="font-medium truncate">{denyTarget.patient}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-text-light shrink-0">Amount</span>
+                <span className="font-medium">{npr(denyTarget.amount)}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-text-light shrink-0">Filed on</span>
+                <span className="font-medium">{denyTarget.filed}</span>
+              </div>
+            </div>
+
             <div>
               <label className="text-xs font-mono text-text-light uppercase">
                 Reason (required)
