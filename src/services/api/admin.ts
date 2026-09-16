@@ -544,6 +544,7 @@ export interface AdminBookingData {
 
 export interface AdminBookingListParams extends AdminListParams {
   status?: string;
+  patientId?: string;
 }
 
 export async function getAdminBookings(params?: AdminBookingListParams) {
@@ -552,6 +553,7 @@ export async function getAdminBookings(params?: AdminBookingListParams) {
   if (params?.limit) sp.set("limit", String(params.limit));
   if (params?.search) sp.set("search", params.search);
   if (params?.status) sp.set("status", params.status);
+  if (params?.patientId) sp.set("patientId", params.patientId);
   if (params?.dateFrom) sp.set("dateFrom", params.dateFrom);
   if (params?.dateTo) sp.set("dateTo", params.dateTo);
   if (params?.sortBy) sp.set("sortBy", params.sortBy);

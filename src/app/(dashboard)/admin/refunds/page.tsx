@@ -25,6 +25,8 @@ import {
 import { DashboardStat } from "@/components/dashboard";
 import { LogManualCaseModal } from "@/components/refunds/LogManualCaseModal";
 import { AssigneePicker } from "@/components/refunds/AssigneePicker";
+import { PatientPicker } from "@/components/refunds/PatientPicker";
+import { BookingPicker } from "@/components/refunds/BookingPicker";
 import {
   DataTable,
   ActionMenu,
@@ -710,22 +712,23 @@ export default function AdminRefunds() {
             <p className="text-sm text-text-light mb-4">Create a new refund or dispute case.</p>
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-mono text-text-light uppercase">Patient ID</label>
-                <Input
-                  value={addForm.patientId}
-                  onChange={(e) => setAddForm((f) => ({ ...f, patientId: e.target.value }))}
-                  placeholder="Enter patient ID"
-                  className="mt-1"
-                />
+                <label className="text-xs font-mono text-text-light uppercase">Patient</label>
+                <div className="mt-1">
+                  <PatientPicker
+                    value={addForm.patientId}
+                    onChange={(id) => setAddForm((f) => ({ ...f, patientId: id, bookingId: "" }))}
+                  />
+                </div>
               </div>
               <div>
-                <label className="text-xs font-mono text-text-light uppercase">Booking ID</label>
-                <Input
-                  value={addForm.bookingId}
-                  onChange={(e) => setAddForm((f) => ({ ...f, bookingId: e.target.value }))}
-                  placeholder="Enter booking ID"
-                  className="mt-1"
-                />
+                <label className="text-xs font-mono text-text-light uppercase">Booking</label>
+                <div className="mt-1">
+                  <BookingPicker
+                    patientId={addForm.patientId}
+                    value={addForm.bookingId}
+                    onChange={(id) => setAddForm((f) => ({ ...f, bookingId: id }))}
+                  />
+                </div>
               </div>
               <div>
                 <label className="text-xs font-mono text-text-light uppercase">Amount (NPR)</label>

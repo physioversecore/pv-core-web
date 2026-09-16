@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { useCreateManualCase } from "@/hooks/useAdminRefunds";
 import type { RefundReason, ManualCasePayload } from "@/services/api/admin";
 import { getAdminStaffList } from "@/services/api/admin";
+import { PatientPicker } from "@/components/refunds/PatientPicker";
+import { BookingPicker } from "@/components/refunds/BookingPicker";
 import {
   Dialog,
   DialogContent,
@@ -139,24 +141,22 @@ export function LogManualCaseModal({ open, onClose }: LogManualCaseModalProps) {
         <div className="mt-4 space-y-4">
           <div>
             <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
-              Patient ID
+              Patient
             </label>
-            <Input
+            <PatientPicker
               value={patientId}
-              onChange={(e) => setPatientId(e.target.value)}
-              placeholder="Enter patient ID"
+              onChange={(id) => {
+                setPatientId(id);
+                setBookingId("");
+              }}
             />
           </div>
 
           <div>
             <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
-              Booking ID
+              Booking
             </label>
-            <Input
-              value={bookingId}
-              onChange={(e) => setBookingId(e.target.value)}
-              placeholder="Enter booking ID"
-            />
+            <BookingPicker patientId={patientId} value={bookingId} onChange={setBookingId} />
           </div>
 
           <div>
