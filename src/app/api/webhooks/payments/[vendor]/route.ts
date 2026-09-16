@@ -80,6 +80,7 @@ function extractPaymentId(
 
 function mapResult(result: string, storedStatus?: string): string {
   if (result === "already_completed" || result === "COMPLETED") return "completed";
+  if (result === "CONFLICT") return "conflict";
   if (result === "CANCELLED") return "cancelled";
   if (result === "FAILED") return "failed";
   if (result === "PENDING") return "pending";

@@ -36,6 +36,8 @@ function ConfirmationContent() {
   const isCancelled = status === "cancelled";
   const isPending = status === "pending";
   const isFailed = status === "failed";
+  const isConflict = status === "conflict";
+  const isUnknown = !isSuccess && !isCancelled && !isPending && !isFailed && !isConflict;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12">
@@ -48,7 +50,8 @@ function ConfirmationContent() {
               isCancelled && "bg-warning/10 text-warning",
               isFailed && "bg-danger/10 text-danger",
               isPending && "bg-warning/10 text-warning",
-              !isSuccess && !isCancelled && !isPending && !isFailed && "bg-surface text-text-light",
+              isConflict && "bg-danger/10 text-danger",
+              isUnknown && "bg-surface text-text-light",
             )}
           >
             {isLoading && (!session || !sessionId) ? (
@@ -74,7 +77,9 @@ function ConfirmationContent() {
                     ? "Payment was cancelled"
                     : isFailed
                       ? "Payment failed"
-                      : "Payment status unknown"}
+                      : isConflict
+                        ? "Slot was taken"
+                        : "Payment status unknown"}
             </h1>
             <p className="text-sm text-text-light mt-1">
               {isSuccess
@@ -85,7 +90,9 @@ function ConfirmationContent() {
                     ? "No money was charged. Your slot is still open — you can retry whenever you like."
                     : isFailed
                       ? "We could not confirm your payment. If money was deducted, it will be refunded automatically."
-                      : "We could not confirm your payment right now."}
+                      : isConflict
+                        ? "Your payment was received, but another patient just took that time slot. We have flagged your payment for an automatic refund."
+                        : "We could not confirm your payment right now."}
             </p>
           </div>
         </div>
