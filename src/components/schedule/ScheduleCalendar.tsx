@@ -1,18 +1,11 @@
 "use client";
 
 import { useMemo, useState, useCallback } from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Calendar,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { to12h } from "@/lib/format";
 import { isDateInPast, type WorkingHours } from "@/lib/availability-utils";
-import type {
-  ScheduleAppointment,
-  ScheduleAppointmentStatus,
-} from "@/hooks/useTherapistSchedule";
+import type { ScheduleAppointment, ScheduleAppointmentStatus } from "@/hooks/useTherapistSchedule";
 import { DailyView } from "./DailyView";
 import { WeeklyView } from "./WeeklyView";
 import { MonthlyView } from "./MonthlyView";
@@ -23,8 +16,18 @@ import { MonthMorePopover } from "./MonthMorePopover";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTHS = [
-  "January","February","March","April","May","June",
-  "July","August","September","October","November","December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 function dateKeyStr(d: Date): string {
@@ -142,7 +145,7 @@ export default function ScheduleCalendar({
   emptyMessage,
 }: ScheduleCalendarProps) {
   const now = new Date();
-  const [view, setView] = useState<ViewMode>("monthly");
+  const [view, setView] = useState<ViewMode>("daily");
   const [cursor, setCursor] = useState(() => new Date());
 
   // Popover state
@@ -170,7 +173,7 @@ export default function ScheduleCalendar({
         setCursor((c) => new Date(c.getFullYear(), c.getMonth() + dir, 1));
       }
     },
-    [view]
+    [view],
   );
 
   const handleToday = useCallback(() => setCursor(new Date()), []);
@@ -208,23 +211,17 @@ export default function ScheduleCalendar({
   }, [view, cursor, workingHours]);
 
   // Handlers
-  const handleSelectAppointment = useCallback(
-    (apt: ScheduleAppointment, e: React.MouseEvent) => {
-      e.stopPropagation();
-      closeAll();
-      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-      setDetailApt({ apt, rect });
-    },
-    []
-  );
+  const handleSelectAppointment = useCallback((apt: ScheduleAppointment, e: React.MouseEvent) => {
+    e.stopPropagation();
+    closeAll();
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    setDetailApt({ apt, rect });
+  }, []);
 
-  const handleShowMore = useCallback(
-    (apts: ScheduleAppointment[], rect: DOMRect) => {
-      closeAll();
-      setMorePopover({ apts, rect });
-    },
-    []
-  );
+  const handleShowMore = useCallback((apts: ScheduleAppointment[], rect: DOMRect) => {
+    closeAll();
+    setMorePopover({ apts, rect });
+  }, []);
 
   const handleRequestReschedule = useCallback((apt: ScheduleAppointment) => {
     closeAll();
@@ -246,7 +243,7 @@ export default function ScheduleCalendar({
       }
       setRequestModal(null);
     },
-    [requestModal, onRequestReschedule, onRequestDecline]
+    [requestModal, onRequestReschedule, onRequestDecline],
   );
 
   const closeAll = useCallback(() => {
@@ -264,11 +261,13 @@ export default function ScheduleCalendar({
           {(["daily", "weekly", "monthly"] as ViewMode[]).map((v) => (
             <button
               key={v}
-              onClick={() => { setView(v); setCursor(new Date()); closeAll(); }}
+              onClick={() => {
+                setView(v);
+                setCursor(new Date());
+                closeAll();
+              }}
               className={`px-3 py-1.5 rounded-md text-xs font-semibold capitalize transition-all duration-150 ${
-                view === v
-                  ? "bg-white text-secondary shadow-sm"
-                  : "text-text-light hover:text-text"
+                view === v ? "bg-white text-secondary shadow-sm" : "text-text-light hover:text-text"
               }`}
             >
               {v}
@@ -286,9 +285,7 @@ export default function ScheduleCalendar({
           >
             <ChevronLeft className="w-4 h-4 text-text-light" />
           </button>
-          <p className="text-sm font-semibold min-w-[200px] text-center">
-            {dateLabel}
-          </p>
+          <p className="text-sm font-semibold min-w-[200px] text-center">{dateLabel}</p>
           <button
             onClick={() => handleNav(1)}
             className="w-8 h-8 rounded-lg border border-border bg-white flex items-center justify-center hover:bg-surface transition-colors"
