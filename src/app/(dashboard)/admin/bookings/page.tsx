@@ -4,6 +4,7 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { Plus, Filter } from "lucide-react";
 import { toast } from "sonner";
 import { useLang } from "@/context/i18n";
+import { bookingRef } from "@/lib/booking-ref";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTableSort } from "@/hooks/useTableSort";
 import { useAdminBookings } from "@/hooks/useAdminBookings";
@@ -176,7 +177,11 @@ export default function AdminBookingsPage() {
         key: "id",
         label: "Booking ID",
         sortable: true,
-        render: (row) => <span className="font-mono text-xs text-secondary">{row.id}</span>,
+        render: (row) => (
+          <span className="font-mono text-xs text-secondary" title={row.id}>
+            {bookingRef(row.id)}
+          </span>
+        ),
       },
       {
         key: "patient",

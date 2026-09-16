@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { npr } from "@/lib/cart";
+import { bookingRef } from "@/lib/booking-ref";
 import {
   Eye,
   CheckCircle,
@@ -250,8 +251,9 @@ export default function AdminRefunds() {
           <a
             href={`/admin/bookings?search=${row.bookingId}`}
             className="font-mono text-xs text-secondary hover:underline inline-flex items-center gap-1"
+            title={row.bookingId}
           >
-            {row.bookingId}
+            {bookingRef(row.bookingId)}
             <ExternalLink size={10} />
           </a>
         ),
@@ -649,7 +651,7 @@ export default function AdminRefunds() {
               <div className="flex items-center justify-between gap-3">
                 <span className="text-text-light shrink-0">Booking ID</span>
                 <span className="font-mono text-xs font-medium text-secondary truncate">
-                  {deleteTarget.bookingId}
+                  {bookingRef(deleteTarget.bookingId)}
                 </span>
               </div>
               <div className="flex items-center justify-between gap-3">
@@ -709,7 +711,7 @@ export default function AdminRefunds() {
               <div className="flex items-center justify-between gap-3">
                 <span className="text-text-light shrink-0">Booking ID</span>
                 <span className="font-mono text-xs font-medium text-secondary truncate">
-                  {denyTarget.bookingId}
+                  {bookingRef(denyTarget.bookingId)}
                 </span>
               </div>
               <div className="flex items-center justify-between gap-3">

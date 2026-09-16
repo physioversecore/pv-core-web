@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Calendar, Check, Loader2 } from "lucide-react";
 import { getAdminBookings } from "@/services/api/admin";
+import { bookingRef } from "@/lib/booking-ref";
 
 interface BookingPickerProps {
   patientId: string;
@@ -59,7 +60,7 @@ export function BookingPicker({ patientId, value, onChange }: BookingPickerProps
           <span className="flex items-center gap-2 min-w-0">
             <Calendar size={14} className="shrink-0 text-text-light" />
             <span className="min-w-0">
-              <span className="block font-mono text-xs truncate">{b.id}</span>
+              <span className="block font-mono text-xs truncate">{bookingRef(b.id)}</span>
               <span className="block text-xs text-text-light truncate">
                 {b.date} · {b.originalTime} · {b.therapist}
               </span>

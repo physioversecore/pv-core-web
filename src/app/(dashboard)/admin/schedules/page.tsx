@@ -5,17 +5,60 @@ import { Search, Users } from "lucide-react";
 import { toast } from "sonner";
 import { useLang } from "@/context/i18n";
 import { useTherapists } from "@/hooks/useTherapists";
+import { bookingRef } from "@/lib/booking-ref";
 import { useTherapistSchedule } from "@/hooks/useTherapistSchedule";
 import { RefreshButton } from "@/components/dashboard/RefreshButton";
 import ScheduleCalendar from "@/components/schedule/ScheduleCalendar";
 
-interface Booking { id: string; patient: string; therapist: string; when: string; location: string; status: "Confirmed" | "Pending" | "Completed" | "Cancelled"; }
+interface Booking {
+  id: string;
+  patient: string;
+  therapist: string;
+  when: string;
+  location: string;
+  status: "Confirmed" | "Pending" | "Completed" | "Cancelled";
+}
 const SEED: Booking[] = [
-  { id: "BK-1041", patient: "Sita Gurung", therapist: "Rajesh Shrestha", when: "23 Jun · 4:00 PM", location: "Baneshwor", status: "Confirmed" },
-  { id: "BK-1040", patient: "Hari Bahadur Rai", therapist: "Rajesh Shrestha", when: "23 Jun · 1:00 PM", location: "Patan", status: "Confirmed" },
-  { id: "BK-1039", patient: "Nabin Khadka", therapist: "Anita Tamang", when: "30 Jun · 10:00 AM", location: "Kalanki", status: "Pending" },
-  { id: "BK-1038", patient: "Puja Maharjan", therapist: "Sujan Karki", when: "20 Jun · 2:00 PM", location: "Bhaktapur", status: "Completed" },
-  { id: "BK-1037", patient: "Sita Gurung", therapist: "Rajesh Shrestha", when: "17 Jun · 4:00 PM", location: "Baneshwor", status: "Completed" },
+  {
+    id: "BK-1041",
+    patient: "Sita Gurung",
+    therapist: "Rajesh Shrestha",
+    when: "23 Jun · 4:00 PM",
+    location: "Baneshwor",
+    status: "Confirmed",
+  },
+  {
+    id: "BK-1040",
+    patient: "Hari Bahadur Rai",
+    therapist: "Rajesh Shrestha",
+    when: "23 Jun · 1:00 PM",
+    location: "Patan",
+    status: "Confirmed",
+  },
+  {
+    id: "BK-1039",
+    patient: "Nabin Khadka",
+    therapist: "Anita Tamang",
+    when: "30 Jun · 10:00 AM",
+    location: "Kalanki",
+    status: "Pending",
+  },
+  {
+    id: "BK-1038",
+    patient: "Puja Maharjan",
+    therapist: "Sujan Karki",
+    when: "20 Jun · 2:00 PM",
+    location: "Bhaktapur",
+    status: "Completed",
+  },
+  {
+    id: "BK-1037",
+    patient: "Sita Gurung",
+    therapist: "Rajesh Shrestha",
+    when: "17 Jun · 4:00 PM",
+    location: "Baneshwor",
+    status: "Completed",
+  },
 ];
 const STATUSES = ["All statuses", "Confirmed", "Pending", "Completed", "Cancelled"] as const;
 
@@ -41,7 +84,11 @@ function getCurrentWeekRange() {
 
 export default function AdminBookings() {
   const { t } = useLang();
-  const { therapists, isRefetching: therapistsRefetching, refetch: refetchTherapists } = useTherapists();
+  const {
+    therapists,
+    isRefetching: therapistsRefetching,
+    refetch: refetchTherapists,
+  } = useTherapists();
   const [selectedTherapistId, setSelectedTherapistId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"schedule" | "list">("schedule");
 
@@ -50,16 +97,26 @@ export default function AdminBookings() {
   const [filter, setFilter] = useState<(typeof STATUSES)[number]>("All statuses");
 
   const weekRange = useMemo(() => getCurrentWeekRange(), []);
-  const { appointments, workingHours, isLoading: scheduleLoading, isRefetching: scheduleRefetching, refetch: refetchSchedule } = useTherapistSchedule(
-    selectedTherapistId,
-    weekRange.start,
-    weekRange.end,
-  );
+  const {
+    appointments,
+    workingHours,
+    isLoading: scheduleLoading,
+    isRefetching: scheduleRefetching,
+    refetch: refetchSchedule,
+  } = useTherapistSchedule(selectedTherapistId, weekRange.start, weekRange.end);
 
-  const view = useMemo(() => rows.filter((r) =>
-    (filter === "All statuses" || r.status === filter) &&
-    [r.id, r.patient, r.therapist, r.location].join(" ").toLowerCase().includes(q.toLowerCase())
-  ), [rows, q, filter]);
+  const view = useMemo(
+    () =>
+      rows.filter(
+        (r) =>
+          (filter === "All statuses" || r.status === filter) &&
+          [r.id, r.patient, r.therapist, r.location]
+            .join(" ")
+            .toLowerCase()
+            .includes(q.toLowerCase()),
+      ),
+    [rows, q, filter],
+  );
 
   const selectedTherapistName = useMemo(() => {
     if (!selectedTherapistId) return null;
@@ -67,7 +124,7 @@ export default function AdminBookings() {
   }, [selectedTherapistId, therapists]);
 
   const update = (id: string, status: Booking["status"], msg: string) => {
-    setRows((r) => r.map((b) => b.id === id ? { ...b, status } : b));
+    setRows((r) => r.map((b) => (b.id === id ? { ...b, status } : b)));
     toast.success(msg);
   };
 
@@ -78,14 +135,19 @@ export default function AdminBookings() {
           <h3 className="font-display text-xl">{t("admin_dashboard.allBookings")}</h3>
           <div className="flex items-center gap-2">
             <RefreshButton
-              onRefresh={() => { refetchTherapists(); refetchSchedule(); }}
+              onRefresh={() => {
+                refetchTherapists();
+                refetchSchedule();
+              }}
               isRefreshing={therapistsRefetching || scheduleRefetching}
             />
             <div className="flex items-center gap-1.5 bg-surface rounded-lg p-0.5">
               <button
                 onClick={() => setActiveTab("schedule")}
                 className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all duration-150 ${
-                  activeTab === "schedule" ? "bg-white text-secondary shadow-sm" : "text-text-light hover:text-text"
+                  activeTab === "schedule"
+                    ? "bg-white text-secondary shadow-sm"
+                    : "text-text-light hover:text-text"
                 }`}
               >
                 {t("admin_dashboard.scheduleView")}
@@ -93,7 +155,9 @@ export default function AdminBookings() {
               <button
                 onClick={() => setActiveTab("list")}
                 className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all duration-150 ${
-                  activeTab === "list" ? "bg-white text-secondary shadow-sm" : "text-text-light hover:text-text"
+                  activeTab === "list"
+                    ? "bg-white text-secondary shadow-sm"
+                    : "text-text-light hover:text-text"
                 }`}
               >
                 {t("admin_dashboard.listView")}
@@ -129,7 +193,8 @@ export default function AdminBookings() {
               )}
               {selectedTherapistName && (
                 <span className="text-xs text-text-light">
-                  {t("admin_dashboard.viewingScheduleFor")} <span className="font-semibold text-text">{selectedTherapistName}</span>
+                  {t("admin_dashboard.viewingScheduleFor")}{" "}
+                  <span className="font-semibold text-text">{selectedTherapistName}</span>
                 </span>
               )}
             </div>
@@ -159,12 +224,38 @@ export default function AdminBookings() {
         {activeTab === "list" && (
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <select value={filter} onChange={(e) => setFilter(e.target.value as typeof filter)} className="px-3 py-2 rounded-full border border-border bg-background text-sm">
-                {STATUSES.map((s) => <option key={s} value={s}>{s === "All statuses" ? t("admin_dashboard.allStatuses") : s === "Confirmed" ? t("admin_dashboard.confirmed") : s === "Pending" ? t("admin_dashboard.pending") : s === "Completed" ? t("admin_dashboard.completed") : s === "Cancelled" ? t("admin_dashboard.cancelled") : s}</option>)}
+              <select
+                value={filter}
+                onChange={(e) => setFilter(e.target.value as typeof filter)}
+                className="px-3 py-2 rounded-full border border-border bg-background text-sm"
+              >
+                {STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {s === "All statuses"
+                      ? t("admin_dashboard.allStatuses")
+                      : s === "Confirmed"
+                        ? t("admin_dashboard.confirmed")
+                        : s === "Pending"
+                          ? t("admin_dashboard.pending")
+                          : s === "Completed"
+                            ? t("admin_dashboard.completed")
+                            : s === "Cancelled"
+                              ? t("admin_dashboard.cancelled")
+                              : s}
+                  </option>
+                ))}
               </select>
               <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" />
-                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("admin_dashboard.searchPlaceholder")} className="pl-9 pr-3 py-2 rounded-full border border-border bg-background text-sm w-44" />
+                <Search
+                  size={14}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light"
+                />
+                <input
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder={t("admin_dashboard.searchPlaceholder")}
+                  className="pl-9 pr-3 py-2 rounded-full border border-border bg-background text-sm w-44"
+                />
               </div>
             </div>
 
@@ -172,34 +263,71 @@ export default function AdminBookings() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-[0.65rem] uppercase font-mono text-text-light text-left border-b border-border">
-                    <th className="py-2 pr-3">{t("admin_dashboard.bookingId")}</th><th className="py-2 pr-3">{t("admin_dashboard.patient")}</th><th className="py-2 pr-3">{t("admin_dashboard.therapist")}</th>
-                    <th className="py-2 pr-3">{t("admin_dashboard.dateTime")}</th><th className="py-2 pr-3">{t("admin_dashboard.location")}</th><th className="py-2 pr-3">{t("admin_dashboard.status")}</th><th className="py-2">{t("admin_dashboard.actions")}</th>
+                    <th className="py-2 pr-3">{t("admin_dashboard.bookingId")}</th>
+                    <th className="py-2 pr-3">{t("admin_dashboard.patient")}</th>
+                    <th className="py-2 pr-3">{t("admin_dashboard.therapist")}</th>
+                    <th className="py-2 pr-3">{t("admin_dashboard.dateTime")}</th>
+                    <th className="py-2 pr-3">{t("admin_dashboard.location")}</th>
+                    <th className="py-2 pr-3">{t("admin_dashboard.status")}</th>
+                    <th className="py-2">{t("admin_dashboard.actions")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {view.map((b) => (
                     <tr key={b.id}>
-                      <td className="py-3 pr-3 font-mono text-xs text-secondary">#{b.id}</td>
+                      <td className="py-3 pr-3 font-mono text-xs text-secondary">
+                        {bookingRef(b.id)}
+                      </td>
                       <td className="py-3 pr-3 font-medium">{b.patient}</td>
                       <td className="py-3 pr-3 text-text-light">{b.therapist}</td>
                       <td className="py-3 pr-3 text-text-light">{b.when}</td>
                       <td className="py-3 pr-3 text-text-light">{b.location}</td>
-                      <td className="py-3 pr-3"><StatusChip status={b.status} /></td>
+                      <td className="py-3 pr-3">
+                        <StatusChip status={b.status} />
+                      </td>
                       <td className="py-3">
                         <div className="flex gap-1.5">
                           {b.status === "Pending" && (
                             <>
-                              <button onClick={() => update(b.id, "Confirmed", t("admin_dashboard.bookingConfirmed"))} className="chip !bg-secondary/10 !text-secondary cursor-pointer">{t("admin_dashboard.confirm")}</button>
-                              <button onClick={() => update(b.id, "Cancelled", t("admin_dashboard.bookingCancelled"))} className="chip !bg-destructive/10 !text-destructive cursor-pointer">{t("admin_dashboard.cancel")}</button>
+                              <button
+                                onClick={() =>
+                                  update(b.id, "Confirmed", t("admin_dashboard.bookingConfirmed"))
+                                }
+                                className="chip !bg-secondary/10 !text-secondary cursor-pointer"
+                              >
+                                {t("admin_dashboard.confirm")}
+                              </button>
+                              <button
+                                onClick={() =>
+                                  update(b.id, "Cancelled", t("admin_dashboard.bookingCancelled"))
+                                }
+                                className="chip !bg-destructive/10 !text-destructive cursor-pointer"
+                              >
+                                {t("admin_dashboard.cancel")}
+                              </button>
                             </>
                           )}
                           {b.status === "Confirmed" && (
                             <>
-                              <button onClick={() => toast(t("admin_dashboard.rescheduleSent"))} className="chip !bg-primary/15 !text-primary cursor-pointer">{t("admin_dashboard.reschedule")}</button>
-                              <button onClick={() => update(b.id, "Cancelled", t("admin_dashboard.bookingCancelled"))} className="chip !bg-destructive/10 !text-destructive cursor-pointer">{t("admin_dashboard.cancel")}</button>
+                              <button
+                                onClick={() => toast(t("admin_dashboard.rescheduleSent"))}
+                                className="chip !bg-primary/15 !text-primary cursor-pointer"
+                              >
+                                {t("admin_dashboard.reschedule")}
+                              </button>
+                              <button
+                                onClick={() =>
+                                  update(b.id, "Cancelled", t("admin_dashboard.bookingCancelled"))
+                                }
+                                className="chip !bg-destructive/10 !text-destructive cursor-pointer"
+                              >
+                                {t("admin_dashboard.cancel")}
+                              </button>
                             </>
                           )}
-                          {(b.status === "Completed" || b.status === "Cancelled") && <span className="text-text-light text-xs">—</span>}
+                          {(b.status === "Completed" || b.status === "Cancelled") && (
+                            <span className="text-text-light text-xs">—</span>
+                          )}
                         </div>
                       </td>
                     </tr>
