@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { Clock, MapPin, Phone, Calendar, AlertTriangle, User } from "lucide-react";
+import { bookingRef } from "@/lib/booking-ref";
 import { to12h } from "@/lib/format";
 import { isDateInPast } from "@/lib/availability-utils";
 import type { ScheduleAppointment, ScheduleAppointmentStatus } from "@/hooks/useTherapistSchedule";
@@ -68,8 +69,11 @@ export function AppointmentDetailPopover({
           <p className="text-xs text-text-light mt-0.5">
             {a.type} · {to12h(a.time)}
           </p>
+          <p className="font-mono text-[10px] text-text-muted mt-0.5">{bookingRef(a.id)}</p>
         </div>
-        <span className={`text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap ${STATUS_CLASSES[a.status]}`}>
+        <span
+          className={`text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap ${STATUS_CLASSES[a.status]}`}
+        >
           {STATUS_LABELS[a.status]}
         </span>
       </div>

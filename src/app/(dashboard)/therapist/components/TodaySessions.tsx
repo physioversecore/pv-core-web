@@ -5,6 +5,7 @@ import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { useLang } from "@/context/i18n";
 import { useTherapistDashboard } from "@/hooks/useTherapistDashboard";
 import { to12h } from "@/lib/format";
+import { bookingRef } from "@/lib/booking-ref";
 import { AppointmentsSkeleton } from "@/components/SuspenseFallback";
 
 export function TodaySessions() {
@@ -22,7 +23,9 @@ export function TodaySessions() {
           <p className="eyebrow mb-1">{t("therapist_dashboard.today")}</p>
           <h3 className="font-display text-lg">{t("therapist_dashboard.upcomingToday")}</h3>
         </div>
-        <span className="chip">{sessions.length} {t("therapist_dashboard.visits")}</span>
+        <span className="chip">
+          {sessions.length} {t("therapist_dashboard.visits")}
+        </span>
       </div>
       {sessions.length === 0 ? (
         <p className="text-sm text-text-light py-4">No sessions scheduled for today.</p>
@@ -43,18 +46,28 @@ export function TodaySessions() {
               {sessions.map((row) => (
                 <tr key={row.id}>
                   <td className="py-3 pr-3 font-mono text-secondary">{to12h(row.time)}</td>
-                  <td className="py-3 pr-3 font-medium">{row.patient}</td>
+                  <td className="py-3 pr-3 font-medium">
+                    {row.patient}
+                    <span className="block font-mono text-[10px] text-text-muted">
+                      {bookingRef(row.id)}
+                    </span>
+                  </td>
                   <td className="py-3 pr-3 text-text-light">{row.address}</td>
                   <td className="py-3 pr-3 text-text-light">{row.type}</td>
                   <td className="py-3 pr-3">
                     <StatusBadge
                       status={row.status === "Confirmed" ? "Confirmed" : "Pending"}
-                      labels={{ confirmed: t("therapist_dashboard.confirmed"), pending: t("therapist_dashboard.pending") }}
+                      labels={{
+                        confirmed: t("therapist_dashboard.confirmed"),
+                        pending: t("therapist_dashboard.pending"),
+                      }}
                     />
                   </td>
                   <td className="py-3 text-right">
                     <button
-                      onClick={() => toast.success(`${t("therapist_dashboard.start")} ${row.patient}`)}
+                      onClick={() =>
+                        toast.success(`${t("therapist_dashboard.start")} ${row.patient}`)
+                      }
                       className="btn-outline !py-1 !px-3 text-xs"
                     >
                       {t("therapist_dashboard.start")}

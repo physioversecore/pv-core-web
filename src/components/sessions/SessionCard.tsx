@@ -1,7 +1,15 @@
 "use client";
 import { Avatar } from "@/components/common/Avatar";
 import { SmartBadge } from "./SmartBadge";
-import { formatWhen, formatType, mapSessionStatus, npr, isPast, isOverdueSession } from "@/lib/format";
+import {
+  formatWhen,
+  formatType,
+  mapSessionStatus,
+  npr,
+  isPast,
+  isOverdueSession,
+} from "@/lib/format";
+import { bookingRef } from "@/lib/booking-ref";
 import type { SessionData } from "@/services/api/sessions";
 import { Clock, RotateCcw, X, Star, User } from "lucide-react";
 
@@ -21,7 +29,14 @@ const statusStyles: Record<string, string> = {
   Overdue: "!bg-danger/15 !text-danger",
 };
 
-export function SessionCard({ session, onCancel, onReschedule, onRate, onClick, rateableIds }: SessionCardProps) {
+export function SessionCard({
+  session,
+  onCancel,
+  onReschedule,
+  onRate,
+  onClick,
+  rateableIds,
+}: SessionCardProps) {
   const isUpcoming = session.status === "SCHEDULED" || session.status === "IN_PROGRESS";
   const isOverdue = isOverdueSession(session.status, session.date, session.time);
   const displayStatus = isOverdue ? "Overdue" : mapSessionStatus(session.status);
@@ -43,12 +58,17 @@ export function SessionCard({ session, onCancel, onReschedule, onRate, onClick, 
             <span className="truncate">{formatType(session.type)}</span>
           </div>
         </div>
-        {!isOverdue && <SmartBadge date={session.date} time={session.time} status={session.status} />}
+        {!isOverdue && (
+          <SmartBadge date={session.date} time={session.time} status={session.status} />
+        )}
       </div>
 
       <div className="flex items-center gap-1.5 text-xs text-text-light/90 bg-border/30 rounded-lg px-2.5 py-1.5 leading-relaxed">
         <Clock size={13} className="shrink-0 opacity-70" />
         <span className="truncate">{formatWhen(session.date, session.time)}</span>
+        <span className="font-mono text-[10px] text-text-muted shrink-0 ml-auto">
+          {bookingRef(session.id)}
+        </span>
       </div>
 
       {session.familyMemberName && (
@@ -63,12 +83,13 @@ export function SessionCard({ session, onCancel, onReschedule, onRate, onClick, 
           {npr(session.fee)}
         </span>
         <div className="flex items-center gap-2">
-          <span className={`chip ${statusStyles[displayStatus] ?? ""}`}>
-            {displayStatus}
-          </span>
+          <span className={`chip ${statusStyles[displayStatus] ?? ""}`}>{displayStatus}</span>
           {canRate && (
             <button
-              onClick={(e) => { e.stopPropagation(); onRate(session.id); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onRate(session.id);
+              }}
               className="inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg border border-primary text-primary text-xs font-semibold cursor-pointer hover:bg-primary hover:text-white transition-all"
             >
               <Star size={12} />
