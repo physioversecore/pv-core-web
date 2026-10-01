@@ -2,19 +2,35 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { npr } from "@/lib/cart";
-import { Eye, CheckCircle, XCircle, ExternalLink, Pencil, Trash2, Plus, UserPlus } from "lucide-react";
+import { bookingRef } from "@/lib/booking-ref";
+import {
+  Eye,
+  CheckCircle,
+  XCircle,
+  ExternalLink,
+  Pencil,
+  Trash2,
+  Plus,
+  UserPlus,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useLang } from "@/context/i18n";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTableSort } from "@/hooks/useTableSort";
 import { useAdminRefunds } from "@/hooks/useAdminRefunds";
-import { type RefundReason, type RefundStatus, type AdminCreateRefundPayload } from "@/services/api/admin";
+import {
+  type RefundReason,
+  type RefundStatus,
+  type AdminCreateRefundPayload,
+} from "@/services/api/admin";
 import { DashboardStat } from "@/components/dashboard";
 import { LogManualCaseModal } from "@/components/refunds/LogManualCaseModal";
+import { AssigneePicker } from "@/components/refunds/AssigneePicker";
+import { PatientPicker } from "@/components/refunds/PatientPicker";
+import { BookingPicker } from "@/components/refunds/BookingPicker";
 import {
   DataTable,
   ActionMenu,
-  ConfirmDialog,
   FilterBar,
   StatusChip,
   type Column,
@@ -72,6 +88,8 @@ export default function AdminRefunds() {
     items,
     total,
     isLoading,
+    refundStats,
+    statsLoading,
     createRefund,
     approveRefund,
     denyRefund,
@@ -104,17 +122,14 @@ export default function AdminRefunds() {
     [search, reason, status, dateFrom, dateTo],
   );
 
-  const handleFilterChange = useCallback(
-    (key: string, value: string) => {
-      if (key === "search") setSearch(value);
-      else if (key === "reason") setReason(value === "all" ? "" : value);
-      else if (key === "status") setStatus(value === "all" ? "" : value);
-      else if (key === "dateFrom") setDateFrom(value);
-      else if (key === "dateTo") setDateTo(value);
-      setPage(1);
-    },
-    [],
-  );
+  const handleFilterChange = useCallback((key: string, value: string) => {
+    if (key === "search") setSearch(value);
+    else if (key === "reason") setReason(value === "all" ? "" : value);
+    else if (key === "status") setStatus(value === "all" ? "" : value);
+    else if (key === "dateFrom") setDateFrom(value);
+    else if (key === "dateTo") setDateTo(value);
+    setPage(1);
+  }, []);
 
   const handleApprove = useCallback(
     async (row: RefundRow) => {
@@ -181,7 +196,13 @@ export default function AdminRefunds() {
   }, [deleteTarget, deleteRefund, t]);
 
   const handleAddSubmit = useCallback(async () => {
-    if (!addForm.patientId.trim() || !addForm.bookingId.trim() || !addForm.amount || !addForm.reason) return;
+    if (
+      !addForm.patientId.trim() ||
+      !addForm.bookingId.trim() ||
+      !addForm.amount ||
+      !addForm.reason
+    )
+      return;
     setAddSaving(true);
     try {
       await createRefund({
@@ -218,12 +239,6 @@ export default function AdminRefunds() {
   const columns: Column<RefundRow>[] = useMemo(
     () => [
       {
-        key: "id",
-        label: "ID",
-        sortable: true,
-        render: (row) => <span className="font-mono text-xs text-secondary">{row.id}</span>,
-      },
-      {
         key: "patient",
         label: t("admin_dashboard.patient") ?? "Patient",
         sortable: true,
@@ -236,8 +251,9 @@ export default function AdminRefunds() {
           <a
             href={`/admin/bookings?search=${row.bookingId}`}
             className="font-mono text-xs text-secondary hover:underline inline-flex items-center gap-1"
+            title={row.bookingId}
           >
-            {row.bookingId}
+            {bookingRef(row.bookingId)}
             <ExternalLink size={10} />
           </a>
         ),
@@ -273,11 +289,13 @@ export default function AdminRefunds() {
         key: "source",
         label: "Source",
         render: (row) => (
-          <span className={`text-xs px-2 py-0.5 rounded-full ${
-            row.source === "ADMIN_MANUAL"
-              ? "bg-amber-100 text-amber-700"
-              : "bg-surface text-text-light"
-          }`}>
+          <span
+            className={`text-xs px-2 py-0.5 rounded-full ${
+              row.source === "ADMIN_MANUAL"
+                ? "bg-amber-100 text-amber-700"
+                : "bg-surface text-text-light"
+            }`}
+          >
             {row.source === "ADMIN_MANUAL" ? "Manual" : "Patient"}
           </span>
         ),
@@ -294,7 +312,14 @@ export default function AdminRefunds() {
 
   const renderActions = useCallback(
     (row: RefundRow) => {
-      const actions: { key: string; label: string; icon: React.ReactNode; variant?: "default" | "destructive"; tooltip?: string; onClick: () => void }[] = [
+      const actions: {
+        key: string;
+        label: string;
+        icon: React.ReactNode;
+        variant?: "default" | "destructive";
+        tooltip?: string;
+        onClick: () => void;
+      }[] = [
         {
           key: "preview",
           label: t("admin_dashboard.view") ?? "Preview",
@@ -312,7 +337,10 @@ export default function AdminRefunds() {
           label: t("admin_dashboard.assign") ?? "Assign",
           icon: <UserPlus size={14} />,
           tooltip: row.assigneeId ? `Assigned to: ${row.assigneeId}` : undefined,
-          onClick: () => { setAssignRow(row); setAssignee(row.assigneeId ?? ""); },
+          onClick: () => {
+            setAssignRow(row);
+            setAssignee(row.assigneeId ?? "");
+          },
         },
       ];
 
@@ -418,10 +446,26 @@ export default function AdminRefunds() {
 
       {/* Stat Cards */}
       <div className="stats-grid">
-        <DashboardStat label="Pending refunds" value="2" sub="Needs a decision" />
-        <DashboardStat label="Refunded this month" value={npr(8200)} sub="Across 6 cases" />
-        <DashboardStat label="Dispute rate" value="1.4%" sub="↓ 0.3% vs last month" />
-        <DashboardStat label="Avg resolution time" value="1.2 days" sub="Within target" />
+        <DashboardStat
+          label="Pending refunds"
+          value={statsLoading ? "—" : String(refundStats?.pending ?? 0)}
+          sub="Needs a decision"
+        />
+        <DashboardStat
+          label="Refunded this month"
+          value={statsLoading ? "—" : npr(refundStats?.refundedThisMonth ?? 0)}
+          sub="Approved cases"
+        />
+        <DashboardStat
+          label="Dispute rate"
+          value={statsLoading ? "—" : `${refundStats?.disputeRate ?? 0}%`}
+          sub="Share of refunds denied"
+        />
+        <DashboardStat
+          label="Avg resolution time"
+          value={statsLoading ? "—" : `${refundStats?.avgResolutionDays ?? 0} days`}
+          sub="From filed to decided"
+        />
       </div>
 
       {/* Refunds Table */}
@@ -457,8 +501,14 @@ export default function AdminRefunds() {
 
       {/* View Details Dialog */}
       {viewRow && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setViewRow(null)}>
-          <div className="bg-background rounded-lg border shadow-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onClick={() => setViewRow(null)}
+        >
+          <div
+            className="bg-background rounded-lg border shadow-lg p-6 w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="font-display text-lg mb-4">Refund Details</h3>
             <div className="space-y-2.5">
               {[
@@ -469,21 +519,35 @@ export default function AdminRefunds() {
                 { label: "Reason", value: viewRow.reason },
                 { label: "Status", value: viewRow.status },
                 { label: "Filed", value: viewRow.filed },
-                { label: "Source", value: viewRow.source === "ADMIN_MANUAL" ? "Manual (Admin)" : "Patient submitted" },
+                {
+                  label: "Source",
+                  value: viewRow.source === "ADMIN_MANUAL" ? "Manual (Admin)" : "Patient submitted",
+                },
                 ...(viewRow.assigneeId ? [{ label: "Assignee", value: viewRow.assigneeId }] : []),
                 ...(viewRow.notes ? [{ label: "Notes", value: viewRow.notes }] : []),
-                ...(viewRow.complaintId ? [{ label: "Linked Complaint", value: viewRow.complaintId }] : []),
+                ...(viewRow.complaintId
+                  ? [{ label: "Linked Complaint", value: viewRow.complaintId }]
+                  : []),
                 ...(viewRow.resolvedAt ? [{ label: "Resolved", value: viewRow.resolvedAt }] : []),
-                ...(viewRow.denyReason ? [{ label: "Deny reason", value: viewRow.denyReason }] : []),
+                ...(viewRow.denyReason
+                  ? [{ label: "Deny reason", value: viewRow.denyReason }]
+                  : []),
               ].map((r) => (
-                <div key={r.label} className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0">
+                <div
+                  key={r.label}
+                  className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0"
+                >
                   <span className="text-xs font-mono text-text-light uppercase">{r.label}</span>
                   <span className="text-sm font-medium">{r.value}</span>
                 </div>
               ))}
             </div>
             <div className="flex justify-end pt-4">
-              <button type="button" onClick={() => setViewRow(null)} className="btn-outline !py-1.5 !px-4 text-xs cursor-pointer">
+              <button
+                type="button"
+                onClick={() => setViewRow(null)}
+                className="btn-outline !py-1.5 !px-4 text-xs cursor-pointer"
+              >
                 {t("common.close") ?? "Close"}
               </button>
             </div>
@@ -493,8 +557,14 @@ export default function AdminRefunds() {
 
       {/* Edit Dialog */}
       {editRow && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setEditRow(null)}>
-          <div className="bg-background rounded-lg border shadow-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onClick={() => setEditRow(null)}
+        >
+          <div
+            className="bg-background rounded-lg border shadow-lg p-6 w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="font-display text-lg mb-1">Edit Refund</h3>
             <p className="text-sm text-text-light mb-4">
               Case <span className="font-mono font-medium text-text">{editRow.id}</span>
@@ -511,7 +581,10 @@ export default function AdminRefunds() {
               </div>
               <div>
                 <label className="text-xs font-mono text-text-light uppercase">Reason</label>
-                <Select value={editForm.reason} onValueChange={(v) => setEditForm((f) => ({ ...f, reason: v }))}>
+                <Select
+                  value={editForm.reason}
+                  onValueChange={(v) => setEditForm((f) => ({ ...f, reason: v }))}
+                >
                   <SelectTrigger className="mt-1 h-9">
                     <SelectValue />
                   </SelectTrigger>
@@ -525,7 +598,10 @@ export default function AdminRefunds() {
               </div>
               <div>
                 <label className="text-xs font-mono text-text-light uppercase">Status</label>
-                <Select value={editForm.status} onValueChange={(v) => setEditForm((f) => ({ ...f, status: v }))}>
+                <Select
+                  value={editForm.status}
+                  onValueChange={(v) => setEditForm((f) => ({ ...f, status: v }))}
+                >
                   <SelectTrigger className="mt-1 h-9">
                     <SelectValue />
                   </SelectTrigger>
@@ -558,25 +634,104 @@ export default function AdminRefunds() {
         </div>
       )}
 
-      {/* Delete Confirmation Dialog */}
-      <ConfirmDialog
-        open={!!deleteTarget}
-        onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
-        onConfirm={handleDeleteSubmit}
-        title="Delete Refund"
-        description={`Are you sure you want to delete refund <strong>${deleteTarget?.id}</strong> for <strong>${deleteTarget ? npr(deleteTarget.amount) : ""}</strong>? This action cannot be undone.`}
-      />
+      {/* Delete Dialog */}
+      {deleteTarget && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onClick={() => setDeleteTarget(null)}
+        >
+          <div
+            className="bg-background rounded-lg border shadow-lg p-6 w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="font-display text-lg mb-1">Delete Refund</h3>
+            <p className="text-sm text-text-light mb-4">This action cannot be undone.</p>
+
+            <div className="bg-danger-bg/40 border border-danger/20 rounded-lg px-3 py-2.5 space-y-1.5 mb-4 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-text-light shrink-0">Booking ID</span>
+                <span className="font-mono text-xs font-medium text-secondary truncate">
+                  {bookingRef(deleteTarget.bookingId)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-text-light shrink-0">Patient</span>
+                <span className="font-medium truncate">{deleteTarget.patient}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-text-light shrink-0">Amount</span>
+                <span className="font-medium">{npr(deleteTarget.amount)}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-text-light shrink-0">Filed on</span>
+                <span className="font-medium">{deleteTarget.filed}</span>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                className="btn-outline !py-1.5 !px-4 text-xs cursor-pointer"
+              >
+                {t("common.cancel") ?? "Cancel"}
+              </button>
+              <button
+                type="button"
+                disabled={deleteSaving}
+                onClick={handleDeleteSubmit}
+                className="chip !bg-destructive !text-white cursor-pointer disabled:opacity-50"
+              >
+                {deleteSaving ? (t("common.loading") ?? "Loading...") : "Delete Refund"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Deny Dialog */}
       {denyTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => { setDenyTarget(null); setDenyReason(""); }}>
-          <div className="bg-background rounded-lg border shadow-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onClick={() => {
+            setDenyTarget(null);
+            setDenyReason("");
+          }}
+        >
+          <div
+            className="bg-background rounded-lg border shadow-lg p-6 w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="font-display text-lg mb-1">Deny Refund</h3>
             <p className="text-sm text-text-light mb-4">
-              Case <span className="font-mono font-medium text-text">{denyTarget.id}</span> — {npr(denyTarget.amount)}
+              Review this case before denying the refund.
             </p>
+
+            <div className="bg-surface/60 border border-border rounded-lg px-3 py-2.5 space-y-1.5 mb-4 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-text-light shrink-0">Booking ID</span>
+                <span className="font-mono text-xs font-medium text-secondary truncate">
+                  {bookingRef(denyTarget.bookingId)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-text-light shrink-0">Patient</span>
+                <span className="font-medium truncate">{denyTarget.patient}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-text-light shrink-0">Amount</span>
+                <span className="font-medium">{npr(denyTarget.amount)}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-text-light shrink-0">Filed on</span>
+                <span className="font-medium">{denyTarget.filed}</span>
+              </div>
+            </div>
+
             <div>
-              <label className="text-xs font-mono text-text-light uppercase">Reason (required)</label>
+              <label className="text-xs font-mono text-text-light uppercase">
+                Reason (required)
+              </label>
               <textarea
                 value={denyReason}
                 onChange={(e) => setDenyReason(e.target.value)}
@@ -588,7 +743,10 @@ export default function AdminRefunds() {
             <div className="flex justify-end gap-2 pt-4">
               <button
                 type="button"
-                onClick={() => { setDenyTarget(null); setDenyReason(""); }}
+                onClick={() => {
+                  setDenyTarget(null);
+                  setDenyReason("");
+                }}
                 className="btn-outline !py-1.5 !px-4 text-xs cursor-pointer"
               >
                 {t("common.cancel") ?? "Cancel"}
@@ -608,30 +766,35 @@ export default function AdminRefunds() {
 
       {/* Add Refund Dialog */}
       {addOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setAddOpen(false)}>
-          <div className="bg-background rounded-lg border shadow-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onClick={() => setAddOpen(false)}
+        >
+          <div
+            className="bg-background rounded-lg border shadow-lg p-6 w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="font-display text-lg mb-1">Add Refund</h3>
-            <p className="text-sm text-text-light mb-4">
-              Create a new refund or dispute case.
-            </p>
+            <p className="text-sm text-text-light mb-4">Create a new refund or dispute case.</p>
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-mono text-text-light uppercase">Patient ID</label>
-                <Input
-                  value={addForm.patientId}
-                  onChange={(e) => setAddForm((f) => ({ ...f, patientId: e.target.value }))}
-                  placeholder="Enter patient ID"
-                  className="mt-1"
-                />
+                <label className="text-xs font-mono text-text-light uppercase">Patient</label>
+                <div className="mt-1">
+                  <PatientPicker
+                    value={addForm.patientId}
+                    onChange={(id) => setAddForm((f) => ({ ...f, patientId: id, bookingId: "" }))}
+                  />
+                </div>
               </div>
               <div>
-                <label className="text-xs font-mono text-text-light uppercase">Booking ID</label>
-                <Input
-                  value={addForm.bookingId}
-                  onChange={(e) => setAddForm((f) => ({ ...f, bookingId: e.target.value }))}
-                  placeholder="Enter booking ID"
-                  className="mt-1"
-                />
+                <label className="text-xs font-mono text-text-light uppercase">Booking</label>
+                <div className="mt-1">
+                  <BookingPicker
+                    patientId={addForm.patientId}
+                    value={addForm.bookingId}
+                    onChange={(id) => setAddForm((f) => ({ ...f, bookingId: id }))}
+                  />
+                </div>
               </div>
               <div>
                 <label className="text-xs font-mono text-text-light uppercase">Amount (NPR)</label>
@@ -645,7 +808,10 @@ export default function AdminRefunds() {
               </div>
               <div>
                 <label className="text-xs font-mono text-text-light uppercase">Reason</label>
-                <Select value={addForm.reason} onValueChange={(v) => setAddForm((f) => ({ ...f, reason: v }))}>
+                <Select
+                  value={addForm.reason}
+                  onValueChange={(v) => setAddForm((f) => ({ ...f, reason: v }))}
+                >
                   <SelectTrigger className="mt-1 h-9">
                     <SelectValue placeholder="Select reason" />
                   </SelectTrigger>
@@ -668,7 +834,13 @@ export default function AdminRefunds() {
               </button>
               <button
                 type="button"
-                disabled={!addForm.patientId.trim() || !addForm.bookingId.trim() || !addForm.amount || !addForm.reason || addSaving}
+                disabled={
+                  !addForm.patientId.trim() ||
+                  !addForm.bookingId.trim() ||
+                  !addForm.amount ||
+                  !addForm.reason ||
+                  addSaving
+                }
                 onClick={handleAddSubmit}
                 className="chip !bg-secondary !text-white cursor-pointer disabled:opacity-50"
               >
@@ -681,11 +853,23 @@ export default function AdminRefunds() {
 
       {/* Assign Refund Dialog */}
       {assignRow && (
-        <Dialog open onOpenChange={(open) => { if (!open) { setAssignRow(null); setAssignee(""); } }}>
+        <Dialog
+          open
+          onOpenChange={(open) => {
+            if (!open) {
+              setAssignRow(null);
+              setAssignee("");
+            }
+          }}
+        >
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle className="font-display">{t("admin_dashboard.assign") ?? "Assign Refund"}</DialogTitle>
-              <DialogDescription>{assignRow.id} — {npr(assignRow.amount)}</DialogDescription>
+              <DialogTitle className="font-display">
+                {t("admin_dashboard.assign") ?? "Assign Refund"}
+              </DialogTitle>
+              <DialogDescription>
+                {assignRow.id} — {npr(assignRow.amount)}
+              </DialogDescription>
             </DialogHeader>
 
             <div className="mt-4 space-y-4">
@@ -701,17 +885,16 @@ export default function AdminRefunds() {
                 <label className="text-[0.65rem] uppercase font-mono text-text-light block mb-1.5">
                   Assign to
                 </label>
-                <Input
-                  value={assignee}
-                  onChange={(e) => setAssignee(e.target.value)}
-                  placeholder="Enter assignee name or ID"
-                />
+                <AssigneePicker value={assignee} onChange={setAssignee} />
               </div>
             </div>
 
             <DialogFooter className="mt-2">
               <button
-                onClick={() => { setAssignRow(null); setAssignee(""); }}
+                onClick={() => {
+                  setAssignRow(null);
+                  setAssignee("");
+                }}
                 className="px-4 py-2 rounded-xl text-sm text-text-light hover:bg-muted transition cursor-pointer"
               >
                 {t("common.cancel") ?? "Cancel"}

@@ -40,7 +40,13 @@ function ComplaintsContent() {
   const prefillBookingId = searchParams.get("bookingId") ?? "";
 
   const { sessions } = useSessions();
-  const { items: myComplaints, submitComplaint, isSubmitting, isLoading: complaintsLoading, isRefetching } = usePatientComplaints(MOCK_PATIENT_ID);
+  const {
+    items: myComplaints,
+    submitComplaint,
+    isSubmitting,
+    isLoading: complaintsLoading,
+    isRefetching,
+  } = usePatientComplaints(MOCK_PATIENT_ID);
 
   const [form, setForm] = useState({
     bookingId: prefillBookingId,
@@ -51,30 +57,38 @@ function ComplaintsContent() {
   });
   const [files, setFiles] = useState<File[]>([]);
   const [previewFile, setPreviewFile] = useState<File | null>(null);
-  const [previewAttachment, setPreviewAttachment] = useState<{ url: string; name: string } | null>(null);
+  const [previewAttachment, setPreviewAttachment] = useState<{ url: string; name: string } | null>(
+    null,
+  );
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const submittingRef = useRef(false);
 
   const therapistsSeen = useMemo(() => {
-    const map = new Map<string, { id: string; name: string }>();
+    const map = new Map<
+      string,
+      { id: string; name: string; specialty: string; licenseNumber?: string }
+    >();
     sessions.forEach((s) => {
       if (s.therapistId && s.therapistName) {
-        map.set(s.therapistId, { id: s.therapistId, name: s.therapistName });
+        map.set(s.therapistId, {
+          id: s.therapistId,
+          name: s.therapistName,
+          specialty: s.therapistSpecialty ?? "",
+          licenseNumber: s.therapistLicenseNumber ?? "",
+        });
       }
     });
     return Array.from(map.values());
   }, [sessions]);
 
   const recentBookings = useMemo(() => {
-    return sessions
-      .slice(0, 20)
-      .map((s) => ({
-        id: s.id,
-        label: `${s.therapistName ?? "Therapist"} — ${formatDate(s.date)}, ${to12h(s.time)}`,
-        therapistId: s.therapistId,
-        therapistName: s.therapistName ?? "",
-      }));
+    return sessions.slice(0, 20).map((s) => ({
+      id: s.id,
+      label: `${s.therapistName ?? "Therapist"} — ${formatDate(s.date)}, ${to12h(s.time)}`,
+      therapistId: s.therapistId,
+      therapistName: s.therapistName ?? "",
+    }));
   }, [sessions]);
 
   const filteredBookings = useMemo(() => {
@@ -85,11 +99,25 @@ function ComplaintsContent() {
   const prefillTherapist = useMemo(() => {
     if (!form.bookingId) return null;
     const match = recentBookings.find((b) => b.id === form.bookingId);
-    return match ? { id: match.therapistId, name: match.therapistName } : null;
-  }, [form.bookingId, recentBookings]);
+    if (!match) return null;
+    const seen = therapistsSeen.find((th) => th.id === match.therapistId);
+    return {
+      id: match.therapistId,
+      name: match.therapistName,
+      specialty: seen?.specialty ?? "",
+      licenseNumber: seen?.licenseNumber ?? "",
+    };
+  }, [form.bookingId, recentBookings, therapistsSeen]);
 
   const selectedTherapistId = form.therapistId || prefillTherapist?.id || "";
-  const selectedTherapistName = prefillTherapist?.name || therapistsSeen.find((th) => th.id === form.therapistId)?.name || "";
+  const selectedTherapistName =
+    prefillTherapist?.name || therapistsSeen.find((th) => th.id === form.therapistId)?.name || "";
+
+  const therapistLabel = (th: { name: string; specialty?: string; licenseNumber?: string }) => {
+    const parts = [th.name, th.specialty].filter(Boolean);
+    if (th.licenseNumber) parts.push(`Lic. ${th.licenseNumber}`);
+    return parts.join(" — ");
+  };
 
   const isSafetyConcern = SAFETY_CATEGORIES.includes(form.category);
   const autoPriority = isSafetyConcern ? "Urgent" : "Normal";
@@ -102,18 +130,21 @@ function ComplaintsContent() {
     setForm((prev) => ({ ...prev, category }));
   }, []);
 
-  const handleFileAdd = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const incoming = Array.from(e.target.files ?? []);
-    setFiles((prev) => {
-      const combined = [...prev, ...incoming];
-      if (combined.length > 3) {
-        toast.error(t("patient_complaints.evidenceMaxError"));
-        return combined.slice(0, 3);
-      }
-      return combined;
-    });
-    e.target.value = "";
-  }, [t]);
+  const handleFileAdd = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const incoming = Array.from(e.target.files ?? []);
+      setFiles((prev) => {
+        const combined = [...prev, ...incoming];
+        if (combined.length > 3) {
+          toast.error(t("patient_complaints.evidenceMaxError"));
+          return combined.slice(0, 3);
+        }
+        return combined;
+      });
+      e.target.value = "";
+    },
+    [t],
+  );
 
   const handleFileRemove = useCallback((index: number) => {
     setFiles((prev) => prev.filter((_, i) => i !== index));
@@ -155,8 +186,9 @@ function ComplaintsContent() {
             });
             if (!res.ok) throw new Error("Upload failed");
             const data = await res.json();
-            evidenceUrls = (data.urls ?? []).map((u: { url: string; fileName: string }) =>
-              `${u.url}?name=${encodeURIComponent(u.fileName)}`
+            evidenceUrls = (data.urls ?? []).map(
+              (u: { url: string; fileName: string }) =>
+                `${u.url}?name=${encodeURIComponent(u.fileName)}`,
             );
           } catch {
             toast.error(t("patient_complaints.evidenceUploadError"));
@@ -179,7 +211,13 @@ function ComplaintsContent() {
 
         if (success) {
           toast.success(t("patient_complaints.submitted"));
-          setForm({ bookingId: "", therapistId: "", category: "", description: "", preferredOutcome: "" });
+          setForm({
+            bookingId: "",
+            therapistId: "",
+            category: "",
+            description: "",
+            preferredOutcome: "",
+          });
           setFiles([]);
         }
       } finally {
@@ -187,7 +225,7 @@ function ComplaintsContent() {
         setSubmitting(false);
       }
     },
-    [form, selectedTherapistId, selectedTherapistName, autoPriority, files, submitComplaint, t]
+    [form, selectedTherapistId, selectedTherapistName, autoPriority, files, submitComplaint, t],
   );
 
   return (
@@ -199,10 +237,12 @@ function ComplaintsContent() {
 
         <div className="grid sm:grid-cols-2 gap-3 mb-3">
           <div>
-            <label className="text-xs font-medium text-text-light">{t("patient_complaints.therapist")} *</label>
+            <label className="text-xs font-medium text-text-light">
+              {t("patient_complaints.therapist")} *
+            </label>
             {prefillTherapist ? (
               <div className="mt-1 px-3 py-2.5 rounded-xl border border-border bg-surface/40 text-sm font-medium">
-                {prefillTherapist.name}
+                {therapistLabel(prefillTherapist)}
               </div>
             ) : (
               <select
@@ -219,29 +259,41 @@ function ComplaintsContent() {
               >
                 <option value="">{t("patient_complaints.selectTherapist")}</option>
                 {therapistsSeen.map((th) => (
-                  <option key={th.id} value={th.id}>{th.name}</option>
+                  <option key={th.id} value={th.id}>
+                    {therapistLabel(th)}
+                  </option>
                 ))}
               </select>
             )}
           </div>
           <div>
-            <label className="text-xs font-medium text-text-light">{t("patient_complaints.relatedBooking")}</label>
+            <label className="text-xs font-medium text-text-light">
+              {t("patient_complaints.relatedBooking")}
+            </label>
             <select
               value={form.bookingId}
               onChange={(e) => handleBookingChange(e.target.value)}
               disabled={!form.therapistId}
               className="w-full mt-1 px-3 py-2.5 rounded-xl border border-border bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <option value="">{form.therapistId ? t("patient_complaints.generalBooking") : "Select therapist first"}</option>
+              <option value="">
+                {form.therapistId
+                  ? t("patient_complaints.generalBooking")
+                  : "Select therapist first"}
+              </option>
               {filteredBookings.map((b) => (
-                <option key={b.id} value={b.id}>{b.label}</option>
+                <option key={b.id} value={b.id}>
+                  {b.label}
+                </option>
               ))}
             </select>
           </div>
         </div>
 
         <div className="mb-3">
-          <label className="text-xs font-medium text-text-light">{t("patient_complaints.category")} *</label>
+          <label className="text-xs font-medium text-text-light">
+            {t("patient_complaints.category")} *
+          </label>
           <select
             value={form.category}
             onChange={(e) => handleCategoryChange(e.target.value)}
@@ -249,7 +301,9 @@ function ComplaintsContent() {
           >
             <option value="">{t("patient_complaints.selectCategory")}</option>
             {CATEGORIES.map((c) => (
-              <option key={c.value} value={c.value}>{t(c.labelKey)}</option>
+              <option key={c.value} value={c.value}>
+                {t(c.labelKey)}
+              </option>
             ))}
           </select>
         </div>
@@ -258,7 +312,9 @@ function ComplaintsContent() {
           <div className="card-highlight rounded-xl p-4 mb-3 flex items-start gap-3">
             <AlertTriangle size={18} className="text-primary mt-0.5 shrink-0" />
             <div>
-              <p className="text-sm font-medium mb-1">{t("patient_complaints.safetyRedirectTitle")}</p>
+              <p className="text-sm font-medium mb-1">
+                {t("patient_complaints.safetyRedirectTitle")}
+              </p>
             </div>
           </div>
         )}
@@ -273,7 +329,9 @@ function ComplaintsContent() {
         </div>
 
         <div className="mb-3">
-          <label className="text-xs font-medium text-text-light">{t("patient_complaints.description")} *</label>
+          <label className="text-xs font-medium text-text-light">
+            {t("patient_complaints.description")} *
+          </label>
           <textarea
             value={form.description}
             onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
@@ -293,28 +351,47 @@ function ComplaintsContent() {
         </div>
 
         <div className="mb-3">
-          <label className="text-xs font-medium text-text-light">{t("patient_complaints.evidence")}</label>
+          <label className="text-xs font-medium text-text-light">
+            {t("patient_complaints.evidence")}
+          </label>
           <div className="mt-1 flex items-center gap-3">
             <label className="btn-outline !py-2 !px-4 text-xs cursor-pointer inline-flex items-center gap-1.5">
               <Paperclip size={13} />
               {t("patient_complaints.attachFile")}
-              <input type="file" multiple accept="image/*,.pdf" onChange={handleFileAdd} className="hidden" />
+              <input
+                type="file"
+                multiple
+                accept="image/*,.pdf"
+                onChange={handleFileAdd}
+                className="hidden"
+              />
             </label>
             <span className="text-xs text-text-muted">{t("patient_complaints.evidenceDesc")}</span>
           </div>
           {files.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-2">
               {files.map((f, i) => (
-                <span key={i} className="inline-flex items-center gap-1.5 bg-surface rounded-lg px-2.5 py-1 text-xs">
+                <span
+                  key={i}
+                  className="inline-flex items-center gap-1.5 bg-surface rounded-lg px-2.5 py-1 text-xs"
+                >
                   <FileText size={12} className="text-text-light" />
                   {isPreviewableByName(f.name) ? (
-                    <button type="button" onClick={() => setPreviewFile(f)} className="hover:underline text-secondary">
+                    <button
+                      type="button"
+                      onClick={() => setPreviewFile(f)}
+                      className="hover:underline text-secondary"
+                    >
                       {f.name}
                     </button>
                   ) : (
                     f.name
                   )}
-                  <button type="button" onClick={() => handleFileRemove(i)} className="text-text-muted hover:text-danger">
+                  <button
+                    type="button"
+                    onClick={() => handleFileRemove(i)}
+                    className="text-text-muted hover:text-danger"
+                  >
                     <X size={12} />
                   </button>
                 </span>
@@ -324,7 +401,9 @@ function ComplaintsContent() {
         </div>
 
         <div className="mb-4">
-          <label className="text-xs font-medium text-text-light">{t("patient_complaints.preferredOutcome")}</label>
+          <label className="text-xs font-medium text-text-light">
+            {t("patient_complaints.preferredOutcome")}
+          </label>
           <select
             value={form.preferredOutcome}
             onChange={(e) => setForm((prev) => ({ ...prev, preferredOutcome: e.target.value }))}
@@ -332,7 +411,9 @@ function ComplaintsContent() {
           >
             <option value="">{t("patient_complaints.selectOutcome")}</option>
             {OUTCOMES.map((o) => (
-              <option key={o.value} value={o.value}>{t(o.labelKey)}</option>
+              <option key={o.value} value={o.value}>
+                {t(o.labelKey)}
+              </option>
             ))}
           </select>
         </div>
@@ -344,7 +425,9 @@ function ComplaintsContent() {
             disabled={isSubmitting || submitting}
             className="btn-secondary !px-5 disabled:opacity-50"
           >
-            {isSubmitting || submitting ? t("patient_complaints.submitting") : t("patient_complaints.submitReport")}
+            {isSubmitting || submitting
+              ? t("patient_complaints.submitting")
+              : t("patient_complaints.submitReport")}
           </button>
         </div>
       </form>
@@ -355,9 +438,7 @@ function ComplaintsContent() {
             <p className="eyebrow mb-1">{t("patient_complaints.myComplaints")}</p>
             <h3 className="font-display text-lg">{t("patient_complaints.myComplaintsTitle")}</h3>
           </div>
-          {isRefetching && (
-            <span className="text-xs text-text-light">Refreshing...</span>
-          )}
+          {isRefetching && <span className="text-xs text-text-light">Refreshing...</span>}
         </div>
         {complaintsLoading ? (
           <div className="space-y-3">
@@ -370,7 +451,9 @@ function ComplaintsContent() {
             ))}
           </div>
         ) : myComplaints.length === 0 ? (
-          <p className="text-sm text-text-light py-6 text-center">{t("patient_complaints.noComplaints")}</p>
+          <p className="text-sm text-text-light py-6 text-center">
+            {t("patient_complaints.noComplaints")}
+          </p>
         ) : (
           <div className="space-y-2">
             {myComplaints.map((c) => {
@@ -388,11 +471,16 @@ function ComplaintsContent() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <span className="text-sm truncate block">
-                        <span className="font-medium">{t("patient_complaints.against")}</span>: {c.against}
+                        <span className="font-medium">{t("patient_complaints.against")}</span>:{" "}
+                        {c.against}
                       </span>
                     </div>
                     <span className="text-xs text-text-muted font-mono whitespace-nowrap shrink-0">
-                      {new Date(c.filed).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      {new Date(c.filed).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
                     </span>
                     <span className="text-text-light shrink-0">
                       {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -418,9 +506,10 @@ function ComplaintsContent() {
                                 onClick={() => previewable && setPreviewAttachment({ url, name })}
                                 disabled={!previewable}
                                 className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-[11px] font-medium transition
-                                  ${previewable
-                                    ? "border-border bg-surface/40 hover:bg-surface/70 cursor-pointer"
-                                    : "border-border bg-surface/20 opacity-60 cursor-default"
+                                  ${
+                                    previewable
+                                      ? "border-border bg-surface/40 hover:bg-surface/70 cursor-pointer"
+                                      : "border-border bg-surface/20 opacity-60 cursor-default"
                                   }`}
                               >
                                 <FileText size={11} className="text-text-light" />
@@ -432,9 +521,16 @@ function ComplaintsContent() {
                       )}
                       {c.notes && c.notes.length > 0 && (
                         <div className="mt-2 border-t border-border pt-2">
-                          <p className="text-[11px] font-medium text-text-light mb-1">{t("patient_complaints.resolutionNote")}</p>
+                          <p className="text-[11px] font-medium text-text-light mb-1">
+                            {t("patient_complaints.resolutionNote")}
+                          </p>
                           {c.notes.map((note, i) => (
-                            <p key={i} className="text-[11px] text-text-light bg-surface rounded-lg px-3 py-2 mt-1">{note}</p>
+                            <p
+                              key={i}
+                              className="text-[11px] text-text-light bg-surface rounded-lg px-3 py-2 mt-1"
+                            >
+                              {note}
+                            </p>
                           ))}
                         </div>
                       )}
@@ -470,7 +566,9 @@ function ComplaintsContent() {
 export default function PatientComplaintsPage() {
   return (
     <ErrorBoundary>
-      <Suspense fallback={<div className="py-16 text-center text-text-light text-sm">Loading...</div>}>
+      <Suspense
+        fallback={<div className="py-16 text-center text-text-light text-sm">Loading...</div>}
+      >
         <ComplaintsContent />
       </Suspense>
     </ErrorBoundary>

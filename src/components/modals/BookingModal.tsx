@@ -3,7 +3,15 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { X, CalendarDays, ChevronDown, ChevronLeft, ChevronRight, TriangleAlert, Lock } from "lucide-react";
+import {
+  X,
+  CalendarDays,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  TriangleAlert,
+  Lock,
+} from "lucide-react";
 import { cn } from "@/utils/cn";
 import { Avatar } from "@/components/common/Avatar";
 import { useAuth } from "@/context/auth";
@@ -107,7 +115,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
                   "w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors",
                   isCompleted && "bg-secondary text-white",
                   isActive && "bg-secondary text-white ring-2 ring-secondary/30",
-                  isUpcoming && "bg-white border-2 border-gray-300 text-gray-400"
+                  isUpcoming && "bg-white border-2 border-gray-300 text-gray-400",
                 )}
               >
                 {isCompleted ? "✓" : step.num}
@@ -117,7 +125,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
                   "text-[10px] mt-1 whitespace-nowrap font-medium",
                   isCompleted && "text-secondary",
                   isActive && "text-secondary font-semibold",
-                  isUpcoming && "text-gray-400"
+                  isUpcoming && "text-gray-400",
                 )}
               >
                 {step.label}
@@ -127,7 +135,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
               <div
                 className={cn(
                   "flex-1 h-[2px] mx-2 mt-[-1.5rem]",
-                  isCompleted ? "bg-secondary" : "bg-gray-200"
+                  isCompleted ? "bg-secondary" : "bg-gray-200",
                 )}
               />
             )}
@@ -147,7 +155,12 @@ interface TherapistSummaryCardProps {
   compact?: boolean;
 }
 
-function TherapistSummaryCard({ therapist, selectedCurrency, currencies, compact }: TherapistSummaryCardProps) {
+function TherapistSummaryCard({
+  therapist,
+  selectedCurrency,
+  currencies,
+  compact,
+}: TherapistSummaryCardProps) {
   const currency = currencies.find((c) => c.code === selectedCurrency) ?? currencies[0];
   const rate = currency?.rate ?? 1;
   const symbol = currency?.symbol ?? "Rs";
@@ -194,7 +207,12 @@ interface ForWhomSelectorProps {
   onSelect: (name: string, id: string) => void;
 }
 
-function ForWhomSelector({ familyMembers, selectedName, selectedId, onSelect }: ForWhomSelectorProps) {
+function ForWhomSelector({
+  familyMembers,
+  selectedName,
+  selectedId,
+  onSelect,
+}: ForWhomSelectorProps) {
   if (familyMembers.length === 0) return null;
 
   const options = [
@@ -221,10 +239,12 @@ function ForWhomSelector({ familyMembers, selectedName, selectedId, onSelect }: 
                 "py-2.5 px-3 rounded-xl border text-left transition-all",
                 isSelected
                   ? "border-secondary bg-secondary/10 ring-1 ring-secondary/30"
-                  : "border-gray-200 bg-white hover:bg-gray-50"
+                  : "border-gray-200 bg-white hover:bg-gray-50",
               )}
             >
-              <div className={cn("text-sm font-medium", isSelected ? "text-secondary" : "text-text")}>
+              <div
+                className={cn("text-sm font-medium", isSelected ? "text-secondary" : "text-text")}
+              >
                 {opt.name}
               </div>
               <div className="text-[11px] text-gray-400 truncate">{opt.subtitle}</div>
@@ -289,7 +309,22 @@ interface StepDateTimeProps {
   onBack?: () => void;
 }
 
-function StepDateTime({ selectedDate, selectedTime, address, slots, slotsLoading, familyMembers, selectedForWhomName, selectedForWhomId, onForWhomChange, onDateChange, onTimeChange, onAddressChange, onContinue, onBack }: StepDateTimeProps) {
+function StepDateTime({
+  selectedDate,
+  selectedTime,
+  address,
+  slots,
+  slotsLoading,
+  familyMembers,
+  selectedForWhomName,
+  selectedForWhomId,
+  onForWhomChange,
+  onDateChange,
+  onTimeChange,
+  onAddressChange,
+  onContinue,
+  onBack,
+}: StepDateTimeProps) {
   const todayStr = localDateStr();
   const canGoPrev = selectedDate > todayStr;
   const hasOpenSlots = slots.some((s) => s.status === "open");
@@ -333,7 +368,9 @@ function StepDateTime({ selectedDate, selectedTime, address, slots, slotsLoading
             disabled={!canGoPrev}
             className={cn(
               "w-9 h-9 rounded-lg border bg-white flex items-center justify-center transition-colors shrink-0",
-              canGoPrev ? "border-gray-200 hover:bg-gray-50" : "border-gray-100 opacity-40 cursor-not-allowed"
+              canGoPrev
+                ? "border-gray-200 hover:bg-gray-50"
+                : "border-gray-100 opacity-40 cursor-not-allowed",
             )}
           >
             <ChevronLeft size={16} className="text-gray-500" />
@@ -382,15 +419,24 @@ function StepDateTime({ selectedDate, selectedTime, address, slots, slotsLoading
                     onClick={() => isOpen && onTimeChange(slot.time)}
                     className={cn(
                       "py-2.5 rounded-xl text-sm font-medium border transition-all",
-                      isOpen && isSelected && "border-secondary bg-secondary/10 text-secondary ring-1 ring-secondary/30",
-                      isOpen && !isSelected && "border-secondary/30 bg-secondary/5 text-secondary hover:bg-secondary/10 hover:border-secondary/50",
-                      isBooked && "bg-gray-100 text-gray-400 border-gray-200 line-through cursor-not-allowed",
+                      isOpen &&
+                        isSelected &&
+                        "border-secondary bg-secondary/10 text-secondary ring-1 ring-secondary/30",
+                      isOpen &&
+                        !isSelected &&
+                        "border-secondary/30 bg-secondary/5 text-secondary hover:bg-secondary/10 hover:border-secondary/50",
+                      isBooked &&
+                        "bg-gray-100 text-gray-400 border-gray-200 line-through cursor-not-allowed",
                       isOff && "bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed",
-                      isPast && "bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed"
+                      isPast && "bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed",
                     )}
                   >
                     <span className="block leading-tight">{to12h(slot.time)}</span>
-                    {isOpen && <span className="block text-[10px] font-normal opacity-60">to {to12h(endTime)}</span>}
+                    {isOpen && (
+                      <span className="block text-[10px] font-normal opacity-60">
+                        to {to12h(endTime)}
+                      </span>
+                    )}
                   </button>
                 );
               })
@@ -398,7 +444,8 @@ function StepDateTime({ selectedDate, selectedTime, address, slots, slotsLoading
           </div>
         )}
         <p className="text-xs text-gray-400 mt-2">
-          <span className="text-secondary">Green</span> = available · <span className="line-through">Grey</span> = booked · Light grey = off
+          <span className="text-secondary">Green</span> = available ·{" "}
+          <span className="line-through">Grey</span> = booked · Light grey = off
         </p>
       </div>
 
@@ -420,7 +467,7 @@ function StepDateTime({ selectedDate, selectedTime, address, slots, slotsLoading
           "w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all",
           isValid
             ? "bg-secondary text-white hover:bg-secondary/90"
-            : "bg-gray-200 text-gray-400 cursor-not-allowed"
+            : "bg-gray-200 text-gray-400 cursor-not-allowed",
         )}
       >
         Continue
@@ -516,7 +563,7 @@ function StepPayment({
   const isNPR = selectedCurrency === "NPR";
 
   const selectedMethod = [...nepalPayments, ...internationalPayments].find(
-    (m) => m.id === selectedPaymentMethod
+    (m) => m.id === selectedPaymentMethod,
   );
 
   const nepalWalletMethods = nepalPayments.filter((m) => m.subtype === "Digital wallet");
@@ -626,7 +673,10 @@ function StepPayment({
       <div>
         <h2 className="text-xl font-bold text-text">Payment</h2>
         <p className="text-sm text-gray-500 mt-1">Select currency and payment method</p>
-        <button onClick={onBack} className="text-sm text-gray-500 hover:text-secondary mt-1 flex items-center gap-1">
+        <button
+          onClick={onBack}
+          className="text-sm text-gray-500 hover:text-secondary mt-1 flex items-center gap-1"
+        >
           ← Back
         </button>
       </div>
@@ -668,7 +718,7 @@ function StepPayment({
                 className={cn(
                   "w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors",
                   c.code === selectedCurrency && "bg-secondary/5",
-                  currencyFocusedIdx === i && "bg-gray-50"
+                  currencyFocusedIdx === i && "bg-gray-50",
                 )}
               >
                 <span className="flex items-center gap-2">
@@ -676,9 +726,7 @@ function StepPayment({
                   <span className="font-medium text-text">{c.code}</span>
                   <span className="text-gray-400">— {c.name}</span>
                 </span>
-                {c.code === selectedCurrency && (
-                  <span className="text-secondary font-bold">✓</span>
-                )}
+                {c.code === selectedCurrency && <span className="text-secondary font-bold">✓</span>}
               </button>
             ))}
           </div>
@@ -688,22 +736,25 @@ function StepPayment({
       <div className="bg-surface rounded-xl p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-gray-500 font-medium">You will pay</p>
+            <p className="text-[10px] uppercase tracking-wider text-gray-500 font-medium">
+              You will pay
+            </p>
             <p className="text-2xl font-bold text-text mt-0.5">
-              {symbol}{total.toFixed(2)}
+              {symbol}
+              {total.toFixed(2)}
             </p>
           </div>
           <div className="text-right">
-            <p className="text-[10px] uppercase tracking-wider text-gray-500 font-medium">Base price</p>
+            <p className="text-[10px] uppercase tracking-wider text-gray-500 font-medium">
+              Base price
+            </p>
             <p className="text-sm font-semibold text-text mt-0.5">
               Rs. {basePrice.toLocaleString("en-IN")}
             </p>
           </div>
         </div>
         <p className="text-xs text-gray-400 mt-2">
-          {isNPR
-            ? "Local currency — no conversion"
-            : `1 ${selectedCurrency} = ${rate} NPR`}
+          {isNPR ? "Local currency — no conversion" : `1 ${selectedCurrency} = ${rate} NPR`}
         </p>
       </div>
 
@@ -723,7 +774,7 @@ function StepPayment({
                 "flex flex-col items-center gap-2 p-4 rounded-xl border text-sm transition-all",
                 active
                   ? "border-secondary bg-secondary/5"
-                  : "border-gray-200 bg-white hover:border-gray-300"
+                  : "border-gray-200 bg-white hover:border-gray-300",
               )}
             >
               <span className="text-2xl">{pt.flag}</span>
@@ -744,22 +795,31 @@ function StepPayment({
           >
             <span className={cn("font-medium", selectedMethod ? "text-text" : "text-gray-400")}>
               {selectedMethod ? (
-                <><span className="mr-2">{selectedMethod.icon}</span>{selectedMethod.label}</>
+                <>
+                  <span className="mr-2">{selectedMethod.icon}</span>
+                  {selectedMethod.label}
+                </>
               ) : (
                 `Select ${paymentType} payment method`
               )}
             </span>
-            <ChevronDown size={18} className={cn("text-gray-400 transition-transform", methodOpen && "rotate-180")} />
+            <ChevronDown
+              size={18}
+              className={cn("text-gray-400 transition-transform", methodOpen && "rotate-180")}
+            />
           </button>
           {methodOpen && (
             <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
               {(paymentType === "nepal" ? nepalPayments : internationalPayments).map((m) => (
                 <button
                   key={m.id}
-                  onClick={() => { onPaymentChange(m.id); setMethodOpen(false); }}
+                  onClick={() => {
+                    onPaymentChange(m.id);
+                    setMethodOpen(false);
+                  }}
                   className={cn(
                     "w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors",
-                    selectedPaymentMethod === m.id && "bg-secondary/5 font-semibold text-secondary"
+                    selectedPaymentMethod === m.id && "bg-secondary/5 font-semibold text-secondary",
                   )}
                 >
                   <span className="text-lg">{m.icon}</span>
@@ -859,7 +919,7 @@ function StepPayment({
                       }}
                       className={cn(
                         "w-full text-left px-3 py-2 text-sm hover:bg-gray-50",
-                        billingCountry === c && "bg-secondary/5 font-medium"
+                        billingCountry === c && "bg-secondary/5 font-medium",
                       )}
                     >
                       {c}
@@ -892,13 +952,13 @@ function StepPayment({
               onClick={() => onPointsToUseChange(pointsToUse > 0 ? 0 : maxUsablePoints)}
               className={cn(
                 "shrink-0 w-11 h-6 rounded-full transition-colors relative",
-                pointsToUse > 0 ? "bg-secondary" : "bg-border"
+                pointsToUse > 0 ? "bg-secondary" : "bg-border",
               )}
             >
               <span
                 className={cn(
                   "absolute top-0.5 w-5 h-5 bg-surface rounded-full transition-all",
-                  pointsToUse > 0 ? "left-[1.375rem]" : "left-0.5"
+                  pointsToUse > 0 ? "left-[1.375rem]" : "left-0.5",
                 )}
               />
             </button>
@@ -909,23 +969,33 @@ function StepPayment({
       <div className="bg-surface rounded-xl p-4 space-y-2">
         <div className="flex justify-between text-sm">
           <span className="text-gray-500">Session fee</span>
-          <span className="font-medium text-text">{symbol}{converted.toFixed(2)}</span>
+          <span className="font-medium text-text">
+            {symbol}
+            {converted.toFixed(2)}
+          </span>
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-gray-500">Platform fee (5%)</span>
-          <span className="font-medium text-text">{symbol}{platformFee.toFixed(2)}</span>
+          <span className="font-medium text-text">
+            {symbol}
+            {platformFee.toFixed(2)}
+          </span>
         </div>
         {pointsDiscount > 0 && (
           <div className="flex justify-between text-sm">
             <span className="text-text-light">Points ({pointsToUse.toLocaleString()})</span>
             <span className="font-medium text-secondary">
-              − {symbol}{pointsDiscount.toFixed(2)}
+              − {symbol}
+              {pointsDiscount.toFixed(2)}
             </span>
           </div>
         )}
         <div className="flex justify-between text-sm font-bold border-t border-gray-300 pt-2">
           <span className="text-text">Total</span>
-          <span className="text-text">{symbol}{(total - pointsDiscount).toFixed(2)}</span>
+          <span className="text-text">
+            {symbol}
+            {(total - pointsDiscount).toFixed(2)}
+          </span>
         </div>
         {pointsDiscount > 0 && (
           <p className="text-[11px] text-gray-500 pt-1">
@@ -946,7 +1016,7 @@ function StepPayment({
           "w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all",
           isValid && !isSubmitting
             ? "bg-secondary text-white hover:bg-secondary/90"
-            : "bg-gray-200 text-gray-400 cursor-not-allowed"
+            : "bg-gray-200 text-gray-400 cursor-not-allowed",
         )}
       >
         {isSubmitting ? (
@@ -987,7 +1057,7 @@ function StepConfirmation({ result, currencies, onDone, isEdit }: StepConfirmati
       <div
         className={cn(
           "transition-all duration-500 ease-out",
-          visible ? "opacity-100 scale-100" : "opacity-0 scale-50"
+          visible ? "opacity-100 scale-100" : "opacity-0 scale-50",
         )}
       >
         <div className="w-20 h-20 rounded-full bg-secondary/10 flex items-center justify-center mx-auto">
@@ -1018,7 +1088,8 @@ function StepConfirmation({ result, currencies, onDone, isEdit }: StepConfirmati
         </div>
         <div className="text-right shrink-0">
           <div className="font-bold text-sm text-text">
-            {symbol}{result.amount.toFixed(2)}
+            {symbol}
+            {result.amount.toFixed(2)}
           </div>
         </div>
       </div>
@@ -1056,9 +1127,7 @@ function DetailRow({ label, value, bold }: { label: string; value: string; bold?
   return (
     <div className="flex justify-between gap-2">
       <span className="text-gray-500">{label}</span>
-      <span className={bold ? "font-bold text-text" : "font-medium text-text"}>
-        {value}
-      </span>
+      <span className={bold ? "font-bold text-text" : "font-medium text-text"}>{value}</span>
     </div>
   );
 }
@@ -1072,7 +1141,10 @@ function localDateStr(d: Date = new Date()): string {
   return `${y}-${m}-${day}`;
 }
 
-function buildTimeSlots(date: string, slotData?: { slots: { date: string; time: string; status: string }[] }): TimeSlot[] {
+function buildTimeSlots(
+  date: string,
+  slotData?: { slots: { date: string; time: string; status: string }[] },
+): TimeSlot[] {
   if (!slotData?.slots || slotData.slots.length === 0) return [];
 
   const todayStr = localDateStr();
@@ -1136,6 +1208,7 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
   const [selectedCurrency, setSelectedCurrency] = useState("NPR");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
   const [bookingResult, setBookingResult] = useState<BookingResult | null>(null);
+  const [redirecting, setRedirecting] = useState("");
   const [cardDetails, setCardDetails] = useState<CardDetails>({
     number: "",
     expiry: "",
@@ -1240,6 +1313,16 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
       queryClient.invalidateQueries({ queryKey: ["patient-dashboard"] });
 
+      // Gateway method (eSewa/Khalti): hand off to the gateway's checkout
+      // page. The browser leaves this page; the webhook route verifies the
+      // payment server-side and lands on /book/confirmation.
+      const initiation = data?.initiation;
+      if (initiation?.url) {
+        setRedirecting(getPaymentLabel());
+        submitGatewayInitiation(initiation);
+        return;
+      }
+
       // Redemption needs a session id, so it runs after the booking rather
       // than as part of it. A failure here keeps the booking — the patient
       // simply has not spent their points.
@@ -1252,7 +1335,10 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
         }
       }
 
-      const ref = data?.payment?.id || data?.session?.id || "BK-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+      const ref =
+        data?.payment?.id ||
+        data?.session?.id ||
+        "BK-" + Math.random().toString(36).slice(2, 8).toUpperCase();
       setBookingResult({
         reference: ref,
         therapistName: resolvedTherapist.name,
@@ -1318,6 +1404,37 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
   function getPaymentLabel(): string {
     const found = allPaymentMethods.find((m) => m.id === selectedPaymentMethod);
     return found?.label || selectedPaymentMethod;
+  }
+
+  function submitGatewayInitiation(initiation: {
+    type: string;
+    url?: string;
+    formFields?: Record<string, string>;
+  }) {
+    // eSewa: POST hidden form with signed fields straight to the checkout URL.
+    if (initiation.type === "form" && initiation.url && initiation.formFields) {
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = initiation.url;
+      form.target = "_self";
+      form.style.display = "none";
+      for (const [key, value] of Object.entries(initiation.formFields)) {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = key;
+        input.value = value;
+        form.appendChild(input);
+      }
+      document.body.appendChild(form);
+      form.submit();
+      return;
+    }
+    // Khalti: gateway returns a payment_url to navigate the user to.
+    if (initiation.url) {
+      if (typeof window !== "undefined") {
+        window.location.assign(initiation.url);
+      }
+    }
   }
 
   const handleSubmit = useCallback(() => {
@@ -1421,12 +1538,16 @@ function BookingModal({ onClose, therapist: propTherapist, session }: BookingMod
           )}
         </div>
 
-        {isSubmitting && (
+        {(isSubmitting || redirecting) && (
           <div className="absolute inset-0 bg-white/60 backdrop-blur-sm rounded-2xl flex items-center justify-center z-20">
             <div className="text-center">
               <div className="w-12 h-12 border-4 border-secondary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
               <p className="text-sm font-medium text-text">
-                {isEdit ? "Updating booking..." : "Processing payment..."}
+                {redirecting
+                  ? `Redirecting to ${redirecting}…`
+                  : isEdit
+                    ? "Updating booking..."
+                    : "Processing payment..."}
               </p>
             </div>
           </div>

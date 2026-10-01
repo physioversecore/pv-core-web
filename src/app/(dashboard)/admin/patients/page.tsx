@@ -40,7 +40,17 @@ export default function AdminPatients() {
   const { sort, toggleSort, sortBy, sortOrder } = useTableSort({ defaultColumn: "name" });
   const pageSize = 10;
 
-  const { items, total, isLoading, isRefetching, error, refetch, deletePatient, togglePatientStatus, updatePatient } = useAdminPatients({
+  const {
+    items,
+    total,
+    isLoading,
+    isRefetching,
+    error,
+    refetch,
+    deletePatient,
+    togglePatientStatus,
+    updatePatient,
+  } = useAdminPatients({
     search: debouncedSearch,
     dateFrom,
     dateTo,
@@ -66,23 +76,20 @@ export default function AdminPatients() {
     [search, dateFrom, dateTo, status, city],
   );
 
-  const handleFilterChange = useCallback(
-    (key: string, value: string) => {
-      if (key === "search") setSearch(value);
-      else if (key === "dateFrom") setDateFrom(value);
-      else if (key === "dateTo") setDateTo(value);
-      else if (key === "status") setStatus(value);
-      else if (key === "city") setCity(value);
-      setPage(1);
-    },
-    [],
-  );
+  const handleFilterChange = useCallback((key: string, value: string) => {
+    if (key === "search") setSearch(value);
+    else if (key === "dateFrom") setDateFrom(value);
+    else if (key === "dateTo") setDateTo(value);
+    else if (key === "status") setStatus(value);
+    else if (key === "city") setCity(value);
+    setPage(1);
+  }, []);
 
   const handleDelete = useCallback(async () => {
     if (!deleteTarget) return;
     try {
       await deletePatient(deleteTarget.id);
-      toast.success(t("admin_dashboard.patientDeactivated") ?? "Patient deleted");
+      toast.success(t("admin_dashboard.patientDeleted") ?? "Patient deleted");
       setDeleteTarget(null);
     } catch {
       toast.error(t("common.tryAgain") ?? "Something went wrong");
@@ -96,7 +103,7 @@ export default function AdminPatients() {
         toast.success(
           row.isActive
             ? (t("admin_dashboard.patientDeactivated") ?? "Patient deactivated")
-            : (t("admin_dashboard.patientDeactivated") ?? "Patient activated"),
+            : (t("admin_dashboard.patientActivated") ?? "Patient activated"),
         );
       } catch {
         toast.error(t("common.tryAgain") ?? "Something went wrong");
@@ -194,7 +201,10 @@ export default function AdminPatients() {
           key: "edit",
           label: t("admin_dashboard.edit") ?? "Edit",
           icon: <Pencil size={14} />,
-          onClick: () => { setSheetRow(row); setSheetMode("edit"); },
+          onClick: () => {
+            setSheetRow(row);
+            setSheetMode("edit");
+          },
         },
         {
           key: "toggle",
@@ -257,7 +267,9 @@ export default function AdminPatients() {
     <div>
       <div className="card-soft p-5">
         <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-          <h3 className="font-display text-xl">{t("admin_dashboard.allPatients") ?? "All Patients"}</h3>
+          <h3 className="font-display text-xl">
+            {t("admin_dashboard.allPatients") ?? "All Patients"}
+          </h3>
           <div className="flex items-center gap-2">
             <RefreshButton onRefresh={() => refetch()} isRefreshing={isRefetching} />
             <button
@@ -267,7 +279,8 @@ export default function AdminPatients() {
               <Filter size={14} className="inline mr-1" /> Filter
             </button>
             <button onClick={exportCsv} className="btn-outline !py-2 !px-3 text-xs cursor-pointer">
-              <Download size={14} className="inline mr-1" /> {t("admin_dashboard.exportCsv") ?? "Export CSV"}
+              <Download size={14} className="inline mr-1" />{" "}
+              {t("admin_dashboard.exportCsv") ?? "Export CSV"}
             </button>
           </div>
         </div>
@@ -298,7 +311,10 @@ export default function AdminPatients() {
           pageSize={pageSize}
           onPageChange={setPage}
           renderActions={renderActions}
-          onRowClick={(row) => { setSheetRow(row); setSheetMode("view"); }}
+          onRowClick={(row) => {
+            setSheetRow(row);
+            setSheetMode("view");
+          }}
           emptyMessage={t("common.noResults") ?? "No results found"}
         />
       </div>

@@ -190,6 +190,15 @@ src/
 - **Admin side**: `/admin/complaints` lists complaints in tabs (Patient/Therapist), with export CSV (no leading ID column). The sidebar `/admin/complaints` link shows a live badge (see `complaint-badge.tsx` below).
 - **Admin new-complaint badge**: `ComplaintBadgeProvider` (root provider) polls `getNewComplaintCount(since)` → `GET /admin/complaints/new-count?since=` every 30s for admins; `since` is `localStorage["admin_last_complaint_visit"]` (set on first admin login) and is reset via `resetComplaintCount()` when the admin opens `/admin/complaints` (`(dashboard)/layout.tsx`). The count is injected into the admin nav item via `navWithBadges` and rendered by `DashboardShell` as an amber pill. Mirrors `BookingBadgeProvider` exactly.
 
+### Admin — Bookings, Refunds & Booking References
+
+- **Booking references**: raw Prisma session ids are never shown to users. `src/lib/booking-ref.ts` derives `bk-XXXXXXXX` (`bk-` + last 8 cuid chars, uppercased) and it's used in every table/card that displays a booking: admin bookings/refunds/schedules, patient `SessionCard`/`SessionTable`/dashboard upcoming list, therapist `TodaySessions` + schedule popover.
+- **Search supports the reference**: `get_admin_bookings` and `get_refunds` match a `bk-…` search by id `endsWith` (case-insensitive); the raw trailing chars. Refunds Booking column deep-links to `/admin/bookings?search=<rawId>` so the link actually finds the booking.
+- **Admin bookings page**: `GET /admin/bookings` accepts `search`, `status`, `dateFrom`/`dateTo`, `patientId`, `skip`/`limit` (the `patientId` filter is what the refund `BookingPicker` uses). Now displays a **Booking ID** column (`bookingRef(row.id)`).
+- **Refunds page** (`/admin/refunds`): fully paginated (DataTable + `skip/limit`/`pageSize=10`, page reset on filter change). Stat cards read `GET /admin/refunds/stats` (pending, refunded this month, dispute rate, avg resolution days; hook refetches every 30s). No ID column. Add Refund / Log Manual Case modals use `PatientPicker` (debounced `GET /admin/patients?search=&limit=10`) + `BookingPicker` (patient's bookings via `patientId`); Assign uses `AssigneePicker` (debounced `GET /admin/users?role=ADMIN`). Deny/Delete dialogs show a case-detail box (Booking ID, patient, amount, filed on).
+- **Refund nav badge stays live**: refund mutations in `useAdminRefunds` invalidate `["admin-nav-badges"]` on approve/deny/delete/create.
+- **Earnings trend**: admin dashboard `PlatformEarnings` uses `earningsTrend` from `useAdminDashboard` → `GET /admin/dashboard/earnings-trend` (daily/weekly/monthly buckets) and renders a recharts area chart with an empty state.
+
 ### Dynamic Admin Pages (6 pages)
 
 All admin dashboard pages are **fully dynamic** — no mock/seed fallback in the frontend. Each page is backed by a real backend endpoint, consumed via a dedicated React Query hook. Seed data is provided by `scripts/seed-admin-data.py` on the backend.

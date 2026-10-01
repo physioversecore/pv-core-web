@@ -8,20 +8,20 @@ import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { CancelConfirmModal } from "@/components/modals/CancelConfirmModal";
 import { RescheduleModal } from "@/components/modals/RescheduleModal";
 import { formatWhen, formatType, isPast } from "@/lib/format";
+import { bookingRef } from "@/lib/booking-ref";
 import type { SessionData } from "@/services/api/sessions";
 
 const OVERVIEW_LIMIT = 5;
 
 export function UpcomingAppointments() {
   const { t } = useLang();
-  const { sessions, cancelSession, isCancelling, rescheduleSession, isRescheduling } = useSessions();
+  const { sessions, cancelSession, isCancelling, rescheduleSession, isRescheduling } =
+    useSessions();
   const [cancelTarget, setCancelTarget] = useState<SessionData | null>(null);
   const [rescheduleTarget, setRescheduleTarget] = useState<SessionData | null>(null);
 
   const allUpcoming = sessions.filter(
-    (s) =>
-      (s.status === "SCHEDULED" || s.status === "IN_PROGRESS") &&
-      !isPast(s.date, s.time),
+    (s) => (s.status === "SCHEDULED" || s.status === "IN_PROGRESS") && !isPast(s.date, s.time),
   );
   const showViewAll = allUpcoming.length > OVERVIEW_LIMIT;
   const upcoming = showViewAll ? allUpcoming.slice(0, OVERVIEW_LIMIT) : allUpcoming;
@@ -45,10 +45,14 @@ export function UpcomingAppointments() {
       <div className="card-soft p-5 mb-6">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-display text-lg">{t("patient_dashboard.upcomingSessions")}</h3>
-          <span className="chip">{allUpcoming.length} {t("patient_dashboard.booked")}</span>
+          <span className="chip">
+            {allUpcoming.length} {t("patient_dashboard.booked")}
+          </span>
         </div>
         {upcoming.length === 0 ? (
-          <p className="text-sm text-text-light py-4">{t("patient_dashboard.noUpcomingSessions")}</p>
+          <p className="text-sm text-text-light py-4">
+            {t("patient_dashboard.noUpcomingSessions")}
+          </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -65,14 +69,24 @@ export function UpcomingAppointments() {
               <tbody className="divide-y divide-border">
                 {upcoming.map((u) => (
                   <tr key={u.id}>
-                    <td className="py-3 pr-3 font-medium text-secondary">{u.therapistName || "Therapist"}</td>
-                    <td className="py-3 pr-3 text-text-light">{formatWhen(u.date, u.time)}</td>
+                    <td className="py-3 pr-3 font-medium text-secondary">
+                      {u.therapistName || "Therapist"}
+                    </td>
+                    <td className="py-3 pr-3 text-text-light">
+                      {formatWhen(u.date, u.time)}
+                      <span className="block font-mono text-[10px] text-text-muted">
+                        {bookingRef(u.id)}
+                      </span>
+                    </td>
                     <td className="py-3 pr-3 text-text-light">{u.familyMemberName || "Self"}</td>
                     <td className="py-3 pr-3 text-text-light">{formatType(u.type)}</td>
                     <td className="py-3 pr-3">
                       <StatusBadge
                         status={u.status === "IN_PROGRESS" ? "Pending" : "Confirmed"}
-                        labels={{ confirmed: t("patient_dashboard.confirmed"), pending: t("patient_dashboard.pending") }}
+                        labels={{
+                          confirmed: t("patient_dashboard.confirmed"),
+                          pending: t("patient_dashboard.pending"),
+                        }}
                       />
                     </td>
                     <td className="py-3 text-right">

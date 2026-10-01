@@ -258,5 +258,10 @@ This seeds 14 users + 8 therapist profiles. For products, sessions, and reports,
 | Admin: list users | GET | `/api/v1/admin/users?role=THERAPIST` | JWT (ADMIN) |
 | Admin: update status | PUT | `/api/v1/admin/users/{id}/status?new_status=APPROVED` | JWT (ADMIN) |
 | Admin: pending therapists| GET | `/api/v1/admin/therapists/pending` | JWT (ADMIN) |
+| Admin: bookings | GET | `/api/v1/admin/bookings?search=&status=&patientId=&skip=&limit=` | JWT (ADMIN) |
+| Admin: bookings badge | GET | `/api/v1/admin/bookings/new-count?since=` | JWT (ADMIN) |
+| Admin: refunds | GET | `/api/v1/admin/refunds?page&limit&search&…` | JWT (ADMIN) |
+| Admin: refund stats | GET | `/api/v1/admin/refunds/stats` | JWT (ADMIN) |
+| Admin: dashboard earnings trend | GET | `/api/v1/admin/dashboard/earnings-trend` | JWT (ADMIN) |
 
 > **Base URL**: `http://localhost:8000` (dev) — configured via `BACKEND_URL` env var on the frontend.

@@ -8,6 +8,8 @@ Nepal's home-visit physiotherapy platform connecting patients with verified phys
 - **Therapist** — Manage schedules & availability, upload session reports, track earnings, refer colleagues, request time off, file complaints against patients with evidence attachments.
 - **Admin** — Approve therapists, manage patients/users, oversee bookings, payments, refunds, complaints, service areas, verification, performance reviews, safety incidents, analytics, and platform settings. Sidebar shows a live badge counting new complaints since the last visit.
 
+**Booking references** — every session shows a short human-friendly id (`bk-XXXXXXXX`, derived from the session id via `src/lib/booking-ref.ts`) in place of the raw Prisma id. It appears across admin bookings/refunds/schedules tables, the patient sessions views, and the therapist schedule — and the admin bookings/refunds search accepts `bk-…` too.
+
 ## Tech Stack
 
 | Layer | Technology |
@@ -123,7 +125,8 @@ src/
   hooks/                        # TanStack Query hooks (45 files)
   services/api/                 # Server-only API layer (21 files)
     client.ts                   # Base HTTP client (server-only import)
-    auth.ts, admin.ts, sessions.ts, therapists.ts,
+    admin.ts                    # Admin API (bookings patientId+bk- search, refunds + stats, earnings trend…)
+    auth.ts, sessions.ts, therapists.ts,
     patients.ts, products.ts, cart.ts, availability.ts,
     earnings.ts, reports.ts, reviews.ts, settings.ts, profile.ts,
     clinics.ts, packages.ts, services.ts, auth-session.ts,

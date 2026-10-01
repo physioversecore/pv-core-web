@@ -84,9 +84,17 @@ const EMPTY_DRAFT: Draft = {
 };
 
 const TABS: { key: TabKey; labelKey: TKey; icon: ReactNode }[] = [
-  { key: "personal", labelKey: "patient_dashboard.profileTabPersonal", icon: <UserIcon size={13} /> },
+  {
+    key: "personal",
+    labelKey: "patient_dashboard.profileTabPersonal",
+    icon: <UserIcon size={13} />,
+  },
   { key: "medical", labelKey: "patient_dashboard.profileTabMedical", icon: <Activity size={13} /> },
-  { key: "emergency", labelKey: "patient_dashboard.profileTabEmergency", icon: <HeartHandshake size={13} /> },
+  {
+    key: "emergency",
+    labelKey: "patient_dashboard.profileTabEmergency",
+    icon: <HeartHandshake size={13} />,
+  },
   { key: "family", labelKey: "patient_dashboard.profileTabFamily", icon: <Users size={13} /> },
 ];
 
@@ -108,7 +116,9 @@ export default function Profile() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoProgress, setPhotoProgress] = useState(0);
-  const [photoStatus, setPhotoStatus] = useState<"idle" | "uploading" | "success" | "error">("idle");
+  const [photoStatus, setPhotoStatus] = useState<"idle" | "uploading" | "success" | "error">(
+    "idle",
+  );
   const [photoError, setPhotoError] = useState("");
 
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
@@ -278,13 +288,10 @@ export default function Profile() {
       const payload: Partial<PatientProfile> = {};
       if (tab === "personal") {
         payload.name = draft.name;
-        payload.phone = draft.phone || profile?.phone;
         payload.city = draft.city;
         payload.address = draft.address || undefined;
-        payload.dob = draft.dob || undefined;
       } else if (tab === "medical") {
         payload.history = draft.history || undefined;
-        payload.gender = draft.gender;
         payload.condition = draft.condition;
         payload.notifEmail = draft.notifEmail;
         payload.notifSms = draft.notifSms;
@@ -542,8 +549,8 @@ export default function Profile() {
               <h2 className="font-display text-lg font-semibold text-text leading-tight">
                 {panelTitle}
               </h2>
-              {tab !== "family" && (
-                !editing ? (
+              {tab !== "family" &&
+                (!editing ? (
                   <button
                     type="button"
                     onClick={() => setEditing(true)}
@@ -564,34 +571,60 @@ export default function Profile() {
                     <X size={13} />
                     {t("patient_dashboard.profileCancel")}
                   </button>
-                )
-              )}
+                ))}
             </div>
 
             {/* ─── Personal / Medical / Emergency ─── */}
-            {tab !== "family" && (
-              editing ? (
+            {tab !== "family" &&
+              (editing ? (
                 <form onSubmit={save} className="space-y-4">
                   {tab === "personal" && (
                     <>
                       <Field label={t("patient_dashboard.fullName")}>
-                        <input className={inputCls} value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} required />
+                        <input
+                          className={inputCls}
+                          value={draft.name}
+                          onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                          required
+                        />
                       </Field>
                       <div className="grid sm:grid-cols-2 gap-4">
-                        <Field label={t("patient_dashboard.profileDateOfBirth")}>
-                          <DatePicker value={draft.dob} onChange={(v) => setDraft({ ...draft, dob: v })} placeholder={t("patient_dashboard.profileDateOfBirth")} dropdowns />
-                        </Field>
-                        <Field label={t("patient_dashboard.phone")}>
-                          <input className={inputCls} value={draft.phone} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} required />
-                        </Field>
+                        <div>
+                          <FieldLabel>{t("patient_dashboard.profileDateOfBirth")}</FieldLabel>
+                          <ReadOnlyValue>
+                            {dobLine(profile, t("patient_dashboard.profileYrs"))}
+                          </ReadOnlyValue>
+                          <p className="text-[11px] text-text-muted mt-1">
+                            {t("patient_dashboard.profileImmutableHint")}
+                          </p>
+                        </div>
+                        <div>
+                          <FieldLabel>{t("patient_dashboard.phone")}</FieldLabel>
+                          <ReadOnlyValue>{profile?.phone ?? "—"}</ReadOnlyValue>
+                          <p className="text-[11px] text-text-muted mt-1">
+                            {t("patient_dashboard.profileImmutableHint")}
+                          </p>
+                        </div>
                       </div>
                       <Field label={t("patient_dashboard.homeAddress")}>
-                        <input className={inputCls} value={draft.address} onChange={(e) => setDraft({ ...draft, address: e.target.value })} />
+                        <input
+                          className={inputCls}
+                          value={draft.address}
+                          onChange={(e) => setDraft({ ...draft, address: e.target.value })}
+                        />
                       </Field>
                       <Field label={t("patient_dashboard.city")}>
-                        <input className={inputCls} value={draft.city} onChange={(e) => setDraft({ ...draft, city: e.target.value })} placeholder="e.g. Kathmandu, Pokhara" list="pv-cities" />
+                        <input
+                          className={inputCls}
+                          value={draft.city}
+                          onChange={(e) => setDraft({ ...draft, city: e.target.value })}
+                          placeholder="e.g. Kathmandu, Pokhara"
+                          list="pv-cities"
+                        />
                         <datalist id="pv-cities">
-                          {CITIES.map((c) => <option key={c} value={c} />)}
+                          {CITIES.map((c) => (
+                            <option key={c} value={c} />
+                          ))}
                         </datalist>
                       </Field>
                     </>
@@ -607,24 +640,41 @@ export default function Profile() {
                         />
                       </Field>
                       <Field label={t("patient_dashboard.medicalHistory")}>
-                        <textarea className={`${inputCls} resize-y leading-relaxed`} rows={4} value={draft.history} onChange={(e) => setDraft({ ...draft, history: e.target.value })} />
+                        <textarea
+                          className={`${inputCls} resize-y leading-relaxed`}
+                          rows={4}
+                          value={draft.history}
+                          onChange={(e) => setDraft({ ...draft, history: e.target.value })}
+                        />
                       </Field>
-                      <Field label={t("patient_dashboard.preferredGender")}>
-                        <SelectInput value={draft.gender} onChange={(e) => setDraft({ ...draft, gender: e.target.value as "Any" | "Male" | "Female" })}>
-                          <option value="Any">{t("patient_dashboard.any")}</option>
-                          <option value="Male">{t("patient_dashboard.male")}</option>
-                          <option value="Female">{t("patient_dashboard.female")}</option>
-                        </SelectInput>
-                      </Field>
+                      <div>
+                        <FieldLabel>{t("patient_dashboard.preferredGender")}</FieldLabel>
+                        <ReadOnlyValue>
+                          {profile ? t(genderKey(profile.gender)) : "—"}
+                        </ReadOnlyValue>
+                        <p className="text-[11px] text-text-muted mt-1">
+                          {t("patient_dashboard.profileImmutableHint")}
+                        </p>
+                      </div>
                       <div>
                         <FieldLabel>{t("patient_dashboard.notifications")}</FieldLabel>
                         <div className="flex flex-wrap gap-2">
                           <label className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-border bg-white text-sm text-text cursor-pointer hover:border-primary/50 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                            <input type="checkbox" className="w-4 h-4 accent-primary" checked={draft.notifEmail} onChange={(e) => setDraft({ ...draft, notifEmail: e.target.checked })} />
+                            <input
+                              type="checkbox"
+                              className="w-4 h-4 accent-primary"
+                              checked={draft.notifEmail}
+                              onChange={(e) => setDraft({ ...draft, notifEmail: e.target.checked })}
+                            />
                             {t("patient_dashboard.email")}
                           </label>
                           <label className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-border bg-white text-sm text-text cursor-pointer hover:border-primary/50 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                            <input type="checkbox" className="w-4 h-4 accent-primary" checked={draft.notifSms} onChange={(e) => setDraft({ ...draft, notifSms: e.target.checked })} />
+                            <input
+                              type="checkbox"
+                              className="w-4 h-4 accent-primary"
+                              checked={draft.notifSms}
+                              onChange={(e) => setDraft({ ...draft, notifSms: e.target.checked })}
+                            />
                             {t("patient_dashboard.sms")}
                           </label>
                         </div>
@@ -637,22 +687,45 @@ export default function Profile() {
                         {t("patient_dashboard.profileEmergencyHint")}
                       </p>
                       <Field label={t("patient_dashboard.profileEmergencyName")}>
-                        <input className={inputCls} value={draft.emergencyName} onChange={(e) => setDraft({ ...draft, emergencyName: e.target.value })} />
+                        <input
+                          className={inputCls}
+                          value={draft.emergencyName}
+                          onChange={(e) => setDraft({ ...draft, emergencyName: e.target.value })}
+                        />
                       </Field>
                       <div className="grid sm:grid-cols-2 gap-4">
                         <Field label={t("patient_dashboard.profileEmergencyRelation")}>
-                          <input className={inputCls} value={draft.emergencyRelation} onChange={(e) => setDraft({ ...draft, emergencyRelation: e.target.value })} />
+                          <input
+                            className={inputCls}
+                            value={draft.emergencyRelation}
+                            onChange={(e) =>
+                              setDraft({ ...draft, emergencyRelation: e.target.value })
+                            }
+                          />
                         </Field>
                         <Field label={t("patient_dashboard.profileEmergencyPhone")}>
-                          <input className={inputCls} value={draft.emergencyPhone} onChange={(e) => setDraft({ ...draft, emergencyPhone: e.target.value })} placeholder="+977 ..." />
+                          <input
+                            className={inputCls}
+                            value={draft.emergencyPhone}
+                            onChange={(e) => setDraft({ ...draft, emergencyPhone: e.target.value })}
+                            placeholder="+977 ..."
+                          />
                         </Field>
                       </div>
                     </>
                   )}
                   <div className="pt-1">
-                    <button type="submit" disabled={saving} className="btn-secondary disabled:opacity-50">
-                      {saving ? t("common.submitting") : (
-                        <><Check size={14} /> {t("common.saveChanges")}</>
+                    <button
+                      type="submit"
+                      disabled={saving}
+                      className="btn-secondary disabled:opacity-50"
+                    >
+                      {saving ? (
+                        t("common.submitting")
+                      ) : (
+                        <>
+                          <Check size={14} /> {t("common.saveChanges")}
+                        </>
                       )}
                     </button>
                   </div>
@@ -661,16 +734,36 @@ export default function Profile() {
                 <dl className="divide-y divide-border">
                   {tab === "personal" && (
                     <>
-                      <Row icon={<UserIcon size={14} />} label={t("patient_dashboard.fullName")} value={profile?.name ?? "—"} />
+                      <Row
+                        icon={<UserIcon size={14} />}
+                        label={t("patient_dashboard.fullName")}
+                        value={profile?.name ?? "—"}
+                      />
                       <Row
                         icon={<CalendarDays size={14} />}
                         label={t("patient_dashboard.profileDateOfBirth")}
                         value={dobLine(profile, t("patient_dashboard.profileYrs"))}
                       />
-                      <Row icon={<MapPin size={14} />} label={t("patient_dashboard.homeAddress")} value={fullAddress(profile)} />
-                      <Row icon={<MapPin size={14} />} label={t("patient_dashboard.city")} value={profile?.city || "—"} />
-                      <Row icon={<Phone size={14} />} label={t("patient_dashboard.phone")} value={profile?.phone ?? "—"} />
-                      <Row icon={<Mail size={14} />} label={t("patient_dashboard.profileEmail")} value={user?.email ?? "—"} />
+                      <Row
+                        icon={<MapPin size={14} />}
+                        label={t("patient_dashboard.homeAddress")}
+                        value={fullAddress(profile)}
+                      />
+                      <Row
+                        icon={<MapPin size={14} />}
+                        label={t("patient_dashboard.city")}
+                        value={profile?.city || "—"}
+                      />
+                      <Row
+                        icon={<Phone size={14} />}
+                        label={t("patient_dashboard.phone")}
+                        value={profile?.phone ?? "—"}
+                      />
+                      <Row
+                        icon={<Mail size={14} />}
+                        label={t("patient_dashboard.profileEmail")}
+                        value={user?.email ?? "—"}
+                      />
                     </>
                   )}
                   {tab === "medical" && (
@@ -678,9 +771,17 @@ export default function Profile() {
                       <Row
                         icon={<Activity size={14} />}
                         label={t("patient_dashboard.profileConditions")}
-                        value={conditions.length ? conditions.join(", ") : t("patient_dashboard.profileNoConditions")}
+                        value={
+                          conditions.length
+                            ? conditions.join(", ")
+                            : t("patient_dashboard.profileNoConditions")
+                        }
                       />
-                      <Row icon={<ClipboardList size={14} />} label={t("patient_dashboard.medicalHistory")} value={profile?.history || t("patient_dashboard.profileNoConditions")} />
+                      <Row
+                        icon={<ClipboardList size={14} />}
+                        label={t("patient_dashboard.medicalHistory")}
+                        value={profile?.history || t("patient_dashboard.profileNoConditions")}
+                      />
                       <Row
                         icon={<UserRound size={14} />}
                         label={t("patient_dashboard.preferredGender")}
@@ -689,22 +790,38 @@ export default function Profile() {
                       <Row
                         icon={<Bell size={14} />}
                         label={t("patient_dashboard.notifications")}
-                        value={[profile?.notifEmail ? t("patient_dashboard.email") : null, profile?.notifSms ? t("patient_dashboard.sms") : null]
-                          .filter(Boolean)
-                          .join(", ") || "—"}
+                        value={
+                          [
+                            profile?.notifEmail ? t("patient_dashboard.email") : null,
+                            profile?.notifSms ? t("patient_dashboard.sms") : null,
+                          ]
+                            .filter(Boolean)
+                            .join(", ") || "—"
+                        }
                       />
                     </>
                   )}
                   {tab === "emergency" && (
                     <>
-                      <Row icon={<UserRound size={14} />} label={t("patient_dashboard.profileEmergencyName")} value={profile?.emergencyName || t("patient_dashboard.profileNoEmergency")} />
-                      <Row icon={<HeartHandshake size={14} />} label={t("patient_dashboard.profileEmergencyRelation")} value={profile?.emergencyRelation || "—"} />
-                      <Row icon={<Phone size={14} />} label={t("patient_dashboard.profileEmergencyPhone")} value={profile?.emergencyPhone || "—"} />
+                      <Row
+                        icon={<UserRound size={14} />}
+                        label={t("patient_dashboard.profileEmergencyName")}
+                        value={profile?.emergencyName || t("patient_dashboard.profileNoEmergency")}
+                      />
+                      <Row
+                        icon={<HeartHandshake size={14} />}
+                        label={t("patient_dashboard.profileEmergencyRelation")}
+                        value={profile?.emergencyRelation || "—"}
+                      />
+                      <Row
+                        icon={<Phone size={14} />}
+                        label={t("patient_dashboard.profileEmergencyPhone")}
+                        value={profile?.emergencyPhone || "—"}
+                      />
                     </>
                   )}
                 </dl>
-              )
-            )}
+              ))}
 
             {/* ─── Family tab ─── */}
             {tab === "family" && (
@@ -714,7 +831,9 @@ export default function Profile() {
                 </p>
 
                 {familyLoading ? (
-                  <div className="text-xs text-text-light py-6 text-center">{t("common.loading")}</div>
+                  <div className="text-xs text-text-light py-6 text-center">
+                    {t("common.loading")}
+                  </div>
                 ) : (
                   familyMembers.length > 0 && (
                     <ul className="rounded-xl border border-border divide-y divide-border overflow-hidden">
@@ -724,14 +843,36 @@ export default function Profile() {
                             <div className="space-y-3">
                               <div className="grid sm:grid-cols-2 gap-3">
                                 <Field label={t("patient_dashboard.fullName")}>
-                                  <input className={inputCls} value={familyDraft.name} onChange={(e) => setFamilyDraft({ ...familyDraft, name: e.target.value })} required />
+                                  <input
+                                    className={inputCls}
+                                    value={familyDraft.name}
+                                    onChange={(e) =>
+                                      setFamilyDraft({ ...familyDraft, name: e.target.value })
+                                    }
+                                    required
+                                  />
                                 </Field>
                                 <Field label={t("patient_dashboard.relationshipLabel")}>
-                                  <SelectInput value={familyDraft.relationship} onChange={(e) => setFamilyDraft({ ...familyDraft, relationship: e.target.value })} required>
+                                  <SelectInput
+                                    value={familyDraft.relationship}
+                                    onChange={(e) =>
+                                      setFamilyDraft({
+                                        ...familyDraft,
+                                        relationship: e.target.value,
+                                      })
+                                    }
+                                    required
+                                  >
                                     <option value="">{t("auth.selectOption")}</option>
-                                    <option value="Spouse">{t("patient_dashboard.relSpouse")}</option>
-                                    <option value="Parent">{t("patient_dashboard.relParent")}</option>
-                                    <option value="Sibling">{t("patient_dashboard.relSibling")}</option>
+                                    <option value="Spouse">
+                                      {t("patient_dashboard.relSpouse")}
+                                    </option>
+                                    <option value="Parent">
+                                      {t("patient_dashboard.relParent")}
+                                    </option>
+                                    <option value="Sibling">
+                                      {t("patient_dashboard.relSibling")}
+                                    </option>
                                     <option value="Child">{t("patient_dashboard.relChild")}</option>
                                     <option value="Other">{t("patient_dashboard.relOther")}</option>
                                   </SelectInput>
@@ -739,20 +880,46 @@ export default function Profile() {
                               </div>
                               <div className="grid sm:grid-cols-2 gap-3">
                                 <Field label={t("patient_dashboard.profileDateOfBirth")}>
-                                  <DatePicker value={familyDraft.dob} onChange={(v) => setFamilyDraft({ ...familyDraft, dob: v })} placeholder={t("patient_dashboard.profileDateOfBirth")} dropdowns />
+                                  <DatePicker
+                                    value={familyDraft.dob}
+                                    onChange={(v) => setFamilyDraft({ ...familyDraft, dob: v })}
+                                    placeholder={t("patient_dashboard.profileDateOfBirth")}
+                                    dropdowns
+                                  />
                                 </Field>
                                 <Field label={t("patient_dashboard.phone")}>
-                                  <input className={inputCls} value={familyDraft.phone} onChange={(e) => setFamilyDraft({ ...familyDraft, phone: e.target.value })} />
+                                  <input
+                                    className={inputCls}
+                                    value={familyDraft.phone}
+                                    onChange={(e) =>
+                                      setFamilyDraft({ ...familyDraft, phone: e.target.value })
+                                    }
+                                  />
                                 </Field>
                               </div>
                               <Field label={t("patient_dashboard.conditionOptional")}>
-                                <input className={inputCls} value={familyDraft.condition} onChange={(e) => setFamilyDraft({ ...familyDraft, condition: e.target.value })} placeholder={t("patient_dashboard.profileConditionPlaceholder")} />
+                                <input
+                                  className={inputCls}
+                                  value={familyDraft.condition}
+                                  onChange={(e) =>
+                                    setFamilyDraft({ ...familyDraft, condition: e.target.value })
+                                  }
+                                  placeholder={t("patient_dashboard.profileConditionPlaceholder")}
+                                />
                               </Field>
                               <div className="flex items-center gap-3 pt-0.5">
-                                <button type="button" onClick={handleUpdateFamily} className="btn-secondary !py-2 !px-4 text-xs">
+                                <button
+                                  type="button"
+                                  onClick={handleUpdateFamily}
+                                  className="btn-secondary !py-2 !px-4 text-xs"
+                                >
                                   <Check size={13} /> {t("patient_dashboard.familySave")}
                                 </button>
-                                <button type="button" onClick={resetFamilyDraft} className="text-xs font-medium text-text-light hover:text-text cursor-pointer">
+                                <button
+                                  type="button"
+                                  onClick={resetFamilyDraft}
+                                  className="text-xs font-medium text-text-light hover:text-text cursor-pointer"
+                                >
                                   {t("patient_dashboard.familyCancel")}
                                 </button>
                               </div>
@@ -769,7 +936,9 @@ export default function Profile() {
                                     {fm.relationship}
                                   </span>
                                 </div>
-                                {fm.phone && <div className="text-xs text-text-light mt-1">{fm.phone}</div>}
+                                {fm.phone && (
+                                  <div className="text-xs text-text-light mt-1">{fm.phone}</div>
+                                )}
                                 {fm.condition && (
                                   <div className="text-xs text-text-light mt-0.5">
                                     {t("patient_dashboard.profileCondition")}: {fm.condition}
@@ -777,10 +946,20 @@ export default function Profile() {
                                 )}
                               </div>
                               <div className="flex gap-1 shrink-0">
-                                <button type="button" onClick={() => startEditFamily(i)} aria-label={t("patient_dashboard.profileEdit")} className="p-2 rounded-lg hover:bg-surface text-text-light hover:text-secondary transition-colors cursor-pointer">
+                                <button
+                                  type="button"
+                                  onClick={() => startEditFamily(i)}
+                                  aria-label={t("patient_dashboard.profileEdit")}
+                                  className="p-2 rounded-lg hover:bg-surface text-text-light hover:text-secondary transition-colors cursor-pointer"
+                                >
                                   <Pencil size={13} />
                                 </button>
-                                <button type="button" onClick={() => handleDeleteFamily(fm.id)} aria-label={t("patient_dashboard.familyRemoved")} className="p-2 rounded-lg hover:bg-danger/10 text-text-light hover:text-danger transition-colors cursor-pointer">
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteFamily(fm.id)}
+                                  aria-label={t("patient_dashboard.familyRemoved")}
+                                  className="p-2 rounded-lg hover:bg-danger/10 text-text-light hover:text-danger transition-colors cursor-pointer"
+                                >
                                   <Trash2 size={13} />
                                 </button>
                               </div>
@@ -805,10 +984,20 @@ export default function Profile() {
                     </div>
                     <div className="grid sm:grid-cols-2 gap-3">
                       <Field label={t("patient_dashboard.fullName")}>
-                        <input className={inputCls} value={familyDraft.name} onChange={(e) => setFamilyDraft({ ...familyDraft, name: e.target.value })} placeholder={t("patient_dashboard.fullName")} />
+                        <input
+                          className={inputCls}
+                          value={familyDraft.name}
+                          onChange={(e) => setFamilyDraft({ ...familyDraft, name: e.target.value })}
+                          placeholder={t("patient_dashboard.fullName")}
+                        />
                       </Field>
                       <Field label={t("patient_dashboard.relationshipLabel")}>
-                        <SelectInput value={familyDraft.relationship} onChange={(e) => setFamilyDraft({ ...familyDraft, relationship: e.target.value })}>
+                        <SelectInput
+                          value={familyDraft.relationship}
+                          onChange={(e) =>
+                            setFamilyDraft({ ...familyDraft, relationship: e.target.value })
+                          }
+                        >
                           <option value="">{t("auth.selectOption")}</option>
                           <option value="Spouse">{t("patient_dashboard.relSpouse")}</option>
                           <option value="Parent">{t("patient_dashboard.relParent")}</option>
@@ -820,14 +1009,33 @@ export default function Profile() {
                     </div>
                     <div className="grid sm:grid-cols-2 gap-3">
                       <Field label={t("patient_dashboard.profileDateOfBirth")}>
-                        <DatePicker value={familyDraft.dob} onChange={(v) => setFamilyDraft({ ...familyDraft, dob: v })} placeholder={t("patient_dashboard.profileDateOfBirth")} dropdowns />
+                        <DatePicker
+                          value={familyDraft.dob}
+                          onChange={(v) => setFamilyDraft({ ...familyDraft, dob: v })}
+                          placeholder={t("patient_dashboard.profileDateOfBirth")}
+                          dropdowns
+                        />
                       </Field>
                       <Field label={t("patient_dashboard.phone")}>
-                        <input className={inputCls} value={familyDraft.phone} onChange={(e) => setFamilyDraft({ ...familyDraft, phone: e.target.value })} placeholder={t("patient_dashboard.conditionOptional")} />
+                        <input
+                          className={inputCls}
+                          value={familyDraft.phone}
+                          onChange={(e) =>
+                            setFamilyDraft({ ...familyDraft, phone: e.target.value })
+                          }
+                          placeholder={t("patient_dashboard.conditionOptional")}
+                        />
                       </Field>
                     </div>
                     <Field label={t("patient_dashboard.conditionOptional")}>
-                      <input className={inputCls} value={familyDraft.condition} onChange={(e) => setFamilyDraft({ ...familyDraft, condition: e.target.value })} placeholder={t("patient_dashboard.profileConditionPlaceholder")} />
+                      <input
+                        className={inputCls}
+                        value={familyDraft.condition}
+                        onChange={(e) =>
+                          setFamilyDraft({ ...familyDraft, condition: e.target.value })
+                        }
+                        placeholder={t("patient_dashboard.profileConditionPlaceholder")}
+                      />
                     </Field>
                     <button
                       type="button"
@@ -898,6 +1106,14 @@ function FieldLabel({ children }: { children: ReactNode }) {
     <span className="block mb-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-text-light">
       {children}
     </span>
+  );
+}
+
+function ReadOnlyValue({ children }: { children: ReactNode }) {
+  return (
+    <div className="mt-1 px-3.5 py-2.5 rounded-xl border border-border bg-surface/40 text-sm font-medium text-text leading-snug">
+      {children || "—"}
+    </div>
   );
 }
 

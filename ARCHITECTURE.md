@@ -172,6 +172,26 @@ Patients and therapists attach up to 3 evidence files (photos/screenshots) when 
 ### Report file serving
 `GET /api/v1/uploads/[patientId]/[filename]` passes the JWT as a `token` query param (backend report serving is token-authenticated) instead of a bearer header.
 
+## Admin — Bookings & Refunds
+
+### Booking references (`bk-…`)
+- Every session renders a short id `bk-XXXXXXXX` derived from the session id (`src/lib/booking-ref.ts`, last 8 chars of the cuid uppercased). It replaces the raw Prisma id in all admin tables (bookings, refunds, schedules list), the patient session cards/table + dashboard upcoming list, and the therapist schedule popover + today's sessions.
+- Admin search supports the reference: `GET /admin/bookings?search=bk-…` and `GET /admin/refunds?search=bk-…` match by id-suffix (`endsWith`, case-insensitive). The refunds Booking column deep-links to `/admin/bookings?search=<rawId>`.
+
+### Admin bookings
+- `GET /admin/bookings` filters by `status`, `dateFrom`/`dateTo`, `patientId`, paginates (`skip`/`limit`), and demonstrates a **Booking ID** column backed by the real session id.
+- `useAdminBookings` (`src/hooks/useAdminBookings.ts`) + `getAdminBookings` (patient-scoped: `GET /admin/bookings?patientId=`) feed the refunds booking picker.
+
+### Admin refunds
+- Source of truth is the backend; the list query (`useAdminRefunds`) passes `skip/limit/sort/filters` and renders DataTable pagination when `total > pageSize`, resetting to page 1 on any filter/sort change.
+- Stat cards come from `GET /admin/refunds/stats` (pending, refunded this month, dispute rate, avg resolution days) — refreshed every 30s by the hook.
+- **Nav badge is now live**: every refund mutation (`useAdminRefunds`) invalidates `["admin-nav-badges"]`, so the sidebar refund count clears after approve/deny/delete/create instead of going stale.
+- **Pickers**: Add Refund and Log Manual Case modals use `PatientPicker` (debounced 300ms search of `GET /admin/patients?search=&limit=10`) and `BookingPicker` (loads that patient's bookings via `GET /admin/bookings?patientId=`). Assign uses `AssigneePicker` (debounced `GET /admin/users?role=ADMIN`).
+- Deny and Delete dialogs show a case-detail box (Booking ID, patient, amount, filed on) before confirming.
+
+### Platform earnings trend
+- Admin dashboard `PlatformEarnings` renders a recharts area chart fed by `GET /admin/dashboard/earnings-trend` (daily / weekly / monthly buckets — backend derives them from COMPLETED payments). Handled by `useAdminDashboard` → `earningsTrend` query; has its own empty state + skeleton.
+
 ## Styling
 
 - Tailwind CSS v4 with `@theme inline` for design tokens
