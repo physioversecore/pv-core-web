@@ -33,16 +33,16 @@ async function request<T = unknown>(
     cache: "no-store",
   });
 
-  if (res.status === 401) throw new AuthError();
-
-  if (!res.ok) {
+  if (res.status !== 204) {
     const body = await res.json().catch(() => null);
-    throw new Error(body?.detail ?? `API error ${res.status}: ${res.statusText}`);
+    const message =
+      body?.detail ?? body?.message ?? `API error ${res.status}: ${res.statusText}`;
+    if (res.status === 401) throw new AuthError(message);
+    if (!res.ok) throw new Error(message);
+    return body as T;
   }
 
-  if (res.status === 204) return undefined as T;
-
-  return res.json();
+  return undefined as T;
 }
 
 export const api = {

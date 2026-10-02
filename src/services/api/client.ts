@@ -41,22 +41,21 @@ async function request<T = unknown>(
     cache: "no-store",
   });
 
+  const body = res.status !== 204 ? await res.json().catch(() => null) : null;
+  const message =
+    body?.detail ?? body?.message ?? `API error ${res.status}: ${res.statusText}`;
+
   if (res.status === 401) {
-    const body = await res.json().catch(() => null);
-    throw new AuthError(body?.detail);
+    throw new AuthError(message);
   }
 
   if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    throw apiError(
-      body?.detail ?? body?.message ?? `API error ${res.status}: ${res.statusText}`,
-      res.status,
-    );
+    throw apiError(message, res.status);
   }
 
   if (res.status === 204) return undefined as T;
 
-  return res.json();
+  return body as T;
 }
 
 export const api = {
